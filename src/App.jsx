@@ -176,16 +176,14 @@ export default function HowWas() {
     { value: 'got-worse', label: 'Got Worse', color: 'bg-red-100 text-red-800' }
   ];
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (currentEntry.problem && currentEntry.problemCategory && 
         currentEntry.solution && currentEntry.result && currentEntry.resultCategory) {
-      setExperiences([...experiences, { 
-        ...currentEntry, 
-        id: Date.now(), 
-        avgRating: 0,
-        totalRatings: 0,
-        comments: []
-      }]);
+      
+      // Save to Supabase
+      await addExperienceToSupabase(currentEntry);
+      
+      // Clear form
       setCurrentEntry({
         problem: '',
         problemCategory: '',
@@ -198,7 +196,6 @@ export default function HowWas() {
       });
     }
   };
-
   const handleUserRating = (expId, rating) => {
     setUserRatings({...userRatings, [expId]: rating});
   };
