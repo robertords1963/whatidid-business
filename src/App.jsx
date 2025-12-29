@@ -196,8 +196,41 @@ export default function HowWas() {
       });
     }
   };
-  const handleUserRating = (expId, rating) => {
-    setUserRatings({...userRatings, [expId]: rating});
+  const handleUserRating = async (expId, rating) => {
+    try {
+      // Save user's rating locally
+      setUserRatings({...userRatings, [expId]: rating});
+      
+      // Find the experience
+      const exp = experiences.find(e => e.id === expId);
+      if (!exp) return;
+      
+      // Calculate new average
+      const newTotalRatings = exp.totalRatings + 1;
+      const newAvgRating = ((exp.avgRating * exp.totalRatings) + rating) / newTotalRatings;
+      
+      // Update in Supabase
+      const { error } = await supabase
+        .from('experiences')
+        .update({ 
+          avg_rating: newAvgRating,
+          total_ratings: newTotalRatings
+        })
+        .eq('id', expId);
+      
+      if (error) {
+        console.error('❌ Error saving rating:', error);
+        return;
+      }
+      
+      console.log('⭐ Rating saved successfully!');
+      
+      // Reload experiences to show updated rating
+      await loadExperiences();
+      
+    } catch (error) {
+      console.error('❌ Error in handleUserRating:', error);
+    }
   };
 
   const handleAdminLogin = () => {
