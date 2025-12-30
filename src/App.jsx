@@ -923,6 +923,7 @@ export default function HowWas() {
                       <div className="mt-4 mb-4 flex gap-2">
                         <button
                           onClick={async () => {
+                          console.log('🗑️ Delete button clicked!');
                           const isConfirming = confirmDelete === `exp-${exp.id}`;
                           
                           if (isConfirming) {
