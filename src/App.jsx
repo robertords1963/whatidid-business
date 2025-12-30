@@ -922,7 +922,18 @@ export default function HowWas() {
                     return (
                       <div className="mt-4 mb-4 flex gap-2">
                         <button
-                          onClick={() => handleDelete(exp.id)}
+                          onClick={async () => {
+                          const isConfirming = confirmDelete === `exp-${exp.id}`;
+                          
+                          if (isConfirming) {
+                            // Second click - actually delete from Supabase
+                            await deleteExperienceFromSupabase(exp.id);
+                            setConfirmDelete(null);
+                          } else {
+                            // First click - enter confirm mode
+                            setConfirmDelete(`exp-${exp.id}`);
+                          }
+                        }}
                           className={`px-4 py-2 text-white rounded text-sm flex items-center gap-2 ${
                             isConfirming 
                               ? 'bg-orange-600 hover:bg-orange-700 animate-pulse' 
