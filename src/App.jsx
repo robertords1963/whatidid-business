@@ -485,14 +485,27 @@ export default function HowWas() {
                                   <div className="flex gap-2">
                                     <button
                                     onClick={async () => {
-                                      console.log('🔍 Search Delete clicked');
+                                    console.log('🔍 Search Delete clicked');
+                                    
+                                    const confirmKey = match.type === 'comment' 
+                                      ? `comment-${match.expId}-${match.commentId}`
+                                      : `exp-${match.expId}`;
+                                    const isConfirming = confirmDelete === confirmKey;
+                                    
+                                    if (isConfirming) {
+                                      // Second click - actually delete
                                       if (match.type === 'comment') {
                                         handleDeleteComment(match.expId, match.commentId);
                                       } else {
                                         console.log('🔍 Deleting match:', match.expId);
                                         await deleteExperienceFromSupabase(match.expId);
                                       }
-                                    }}
+                                      setConfirmDelete(null);
+                                    } else {
+                                      // First click - enter confirm mode
+                                      setConfirmDelete(confirmKey);
+                                    }
+                                  }}
                                       className={`px-3 py-1 text-white text-xs rounded flex items-center gap-1 ${
                                         isConfirming 
                                           ? 'bg-orange-600 hover:bg-orange-700 animate-pulse' 
