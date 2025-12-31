@@ -924,7 +924,10 @@ export default function HowWas() {
                         <button
                           onClick={async () => {
                           console.log('🗑️ Delete button clicked!');
+                          console.log('🔘 confirmDelete:', confirmDelete);
+                          console.log('🔘 exp.id:', exp.id);
                           const isConfirming = confirmDelete === `exp-${exp.id}`;
+                          console.log('🔘 isConfirming:', isConfirming);
                           
                           if (isConfirming) {
                             // Second click - actually delete from Supabase
