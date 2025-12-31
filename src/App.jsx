@@ -484,13 +484,15 @@ export default function HowWas() {
                                 return (
                                   <div className="flex gap-2">
                                     <button
-                                      onClick={async () => {
-                                        if (match.type === 'comment') {
-                                          handleDeleteComment(match.expId, match.commentId);
-                                        } else {
+                                    onClick={async () => {
+                                      console.log('🔍 Search Delete clicked');
+                                      if (match.type === 'comment') {
+                                        handleDeleteComment(match.expId, match.commentId);
+                                      } else {
+                                        console.log('🔍 Deleting match:', match.expId);
                                         await deleteExperienceFromSupabase(match.expId);
-                                        }
-                                      }}
+                                      }
+                                    }}
                                       className={`px-3 py-1 text-white text-xs rounded flex items-center gap-1 ${
                                         isConfirming 
                                           ? 'bg-orange-600 hover:bg-orange-700 animate-pulse' 
