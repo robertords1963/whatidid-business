@@ -113,7 +113,6 @@ export default function HowWas() {
 
   // Function to delete experience from Supabase
   const deleteExperienceFromSupabase = async (id) => {
-    alert('🗑️ Deletando experiência ID: ' + id);
     try {
       const { error } = await supabase
         .from('experiences')
