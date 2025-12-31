@@ -489,7 +489,7 @@ export default function HowWas() {
                                         if (match.type === 'comment') {
                                           handleDeleteComment(match.expId, match.commentId);
                                         } else {
-                                          handleDelete(match.expId);
+                                        await deleteExperienceFromSupabase(match.expId);
                                         }
                                       }}
                                       className={`px-3 py-1 text-white text-xs rounded flex items-center gap-1 ${
