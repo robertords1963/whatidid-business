@@ -485,7 +485,7 @@ export default function HowWas() {
                                 return (
                                   <div className="flex gap-2">
                                     <button
-                                      onClick={() => {
+                                      onClick={async () => {
                                         if (match.type === 'comment') {
                                           handleDeleteComment(match.expId, match.commentId);
                                         } else {
