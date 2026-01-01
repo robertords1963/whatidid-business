@@ -445,29 +445,7 @@ setExperiences(transformedData);
     return matches;
   };
 
-  const handleAddComment = (expId) => {
-    const commentText = newComment[expId];
-    if (!commentText || !commentText.trim()) return;
-
-    const updatedExperiences = experiences.map(exp => {
-      if (exp.id === expId) {
-        const newCommentObj = {
-          id: Date.now(),
-          author: '',
-          text: commentText.trim(),
-          timestamp: 'Just now'
-        };
-        return {
-          ...exp,
-          comments: []
-        };
-      }
-      return exp;
-    });
-
-    setExperiences(updatedExperiences);
-    setNewComment({...newComment, [expId]: ''});
-  };
+  
 
   const getResultColor = (category) => resultCategories.find(r => r.value === category)?.color || '';
   const getResultLabel = (category) => resultCategories.find(r => r.value === category)?.label || '';
