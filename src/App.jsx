@@ -90,7 +90,25 @@ export default function HowWas() {
         comments: [] // Comments can be added later
       }));
       
-      setExperiences(transformedData);
+     // Load comments for each experience
+for (const exp of transformedData) {
+  const { data: commentsData } = await supabase
+    .from('comments')
+    .select('*')
+    .eq('experience_id', exp.id)
+    .order('created_at', { ascending: true });
+  
+  if (commentsData) {
+    exp.comments = commentsData.map(c => ({
+      id: c.id,
+      text: c.comment_text,
+      author: c.author,
+      country: c.country
+    }));
+  }
+}
+
+setExperiences(transformedData);
     } catch (error) {
       console.error('Error loading experiences:', error);
       alert('Error loading data. Please refresh the page.');
