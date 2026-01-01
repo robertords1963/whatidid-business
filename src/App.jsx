@@ -24,8 +24,19 @@ export default function HowWas() {
 
   // Load experiences from Supabase on component mount
   useEffect(() => {
-    loadExperiences();
+  detectUserCountry();
+  loadExperiences();
   }, []);
+
+  // Function to get flag emoji from country code
+  const getFlagEmoji = (countryCode) => {
+    if (!countryCode || countryCode.length !== 2) return '';
+    const codePoints = countryCode
+      .toUpperCase()
+      .split('')
+      .map(char => 127397 + char.charCodeAt());
+    return String.fromCodePoint(...codePoints);
+  };
   
     // Function to detect user's country
     const detectUserCountry = async () => {
@@ -71,6 +82,7 @@ export default function HowWas() {
         author: exp.author || '',
         gender: exp.gender || '',
         age: exp.age || '',
+        country: exp.country || '',
         avgRating: exp.avg_rating || 0,
         totalRatings: exp.total_ratings || 0,
         comments: [] // Comments can be added later
@@ -85,6 +97,8 @@ export default function HowWas() {
     }
   };
 
+
+  
   // Function to add new experience to Supabase
   const addExperienceToSupabase = async (newExperience) => {
     console.log('🚀 Starting to save experience...');
@@ -105,6 +119,7 @@ export default function HowWas() {
             author: newExperience.author || '',
             gender: newExperience.gender || '',
             age: newExperience.age || '',
+            country: newExperience.country || '',
             avg_rating: 0,
             total_ratings: 0
           }
@@ -218,6 +233,7 @@ export default function HowWas() {
         author: '',
         gender: '',
         age: '',
+        country: userCountryName || ''
       });
     }
   };
