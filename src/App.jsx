@@ -152,7 +152,8 @@ export default function HowWas() {
     resultCategory: '',
     rating: '',
     gender: '',
-    age: ''
+    age: '',
+    country: ''
   });
 
   const [userRatings, setUserRatings] = useState({});
