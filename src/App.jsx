@@ -965,11 +965,22 @@ setExperiences(transformedData);
                   {ageOptions.map(age => <option key={age} value={age}>{age}</option>)}
                 </select>
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-2">Country</label>
+                <select
+                  value={filters.country}
+                  onChange={(e) => setFilters({...filters, country: e.target.value})}
+                  className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                >
+                  <option value="">All</option>
+                  {countryOptions.map(country => <option key={country} value={country}>{country}</option>)}
+                </select>
+              </div>
             </div>
             
-            {(filters.problemCategory || filters.searchText || filters.resultCategory || filters.rating || filters.gender || filters.age) && (
+            {(filters.problemCategory || filters.searchText || filters.resultCategory || filters.rating || filters.gender || filters.age || filters.country) && (
               <button
-                onClick={() => setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '' })}
+                onClick={() => setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '' })}
                 className="mt-4 text-sm text-purple-600 hover:text-purple-800 font-medium"
               >
                 Clear filters
