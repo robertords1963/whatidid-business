@@ -26,7 +26,29 @@ export default function HowWas() {
   useEffect(() => {
     loadExperiences();
   }, []);
-
+  
+    // Function to detect user's country
+    const detectUserCountry = async () => {
+      try {
+        const response = await fetch('https://ipapi.co/json/');
+        const data = await response.json();
+        
+        if (data.country_code && data.country_name) {
+          setUserCountry(data.country_code);
+          setUserCountryName(data.country_name);
+          
+          setCurrentEntry(prev => ({
+            ...prev,
+            country: data.country_name
+          }));
+        }
+      } catch (error) {
+        console.error('Error detecting country:', error);
+        setUserCountry('');
+        setUserCountryName('');
+      }
+    };
+  
   // Function to load experiences from Supabase
   const loadExperiences = async () => {
     try {
