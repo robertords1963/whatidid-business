@@ -729,23 +729,92 @@ export default function HowWas() {
             </div>
           </div>
 
-          {/* Author Field */}
-          <div className="mt-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Author (optional)
-            </label>
-            <input
-              type="text"
-              value={currentEntry.author}
-              onChange={(e) => setCurrentEntry({...currentEntry, author: e.target.value})}
-              placeholder="Enter your name..."
-              className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-              maxLength={50}
-            />
-          </div>
+          
 
           {/* Gender and Age Fields */}
-          <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+
+{/* Author, Gender, Age, Country - All in one grid */}
+<div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+  
+  {/* Author */}
+  <div>
+    <label className="block text-sm font-medium text-gray-700 mb-2">
+      Author (optional)
+    </label>
+    <input
+      type="text"
+      value={currentEntry.author}
+      onChange={(e) => setCurrentEntry({...currentEntry, author: e.target.value})}
+      placeholder="Your name..."
+      className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+      maxLength={50}
+    />
+  </div>
+  
+  {/* Gender */}
+  <div>
+    <label className="block text-sm font-medium text-gray-700 mb-2">
+      Gender (optional)
+    </label>
+    <select
+      value={currentEntry.gender}
+      onChange={(e) => setCurrentEntry({...currentEntry, gender: e.target.value})}
+      className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+    >
+      <option value="">Prefer not to say</option>
+      {genderOptions.map(gender => (
+        <option key={gender} value={gender}>{gender}</option>
+      ))}
+    </select>
+  </div>
+  
+  {/* Age */}
+  <div>
+    <label className="block text-sm font-medium text-gray-700 mb-2">
+      Age Range (optional)
+    </label>
+    <select
+      value={currentEntry.age}
+      onChange={(e) => setCurrentEntry({...currentEntry, age: e.target.value})}
+      className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+    >
+      <option value="">Prefer not to say</option>
+      {ageOptions.map(age => (
+        <option key={age} value={age}>{age}</option>
+      ))}
+    </select>
+  </div>
+  
+  {/* Country */}
+  <div>
+    <label className="block text-sm font-medium text-gray-700 mb-2">
+      Country (auto-detected)
+    </label>
+    <div className="flex items-center gap-2">
+      <select
+        value={currentEntry.country}
+        onChange={(e) => setCurrentEntry({...currentEntry, country: e.target.value})}
+        className="flex-1 p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+      >
+        <option value="">Select country</option>
+        {countryOptions.map(country => (
+          <option key={country} value={country}>{country}</option>
+        ))}
+      </select>
+      {currentEntry.country && (
+        <span className="text-2xl" title={currentEntry.country}>
+          {getFlagEmoji(currentEntry.country.substring(0, 2))}
+        </span>
+      )}
+    </div>
+    <p className="text-xs text-gray-500 mt-1">
+      Detected: {userCountryName || 'Not detected'}
+    </p>
+  </div>
+  
+</div>
+            
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Gender (optional)
