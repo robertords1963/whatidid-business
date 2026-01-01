@@ -209,6 +209,42 @@ export default function HowWas() {
   
   const genderOptions = ['Male', 'Female', 'Other'];
   const ageOptions = ['0-20', '21-40', '41-60', '61-Up'];
+  const countryOptions = [
+    'Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Argentina', 
+    'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 
+    'Bangladesh', 'Barbados', 'Belarus', 'Belgium', 'Belize', 'Benin', 
+    'Bhutan', 'Bolivia', 'Bosnia and Herzegovina', 'Botswana', 'Brazil', 
+    'Brunei', 'Bulgaria', 'Burkina Faso', 'Burundi', 'Cambodia', 'Cameroon', 
+    'Canada', 'Cape Verde', 'Central African Republic', 'Chad', 'Chile', 
+    'China', 'Colombia', 'Comoros', 'Congo', 'Costa Rica', 'Croatia', 'Cuba', 
+    'Cyprus', 'Czech Republic', 'Denmark', 'Djibouti', 'Dominica', 
+    'Dominican Republic', 'East Timor', 'Ecuador', 'Egypt', 'El Salvador', 
+    'Equatorial Guinea', 'Eritrea', 'Estonia', 'Ethiopia', 'Fiji', 'Finland', 
+    'France', 'Gabon', 'Gambia', 'Georgia', 'Germany', 'Ghana', 'Greece', 
+    'Grenada', 'Guatemala', 'Guinea', 'Guinea-Bissau', 'Guyana', 'Haiti', 
+    'Honduras', 'Hungary', 'Iceland', 'India', 'Indonesia', 'Iran', 'Iraq', 
+    'Ireland', 'Israel', 'Italy', 'Jamaica', 'Japan', 'Jordan', 'Kazakhstan', 
+    'Kenya', 'Kiribati', 'North Korea', 'South Korea', 'Kuwait', 'Kyrgyzstan', 
+    'Laos', 'Latvia', 'Lebanon', 'Lesotho', 'Liberia', 'Libya', 'Liechtenstein', 
+    'Lithuania', 'Luxembourg', 'Macedonia', 'Madagascar', 'Malawi', 'Malaysia', 
+    'Maldives', 'Mali', 'Malta', 'Marshall Islands', 'Mauritania', 'Mauritius', 
+    'Mexico', 'Micronesia', 'Moldova', 'Monaco', 'Mongolia', 'Montenegro', 
+    'Morocco', 'Mozambique', 'Myanmar', 'Namibia', 'Nauru', 'Nepal', 
+    'Netherlands', 'New Zealand', 'Nicaragua', 'Niger', 'Nigeria', 'Norway', 
+    'Oman', 'Pakistan', 'Palau', 'Palestine', 'Panama', 'Papua New Guinea', 
+    'Paraguay', 'Peru', 'Philippines', 'Poland', 'Portugal', 'Qatar', 'Romania', 
+    'Russia', 'Rwanda', 'Saint Kitts and Nevis', 'Saint Lucia', 
+    'Saint Vincent and the Grenadines', 'Samoa', 'San Marino', 
+    'Sao Tome and Principe', 'Saudi Arabia', 'Senegal', 'Serbia', 'Seychelles', 
+    'Sierra Leone', 'Singapore', 'Slovakia', 'Slovenia', 'Solomon Islands', 
+    'Somalia', 'South Africa', 'South Sudan', 'Spain', 'Sri Lanka', 'Sudan', 
+    'Suriname', 'Swaziland', 'Sweden', 'Switzerland', 'Syria', 'Taiwan', 
+    'Tajikistan', 'Tanzania', 'Thailand', 'Togo', 'Tonga', 'Trinidad and Tobago', 
+    'Tunisia', 'Turkey', 'Turkmenistan', 'Tuvalu', 'Uganda', 'Ukraine', 
+    'United Arab Emirates', 'United Kingdom', 'United States', 'Uruguay', 
+    'Uzbekistan', 'Vanuatu', 'Vatican City', 'Venezuela', 'Vietnam', 'Yemen', 
+    'Zambia', 'Zimbabwe'
+  ];
   
   const resultCategories = [
     { value: 'worked', label: 'Worked', color: 'bg-green-100 text-green-800' },
@@ -709,7 +745,7 @@ export default function HowWas() {
           </div>
 
           {/* Gender and Age Fields */}
-          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Gender (optional)
@@ -724,30 +760,6 @@ export default function HowWas() {
                   <option key={gender} value={gender}>{gender}</option>
                 ))}
               </select>
-            </div>
-
-            {/* Country Field */}
-            <div className="mt-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Country (auto-detected)
-              </label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={currentEntry.country}
-                  onChange={(e) => setCurrentEntry({...currentEntry, country: e.target.value})}
-                  placeholder={userCountryName || "Your country"}
-                  className="flex-1 p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-                />
-                {userCountry && (
-                  <span className="text-2xl" title={userCountryName}>
-                    {getFlagEmoji(userCountry)}
-                  </span>
-                )}
-              </div>
-              <p className="text-xs text-gray-500 mt-1">
-                Automatically detected: {userCountryName || 'Not detected'}
-              </p>
             </div>
             
             <div>
@@ -767,6 +779,32 @@ export default function HowWas() {
             </div>
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Country (auto-detected)
+            </label>
+            <div className="flex items-center gap-2">
+              <select
+                value={currentEntry.country}
+                onChange={(e) => setCurrentEntry({...currentEntry, country: e.target.value})}
+                className="flex-1 p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+              >
+                <option value="">Select country</option>
+                {countryOptions.map(country => (
+                  <option key={country} value={country}>{country}</option>
+                ))}
+              </select>
+              {currentEntry.country && (
+                <span className="text-2xl" title={currentEntry.country}>
+                  {getFlagEmoji(currentEntry.country.substring(0, 2))}
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              Detected: {userCountryName || 'Not detected'}
+            </p>
+          </div>
+          
           <button
             onClick={handleSubmit}
             className="w-full mt-6 bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all shadow-lg"
