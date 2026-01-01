@@ -730,7 +730,7 @@ export default function HowWas() {
           </div>
 
 {/* Author, Gender, Age, Country - All in one grid */}
-<div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+<div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
   
   {/* Author */}
   <div>
