@@ -20,6 +20,8 @@ export default function HowWas() {
   // Change from hardcoded array to empty array - will load from Supabase
   const [experiences, setExperiences] = useState([]);
   const [userCountry, setUserCountry] = useState('');
+  const [newComment, setNewComment] = useState({ text: '', author: '' });
+  const [addingComment, setAddingComment] = useState(null); // ID da exp recebendo comentário
   const [userCountryName, setUserCountryName] = useState('');
 
   // Load experiences from Supabase on component mount
@@ -171,6 +173,45 @@ export default function HowWas() {
     }
   };
 
+  // Function to add comment to Supabase
+const addCommentToSupabase = async (experienceId) => {
+  if (!newComment.text.trim()) {
+    alert('Please enter a comment!');
+    return;
+  }
+  
+  try {
+    setAddingComment(experienceId);
+    
+    const { data, error } = await supabase
+      .from('comments')
+      .insert([
+        {
+          experience_id: experienceId,
+          comment_text: newComment.text,
+          author: newComment.author || '',
+          country: userCountryName || ''
+        }
+      ])
+      .select();
+    
+    if (error) throw error;
+    
+    console.log('✅ Comment added successfully!');
+    
+    // Clear comment form
+    setNewComment({ text: '', author: '' });
+    
+    // Reload experiences to show new comment
+    await loadExperiences();
+    
+  } catch (error) {
+    console.error('❌ Error adding comment:', error);
+    alert('Error adding comment. Please try again.');
+  } finally {
+    setAddingComment(null);
+  }
+};
 
   const [currentEntry, setCurrentEntry] = useState({
     problem: '',
