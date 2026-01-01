@@ -191,7 +191,42 @@ setExperiences(transformedData);
     }
   };
 
+  const handleAddComment = async (experienceId) => {
+  const commentText = newComment[experienceId];
   
+  if (!commentText?.trim()) {
+    alert('Please enter a comment!');
+    return;
+  }
+  
+  try {
+    setAddingComment(experienceId);
+    
+    const { data, error } = await supabase
+      .from('comments')
+      .insert([{
+        experience_id: experienceId,
+        comment_text: commentText,
+        author: '',
+        country: userCountryName || ''
+      }])
+      .select();
+    
+    if (error) throw error;
+    
+    const updatedComments = {...newComment};
+    delete updatedComments[experienceId];
+    setNewComment(updatedComments);
+    
+    await loadExperiences();
+    
+  } catch (error) {
+    console.error('❌ Error:', error);
+    alert('Error adding comment.');
+  } finally {
+    setAddingComment(null);
+  }
+};
 
   const [currentEntry, setCurrentEntry] = useState({
     problem: '',
@@ -1146,7 +1181,12 @@ setExperiences(transformedData);
                                     )}
                                   </div>
                                 </div>
-                                <p className="text-sm text-gray-700">{comment.text}</p>
+                                <p className="text-sm text-gray-700">
+                                {comment.text}
+                                {comment.country && (
+                                  <span className="text-gray-500 ml-2">({comment.country})</span>
+                                )}
+                              </p>
                               </div>
                             ))}
                           </div>
