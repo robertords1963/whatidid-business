@@ -1131,86 +1131,64 @@ setExperiences(transformedData);
                     );
                   })()}
 
-                  {/* Comments Section */}
-                  <div className="border-t pt-4 mt-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <h4 className="font-semibold text-gray-700 flex items-center gap-2">
-                        <MessageCircle size={18} />
-                        Comments ({exp.comments.length})
-                      </h4>
-                      <button
-                        onClick={() => setShowComments({...showComments, [exp.id]: !showComments[exp.id]})}
-                        className="text-sm text-purple-600 hover:text-purple-800 font-medium"
-                      >
-                        {showComments[exp.id] ? 'Hide' : 'Show'} Comments
-                      </button>
-                    </div>
-
-                    {showComments[exp.id] && (
-                      <div className="space-y-4">
-                        {/* Existing Comments */}
-                        {exp.comments.length > 0 && (
-                          <div className="space-y-3 mb-4">
-                            {exp.comments.map(comment => (
-                              <div key={comment.id} className="bg-gray-50 rounded-lg p-3">
-                                <div className="flex justify-between items-start mb-1">
-                                  <span className="font-semibold text-sm text-gray-800">{comment.author}</span>
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-xs text-gray-500">{comment.timestamp}</span>
-                                    {isAdmin && (
-                                      <button
-                                        onClick={() => handleDeleteComment(exp.id, comment.id)}
-                                        className="text-xs text-red-600 hover:text-red-800 font-medium"
-                                      >
-                                        Delete
-                                      </button>
-                                    )}
-                                  </div>
-                                </div>
-                                <p className="text-sm text-gray-700">
-                                {comment.text}
-                                {comment.country && (
-                                  <span className="text-gray-500 ml-2">({comment.country})</span>
-                                )}
-                              </p>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-
-                        {/* Add Comment Input */}
-                        <div className="flex gap-2">
-                          <textarea
-                            value={newComment[exp.id] || ''}
-                            onChange={(e) => {
-                              if (e.target.value.length <= maxChars.comment) {
-                                setNewComment({...newComment, [exp.id]: e.target.value});
-                              }
-                            }}
-                            placeholder="Add a comment..."
-                            className="flex-1 p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none resize-none"
-                            rows="2"
-                          />
-                          <button
-                            onClick={() => handleAddComment(exp.id)}
-                            disabled={!newComment[exp.id]?.trim()}
-                            className="px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
-                          >
-                            <Send size={18} />
-                          </button>
-                        </div>
-                        <div className="text-xs text-gray-500 text-right">
-                          {(newComment[exp.id] || '').length}/{maxChars.comment}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+                 {/* Comments Section */}
+<div className="border-t pt-4 mt-4">
+  {/* Add Comment Input - ALWAYS VISIBLE */}
+  <div className="mb-4">
+    <h4 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
+      <MessageCircle size={18} />
+      Add a Comment
+    </h4>
+    <div className="flex gap-2">
+      <textarea
+        value={newComment[exp.id] || ''}
+        onChange={(e) => {
+          if (e.target.value.length <= maxChars.comment) {
+            setNewComment({...newComment, [exp.id]: e.target.value});
+          }
+        }}
+        placeholder="Share your thoughts..."
+        className="flex-1 p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none resize-none"
+        rows="2"
+      />
+      <button
+        onClick={() => handleAddComment(exp.id)}
+        disabled={!newComment[exp.id]?.trim() || addingComment === exp.id}
+        className="px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
+      >
+        <Send size={18} />
+      </button>
     </div>
-  );
-}
+    <div className="text-xs text-gray-500 text-right mt-1">
+      {(newComment[exp.id] || '').length}/{maxChars.comment}
+    </div>
+  </div>
+
+  {/* Show Previous Comments Button */}
+  {exp.comments.length > 0 && (
+    <div>
+      <button
+        onClick={() => setShowComments({...showComments, [exp.id]: !showComments[exp.id]})}
+        className="text-sm text-purple-600 hover:text-purple-800 font-medium mb-3 flex items-center gap-2"
+      >
+        <MessageCircle size={16} />
+        {showComments[exp.id] ? 'Hide' : 'Show'} {exp.comments.length} Previous {exp.comments.length === 1 ? 'Comment' : 'Comments'}
+      </button>
+      
+      {showComments[exp.id] && (
+        <div className="space-y-3">
+          {exp.comments.map(comment => (
+            <div key={comment.id} className="bg-gray-50 rounded-lg p-3">
+              <p className="text-sm text-gray-700">
+                {comment.text}
+                {comment.country && (
+                  <span className="text-gray-500 ml-2">({comment.country})</span>
+                )}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )}
+</div>
