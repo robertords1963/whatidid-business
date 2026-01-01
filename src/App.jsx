@@ -19,6 +19,8 @@ export default function HowWas() {
 
   // Change from hardcoded array to empty array - will load from Supabase
   const [experiences, setExperiences] = useState([]);
+  const [userCountry, setUserCountry] = useState('');
+  const [userCountryName, setUserCountryName] = useState('');
 
   // Load experiences from Supabase on component mount
   useEffect(() => {
