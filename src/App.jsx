@@ -472,8 +472,9 @@ setExperiences(transformedData);
     const matchesRating = !filters.rating || roundedRating === parseInt(filters.rating);
     const matchesGender = !filters.gender || exp.gender === filters.gender;
     const matchesAge = !filters.age || exp.age === filters.age;
+    const matchesCountry = !filters.country || exp.country === filters.country;
     
-    return matchesProblemCategory && matchesSearchText && matchesResultCategory && matchesRating && matchesGender && matchesAge;
+    return matchesProblemCategory && matchesSearchText && matchesResultCategory && matchesRating && matchesGender && matchesAge && matchesCountry;
   });
 
   const ratingStats = [1, 2, 3, 4, 5].map(stars => ({
