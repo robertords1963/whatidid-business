@@ -815,38 +815,9 @@ export default function HowWas() {
   
 </div>
             
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Gender (optional)
-              </label>
-              <select
-                value={currentEntry.gender}
-                onChange={(e) => setCurrentEntry({...currentEntry, gender: e.target.value})}
-                className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-              >
-                <option value="">Prefer not to say</option>
-                {genderOptions.map(gender => (
-                  <option key={gender} value={gender}>{gender}</option>
-                ))}
-              </select>
-            </div>
             
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Age Range (optional)
-              </label>
-              <select
-                value={currentEntry.age}
-                onChange={(e) => setCurrentEntry({...currentEntry, age: e.target.value})}
-                className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-              >
-                <option value="">Prefer not to say</option>
-                {ageOptions.map(age => (
-                  <option key={age} value={age}>{age}</option>
-                ))}
-              </select>
-            </div>
-          </div>
+            
+            
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
