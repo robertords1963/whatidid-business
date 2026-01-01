@@ -89,22 +89,31 @@ export default function HowWas() {
         comments: [] // Comments can be added later
       }));
       
-     // Load comments for each experience
-for (const exp of transformedData) {
-  const { data: commentsData } = await supabase
-    .from('comments')
-    .select('*')
-    .eq('experience_id', exp.id)
-    .order('created_at', { ascending: true });
-  
-  if (commentsData) {
-    exp.comments = commentsData.map(c => ({
+    // Load ALL comments at once
+const { data: allComments } = await supabase
+  .from('comments')
+  .select('*')
+  .order('created_at', { ascending: true });
+
+if (allComments) {
+  // Group comments by experience_id
+  const commentsByExp = {};
+  allComments.forEach(c => {
+    if (!commentsByExp[c.experience_id]) {
+      commentsByExp[c.experience_id] = [];
+    }
+    commentsByExp[c.experience_id].push({
       id: c.id,
       text: c.comment_text,
       author: c.author,
       country: c.country
-    }));
-  }
+    });
+  });
+  
+  // Assign comments to experiences
+  transformedData.forEach(exp => {
+    exp.comments = commentsByExp[exp.id] || [];
+  });
 }
 
 setExperiences(transformedData);
