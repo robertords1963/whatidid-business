@@ -726,6 +726,30 @@ export default function HowWas() {
               </select>
             </div>
 
+            {/* Country Field */}
+            <div className="mt-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Country (auto-detected)
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={currentEntry.country}
+                  onChange={(e) => setCurrentEntry({...currentEntry, country: e.target.value})}
+                  placeholder={userCountryName || "Your country"}
+                  className="flex-1 p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                />
+                {userCountry && (
+                  <span className="text-2xl" title={userCountryName}>
+                    {getFlagEmoji(userCountry)}
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Automatically detected: {userCountryName || 'Not detected'}
+              </p>
+            </div>
+            
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Age Range (optional)
@@ -883,6 +907,13 @@ export default function HowWas() {
                           By: {[exp.author, exp.gender, exp.age].filter(Boolean).join(', ')}
                         </span>
                       )}
+                      {exp.country && (
+                        <span className="text-xs font-medium text-blue-600 bg-blue-50 px-3 py-1 rounded-full flex items-center gap-1">
+                          <span>{getFlagEmoji(exp.country.substring(0, 2))}</span>
+                          <span>{exp.country}</span>
+                        </span>
+                      )}
+                      
                     </div>
                     
                     <div className="flex flex-col items-end gap-3">
