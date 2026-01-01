@@ -20,7 +20,6 @@ export default function HowWas() {
   // Change from hardcoded array to empty array - will load from Supabase
   const [experiences, setExperiences] = useState([]);
   const [userCountry, setUserCountry] = useState('');
-  const [newComment, setNewComment] = useState({});
   const [addingComment, setAddingComment] = useState(null); // ID da exp recebendo comentário
   const [userCountryName, setUserCountryName] = useState('');
 
