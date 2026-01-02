@@ -20,16 +20,14 @@ export default function HowWas() {
   // Change from hardcoded array to empty array - will load from Supabase
   const [experiences, setExperiences] = useState([]);
   const [userCountry, setUserCountry] = useState('');
-  const [addingComment, setAddingComment] = useState(null); // ID da exp recebendo comentário
+  const [addingComment, setAddingComment] = useState(null);
   const [userCountryName, setUserCountryName] = useState('');
 
-  // Load experiences from Supabase on component mount
   useEffect(() => {
-  detectUserCountry();
-  loadExperiences();
+    detectUserCountry();
+    loadExperiences();
   }, []);
 
-  // Function to get flag emoji from country code
   const getFlagEmoji = (countryCode) => {
     if (!countryCode || countryCode.length !== 2) return '';
     const codePoints = countryCode
@@ -39,29 +37,27 @@ export default function HowWas() {
     return String.fromCodePoint(...codePoints);
   };
   
-    // Function to detect user's country
-    const detectUserCountry = async () => {
-      try {
-        const response = await fetch('https://ipapi.co/json/');
-        const data = await response.json();
+  const detectUserCountry = async () => {
+    try {
+      const response = await fetch('https://ipapi.co/json/');
+      const data = await response.json();
+      
+      if (data.country_code && data.country_name) {
+        setUserCountry(data.country_code);
+        setUserCountryName(data.country_name);
         
-        if (data.country_code && data.country_name) {
-          setUserCountry(data.country_code);
-          setUserCountryName(data.country_name);
-          
-          setCurrentEntry(prev => ({
-            ...prev,
-            country: data.country_name
-          }));
-        }
-      } catch (error) {
-        console.error('Error detecting country:', error);
-        setUserCountry('');
-        setUserCountryName('');
+        setCurrentEntry(prev => ({
+          ...prev,
+          country: data.country_name
+        }));
       }
-    };
+    } catch (error) {
+      console.error('Error detecting country:', error);
+      setUserCountry('');
+      setUserCountryName('');
+    }
+  };
   
-  // Function to load experiences from Supabase
   const loadExperiences = async () => {
     try {
       setLoading(true);
@@ -72,7 +68,6 @@ export default function HowWas() {
       
       if (error) throw error;
       
-      // Transform database format to app format
       const transformedData = data.map(exp => ({
         id: exp.id,
         problem: exp.problem,
@@ -86,37 +81,34 @@ export default function HowWas() {
         country: exp.country || '',
         avgRating: exp.avg_rating || 0,
         totalRatings: exp.total_ratings || 0,
-        comments: [] // Comments can be added later
+        comments: []
       }));
       
-    // Load ALL comments at once
-const { data: allComments } = await supabase
-  .from('comments')
-  .select('*')
-  .order('created_at', { ascending: true });
+      const { data: allComments } = await supabase
+        .from('comments')
+        .select('*')
+        .order('created_at', { ascending: true });
 
-if (allComments) {
-  // Group comments by experience_id
-  const commentsByExp = {};
-  allComments.forEach(c => {
-    if (!commentsByExp[c.experience_id]) {
-      commentsByExp[c.experience_id] = [];
-    }
-    commentsByExp[c.experience_id].push({
-      id: c.id,
-      text: c.comment_text,
-      author: c.author,
-      country: c.country
-    });
-  });
-  
-  // Assign comments to experiences
-  transformedData.forEach(exp => {
-    exp.comments = commentsByExp[exp.id] || [];
-  });
-}
+      if (allComments) {
+        const commentsByExp = {};
+        allComments.forEach(c => {
+          if (!commentsByExp[c.experience_id]) {
+            commentsByExp[c.experience_id] = [];
+          }
+          commentsByExp[c.experience_id].push({
+            id: c.id,
+            text: c.comment_text,
+            author: c.author,
+            country: c.country
+          });
+        });
+        
+        transformedData.forEach(exp => {
+          exp.comments = commentsByExp[exp.id] || [];
+        });
+      }
 
-setExperiences(transformedData);
+      setExperiences(transformedData);
     } catch (error) {
       console.error('Error loading experiences:', error);
       alert('Error loading data. Please refresh the page.');
@@ -125,9 +117,6 @@ setExperiences(transformedData);
     }
   };
 
-
-  
-  // Function to add new experience to Supabase
   const addExperienceToSupabase = async (newExperience) => {
     console.log('🚀 Starting to save experience...');
     console.log('📝 Experience data:', newExperience);
@@ -164,7 +153,6 @@ setExperiences(transformedData);
       
       console.log('✅ Experience saved successfully!');
       
-      // Reload experiences to get the new one with its ID
       console.log('🔄 Reloading all experiences...');
       await loadExperiences();
       
@@ -178,7 +166,6 @@ setExperiences(transformedData);
     }
   };
 
-  // Function to delete experience from Supabase
   const deleteExperienceFromSupabase = async (id) => {
     try {
       const { error } = await supabase
@@ -188,7 +175,6 @@ setExperiences(transformedData);
       
       if (error) throw error;
       
-      // Reload experiences
       await loadExperiences();
       
       return true;
@@ -200,41 +186,41 @@ setExperiences(transformedData);
   };
 
   const handleAddComment = async (experienceId) => {
-  const commentText = newComment[experienceId];
-  
-  if (!commentText?.trim()) {
-    alert('Please enter a comment!');
-    return;
-  }
-  
-  try {
-    setAddingComment(experienceId);
+    const commentText = newComment[experienceId];
     
-    const { data, error } = await supabase
-      .from('comments')
-      .insert([{
-        experience_id: experienceId,
-        comment_text: commentText,
-        author: '',
-        country: userCountryName || ''
-      }])
-      .select();
+    if (!commentText?.trim()) {
+      alert('Please enter a comment!');
+      return;
+    }
     
-    if (error) throw error;
-    
-    const updatedComments = {...newComment};
-    delete updatedComments[experienceId];
-    setNewComment(updatedComments);
-    
-    await loadExperiences();
-    
-  } catch (error) {
-    console.error('❌ Error:', error);
-    alert('Error adding comment.');
-  } finally {
-    setAddingComment(null);
-  }
-};
+    try {
+      setAddingComment(experienceId);
+      
+      const { data, error } = await supabase
+        .from('comments')
+        .insert([{
+          experience_id: experienceId,
+          comment_text: commentText,
+          author: '',
+          country: userCountryName || ''
+        }])
+        .select();
+      
+      if (error) throw error;
+      
+      const updatedComments = {...newComment};
+      delete updatedComments[experienceId];
+      setNewComment(updatedComments);
+      
+      await loadExperiences();
+      
+    } catch (error) {
+      console.error('❌ Error:', error);
+      alert('Error adding comment.');
+    } finally {
+      setAddingComment(null);
+    }
+  };
 
   const [currentEntry, setCurrentEntry] = useState({
     problem: '',
@@ -245,6 +231,7 @@ setExperiences(transformedData);
     author: '',
     gender: '',
     age: '',
+    country: ''
   });
 
   const [filters, setFilters] = useState({
@@ -320,10 +307,8 @@ setExperiences(transformedData);
     if (currentEntry.problem && currentEntry.problemCategory && 
         currentEntry.solution && currentEntry.result && currentEntry.resultCategory) {
       
-      // Save to Supabase
       await addExperienceToSupabase(currentEntry);
       
-      // Clear form
       setCurrentEntry({
         problem: '',
         problemCategory: '',
@@ -337,20 +322,17 @@ setExperiences(transformedData);
       });
     }
   };
+
   const handleUserRating = async (expId, rating) => {
     try {
-      // Save user's rating locally
       setUserRatings({...userRatings, [expId]: rating});
       
-      // Find the experience
       const exp = experiences.find(e => e.id === expId);
       if (!exp) return;
       
-      // Calculate new average
       const newTotalRatings = exp.totalRatings + 1;
       const newAvgRating = ((exp.avgRating * exp.totalRatings) + rating) / newTotalRatings;
       
-      // Update in Supabase
       const { error } = await supabase
         .from('experiences')
         .update({ 
@@ -366,7 +348,6 @@ setExperiences(transformedData);
       
       console.log('⭐ Rating saved successfully!');
       
-      // Reload experiences to show updated rating
       await loadExperiences();
       
     } catch (error) {
@@ -384,13 +365,10 @@ setExperiences(transformedData);
   };
 
   const handleDelete = (expId) => {
-    // Check if this item is already in confirm mode
     if (confirmDelete === `exp-${expId}`) {
-      // Second click - actually delete
       setExperiences(experiences.filter(e => e.id !== expId));
-      setConfirmDelete(null); // Reset confirm state
+      setConfirmDelete(null);
     } else {
-      // First click - enter confirm mode
       setConfirmDelete(`exp-${expId}`);
     }
   };
@@ -398,18 +376,15 @@ setExperiences(transformedData);
   const handleDeleteComment = (expId, commentId) => {
     const confirmKey = `comment-${expId}-${commentId}`;
     
-    // Check if this item is already in confirm mode
     if (confirmDelete === confirmKey) {
-      // Second click - actually delete
       setExperiences(experiences.map(exp => {
         if (exp.id === expId) {
           return { ...exp, comments: exp.comments.filter(c => c.id !== commentId) };
         }
         return exp;
       }));
-      setConfirmDelete(null); // Reset confirm state
+      setConfirmDelete(null);
     } else {
-      // First click - enter confirm mode
       setConfirmDelete(confirmKey);
     }
   };
@@ -452,8 +427,6 @@ setExperiences(transformedData);
 
     return matches;
   };
-
-  
 
   const getResultColor = (category) => resultCategories.find(r => r.value === category)?.color || '';
   const getResultLabel = (category) => resultCategories.find(r => r.value === category)?.label || '';
@@ -529,7 +502,6 @@ setExperiences(transformedData);
           <p className="text-gray-700 font-medium mb-1">Real problems. Real solutions. Real people.</p>
           <p className="text-gray-600">Share your experience, help someone else</p>
 
-          {/* Admin Login */}
           {showAdminLogin && !isAdmin && (
             <div className="mt-4 bg-white rounded-lg shadow-md p-4 max-w-md mx-auto">
               <h3 className="font-semibold mb-2">Admin Login</h3>
@@ -550,7 +522,6 @@ setExperiences(transformedData);
             </div>
           )}
 
-          {/* Admin Keyword Filter */}
           {isAdmin && (
             <div className="mt-4 bg-yellow-50 border-2 border-yellow-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
@@ -604,28 +575,26 @@ setExperiences(transformedData);
                                 return (
                                   <div className="flex gap-2">
                                     <button
-                                    onClick={async () => {
-                                    console.log('🔍 Search Delete clicked');
-                                    
-                                    const confirmKey = match.type === 'comment' 
-                                      ? `comment-${match.expId}-${match.commentId}`
-                                      : `exp-${match.expId}`;
-                                    const isConfirming = confirmDelete === confirmKey;
-                                    
-                                    if (isConfirming) {
-                                      // Second click - actually delete
-                                      if (match.type === 'comment') {
-                                        handleDeleteComment(match.expId, match.commentId);
-                                      } else {
-                                        console.log('🔍 Deleting match:', match.expId);
-                                        await deleteExperienceFromSupabase(match.expId);
-                                      }
-                                      setConfirmDelete(null);
-                                    } else {
-                                      // First click - enter confirm mode
-                                      setConfirmDelete(confirmKey);
-                                    }
-                                  }}
+                                      onClick={async () => {
+                                        console.log('🔍 Search Delete clicked');
+                                        
+                                        const confirmKey = match.type === 'comment' 
+                                          ? `comment-${match.expId}-${match.commentId}`
+                                          : `exp-${match.expId}`;
+                                        const isConfirming = confirmDelete === confirmKey;
+                                        
+                                        if (isConfirming) {
+                                          if (match.type === 'comment') {
+                                            handleDeleteComment(match.expId, match.commentId);
+                                          } else {
+                                            console.log('🔍 Deleting match:', match.expId);
+                                            await deleteExperienceFromSupabase(match.expId);
+                                          }
+                                          setConfirmDelete(null);
+                                        } else {
+                                          setConfirmDelete(confirmKey);
+                                        }
+                                      }}
                                       className={`px-3 py-1 text-white text-xs rounded flex items-center gap-1 ${
                                         isConfirming 
                                           ? 'bg-orange-600 hover:bg-orange-700 animate-pulse' 
@@ -672,7 +641,6 @@ setExperiences(transformedData);
         <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
           <h2 className="text-2xl font-bold text-gray-800 mb-6">Share Your Experiences</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            {/* Problem */}
             <div className="space-y-3">
               <div className="flex items-center gap-2 mb-2">
                 <AlertCircle className="text-red-500" size={20} />
@@ -709,7 +677,6 @@ setExperiences(transformedData);
               </div>
             </div>
 
-            {/* Action */}
             <div className="space-y-3">
               <div className="flex items-center gap-2 mb-2">
                 <TrendingUp className="text-blue-500" size={20} />
@@ -734,7 +701,6 @@ setExperiences(transformedData);
               </div>
             </div>
 
-            {/* Result */}
             <div className="space-y-3">
               <div className="flex items-center gap-2 mb-2">
                 <Share2 className="text-green-500" size={20} />
@@ -772,86 +738,79 @@ setExperiences(transformedData);
             </div>
           </div>
 
-{/* Author, Gender, Age, Country - All in one grid */}
-<div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-  
-  {/* Author */}
-  <div>
-    <label className="block text-sm font-medium text-gray-700 mb-2">
-      Author (optional)
-    </label>
-    <input
-      type="text"
-      value={currentEntry.author}
-      onChange={(e) => setCurrentEntry({...currentEntry, author: e.target.value})}
-      placeholder="Your name..."
-      className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-      maxLength={50}
-    />
-  </div>
-  
-  {/* Gender */}
-  <div>
-    <label className="block text-sm font-medium text-gray-700 mb-2">
-      Gender (optional)
-    </label>
-    <select
-      value={currentEntry.gender}
-      onChange={(e) => setCurrentEntry({...currentEntry, gender: e.target.value})}
-      className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-    >
-      <option value="">Prefer not to say</option>
-      {genderOptions.map(gender => (
-        <option key={gender} value={gender}>{gender}</option>
-      ))}
-    </select>
-  </div>
-  
-  {/* Age */}
-  <div>
-    <label className="block text-sm font-medium text-gray-700 mb-2">
-      Age Range (optional)
-    </label>
-    <select
-      value={currentEntry.age}
-      onChange={(e) => setCurrentEntry({...currentEntry, age: e.target.value})}
-      className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-    >
-      <option value="">Prefer not to say</option>
-      {ageOptions.map(age => (
-        <option key={age} value={age}>{age}</option>
-      ))}
-    </select>
-  </div>
-  
-  {/* Country */}
-  <div>
-    <label className="block text-sm font-medium text-gray-700 mb-2">
-      Country (auto-detected)
-    </label>
-    <div className="flex items-center gap-2">
-      <select
-        value={currentEntry.country}
-        onChange={(e) => setCurrentEntry({...currentEntry, country: e.target.value})}
-        className="flex-1 p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-      >
-        <option value="">Select country</option>
-        {countryOptions.map(country => (
-          <option key={country} value={country}>{country}</option>
-        ))}
-      </select>
-      {currentEntry.country && (
-        <span className="text-2xl" title={currentEntry.country}>
-          {getFlagEmoji(currentEntry.country.substring(0, 2))}
-        </span>
-      )}
-    </div>
-    <p className="text-xs text-gray-500 mt-1">
-      Detected: {userCountryName || 'Not detected'}
-    </p>
-  </div>
-  
-</div>
+          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Author (optional)
+              </label>
+              <input
+                type="text"
+                value={currentEntry.author}
+                onChange={(e) => setCurrentEntry({...currentEntry, author: e.target.value})}
+                placeholder="Your name..."
+                className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                maxLength={50}
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Gender (optional)
+              </label>
+              <select
+                value={currentEntry.gender}
+                onChange={(e) => setCurrentEntry({...currentEntry, gender: e.target.value})}
+                className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+              >
+                <option value="">Prefer not to say</option>
+                {genderOptions.map(gender => (
+                  <option key={gender} value={gender}>{gender}</option>
+                ))}
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Age Range (optional)
+              </label>
+              <select
+                value={currentEntry.age}
+                onChange={(e) => setCurrentEntry({...currentEntry, age: e.target.value})}
+                className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+              >
+                <option value="">Prefer not to say</option>
+                {ageOptions.map(age => (
+                  <option key={age} value={age}>{age}</option>
+                ))}
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Country (auto-detected)
+              </label>
+              <div className="flex items-center gap-2">
+                <select
+                  value={currentEntry.country}
+                  onChange={(e) => setCurrentEntry({...currentEntry, country: e.target.value})}
+                  className="flex-1 p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                >
+                  <option value="">Select country</option>
+                  {countryOptions.map(country => (
+                    <option key={country} value={country}>{country}</option>
+                  ))}
+                </select>
+                {currentEntry.country && (
+                  <span className="text-2xl" title={currentEntry.country}>
+                    {getFlagEmoji(currentEntry.country.substring(0, 2))}
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Detected: {userCountryName || 'Not detected'}
+              </p>
+            </div>
+          </div>
               
           <button
             onClick={handleSubmit}
@@ -864,7 +823,6 @@ setExperiences(transformedData);
         <div className="space-y-6">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">Shared Experiences ({experiences.length})</h2>
           
-          {/* Estatísticas de Reviews */}
           <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl shadow-md p-6 mb-6">
             <h3 className="text-lg font-semibold text-gray-700 mb-4">Rating Statistics</h3>
             <div className="grid grid-cols-5 gap-4">
@@ -891,7 +849,9 @@ setExperiences(transformedData);
                 {filteredExperiences.length} {filteredExperiences.length === 1 ? 'experience found' : 'experiences found'}
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            
+            {/* Linha 1: 6 filtros */}
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-4">
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-2">Category</label>
                 <select
@@ -902,17 +862,6 @@ setExperiences(transformedData);
                   <option value="">All</option>
                   {problemCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
                 </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-2">Search</label>
-                <input
-                  type="text"
-                  value={filters.searchText}
-                  onChange={(e) => setFilters({...filters, searchText: e.target.value})}
-                  placeholder="Search..."
-                  className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-                />
               </div>
 
               <div>
@@ -966,6 +915,7 @@ setExperiences(transformedData);
                   {ageOptions.map(age => <option key={age} value={age}>{age}</option>)}
                 </select>
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-2">Country</label>
                 <select
@@ -976,6 +926,20 @@ setExperiences(transformedData);
                   <option value="">All</option>
                   {countryOptions.map(country => <option key={country} value={country}>{country}</option>)}
                 </select>
+              </div>
+            </div>
+            
+            {/* Linha 2: Keywords com 2x largura */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-600 mb-2">Enter Keywords</label>
+                <input
+                  type="text"
+                  value={filters.searchText}
+                  onChange={(e) => setFilters({...filters, searchText: e.target.value})}
+                  placeholder="Search..."
+                  className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                />
               </div>
             </div>
             
@@ -1010,11 +974,9 @@ setExperiences(transformedData);
                           <span>{exp.country}</span>
                         </span>
                       )}
-                      
                     </div>
                     
                     <div className="flex flex-col items-end gap-3">
-                      {/* Average Rating Display */}
                       <div className="flex items-center gap-2 bg-yellow-50 px-3 py-2 rounded-lg">
                         <div className="flex gap-1">
                           {[1, 2, 3, 4, 5].map(star => (
@@ -1035,7 +997,6 @@ setExperiences(transformedData);
                         </div>
                       </div>
                       
-                      {/* User Rating Input */}
                       <div className="flex flex-col items-end">
                         <div className="text-xs text-gray-600 mb-1">Your rating:</div>
                         <div className="flex gap-1">
@@ -1098,7 +1059,6 @@ setExperiences(transformedData);
                     </div>
                   </div>
 
-                  {/* Admin Delete Experience Button */}
                   {isAdmin && (() => {
                     const confirmKey = `exp-${exp.id}`;
                     const isConfirming = confirmDelete === confirmKey;
@@ -1107,21 +1067,19 @@ setExperiences(transformedData);
                       <div className="mt-4 mb-4 flex gap-2">
                         <button
                           onClick={async () => {
-                          console.log('🗑️ Delete button clicked!');
-                          console.log('🔘 confirmDelete:', confirmDelete);
-                          console.log('🔘 exp.id:', exp.id);
-                          const isConfirming = confirmDelete === `exp-${exp.id}`;
-                          console.log('🔘 isConfirming:', isConfirming);
-                          
-                          if (isConfirming) {
-                            // Second click - actually delete from Supabase
-                            await deleteExperienceFromSupabase(exp.id);
-                            setConfirmDelete(null);
-                          } else {
-                            // First click - enter confirm mode
-                            setConfirmDelete(`exp-${exp.id}`);
-                          }
-                        }}
+                            console.log('🗑️ Delete button clicked!');
+                            console.log('🔘 confirmDelete:', confirmDelete);
+                            console.log('🔘 exp.id:', exp.id);
+                            const isConfirming = confirmDelete === `exp-${exp.id}`;
+                            console.log('🔘 isConfirming:', isConfirming);
+                            
+                            if (isConfirming) {
+                              await deleteExperienceFromSupabase(exp.id);
+                              setConfirmDelete(null);
+                            } else {
+                              setConfirmDelete(`exp-${exp.id}`);
+                            }
+                          }}
                           className={`px-4 py-2 text-white rounded text-sm flex items-center gap-2 ${
                             isConfirming 
                               ? 'bg-orange-600 hover:bg-orange-700 animate-pulse' 
@@ -1143,68 +1101,66 @@ setExperiences(transformedData);
                     );
                   })()}
 
-                 {/* Comments Section */}
-<div className="border-t pt-4 mt-4">
-  {/* Add Comment Input - ALWAYS VISIBLE */}
-  <div className="mb-4">
-    <h4 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
-      <MessageCircle size={18} />
-      Add a Comment
-    </h4>
-    <div className="flex gap-2">
-      <textarea
-        value={newComment[exp.id] || ''}
-        onChange={(e) => {
-          if (e.target.value.length <= maxChars.comment) {
-            setNewComment({...newComment, [exp.id]: e.target.value});
-          }
-        }}
-        placeholder="Share your thoughts..."
-        className="flex-1 p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none resize-none"
-        rows="2"
-      />
-      <button
-        onClick={() => handleAddComment(exp.id)}
-        disabled={!newComment[exp.id]?.trim() || addingComment === exp.id}
-        className="px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
-      >
-        <Send size={18} />
-      </button>
-    </div>
-    <div className="text-xs text-gray-500 text-right mt-1">
-      {(newComment[exp.id] || '').length}/{maxChars.comment}
-    </div>
-  </div>
+                  {/* Comments Section */}
+                  <div className="border-t pt-4 mt-4">
+                    <div className="mb-4">
+                      <h4 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                        <MessageCircle size={18} />
+                        Add a Comment
+                      </h4>
+                      <div className="flex gap-2">
+                        <textarea
+                          value={newComment[exp.id] || ''}
+                          onChange={(e) => {
+                            if (e.target.value.length <= maxChars.comment) {
+                              setNewComment({...newComment, [exp.id]: e.target.value});
+                            }
+                          }}
+                          placeholder="Share your thoughts..."
+                          className="flex-1 p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none resize-none"
+                          rows="2"
+                        />
+                        <button
+                          onClick={() => handleAddComment(exp.id)}
+                          disabled={!newComment[exp.id]?.trim() || addingComment === exp.id}
+                          className="px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
+                        >
+                          <Send size={18} />
+                        </button>
+                      </div>
+                      <div className="text-xs text-gray-500 text-right mt-1">
+                        {(newComment[exp.id] || '').length}/{maxChars.comment}
+                      </div>
+                    </div>
 
-  {/* Show Previous Comments Button */}
-  {exp.comments.length > 0 && (
-    <div>
-      <button
-        onClick={() => setShowComments({...showComments, [exp.id]: !showComments[exp.id]})}
-        className="text-sm text-purple-600 hover:text-purple-800 font-medium mb-3 flex items-center gap-2"
-      >
-        <MessageCircle size={16} />
-        {showComments[exp.id] ? 'Hide' : 'Show'} {exp.comments.length} Previous {exp.comments.length === 1 ? 'Comment' : 'Comments'}
-      </button>
-      
-      {showComments[exp.id] && (
-        <div className="space-y-3">
-          {exp.comments.map(comment => (
-            <div key={comment.id} className="bg-gray-50 rounded-lg p-3">
-              <p className="text-sm text-gray-700">
-                {comment.text}
-                {comment.country && (
-                  <span className="text-gray-500 ml-2">({comment.country})</span>
-                )}
-              </p>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  )}
-</div>
-</div>
+                    {exp.comments.length > 0 && (
+                      <div>
+                        <button
+                          onClick={() => setShowComments({...showComments, [exp.id]: !showComments[exp.id]})}
+                          className="text-sm text-purple-600 hover:text-purple-800 font-medium mb-3 flex items-center gap-2"
+                        >
+                          <MessageCircle size={16} />
+                          {showComments[exp.id] ? 'Hide' : 'Show'} {exp.comments.length} Previous {exp.comments.length === 1 ? 'Comment' : 'Comments'}
+                        </button>
+                        
+                        {showComments[exp.id] && (
+                          <div className="space-y-3">
+                            {exp.comments.map(comment => (
+                              <div key={comment.id} className="bg-gray-50 rounded-lg p-3">
+                                <p className="text-sm text-gray-700">
+                                  {comment.text}
+                                  {comment.country && (
+                                    <span className="text-gray-500 ml-2">({comment.country})</span>
+                                  )}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
               ))}
             </div>
           )}
