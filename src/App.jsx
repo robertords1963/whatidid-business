@@ -7,9 +7,9 @@ const supabaseUrl = 'https://vtnzsyrojybyfeenkave.supabase.co';
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0bnpzeXJvanlieWZlZW5rYXZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY3OTg1ODEsImV4cCI6MjA4MjM3NDU4MX0.6W9ueperYZpiIsLmBzNgJ9-wxPrwJ-mkhdDe2VGbKxU';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-console.log('🔧 HowWas App loaded with Supabase!');
+console.log('🔧 WhatIDid App loaded with Supabase!');
 
-export default function HowWas() {
+export default function WhatIDid() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminPassword, setAdminPassword] = useState('');
   const [showAdminLogin, setShowAdminLogin] = useState(false);
@@ -17,7 +17,6 @@ export default function HowWas() {
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Change from hardcoded array to empty array - will load from Supabase
   const [experiences, setExperiences] = useState([]);
   const [userCountry, setUserCountry] = useState('');
   const [addingComment, setAddingComment] = useState(null);
@@ -27,15 +26,6 @@ export default function HowWas() {
     detectUserCountry();
     loadExperiences();
   }, []);
-
-  const getFlagEmoji = (countryCode) => {
-    if (!countryCode || countryCode.length !== 2) return '';
-    const codePoints = countryCode
-      .toUpperCase()
-      .split('')
-      .map(char => 127397 + char.charCodeAt());
-    return String.fromCodePoint(...codePoints);
-  };
   
   const detectUserCountry = async () => {
     try {
@@ -118,12 +108,7 @@ export default function HowWas() {
   };
 
   const addExperienceToSupabase = async (newExperience) => {
-    console.log('🚀 Starting to save experience...');
-    console.log('📝 Experience data:', newExperience);
-    
     try {
-      console.log('📡 Sending to Supabase...');
-      
       const { data, error } = await supabase
         .from('experiences')
         .insert([
@@ -143,25 +128,13 @@ export default function HowWas() {
         ])
         .select();
       
-      console.log('📊 Supabase response - data:', data);
-      console.log('📊 Supabase response - error:', error);
+      if (error) throw error;
       
-      if (error) {
-        console.error('❌ Supabase error:', error);
-        throw error;
-      }
-      
-      console.log('✅ Experience saved successfully!');
-      
-      console.log('🔄 Reloading all experiences...');
       await loadExperiences();
-      
-      console.log('✅ All done!');
       return true;
     } catch (error) {
-      console.error('❌ Error adding experience:', error);
-      console.error('❌ Error details:', error.message, error.code);
-      alert('Error saving experience. Please check console for details.');
+      console.error('Error adding experience:', error);
+      alert('Error saving experience.');
       return false;
     }
   };
@@ -174,13 +147,11 @@ export default function HowWas() {
         .eq('id', id);
       
       if (error) throw error;
-      
       await loadExperiences();
-      
       return true;
     } catch (error) {
       console.error('Error deleting experience:', error);
-      alert('Error deleting experience. Please try again.');
+      alert('Error deleting experience.');
       return false;
     }
   };
@@ -215,7 +186,7 @@ export default function HowWas() {
       await loadExperiences();
       
     } catch (error) {
-      console.error('❌ Error:', error);
+      console.error('Error:', error);
       alert('Error adding comment.');
     } finally {
       setAddingComment(null);
@@ -342,16 +313,14 @@ export default function HowWas() {
         .eq('id', expId);
       
       if (error) {
-        console.error('❌ Error saving rating:', error);
+        console.error('Error saving rating:', error);
         return;
       }
-      
-      console.log('⭐ Rating saved successfully!');
       
       await loadExperiences();
       
     } catch (error) {
-      console.error('❌ Error in handleUserRating:', error);
+      console.error('Error in handleUserRating:', error);
     }
   };
 
@@ -474,7 +443,7 @@ export default function HowWas() {
             <div className="flex-1"></div>
             <h1 className="text-4xl font-bold text-gray-800 mb-2 flex items-center justify-center gap-3">
               <Share2 className="text-purple-600" size={36} />
-              HowWas
+              WhatIDid
             </h1>
             <div className="flex-1 flex justify-end">
               {!isAdmin ? (
@@ -576,8 +545,6 @@ export default function HowWas() {
                                   <div className="flex gap-2">
                                     <button
                                       onClick={async () => {
-                                        console.log('🔍 Search Delete clicked');
-                                        
                                         const confirmKey = match.type === 'comment' 
                                           ? `comment-${match.expId}-${match.commentId}`
                                           : `exp-${match.expId}`;
@@ -587,7 +554,6 @@ export default function HowWas() {
                                           if (match.type === 'comment') {
                                             handleDeleteComment(match.expId, match.commentId);
                                           } else {
-                                            console.log('🔍 Deleting match:', match.expId);
                                             await deleteExperienceFromSupabase(match.expId);
                                           }
                                           setConfirmDelete(null);
@@ -637,7 +603,6 @@ export default function HowWas() {
           )}
         </div>
 
-        {/* Formulário de Entrada */}
         <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
           <h2 className="text-2xl font-bold text-gray-800 mb-6">Share Your Experiences</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
@@ -682,6 +647,8 @@ export default function HowWas() {
                 <TrendingUp className="text-blue-500" size={20} />
                 <h3 className="text-lg font-semibold text-gray-800">Action</h3>
               </div>
+              
+              <div className="h-10"></div>
 
               <div className="relative">
                 <textarea
@@ -789,23 +756,16 @@ export default function HowWas() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Country (auto-detected)
               </label>
-              <div className="flex items-center gap-2">
-                <select
-                  value={currentEntry.country}
-                  onChange={(e) => setCurrentEntry({...currentEntry, country: e.target.value})}
-                  className="flex-1 p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-                >
-                  <option value="">Select country</option>
-                  {countryOptions.map(country => (
-                    <option key={country} value={country}>{country}</option>
-                  ))}
-                </select>
-                {currentEntry.country && (
-                  <span className="text-2xl" title={currentEntry.country}>
-                    {getFlagEmoji(currentEntry.country.substring(0, 2))}
-                  </span>
-                )}
-              </div>
+              <select
+                value={currentEntry.country}
+                onChange={(e) => setCurrentEntry({...currentEntry, country: e.target.value})}
+                className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+              >
+                <option value="">Select country</option>
+                {countryOptions.map(country => (
+                  <option key={country} value={country}>{country}</option>
+                ))}
+              </select>
               <p className="text-xs text-gray-500 mt-1">
                 Detected: {userCountryName || 'Not detected'}
               </p>
@@ -841,7 +801,6 @@ export default function HowWas() {
             </div>
           </div>
           
-          {/* Filtros */}
           <div className="bg-white rounded-xl shadow-md p-6 mb-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-gray-700">Filter Experiences</h3>
@@ -850,7 +809,6 @@ export default function HowWas() {
               </div>
             </div>
             
-            {/* Linha 1: 6 filtros */}
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-4">
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-2">Category</label>
@@ -929,7 +887,6 @@ export default function HowWas() {
               </div>
             </div>
             
-            {/* Linha 2: Keywords com 2x largura */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-600 mb-2">Enter Keywords</label>
@@ -969,9 +926,8 @@ export default function HowWas() {
                         </span>
                       )}
                       {exp.country && (
-                        <span className="text-xs font-medium text-blue-600 bg-blue-50 px-3 py-1 rounded-full flex items-center gap-1">
-                          <span>{getFlagEmoji(exp.country.substring(0, 2))}</span>
-                          <span>{exp.country}</span>
+                        <span className="text-xs font-medium text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
+                          {exp.country}
                         </span>
                       )}
                     </div>
@@ -1067,11 +1023,7 @@ export default function HowWas() {
                       <div className="mt-4 mb-4 flex gap-2">
                         <button
                           onClick={async () => {
-                            console.log('🗑️ Delete button clicked!');
-                            console.log('🔘 confirmDelete:', confirmDelete);
-                            console.log('🔘 exp.id:', exp.id);
                             const isConfirming = confirmDelete === `exp-${exp.id}`;
-                            console.log('🔘 isConfirming:', isConfirming);
                             
                             if (isConfirming) {
                               await deleteExperienceFromSupabase(exp.id);
@@ -1101,7 +1053,6 @@ export default function HowWas() {
                     );
                   })()}
 
-                  {/* Comments Section */}
                   <div className="border-t pt-4 mt-4">
                     <div className="mb-4">
                       <h4 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
