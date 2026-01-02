@@ -647,8 +647,6 @@ export default function WhatIDid() {
                 <TrendingUp className="text-blue-500" size={20} />
                 <h3 className="text-lg font-semibold text-gray-800">Action</h3>
               </div>
-              
-              <div className="h-10"></div>
 
               <div className="relative">
                 <textarea
