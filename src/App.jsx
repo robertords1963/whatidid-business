@@ -474,7 +474,7 @@ export default function HowWas() {
             <div className="flex-1"></div>
             <h1 className="text-4xl font-bold text-gray-800 mb-2 flex items-center justify-center gap-3">
               <Share2 className="text-purple-600" size={36} />
-              HowWas
+              WhatIDid
             </h1>
             <div className="flex-1 flex justify-end">
               {!isAdmin ? (
