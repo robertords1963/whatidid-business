@@ -2,22 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { Share2, TrendingUp, AlertCircle, Star, MessageCircle, Send, Shield, Trash2, Search } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 
-// Supabase configuration
 const supabaseUrl = 'https://vtnzsyrojybyfeenkave.supabase.co';
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0bnpzeXJvanlieWZlZW5rYXZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY3OTg1ODEsImV4cCI6MjA4MjM3NDU4MX0.6W9ueperYZpiIsLmBzNgJ9-wxPrwJ-mkhdDe2VGbKxU';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-console.log('🔧 HowWas App loaded with Supabase!');
+console.log('🔧 WhatIDid App loaded with Supabase!');
 
-export default function HowWas() {
+export default function WhatIDid() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminPassword, setAdminPassword] = useState('');
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [adminKeywords, setAdminKeywords] = useState('');
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  // Change from hardcoded array to empty array - will load from Supabase
   const [experiences, setExperiences] = useState([]);
   const [userCountry, setUserCountry] = useState('');
   const [addingComment, setAddingComment] = useState(null);
@@ -27,15 +24,6 @@ export default function HowWas() {
     detectUserCountry();
     loadExperiences();
   }, []);
-
-  const getFlagEmoji = (countryCode) => {
-    if (!countryCode || countryCode.length !== 2) return '';
-    const codePoints = countryCode
-      .toUpperCase()
-      .split('')
-      .map(char => 127397 + char.charCodeAt());
-    return String.fromCodePoint(...codePoints);
-  };
   
   const detectUserCountry = async () => {
     try {
@@ -118,50 +106,30 @@ export default function HowWas() {
   };
 
   const addExperienceToSupabase = async (newExperience) => {
-    console.log('🚀 Starting to save experience...');
-    console.log('📝 Experience data:', newExperience);
-    
     try {
-      console.log('📡 Sending to Supabase...');
-      
       const { data, error } = await supabase
         .from('experiences')
-        .insert([
-          {
-            problem: newExperience.problem,
-            problem_category: newExperience.problemCategory,
-            solution: newExperience.solution,
-            result: newExperience.result,
-            result_category: newExperience.resultCategory,
-            author: newExperience.author || '',
-            gender: newExperience.gender || '',
-            age: newExperience.age || '',
-            country: newExperience.country || '',
-            avg_rating: 0,
-            total_ratings: 0
-          }
-        ])
+        .insert([{
+          problem: newExperience.problem,
+          problem_category: newExperience.problemCategory,
+          solution: newExperience.solution,
+          result: newExperience.result,
+          result_category: newExperience.resultCategory,
+          author: newExperience.author || '',
+          gender: newExperience.gender || '',
+          age: newExperience.age || '',
+          country: newExperience.country || '',
+          avg_rating: 0,
+          total_ratings: 0
+        }])
         .select();
       
-      console.log('📊 Supabase response - data:', data);
-      console.log('📊 Supabase response - error:', error);
-      
-      if (error) {
-        console.error('❌ Supabase error:', error);
-        throw error;
-      }
-      
-      console.log('✅ Experience saved successfully!');
-      
-      console.log('🔄 Reloading all experiences...');
+      if (error) throw error;
       await loadExperiences();
-      
-      console.log('✅ All done!');
       return true;
     } catch (error) {
-      console.error('❌ Error adding experience:', error);
-      console.error('❌ Error details:', error.message, error.code);
-      alert('Error saving experience. Please check console for details.');
+      console.error('Error adding experience:', error);
+      alert('Error saving experience.');
       return false;
     }
   };
@@ -174,13 +142,11 @@ export default function HowWas() {
         .eq('id', id);
       
       if (error) throw error;
-      
       await loadExperiences();
-      
       return true;
     } catch (error) {
       console.error('Error deleting experience:', error);
-      alert('Error deleting experience. Please try again.');
+      alert('Error deleting experience.');
       return false;
     }
   };
@@ -215,7 +181,7 @@ export default function HowWas() {
       await loadExperiences();
       
     } catch (error) {
-      console.error('❌ Error:', error);
+      console.error('Error:', error);
       alert('Error adding comment.');
     } finally {
       setAddingComment(null);
@@ -257,7 +223,6 @@ export default function HowWas() {
   };
 
   const problemCategories = ['Health', 'Work', 'Relationship', 'Finance', 'Family', 'Education', 'Well-being', 'Other'];
-  
   const genderOptions = ['Male', 'Female', 'Other'];
   const ageOptions = ['0-20', '21-40', '41-60', '61-Up'];
   const countryOptions = [
@@ -306,9 +271,7 @@ export default function HowWas() {
   const handleSubmit = async () => {
     if (currentEntry.problem && currentEntry.problemCategory && 
         currentEntry.solution && currentEntry.result && currentEntry.resultCategory) {
-      
       await addExperienceToSupabase(currentEntry);
-      
       setCurrentEntry({
         problem: '',
         problemCategory: '',
@@ -326,32 +289,21 @@ export default function HowWas() {
   const handleUserRating = async (expId, rating) => {
     try {
       setUserRatings({...userRatings, [expId]: rating});
-      
       const exp = experiences.find(e => e.id === expId);
       if (!exp) return;
-      
       const newTotalRatings = exp.totalRatings + 1;
       const newAvgRating = ((exp.avgRating * exp.totalRatings) + rating) / newTotalRatings;
-      
       const { error } = await supabase
         .from('experiences')
-        .update({ 
-          avg_rating: newAvgRating,
-          total_ratings: newTotalRatings
-        })
+        .update({ avg_rating: newAvgRating, total_ratings: newTotalRatings })
         .eq('id', expId);
-      
       if (error) {
-        console.error('❌ Error saving rating:', error);
+        console.error('Error saving rating:', error);
         return;
       }
-      
-      console.log('⭐ Rating saved successfully!');
-      
       await loadExperiences();
-      
     } catch (error) {
-      console.error('❌ Error in handleUserRating:', error);
+      console.error('Error in handleUserRating:', error);
     }
   };
 
@@ -375,7 +327,6 @@ export default function HowWas() {
 
   const handleDeleteComment = (expId, commentId) => {
     const confirmKey = `comment-${expId}-${commentId}`;
-    
     if (confirmDelete === confirmKey) {
       setExperiences(experiences.map(exp => {
         if (exp.id === expId) {
@@ -391,13 +342,10 @@ export default function HowWas() {
 
   const getKeywordMatches = () => {
     if (!adminKeywords.trim()) return [];
-    
     const keywords = adminKeywords.toLowerCase().split(',').map(k => k.trim()).filter(k => k);
     const matches = [];
-
     experiences.forEach(exp => {
       const searchText = `${exp.problem} ${exp.solution} ${exp.result}`.toLowerCase();
-      
       keywords.forEach(keyword => {
         if (searchText.includes(keyword)) {
           matches.push({
@@ -408,7 +356,6 @@ export default function HowWas() {
           });
         }
       });
-
       exp.comments.forEach(comment => {
         keywords.forEach(keyword => {
           if (comment.text.toLowerCase().includes(keyword)) {
@@ -424,7 +371,6 @@ export default function HowWas() {
         });
       });
     });
-
     return matches;
   };
 
@@ -446,14 +392,8 @@ export default function HowWas() {
     const matchesGender = !filters.gender || exp.gender === filters.gender;
     const matchesAge = !filters.age || exp.age === filters.age;
     const matchesCountry = !filters.country || exp.country === filters.country;
-    
     return matchesProblemCategory && matchesSearchText && matchesResultCategory && matchesRating && matchesGender && matchesAge && matchesCountry;
   });
-
-  const ratingStats = [1, 2, 3, 4, 5].map(stars => ({
-    stars,
-    count: experiences.filter(exp => Math.round(exp.avgRating) === stars).length
-  }));
 
   if (loading) {
     return (
@@ -571,23 +511,18 @@ export default function HowWas() {
                                   ? `comment-${match.expId}-${match.commentId}`
                                   : `exp-${match.expId}`;
                                 const isConfirming = confirmDelete === confirmKey;
-                                
                                 return (
                                   <div className="flex gap-2">
                                     <button
                                       onClick={async () => {
-                                        console.log('🔍 Search Delete clicked');
-                                        
                                         const confirmKey = match.type === 'comment' 
                                           ? `comment-${match.expId}-${match.commentId}`
                                           : `exp-${match.expId}`;
                                         const isConfirming = confirmDelete === confirmKey;
-                                        
                                         if (isConfirming) {
                                           if (match.type === 'comment') {
                                             handleDeleteComment(match.expId, match.commentId);
                                           } else {
-                                            console.log('🔍 Deleting match:', match.expId);
                                             await deleteExperienceFromSupabase(match.expId);
                                           }
                                           setConfirmDelete(null);
@@ -596,9 +531,7 @@ export default function HowWas() {
                                         }
                                       }}
                                       className={`px-3 py-1 text-white text-xs rounded flex items-center gap-1 ${
-                                        isConfirming 
-                                          ? 'bg-orange-600 hover:bg-orange-700 animate-pulse' 
-                                          : 'bg-red-600 hover:bg-red-700'
+                                        isConfirming ? 'bg-orange-600 hover:bg-orange-700 animate-pulse' : 'bg-red-600 hover:bg-red-700'
                                       }`}
                                     >
                                       <Trash2 size={12} />
@@ -637,7 +570,6 @@ export default function HowWas() {
           )}
         </div>
 
-        {/* Formulário de Entrada */}
         <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
           <h2 className="text-2xl font-bold text-gray-800 mb-6">Share Your Experiences</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
@@ -646,7 +578,6 @@ export default function HowWas() {
                 <AlertCircle className="text-red-500" size={20} />
                 <h3 className="text-lg font-semibold text-gray-800">Problem</h3>
               </div>
-              
               <select
                 value={currentEntry.problemCategory}
                 onChange={(e) => setCurrentEntry({...currentEntry, problemCategory: e.target.value})}
@@ -658,7 +589,6 @@ export default function HowWas() {
                   <option key={cat} value={cat}>{cat}</option>
                 ))}
               </select>
-
               <div className="relative">
                 <textarea
                   value={currentEntry.problem}
@@ -682,7 +612,6 @@ export default function HowWas() {
                 <TrendingUp className="text-blue-500" size={20} />
                 <h3 className="text-lg font-semibold text-gray-800">Action</h3>
               </div>
-
               <div className="relative">
                 <textarea
                   value={currentEntry.solution}
@@ -706,7 +635,6 @@ export default function HowWas() {
                 <Share2 className="text-green-500" size={20} />
                 <h3 className="text-lg font-semibold text-gray-800">Result</h3>
               </div>
-              
               <select
                 value={currentEntry.resultCategory}
                 onChange={(e) => setCurrentEntry({...currentEntry, resultCategory: e.target.value})}
@@ -718,7 +646,6 @@ export default function HowWas() {
                   <option key={cat.value} value={cat.value}>{cat.label}</option>
                 ))}
               </select>
-
               <div className="relative">
                 <textarea
                   value={currentEntry.result}
@@ -740,9 +667,7 @@ export default function HowWas() {
 
           <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Author (optional)
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Author (optional)</label>
               <input
                 type="text"
                 value={currentEntry.author}
@@ -752,11 +677,8 @@ export default function HowWas() {
                 maxLength={50}
               />
             </div>
-            
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Gender (optional)
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Gender (optional)</label>
               <select
                 value={currentEntry.gender}
                 onChange={(e) => setCurrentEntry({...currentEntry, gender: e.target.value})}
@@ -768,11 +690,8 @@ export default function HowWas() {
                 ))}
               </select>
             </div>
-            
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Age Range (optional)
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Age Range (optional)</label>
               <select
                 value={currentEntry.age}
                 onChange={(e) => setCurrentEntry({...currentEntry, age: e.target.value})}
@@ -784,34 +703,21 @@ export default function HowWas() {
                 ))}
               </select>
             </div>
-            
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Country (auto-detected)
-              </label>
-              <div className="flex items-center gap-2">
-                <select
-                  value={currentEntry.country}
-                  onChange={(e) => setCurrentEntry({...currentEntry, country: e.target.value})}
-                  className="flex-1 p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-                >
-                  <option value="">Select country</option>
-                  {countryOptions.map(country => (
-                    <option key={country} value={country}>{country}</option>
-                  ))}
-                </select>
-                {currentEntry.country && (
-                  <span className="text-2xl" title={currentEntry.country}>
-                    {getFlagEmoji(currentEntry.country.substring(0, 2))}
-                  </span>
-                )}
-              </div>
-              <p className="text-xs text-gray-500 mt-1">
-                Detected: {userCountryName || 'Not detected'}
-              </p>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Country (auto-detected)</label>
+              <select
+                value={currentEntry.country}
+                onChange={(e) => setCurrentEntry({...currentEntry, country: e.target.value})}
+                className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+              >
+                <option value="">Select country</option>
+                {countryOptions.map(country => (
+                  <option key={country} value={country}>{country}</option>
+                ))}
+              </select>
+              <p className="text-xs text-gray-500 mt-1">Detected: {userCountryName || 'Not detected'}</p>
             </div>
           </div>
-              
           <button
             onClick={handleSubmit}
             className="w-full mt-6 bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all shadow-lg"
@@ -823,25 +729,40 @@ export default function HowWas() {
         <div className="space-y-6">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">Shared Experiences ({experiences.length})</h2>
           
+          {/* NEW: Vertical Clickable Rating Statistics */}
           <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl shadow-md p-6 mb-6">
             <h3 className="text-lg font-semibold text-gray-700 mb-4">Rating Statistics</h3>
-            <div className="grid grid-cols-5 gap-4">
-              {ratingStats.reverse().map(stat => (
-                <div key={stat.stars} className="bg-white rounded-lg p-4 text-center shadow-sm">
-                  <div className="flex items-center justify-center gap-1 mb-2">
-                    <Star className="text-yellow-500 fill-yellow-500" size={20} />
-                    <span className="font-bold text-lg">{stat.stars}</span>
-                  </div>
-                  <div className="text-2xl font-bold text-purple-600">{stat.count}</div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    {stat.count === 1 ? 'experience' : 'experiences'}
-                  </div>
-                </div>
-              ))}
+            <div className="space-y-2">
+              {[5, 4, 3, 2, 1].map(stars => {
+                const count = experiences.filter(exp => Math.round(exp.avgRating) === stars).length;
+                return (
+                  <button
+                    key={stars}
+                    onClick={() => setFilters({...filters, rating: stars.toString()})}
+                    className="w-full flex items-center justify-between bg-white rounded-lg p-4 hover:bg-purple-50 transition-colors shadow-sm"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="font-semibold text-gray-700 min-w-[70px]">
+                        {stars} {stars === 1 ? 'Star' : 'Stars'}
+                      </span>
+                      <div className="flex gap-1">
+                        {[...Array(stars)].map((_, i) => (
+                          <span key={i}>⭐</span>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-purple-600">{count}</div>
+                      <div className="text-xs text-gray-500">
+                        {count === 1 ? 'experience' : 'experiences'}
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
           
-          {/* Filtros */}
           <div className="bg-white rounded-xl shadow-md p-6 mb-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-gray-700">Filter Experiences</h3>
@@ -849,8 +770,6 @@ export default function HowWas() {
                 {filteredExperiences.length} {filteredExperiences.length === 1 ? 'experience found' : 'experiences found'}
               </div>
             </div>
-            
-            {/* Linha 1: 6 filtros */}
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-4">
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-2">Category</label>
@@ -863,7 +782,6 @@ export default function HowWas() {
                   {problemCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
                 </select>
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-2">Result</label>
                 <select
@@ -875,7 +793,6 @@ export default function HowWas() {
                   {resultCategories.map(cat => <option key={cat.value} value={cat.value}>{cat.label}</option>)}
                 </select>
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-2">Rating</label>
                 <select
@@ -891,7 +808,6 @@ export default function HowWas() {
                   <option value="1">⭐ (1)</option>
                 </select>
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-2">Gender</label>
                 <select
@@ -903,7 +819,6 @@ export default function HowWas() {
                   {genderOptions.map(gender => <option key={gender} value={gender}>{gender}</option>)}
                 </select>
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-2">Age</label>
                 <select
@@ -915,7 +830,6 @@ export default function HowWas() {
                   {ageOptions.map(age => <option key={age} value={age}>{age}</option>)}
                 </select>
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-2">Country</label>
                 <select
@@ -928,8 +842,6 @@ export default function HowWas() {
                 </select>
               </div>
             </div>
-            
-            {/* Linha 2: Keywords com 2x largura */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-600 mb-2">Enter Keywords</label>
@@ -942,7 +854,6 @@ export default function HowWas() {
                 />
               </div>
             </div>
-            
             {(filters.problemCategory || filters.searchText || filters.resultCategory || filters.rating || filters.gender || filters.age || filters.country) && (
               <button
                 onClick={() => setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '' })}
@@ -969,13 +880,11 @@ export default function HowWas() {
                         </span>
                       )}
                       {exp.country && (
-                        <span className="text-xs font-medium text-blue-600 bg-blue-50 px-3 py-1 rounded-full flex items-center gap-1">
-                          <span>{getFlagEmoji(exp.country.substring(0, 2))}</span>
-                          <span>{exp.country}</span>
+                        <span className="text-xs font-medium text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
+                          {exp.country}
                         </span>
                       )}
                     </div>
-                    
                     <div className="flex flex-col items-end gap-3">
                       <div className="flex items-center gap-2 bg-yellow-50 px-3 py-2 rounded-lg">
                         <div className="flex gap-1">
@@ -983,11 +892,7 @@ export default function HowWas() {
                             <Star
                               key={star}
                               size={18}
-                              className={
-                                star <= Math.round(exp.avgRating)
-                                  ? 'text-yellow-500 fill-yellow-500'
-                                  : 'text-gray-300'
-                              }
+                              className={star <= Math.round(exp.avgRating) ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}
                             />
                           ))}
                         </div>
@@ -996,7 +901,6 @@ export default function HowWas() {
                           <span className="text-xs text-gray-500 ml-1">({exp.totalRatings} {exp.totalRatings === 1 ? 'rating' : 'ratings'})</span>
                         </div>
                       </div>
-                      
                       <div className="flex flex-col items-end">
                         <div className="text-xs text-gray-600 mb-1">Your rating:</div>
                         <div className="flex gap-1">
@@ -1010,11 +914,7 @@ export default function HowWas() {
                             >
                               <Star
                                 size={20}
-                                className={
-                                  star <= (hoverRating[exp.id] || userRatings[exp.id] || 0)
-                                    ? 'text-yellow-500 fill-yellow-500'
-                                    : 'text-gray-300'
-                                }
+                                className={star <= (hoverRating[exp.id] || userRatings[exp.id] || 0) ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}
                               />
                             </button>
                           ))}
@@ -1022,7 +922,6 @@ export default function HowWas() {
                       </div>
                     </div>
                   </div>
-                  
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
@@ -1030,13 +929,10 @@ export default function HowWas() {
                           <AlertCircle size={16} />
                           Problem
                         </h4>
-                        <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full">
-                          {exp.problemCategory}
-                        </span>
+                        <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full">{exp.problemCategory}</span>
                       </div>
                       <p className="text-sm text-gray-700">{exp.problem}</p>
                     </div>
-
                     <div className="space-y-2">
                       <h4 className="font-semibold text-blue-600 flex items-center gap-2">
                         <TrendingUp size={16} />
@@ -1044,7 +940,6 @@ export default function HowWas() {
                       </h4>
                       <p className="text-sm text-gray-700">{exp.solution}</p>
                     </div>
-
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
                         <h4 className="font-semibold text-green-600 flex items-center gap-2">
@@ -1062,17 +957,11 @@ export default function HowWas() {
                   {isAdmin && (() => {
                     const confirmKey = `exp-${exp.id}`;
                     const isConfirming = confirmDelete === confirmKey;
-                    
                     return (
                       <div className="mt-4 mb-4 flex gap-2">
                         <button
                           onClick={async () => {
-                            console.log('🗑️ Delete button clicked!');
-                            console.log('🔘 confirmDelete:', confirmDelete);
-                            console.log('🔘 exp.id:', exp.id);
                             const isConfirming = confirmDelete === `exp-${exp.id}`;
-                            console.log('🔘 isConfirming:', isConfirming);
-                            
                             if (isConfirming) {
                               await deleteExperienceFromSupabase(exp.id);
                               setConfirmDelete(null);
@@ -1080,11 +969,7 @@ export default function HowWas() {
                               setConfirmDelete(`exp-${exp.id}`);
                             }
                           }}
-                          className={`px-4 py-2 text-white rounded text-sm flex items-center gap-2 ${
-                            isConfirming 
-                              ? 'bg-orange-600 hover:bg-orange-700 animate-pulse' 
-                              : 'bg-red-600 hover:bg-red-700'
-                          }`}
+                          className={`px-4 py-2 text-white rounded text-sm flex items-center gap-2 ${isConfirming ? 'bg-orange-600 hover:bg-orange-700 animate-pulse' : 'bg-red-600 hover:bg-red-700'}`}
                         >
                           <Trash2 size={14} />
                           {isConfirming ? 'Click to CONFIRM DELETE!' : 'Delete Experience'}
@@ -1101,7 +986,6 @@ export default function HowWas() {
                     );
                   })()}
 
-                  {/* Comments Section */}
                   <div className="border-t pt-4 mt-4">
                     <div className="mb-4">
                       <h4 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
@@ -1142,7 +1026,6 @@ export default function HowWas() {
                           <MessageCircle size={16} />
                           {showComments[exp.id] ? 'Hide' : 'Show'} {exp.comments.length} Previous {exp.comments.length === 1 ? 'Comment' : 'Comments'}
                         </button>
-                        
                         {showComments[exp.id] && (
                           <div className="space-y-3">
                             {exp.comments.map(comment => (
