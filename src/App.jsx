@@ -1,97 +1,40 @@
 import React, { useState, useEffect } from 'react';
-import { Share2, TrendingUp, AlertCircle, Star, MessageCircle, Send, Shield, Trash2, Search, Languages } from 'lucide-react';
+import { Share2, TrendingUp, AlertCircle, Star, MessageCircle, Send, Shield, Trash2, Search } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 
+// Supabase configuration
 const supabaseUrl = 'https://vtnzsyrojybyfeenkave.supabase.co';
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0bnpzeXJvanlieWZlZW5rYXZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY3OTg1ODEsImV4cCI6MjA4MjM3NDU4MX0.6W9ueperYZpiIsLmBzNgJ9-wxPrwJ-mkhdDe2VGbKxU';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-console.log('🔧 WhatIDid App loaded with Supabase!');
+console.log('🔧 HowWas App loaded with Supabase!');
 
-export default function WhatIDid() {
+export default function HowWas() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminPassword, setAdminPassword] = useState('');
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [adminKeywords, setAdminKeywords] = useState('');
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // Change from hardcoded array to empty array - will load from Supabase
   const [experiences, setExperiences] = useState([]);
   const [userCountry, setUserCountry] = useState('');
   const [addingComment, setAddingComment] = useState(null);
   const [userCountryName, setUserCountryName] = useState('');
-  
-  // Translation states
-  const [isTranslated, setIsTranslated] = useState(false);
-  const [targetLanguage, setTargetLanguage] = useState('');
-  const [translating, setTranslating] = useState(false);
-  const [translationCache, setTranslationCache] = useState({});
 
   useEffect(() => {
     detectUserCountry();
-    detectBrowserLanguage();
     loadExperiences();
   }, []);
 
-  const detectBrowserLanguage = () => {
-    const browserLang = navigator.language.split('-')[0];
-    if (browserLang !== 'en') {
-      setTargetLanguage(browserLang);
-    }
-  };
-
-  const translateText = async (text, targetLang) => {
-    if (!text || !targetLang) return text;
-    
-    const cacheKey = `${text}_${targetLang}`;
-    if (translationCache[cacheKey]) {
-      return translationCache[cacheKey];
-    }
-
-    try {
-      const response = await fetch('https://libretranslate.com/translate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          q: text,
-          source: 'en',
-          target: targetLang,
-          format: 'text'
-        })
-      });
-
-      const data = await response.json();
-      const translated = data.translatedText || text;
-      
-      setTranslationCache(prev => ({ ...prev, [cacheKey]: translated }));
-      
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      return translated;
-    } catch (error) {
-      console.error('Translation error:', error);
-      return text;
-    }
-  };
-
-  const handleTranslate = async () => {
-    if (!targetLanguage || targetLanguage === 'en') {
-      alert('Translation only works for non-English browsers');
-      return;
-    }
-
-    if (isTranslated) {
-      setIsTranslated(false);
-      return;
-    }
-
-    setTranslating(true);
-    setIsTranslated(true);
-    setTranslating(false);
-  };
-
-  const t = (text) => {
-    if (!isTranslated || !targetLanguage) return text;
-    return translationCache[`${text}_${targetLanguage}`] || text;
+  const getFlagEmoji = (countryCode) => {
+    if (!countryCode || countryCode.length !== 2) return '';
+    const codePoints = countryCode
+      .toUpperCase()
+      .split('')
+      .map(char => 127397 + char.charCodeAt());
+    return String.fromCodePoint(...codePoints);
   };
   
   const detectUserCountry = async () => {
@@ -166,10 +109,6 @@ export default function WhatIDid() {
       }
 
       setExperiences(transformedData);
-      
-      if (targetLanguage && targetLanguage !== 'en') {
-        await preloadTranslations(transformedData);
-      }
     } catch (error) {
       console.error('Error loading experiences:', error);
       alert('Error loading data. Please refresh the page.');
@@ -178,55 +117,51 @@ export default function WhatIDid() {
     }
   };
 
-  const preloadTranslations = async (data) => {
-    const textsToTranslate = new Set();
-    
-    data.forEach(exp => {
-      textsToTranslate.add(exp.problem);
-      textsToTranslate.add(exp.solution);
-      textsToTranslate.add(exp.result);
-      exp.comments.forEach(c => textsToTranslate.add(c.text));
-    });
-
-    const uiTexts = [
-      'Problem', 'Action', 'Result', 'Share Your Experiences',
-      'Shared Experiences', 'Rating Statistics', 'Filter Experiences',
-      'Add a Comment', 'Clear filters', 'Share Experience'
-    ];
-    uiTexts.forEach(t => textsToTranslate.add(t));
-
-    for (const text of textsToTranslate) {
-      if (text) {
-        await translateText(text, targetLanguage);
-      }
-    }
-  };
-
   const addExperienceToSupabase = async (newExperience) => {
+    console.log('🚀 Starting to save experience...');
+    console.log('📝 Experience data:', newExperience);
+    
     try {
+      console.log('📡 Sending to Supabase...');
+      
       const { data, error } = await supabase
         .from('experiences')
-        .insert([{
-          problem: newExperience.problem,
-          problem_category: newExperience.problemCategory,
-          solution: newExperience.solution,
-          result: newExperience.result,
-          result_category: newExperience.resultCategory,
-          author: newExperience.author || '',
-          gender: newExperience.gender || '',
-          age: newExperience.age || '',
-          country: newExperience.country || '',
-          avg_rating: 0,
-          total_ratings: 0
-        }])
+        .insert([
+          {
+            problem: newExperience.problem,
+            problem_category: newExperience.problemCategory,
+            solution: newExperience.solution,
+            result: newExperience.result,
+            result_category: newExperience.resultCategory,
+            author: newExperience.author || '',
+            gender: newExperience.gender || '',
+            age: newExperience.age || '',
+            country: newExperience.country || '',
+            avg_rating: 0,
+            total_ratings: 0
+          }
+        ])
         .select();
       
-      if (error) throw error;
+      console.log('📊 Supabase response - data:', data);
+      console.log('📊 Supabase response - error:', error);
+      
+      if (error) {
+        console.error('❌ Supabase error:', error);
+        throw error;
+      }
+      
+      console.log('✅ Experience saved successfully!');
+      
+      console.log('🔄 Reloading all experiences...');
       await loadExperiences();
+      
+      console.log('✅ All done!');
       return true;
     } catch (error) {
-      console.error('Error adding experience:', error);
-      alert('Error saving experience.');
+      console.error('❌ Error adding experience:', error);
+      console.error('❌ Error details:', error.message, error.code);
+      alert('Error saving experience. Please check console for details.');
       return false;
     }
   };
@@ -239,11 +174,13 @@ export default function WhatIDid() {
         .eq('id', id);
       
       if (error) throw error;
+      
       await loadExperiences();
+      
       return true;
     } catch (error) {
       console.error('Error deleting experience:', error);
-      alert('Error deleting experience.');
+      alert('Error deleting experience. Please try again.');
       return false;
     }
   };
@@ -278,7 +215,7 @@ export default function WhatIDid() {
       await loadExperiences();
       
     } catch (error) {
-      console.error('Error:', error);
+      console.error('❌ Error:', error);
       alert('Error adding comment.');
     } finally {
       setAddingComment(null);
@@ -320,6 +257,7 @@ export default function WhatIDid() {
   };
 
   const problemCategories = ['Health', 'Work', 'Relationship', 'Finance', 'Family', 'Education', 'Well-being', 'Other'];
+  
   const genderOptions = ['Male', 'Female', 'Other'];
   const ageOptions = ['0-20', '21-40', '41-60', '61-Up'];
   const countryOptions = [
@@ -368,7 +306,9 @@ export default function WhatIDid() {
   const handleSubmit = async () => {
     if (currentEntry.problem && currentEntry.problemCategory && 
         currentEntry.solution && currentEntry.result && currentEntry.resultCategory) {
+      
       await addExperienceToSupabase(currentEntry);
+      
       setCurrentEntry({
         problem: '',
         problemCategory: '',
@@ -386,21 +326,32 @@ export default function WhatIDid() {
   const handleUserRating = async (expId, rating) => {
     try {
       setUserRatings({...userRatings, [expId]: rating});
+      
       const exp = experiences.find(e => e.id === expId);
       if (!exp) return;
+      
       const newTotalRatings = exp.totalRatings + 1;
       const newAvgRating = ((exp.avgRating * exp.totalRatings) + rating) / newTotalRatings;
+      
       const { error } = await supabase
         .from('experiences')
-        .update({ avg_rating: newAvgRating, total_ratings: newTotalRatings })
+        .update({ 
+          avg_rating: newAvgRating,
+          total_ratings: newTotalRatings
+        })
         .eq('id', expId);
+      
       if (error) {
-        console.error('Error saving rating:', error);
+        console.error('❌ Error saving rating:', error);
         return;
       }
+      
+      console.log('⭐ Rating saved successfully!');
+      
       await loadExperiences();
+      
     } catch (error) {
-      console.error('Error in handleUserRating:', error);
+      console.error('❌ Error in handleUserRating:', error);
     }
   };
 
@@ -424,6 +375,7 @@ export default function WhatIDid() {
 
   const handleDeleteComment = (expId, commentId) => {
     const confirmKey = `comment-${expId}-${commentId}`;
+    
     if (confirmDelete === confirmKey) {
       setExperiences(experiences.map(exp => {
         if (exp.id === expId) {
@@ -439,10 +391,13 @@ export default function WhatIDid() {
 
   const getKeywordMatches = () => {
     if (!adminKeywords.trim()) return [];
+    
     const keywords = adminKeywords.toLowerCase().split(',').map(k => k.trim()).filter(k => k);
     const matches = [];
+
     experiences.forEach(exp => {
       const searchText = `${exp.problem} ${exp.solution} ${exp.result}`.toLowerCase();
+      
       keywords.forEach(keyword => {
         if (searchText.includes(keyword)) {
           matches.push({
@@ -453,6 +408,7 @@ export default function WhatIDid() {
           });
         }
       });
+
       exp.comments.forEach(comment => {
         keywords.forEach(keyword => {
           if (comment.text.toLowerCase().includes(keyword)) {
@@ -468,6 +424,7 @@ export default function WhatIDid() {
         });
       });
     });
+
     return matches;
   };
 
@@ -489,6 +446,7 @@ export default function WhatIDid() {
     const matchesGender = !filters.gender || exp.gender === filters.gender;
     const matchesAge = !filters.age || exp.age === filters.age;
     const matchesCountry = !filters.country || exp.country === filters.country;
+    
     return matchesProblemCategory && matchesSearchText && matchesResultCategory && matchesRating && matchesGender && matchesAge && matchesCountry;
   });
 
@@ -516,19 +474,9 @@ export default function WhatIDid() {
             <div className="flex-1"></div>
             <h1 className="text-4xl font-bold text-gray-800 mb-2 flex items-center justify-center gap-3">
               <Share2 className="text-purple-600" size={36} />
-              WhatIDid
+              HowWas
             </h1>
-            <div className="flex-1 flex justify-end gap-3">
-              {targetLanguage && targetLanguage !== 'en' && (
-                <button
-                  onClick={handleTranslate}
-                  disabled={translating}
-                  className="text-sm text-gray-500 hover:text-purple-600 flex items-center gap-2"
-                >
-                  <Languages size={16} />
-                  {translating ? 'Translating...' : isTranslated ? 'Show Original' : 'Translate'}
-                </button>
-              )}
+            <div className="flex-1 flex justify-end">
               {!isAdmin ? (
                 <button
                   onClick={() => setShowAdminLogin(!showAdminLogin)}
@@ -551,8 +499,8 @@ export default function WhatIDid() {
               )}
             </div>
           </div>
-          <p className="text-gray-700 font-medium mb-1">{t('Real problems. Real solutions. Real people.')}</p>
-          <p className="text-gray-600">{t('Share your experience, help someone else')}</p>
+          <p className="text-gray-700 font-medium mb-1">Real problems. Real solutions. Real people.</p>
+          <p className="text-gray-600">Share your experience, help someone else</p>
 
           {showAdminLogin && !isAdmin && (
             <div className="mt-4 bg-white rounded-lg shadow-md p-4 max-w-md mx-auto">
@@ -623,18 +571,23 @@ export default function WhatIDid() {
                                   ? `comment-${match.expId}-${match.commentId}`
                                   : `exp-${match.expId}`;
                                 const isConfirming = confirmDelete === confirmKey;
+                                
                                 return (
                                   <div className="flex gap-2">
                                     <button
                                       onClick={async () => {
+                                        console.log('🔍 Search Delete clicked');
+                                        
                                         const confirmKey = match.type === 'comment' 
                                           ? `comment-${match.expId}-${match.commentId}`
                                           : `exp-${match.expId}`;
                                         const isConfirming = confirmDelete === confirmKey;
+                                        
                                         if (isConfirming) {
                                           if (match.type === 'comment') {
                                             handleDeleteComment(match.expId, match.commentId);
                                           } else {
+                                            console.log('🔍 Deleting match:', match.expId);
                                             await deleteExperienceFromSupabase(match.expId);
                                           }
                                           setConfirmDelete(null);
@@ -643,7 +596,9 @@ export default function WhatIDid() {
                                         }
                                       }}
                                       className={`px-3 py-1 text-white text-xs rounded flex items-center gap-1 ${
-                                        isConfirming ? 'bg-orange-600 hover:bg-orange-700 animate-pulse' : 'bg-red-600 hover:bg-red-700'
+                                        isConfirming 
+                                          ? 'bg-orange-600 hover:bg-orange-700 animate-pulse' 
+                                          : 'bg-red-600 hover:bg-red-700'
                                       }`}
                                     >
                                       <Trash2 size={12} />
@@ -682,14 +637,16 @@ export default function WhatIDid() {
           )}
         </div>
 
+        {/* Formulário de Entrada */}
         <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">{t('Share Your Experiences')}</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-6">Share Your Experiences</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div className="space-y-3">
               <div className="flex items-center gap-2 mb-2">
                 <AlertCircle className="text-red-500" size={20} />
-                <h3 className="text-lg font-semibold text-gray-800">{t('Problem')}</h3>
+                <h3 className="text-lg font-semibold text-gray-800">Problem</h3>
               </div>
+              
               <select
                 value={currentEntry.problemCategory}
                 onChange={(e) => setCurrentEntry({...currentEntry, problemCategory: e.target.value})}
@@ -701,6 +658,7 @@ export default function WhatIDid() {
                   <option key={cat} value={cat}>{cat}</option>
                 ))}
               </select>
+
               <div className="relative">
                 <textarea
                   value={currentEntry.problem}
@@ -722,8 +680,9 @@ export default function WhatIDid() {
             <div className="space-y-3">
               <div className="flex items-center gap-2 mb-2">
                 <TrendingUp className="text-blue-500" size={20} />
-                <h3 className="text-lg font-semibold text-gray-800">{t('Action')}</h3>
+                <h3 className="text-lg font-semibold text-gray-800">Action</h3>
               </div>
+
               <div className="relative">
                 <textarea
                   value={currentEntry.solution}
@@ -745,8 +704,9 @@ export default function WhatIDid() {
             <div className="space-y-3">
               <div className="flex items-center gap-2 mb-2">
                 <Share2 className="text-green-500" size={20} />
-                <h3 className="text-lg font-semibold text-gray-800">{t('Result')}</h3>
+                <h3 className="text-lg font-semibold text-gray-800">Result</h3>
               </div>
+              
               <select
                 value={currentEntry.resultCategory}
                 onChange={(e) => setCurrentEntry({...currentEntry, resultCategory: e.target.value})}
@@ -758,6 +718,7 @@ export default function WhatIDid() {
                   <option key={cat.value} value={cat.value}>{cat.label}</option>
                 ))}
               </select>
+
               <div className="relative">
                 <textarea
                   value={currentEntry.result}
@@ -779,7 +740,9 @@ export default function WhatIDid() {
 
           <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Author (optional)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Author (optional)
+              </label>
               <input
                 type="text"
                 value={currentEntry.author}
@@ -789,8 +752,11 @@ export default function WhatIDid() {
                 maxLength={50}
               />
             </div>
+            
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Gender (optional)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Gender (optional)
+              </label>
               <select
                 value={currentEntry.gender}
                 onChange={(e) => setCurrentEntry({...currentEntry, gender: e.target.value})}
@@ -802,8 +768,11 @@ export default function WhatIDid() {
                 ))}
               </select>
             </div>
+            
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Age Range (optional)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Age Range (optional)
+              </label>
               <select
                 value={currentEntry.age}
                 onChange={(e) => setCurrentEntry({...currentEntry, age: e.target.value})}
@@ -815,34 +784,47 @@ export default function WhatIDid() {
                 ))}
               </select>
             </div>
+            
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Country (auto-detected)</label>
-              <select
-                value={currentEntry.country}
-                onChange={(e) => setCurrentEntry({...currentEntry, country: e.target.value})}
-                className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-              >
-                <option value="">Select country</option>
-                {countryOptions.map(country => (
-                  <option key={country} value={country}>{country}</option>
-                ))}
-              </select>
-              <p className="text-xs text-gray-500 mt-1">Detected: {userCountryName || 'Not detected'}</p>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Country (auto-detected)
+              </label>
+              <div className="flex items-center gap-2">
+                <select
+                  value={currentEntry.country}
+                  onChange={(e) => setCurrentEntry({...currentEntry, country: e.target.value})}
+                  className="flex-1 p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                >
+                  <option value="">Select country</option>
+                  {countryOptions.map(country => (
+                    <option key={country} value={country}>{country}</option>
+                  ))}
+                </select>
+                {currentEntry.country && (
+                  <span className="text-2xl" title={currentEntry.country}>
+                    {getFlagEmoji(currentEntry.country.substring(0, 2))}
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Detected: {userCountryName || 'Not detected'}
+              </p>
             </div>
           </div>
+              
           <button
             onClick={handleSubmit}
             className="w-full mt-6 bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all shadow-lg"
           >
-            {t('Share Experience')}
+            Share Experience
           </button>
         </div>
 
         <div className="space-y-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">{t('Shared Experiences')} ({experiences.length})</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Shared Experiences ({experiences.length})</h2>
           
           <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl shadow-md p-6 mb-6">
-            <h3 className="text-lg font-semibold text-gray-700 mb-4">{t('Rating Statistics')}</h3>
+            <h3 className="text-lg font-semibold text-gray-700 mb-4">Rating Statistics</h3>
             <div className="grid grid-cols-5 gap-4">
               {ratingStats.reverse().map(stat => (
                 <div key={stat.stars} className="bg-white rounded-lg p-4 text-center shadow-sm">
@@ -859,13 +841,16 @@ export default function WhatIDid() {
             </div>
           </div>
           
+          {/* Filtros */}
           <div className="bg-white rounded-xl shadow-md p-6 mb-6">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-700">{t('Filter Experiences')}</h3>
+              <h3 className="text-lg font-semibold text-gray-700">Filter Experiences</h3>
               <div className="text-sm font-medium text-purple-600">
                 {filteredExperiences.length} {filteredExperiences.length === 1 ? 'experience found' : 'experiences found'}
               </div>
             </div>
+            
+            {/* Linha 1: 6 filtros */}
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-4">
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-2">Category</label>
@@ -878,6 +863,7 @@ export default function WhatIDid() {
                   {problemCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
                 </select>
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-2">Result</label>
                 <select
@@ -889,6 +875,7 @@ export default function WhatIDid() {
                   {resultCategories.map(cat => <option key={cat.value} value={cat.value}>{cat.label}</option>)}
                 </select>
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-2">Rating</label>
                 <select
@@ -904,6 +891,7 @@ export default function WhatIDid() {
                   <option value="1">⭐ (1)</option>
                 </select>
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-2">Gender</label>
                 <select
@@ -915,6 +903,7 @@ export default function WhatIDid() {
                   {genderOptions.map(gender => <option key={gender} value={gender}>{gender}</option>)}
                 </select>
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-2">Age</label>
                 <select
@@ -926,6 +915,7 @@ export default function WhatIDid() {
                   {ageOptions.map(age => <option key={age} value={age}>{age}</option>)}
                 </select>
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-2">Country</label>
                 <select
@@ -938,6 +928,8 @@ export default function WhatIDid() {
                 </select>
               </div>
             </div>
+            
+            {/* Linha 2: Keywords com 2x largura */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-600 mb-2">Enter Keywords</label>
@@ -950,12 +942,13 @@ export default function WhatIDid() {
                 />
               </div>
             </div>
+            
             {(filters.problemCategory || filters.searchText || filters.resultCategory || filters.rating || filters.gender || filters.age || filters.country) && (
               <button
                 onClick={() => setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '' })}
                 className="mt-4 text-sm text-purple-600 hover:text-purple-800 font-medium"
               >
-                {t('Clear filters')}
+                Clear filters
               </button>
             )}
           </div>
@@ -976,11 +969,13 @@ export default function WhatIDid() {
                         </span>
                       )}
                       {exp.country && (
-                        <span className="text-xs font-medium text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
-                          {exp.country}
+                        <span className="text-xs font-medium text-blue-600 bg-blue-50 px-3 py-1 rounded-full flex items-center gap-1">
+                          <span>{getFlagEmoji(exp.country.substring(0, 2))}</span>
+                          <span>{exp.country}</span>
                         </span>
                       )}
                     </div>
+                    
                     <div className="flex flex-col items-end gap-3">
                       <div className="flex items-center gap-2 bg-yellow-50 px-3 py-2 rounded-lg">
                         <div className="flex gap-1">
@@ -988,7 +983,11 @@ export default function WhatIDid() {
                             <Star
                               key={star}
                               size={18}
-                              className={star <= Math.round(exp.avgRating) ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}
+                              className={
+                                star <= Math.round(exp.avgRating)
+                                  ? 'text-yellow-500 fill-yellow-500'
+                                  : 'text-gray-300'
+                              }
                             />
                           ))}
                         </div>
@@ -997,6 +996,7 @@ export default function WhatIDid() {
                           <span className="text-xs text-gray-500 ml-1">({exp.totalRatings} {exp.totalRatings === 1 ? 'rating' : 'ratings'})</span>
                         </div>
                       </div>
+                      
                       <div className="flex flex-col items-end">
                         <div className="text-xs text-gray-600 mb-1">Your rating:</div>
                         <div className="flex gap-1">
@@ -1010,7 +1010,11 @@ export default function WhatIDid() {
                             >
                               <Star
                                 size={20}
-                                className={star <= (hoverRating[exp.id] || userRatings[exp.id] || 0) ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}
+                                className={
+                                  star <= (hoverRating[exp.id] || userRatings[exp.id] || 0)
+                                    ? 'text-yellow-500 fill-yellow-500'
+                                    : 'text-gray-300'
+                                }
                               />
                             </button>
                           ))}
@@ -1018,46 +1022,57 @@ export default function WhatIDid() {
                       </div>
                     </div>
                   </div>
+                  
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
                         <h4 className="font-semibold text-red-600 flex items-center gap-2">
                           <AlertCircle size={16} />
-                          {t('Problem')}
+                          Problem
                         </h4>
-                        <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full">{exp.problemCategory}</span>
+                        <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full">
+                          {exp.problemCategory}
+                        </span>
                       </div>
-                      <p className="text-sm text-gray-700">{t(exp.problem)}</p>
+                      <p className="text-sm text-gray-700">{exp.problem}</p>
                     </div>
+
                     <div className="space-y-2">
                       <h4 className="font-semibold text-blue-600 flex items-center gap-2">
                         <TrendingUp size={16} />
-                        {t('Action')}
+                        Action
                       </h4>
-                      <p className="text-sm text-gray-700">{t(exp.solution)}</p>
+                      <p className="text-sm text-gray-700">{exp.solution}</p>
                     </div>
+
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
                         <h4 className="font-semibold text-green-600 flex items-center gap-2">
                           <Share2 size={16} />
-                          {t('Result')}
+                          Result
                         </h4>
                         <span className={`text-xs px-3 py-1 rounded-full ${getResultColor(exp.resultCategory)}`}>
                           {getResultLabel(exp.resultCategory)}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-700">{t(exp.result)}</p>
+                      <p className="text-sm text-gray-700">{exp.result}</p>
                     </div>
                   </div>
 
                   {isAdmin && (() => {
                     const confirmKey = `exp-${exp.id}`;
                     const isConfirming = confirmDelete === confirmKey;
+                    
                     return (
                       <div className="mt-4 mb-4 flex gap-2">
                         <button
                           onClick={async () => {
+                            console.log('🗑️ Delete button clicked!');
+                            console.log('🔘 confirmDelete:', confirmDelete);
+                            console.log('🔘 exp.id:', exp.id);
                             const isConfirming = confirmDelete === `exp-${exp.id}`;
+                            console.log('🔘 isConfirming:', isConfirming);
+                            
                             if (isConfirming) {
                               await deleteExperienceFromSupabase(exp.id);
                               setConfirmDelete(null);
@@ -1065,7 +1080,11 @@ export default function WhatIDid() {
                               setConfirmDelete(`exp-${exp.id}`);
                             }
                           }}
-                          className={`px-4 py-2 text-white rounded text-sm flex items-center gap-2 ${isConfirming ? 'bg-orange-600 hover:bg-orange-700 animate-pulse' : 'bg-red-600 hover:bg-red-700'}`}
+                          className={`px-4 py-2 text-white rounded text-sm flex items-center gap-2 ${
+                            isConfirming 
+                              ? 'bg-orange-600 hover:bg-orange-700 animate-pulse' 
+                              : 'bg-red-600 hover:bg-red-700'
+                          }`}
                         >
                           <Trash2 size={14} />
                           {isConfirming ? 'Click to CONFIRM DELETE!' : 'Delete Experience'}
@@ -1082,11 +1101,12 @@ export default function WhatIDid() {
                     );
                   })()}
 
+                  {/* Comments Section */}
                   <div className="border-t pt-4 mt-4">
                     <div className="mb-4">
                       <h4 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
                         <MessageCircle size={18} />
-                        {t('Add a Comment')}
+                        Add a Comment
                       </h4>
                       <div className="flex gap-2">
                         <textarea
@@ -1122,12 +1142,13 @@ export default function WhatIDid() {
                           <MessageCircle size={16} />
                           {showComments[exp.id] ? 'Hide' : 'Show'} {exp.comments.length} Previous {exp.comments.length === 1 ? 'Comment' : 'Comments'}
                         </button>
+                        
                         {showComments[exp.id] && (
                           <div className="space-y-3">
                             {exp.comments.map(comment => (
                               <div key={comment.id} className="bg-gray-50 rounded-lg p-3">
                                 <p className="text-sm text-gray-700">
-                                  {t(comment.text)}
+                                  {comment.text}
                                   {comment.country && (
                                     <span className="text-gray-500 ml-2">({comment.country})</span>
                                   )}
