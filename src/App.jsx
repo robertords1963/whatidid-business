@@ -680,7 +680,7 @@ export default function WhatIDid() {
           if (top3Data.length === 0) return null;
           
           return (
-            <div className="bg-gradient-to-r from-[#dbeafe] to-[#e9d5ff] rounded-2xl shadow-xl p-8 mb-8 border-2 border-[#d8b4fe]">
+            <div className="bg-[#e9d5ff] rounded-2xl shadow-xl p-8 mb-8 border-2 border-[#d8b4fe]">
               <div className="text-center mb-6">
                 <h2 className="text-3xl font-bold text-gray-800 flex items-center justify-center gap-3 mb-2">
                   <Star className="text-yellow-500 fill-yellow-500" size={32} />
