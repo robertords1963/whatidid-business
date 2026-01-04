@@ -411,9 +411,9 @@ export default function WhatIDid() {
 
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
-    const experiencesSection = document.getElementById('experiences-section');
-    if (experiencesSection) {
-      experiencesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const firstExperience = document.getElementById('first-experience');
+    if (firstExperience) {
+      firstExperience.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
 
@@ -933,12 +933,105 @@ export default function WhatIDid() {
             )}
           </div>
 
+          {/* Pagination - Top */}
+          {filteredExperiences.length > experiencesPerPage && (
+            <div className="mb-6 flex flex-col items-center gap-4">
+              <div className="text-sm text-gray-600">
+                Page {currentPage} of {totalPages} • Showing {indexOfFirstExperience + 1}-{Math.min(indexOfLastExperience, filteredExperiences.length)} of {filteredExperiences.length} experiences
+              </div>
+              <div className="flex items-center gap-2 flex-wrap justify-center">
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="px-4 py-2 bg-white border-2 border-gray-200 rounded-lg font-medium text-gray-700 hover:bg-purple-50 hover:border-purple-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+                >
+                  ← Previous
+                </button>
+                
+                <div className="flex gap-2 flex-wrap justify-center">
+                  {(() => {
+                    const pages = [];
+                    const showEllipsisStart = currentPage > 3;
+                    const showEllipsisEnd = currentPage < totalPages - 2;
+                    
+                    pages.push(
+                      <button
+                        key={1}
+                        onClick={() => handlePageChange(1)}
+                        className={`px-3 py-2 rounded-lg font-medium transition-colors text-sm ${
+                          currentPage === 1
+                            ? 'bg-purple-600 text-white'
+                            : 'bg-white border-2 border-gray-200 text-gray-700 hover:bg-purple-50 hover:border-purple-300'
+                        }`}
+                      >
+                        1
+                      </button>
+                    );
+                    
+                    if (showEllipsisStart) {
+                      pages.push(<span key="ellipsis-start-top" className="px-2 text-gray-500">...</span>);
+                    }
+                    
+                    const startPage = Math.max(2, currentPage - 1);
+                    const endPage = Math.min(totalPages - 1, currentPage + 1);
+                    
+                    for (let i = startPage; i <= endPage; i++) {
+                      pages.push(
+                        <button
+                          key={i}
+                          onClick={() => handlePageChange(i)}
+                          className={`px-3 py-2 rounded-lg font-medium transition-colors text-sm ${
+                            currentPage === i
+                              ? 'bg-purple-600 text-white'
+                              : 'bg-white border-2 border-gray-200 text-gray-700 hover:bg-purple-50 hover:border-purple-300'
+                          }`}
+                        >
+                          {i}
+                        </button>
+                      );
+                    }
+                    
+                    if (showEllipsisEnd) {
+                      pages.push(<span key="ellipsis-end-top" className="px-2 text-gray-500">...</span>);
+                    }
+                    
+                    if (totalPages > 1) {
+                      pages.push(
+                        <button
+                          key={totalPages}
+                          onClick={() => handlePageChange(totalPages)}
+                          className={`px-3 py-2 rounded-lg font-medium transition-colors text-sm ${
+                            currentPage === totalPages
+                              ? 'bg-purple-600 text-white'
+                              : 'bg-white border-2 border-gray-200 text-gray-700 hover:bg-purple-50 hover:border-purple-300'
+                          }`}
+                        >
+                          {totalPages}
+                        </button>
+                      );
+                    }
+                    
+                    return pages;
+                  })()}
+                </div>
+                
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="px-4 py-2 bg-white border-2 border-gray-200 rounded-lg font-medium text-gray-700 hover:bg-purple-50 hover:border-purple-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+                >
+                  Next →
+                </button>
+              </div>
+            </div>
+          )}
+
           {filteredExperiences.length === 0 ? (
             <div className="bg-gray-50 rounded-xl p-8 text-center">
               <p className="text-gray-500">No experiences found.</p>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-4" id="first-experience">
               {currentExperiences.map(exp => (
                 <div key={exp.id} className="bg-white rounded-2xl shadow-lg p-6">
                   <div className="flex justify-between items-start mb-4">
@@ -1215,19 +1308,23 @@ export default function WhatIDid() {
         <footer className="mt-12 pt-8 border-t-2 border-gray-200">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="flex gap-6 text-sm">
-              {!isAdmin ? (
-                <button
-                  onClick={() => setShowAdminLogin(!showAdminLogin)}
-                  className="text-gray-600 hover:text-purple-600 font-medium transition-colors"
-                >
-                  Admin
-                </button>
-              ) : (
-                <span className="text-purple-600 font-medium flex items-center gap-2">
-                  <Shield size={14} />
-                  Admin Mode
-                </span>
-              )}
+              <button
+                onClick={() => {
+                  if (isAdmin) {
+                    setIsAdmin(false);
+                    setAdminKeywords('');
+                    setShowAdminLogin(false);
+                  } else {
+                    setShowAdminLogin(!showAdminLogin);
+                  }
+                }}
+                className={`font-medium transition-colors flex items-center gap-2 ${
+                  isAdmin ? 'text-purple-600' : 'text-gray-600 hover:text-purple-600'
+                }`}
+              >
+                {isAdmin && <Shield size={14} />}
+                {isAdmin ? 'Admin Mode (Click to Logout)' : 'Admin'}
+              </button>
               <span className="text-gray-300">|</span>
               <button className="text-gray-600 hover:text-purple-600 font-medium transition-colors">
                 Contact
