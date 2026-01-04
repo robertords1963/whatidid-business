@@ -318,6 +318,13 @@ export default function WhatIDid() {
     }
   };
 
+  // Scroll to top when admin box is opened
+  useEffect(() => {
+    if (showAdminLogin || isAdmin) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [showAdminLogin, isAdmin]);
+
   const handleDelete = (expId) => {
     if (confirmDelete === `exp-${expId}`) {
       setExperiences(experiences.filter(e => e.id !== expId));
@@ -411,9 +418,11 @@ export default function WhatIDid() {
 
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
-    const firstExperience = document.getElementById('first-experience');
-    if (firstExperience) {
-      firstExperience.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const paginationTop = document.getElementById('pagination-top');
+    if (paginationTop) {
+      const yOffset = -100; // 100px de espaço acima
+      const y = paginationTop.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({ top: y, behavior: 'smooth' });
     }
   };
 
@@ -935,7 +944,7 @@ export default function WhatIDid() {
 
           {/* Pagination - Top */}
           {filteredExperiences.length > experiencesPerPage && (
-            <div className="mb-6 flex flex-col items-center gap-4">
+            <div id="pagination-top" className="mb-6 flex flex-col items-center gap-4">
               <div className="text-sm text-gray-600">
                 Page {currentPage} of {totalPages} • Showing {indexOfFirstExperience + 1}-{Math.min(indexOfLastExperience, filteredExperiences.length)} of {filteredExperiences.length} experiences
               </div>
