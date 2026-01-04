@@ -671,6 +671,101 @@ export default function WhatIDid() {
           )}
         </div>
 
+        {/* Top 3 Experiences This Week - MOVED TO TOP */}
+        {(() => {
+          const top3Data = [1, 2, 3]
+            .map(pos => experiences.find(exp => exp.id === topExperiences[pos]))
+            .filter(Boolean);
+          
+          if (top3Data.length === 0) return null;
+          
+          return (
+            <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-2xl shadow-xl p-8 mb-8 border-2 border-yellow-200">
+              <div className="text-center mb-6">
+                <h2 className="text-3xl font-bold text-gray-800 flex items-center justify-center gap-3 mb-2">
+                  <Star className="text-yellow-500 fill-yellow-500" size={32} />
+                  Top 3 Experiences This Week
+                  <Star className="text-yellow-500 fill-yellow-500" size={32} />
+                </h2>
+                <p className="text-gray-600">Handpicked experiences that made a real difference</p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                {top3Data.map((exp, index) => (
+                  <button
+                    key={exp.id}
+                    onClick={() => {
+                      const expElement = document.getElementById(`exp-${exp.id}`);
+                      if (expElement) {
+                        const yOffset = -100;
+                        const y = expElement.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                        window.scrollTo({ top: y, behavior: 'smooth' });
+                      }
+                    }}
+                    className="bg-white rounded-xl shadow-lg p-6 relative hover:shadow-2xl hover:scale-105 transition-all duration-300 text-left cursor-pointer"
+                  >
+                    <div className="absolute -top-3 -left-3 bg-yellow-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg shadow-lg">
+                      #{index + 1}
+                    </div>
+                    
+                    <div className="space-y-4 mt-2">
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-semibold text-red-600 flex items-center gap-2">
+                            <AlertCircle size={16} />
+                            Problem
+                          </h4>
+                          <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full">
+                            {exp.problemCategory}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-700 line-clamp-3">{exp.problem}</p>
+                      </div>
+
+                      <div>
+                        <h4 className="font-semibold text-blue-600 flex items-center gap-2 mb-2">
+                          <TrendingUp size={16} />
+                          Action
+                        </h4>
+                        <p className="text-sm text-gray-700 line-clamp-3">{exp.solution}</p>
+                      </div>
+
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-semibold text-green-600 flex items-center gap-2">
+                            <Share2 size={16} />
+                            Result
+                          </h4>
+                          <span className={`text-xs px-3 py-1 rounded-full ${getResultColor(exp.resultCategory)}`}>
+                            {getResultLabel(exp.resultCategory)}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-700 line-clamp-3">{exp.result}</p>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+              
+              <div className="text-center">
+                <button
+                  onClick={() => {
+                    const experiencesSection = document.getElementById('experiences-section');
+                    if (experiencesSection) {
+                      experiencesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                  }}
+                  className="text-purple-600 hover:text-purple-800 font-medium text-sm flex items-center gap-2 mx-auto transition-colors"
+                >
+                  <TrendingUp size={16} />
+                  Learn more about all experiences
+                  <TrendingUp size={16} className="rotate-180" />
+                </button>
+              </div>
+            </div>
+          );
+        })()}
+
         <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
           <h2 className="text-2xl font-bold text-gray-800 mb-6">Share Your Experiences</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
@@ -826,74 +921,6 @@ export default function WhatIDid() {
             Share Experience
           </button>
         </div>
-
-        {/* Top 3 Experiences This Week */}
-        {(() => {
-          const top3Data = [1, 2, 3]
-            .map(pos => experiences.find(exp => exp.id === topExperiences[pos]))
-            .filter(Boolean);
-          
-          if (top3Data.length === 0) return null;
-          
-          return (
-            <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-2xl shadow-xl p-8 mb-8 border-2 border-yellow-200">
-              <div className="text-center mb-6">
-                <h2 className="text-3xl font-bold text-gray-800 flex items-center justify-center gap-3 mb-2">
-                  <Star className="text-yellow-500 fill-yellow-500" size={32} />
-                  Top 3 Experiences This Week
-                  <Star className="text-yellow-500 fill-yellow-500" size={32} />
-                </h2>
-                <p className="text-gray-600">Handpicked experiences that made a real difference</p>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {top3Data.map((exp, index) => (
-                  <div key={exp.id} className="bg-white rounded-xl shadow-lg p-6 relative">
-                    <div className="absolute -top-3 -left-3 bg-yellow-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg shadow-lg">
-                      #{index + 1}
-                    </div>
-                    
-                    <div className="space-y-4 mt-2">
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <h4 className="font-semibold text-red-600 flex items-center gap-2">
-                            <AlertCircle size={16} />
-                            Problem
-                          </h4>
-                          <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full">
-                            {exp.problemCategory}
-                          </span>
-                        </div>
-                        <p className="text-sm text-gray-700 line-clamp-3">{exp.problem}</p>
-                      </div>
-
-                      <div>
-                        <h4 className="font-semibold text-blue-600 flex items-center gap-2 mb-2">
-                          <TrendingUp size={16} />
-                          Action
-                        </h4>
-                        <p className="text-sm text-gray-700 line-clamp-3">{exp.solution}</p>
-                      </div>
-
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <h4 className="font-semibold text-green-600 flex items-center gap-2">
-                            <Share2 size={16} />
-                            Result
-                          </h4>
-                          <span className={`text-xs px-3 py-1 rounded-full ${getResultColor(exp.resultCategory)}`}>
-                            {getResultLabel(exp.resultCategory)}
-                          </span>
-                        </div>
-                        <p className="text-sm text-gray-700 line-clamp-3">{exp.result}</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          );
-        })()}
 
         <div className="space-y-6" id="experiences-section">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">Shared Experiences ({experiences.length})</h2>
@@ -1179,7 +1206,7 @@ export default function WhatIDid() {
           ) : (
             <div className="space-y-4" id="first-experience">
               {currentExperiences.map(exp => (
-                <div key={exp.id} className="bg-white rounded-2xl shadow-lg p-6">
+                <div key={exp.id} id={`exp-${exp.id}`} className="bg-white rounded-2xl shadow-lg p-6">
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex items-center gap-3 flex-wrap">
                       {(exp.author || exp.gender || exp.age) && (
