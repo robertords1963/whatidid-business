@@ -758,7 +758,7 @@ export default function WhatIDid() {
                   className="text-purple-600 hover:text-purple-800 font-medium text-sm flex items-center gap-2 mx-auto transition-colors"
                 >
                   <TrendingUp size={16} />
-                  Learn more about all experiences
+                  Check all experiences shared
                   <TrendingUp size={16} className="rotate-180" />
                 </button>
               </div>
@@ -925,11 +925,11 @@ export default function WhatIDid() {
         <div className="space-y-6" id="experiences-section">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">Shared Experiences ({experiences.length})</h2>
           
-          {/* Rating Statistics - Compact Left-Aligned Layout */}
+          {/* RATING STATISTICS - TEMPORARILY DISABLED */}
+          {/* 
           <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl shadow-md p-6 mb-6">
             <h3 className="text-lg font-semibold text-gray-700 mb-4">Rating Statistics</h3>
             
-            {/* Overall Average Rating */}
             <div className="mb-4">
               <div className="flex items-center gap-2 mb-2">
                 {(() => {
@@ -945,9 +945,7 @@ export default function WhatIDid() {
                         
                         return (
                           <div key={star} className="relative inline-block">
-                            {/* Background star (empty) */}
                             <Star size={24} className="text-gray-300" />
-                            {/* Foreground star (filled) with clip */}
                             <div 
                               className="absolute top-0 left-0 overflow-hidden"
                               style={{ width: `${fillPercentage}%` }}
@@ -973,7 +971,6 @@ export default function WhatIDid() {
               </div>
             </div>
 
-            {/* Rating Breakdown - 3 Column Compact */}
             <div className="space-y-2">
               {[5, 4, 3, 2, 1, 0].map(stars => {
                 const count = stars === 0 
@@ -1003,6 +1000,7 @@ export default function WhatIDid() {
               })}
             </div>
           </div>
+          */}
           
           <div className="bg-white rounded-xl shadow-md p-6 mb-6">
             <div className="flex justify-between items-center mb-4">
