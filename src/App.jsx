@@ -23,6 +23,7 @@ export default function WhatIDid() {
   useEffect(() => {
     detectUserCountry();
     loadExperiences();
+    loadTopExperiences();
   }, []);
   
   const detectUserCountry = async () => {
@@ -102,6 +103,73 @@ export default function WhatIDid() {
       alert('Error loading data. Please refresh the page.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadTopExperiences = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('top_experiences')
+        .select('position, experience_id');
+      
+      if (error) throw error;
+      
+      const topExp = { 1: null, 2: null, 3: null };
+      if (data) {
+        data.forEach(item => {
+          if (item.experience_id) {
+            topExp[item.position] = item.experience_id;
+          }
+        });
+      }
+      setTopExperiences(topExp);
+    } catch (error) {
+      console.error('Error loading top experiences:', error);
+    }
+  };
+
+  const setTopExperience = async (position, experienceId) => {
+    try {
+      // Check if this experience is already set in another position
+      const currentPosition = Object.entries(topExperiences).find(
+        ([pos, id]) => id === experienceId && parseInt(pos) !== position
+      );
+      
+      if (currentPosition) {
+        alert(`This experience is already set as Top ${currentPosition[0]}`);
+        return;
+      }
+
+      const { error } = await supabase
+        .from('top_experiences')
+        .upsert({ 
+          position, 
+          experience_id: experienceId 
+        }, { 
+          onConflict: 'position' 
+        });
+      
+      if (error) throw error;
+      
+      await loadTopExperiences();
+    } catch (error) {
+      console.error('Error setting top experience:', error);
+      alert('Error setting top experience');
+    }
+  };
+
+  const removeTopExperience = async (position) => {
+    try {
+      const { error } = await supabase
+        .from('top_experiences')
+        .update({ experience_id: null })
+        .eq('position', position);
+      
+      if (error) throw error;
+      
+      await loadTopExperiences();
+    } catch (error) {
+      console.error('Error removing top experience:', error);
     }
   };
 
@@ -216,6 +284,7 @@ export default function WhatIDid() {
   const [showComments, setShowComments] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
   const experiencesPerPage = 20;
+  const [topExperiences, setTopExperiences] = useState({ 1: null, 2: null, 3: null });
 
   const maxChars = {
     problem: 300,
@@ -758,6 +827,74 @@ export default function WhatIDid() {
           </button>
         </div>
 
+        {/* Top 3 Experiences This Week */}
+        {(() => {
+          const top3Data = [1, 2, 3]
+            .map(pos => experiences.find(exp => exp.id === topExperiences[pos]))
+            .filter(Boolean);
+          
+          if (top3Data.length === 0) return null;
+          
+          return (
+            <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-2xl shadow-xl p-8 mb-8 border-2 border-yellow-200">
+              <div className="text-center mb-6">
+                <h2 className="text-3xl font-bold text-gray-800 flex items-center justify-center gap-3 mb-2">
+                  <Star className="text-yellow-500 fill-yellow-500" size={32} />
+                  Top 3 Experiences This Week
+                  <Star className="text-yellow-500 fill-yellow-500" size={32} />
+                </h2>
+                <p className="text-gray-600">Handpicked experiences that made a real difference</p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {top3Data.map((exp, index) => (
+                  <div key={exp.id} className="bg-white rounded-xl shadow-lg p-6 relative">
+                    <div className="absolute -top-3 -left-3 bg-yellow-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg shadow-lg">
+                      #{index + 1}
+                    </div>
+                    
+                    <div className="space-y-4 mt-2">
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-semibold text-red-600 flex items-center gap-2">
+                            <AlertCircle size={16} />
+                            Problem
+                          </h4>
+                          <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full">
+                            {exp.problemCategory}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-700 line-clamp-3">{exp.problem}</p>
+                      </div>
+
+                      <div>
+                        <h4 className="font-semibold text-blue-600 flex items-center gap-2 mb-2">
+                          <TrendingUp size={16} />
+                          Action
+                        </h4>
+                        <p className="text-sm text-gray-700 line-clamp-3">{exp.solution}</p>
+                      </div>
+
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-semibold text-green-600 flex items-center gap-2">
+                            <Share2 size={16} />
+                            Result
+                          </h4>
+                          <span className={`text-xs px-3 py-1 rounded-full ${getResultColor(exp.resultCategory)}`}>
+                            {getResultLabel(exp.resultCategory)}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-700 line-clamp-3">{exp.result}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
+
         <div className="space-y-6" id="experiences-section">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">Shared Experiences ({experiences.length})</h2>
           
@@ -1129,30 +1266,56 @@ export default function WhatIDid() {
                     const confirmKey = `exp-${exp.id}`;
                     const isConfirming = confirmDelete === confirmKey;
                     return (
-                      <div className="mt-4 mb-4 flex gap-2">
-                        <button
-                          onClick={async () => {
-                            const isConfirming = confirmDelete === `exp-${exp.id}`;
-                            if (isConfirming) {
-                              await deleteExperienceFromSupabase(exp.id);
-                              setConfirmDelete(null);
-                            } else {
-                              setConfirmDelete(`exp-${exp.id}`);
-                            }
-                          }}
-                          className={`px-4 py-2 text-white rounded text-sm flex items-center gap-2 ${isConfirming ? 'bg-orange-600 hover:bg-orange-700 animate-pulse' : 'bg-red-600 hover:bg-red-700'}`}
-                        >
-                          <Trash2 size={14} />
-                          {isConfirming ? 'Click to CONFIRM DELETE!' : 'Delete Experience'}
-                        </button>
-                        {isConfirming && (
+                      <div className="mt-4 mb-4">
+                        <div className="flex gap-2 items-center flex-wrap">
                           <button
-                            onClick={() => setConfirmDelete(null)}
-                            className="px-4 py-2 bg-gray-500 text-white rounded text-sm hover:bg-gray-600"
+                            onClick={async () => {
+                              const isConfirming = confirmDelete === `exp-${exp.id}`;
+                              if (isConfirming) {
+                                await deleteExperienceFromSupabase(exp.id);
+                                setConfirmDelete(null);
+                              } else {
+                                setConfirmDelete(`exp-${exp.id}`);
+                              }
+                            }}
+                            className={`px-4 py-2 text-white rounded text-sm flex items-center gap-2 ${isConfirming ? 'bg-orange-600 hover:bg-orange-700 animate-pulse' : 'bg-red-600 hover:bg-red-700'}`}
                           >
-                            Cancel
+                            <Trash2 size={14} />
+                            {isConfirming ? 'Click to CONFIRM DELETE!' : 'Delete Experience'}
                           </button>
-                        )}
+                          {isConfirming && (
+                            <button
+                              onClick={() => setConfirmDelete(null)}
+                              className="px-4 py-2 bg-gray-500 text-white rounded text-sm hover:bg-gray-600"
+                            >
+                              Cancel
+                            </button>
+                          )}
+                          
+                          {/* Top 3 Checkboxes */}
+                          <div className="flex gap-3 ml-4 items-center">
+                            <span className="text-sm font-medium text-gray-700">Set as Top:</span>
+                            {[1, 2, 3].map(position => (
+                              <label key={position} className="flex items-center gap-1 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={topExperiences[position] === exp.id}
+                                  onChange={async (e) => {
+                                    if (e.target.checked) {
+                                      await setTopExperience(position, exp.id);
+                                    } else {
+                                      await removeTopExperience(position);
+                                    }
+                                  }}
+                                  className="w-4 h-4 text-yellow-500 rounded focus:ring-yellow-500"
+                                />
+                                <span className="text-sm font-medium text-yellow-600">
+                                  #{position}
+                                </span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
                       </div>
                     );
                   })()}
