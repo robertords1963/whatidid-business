@@ -411,7 +411,10 @@ export default function WhatIDid() {
 
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const experiencesSection = document.getElementById('experiences-section');
+    if (experiencesSection) {
+      experiencesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   };
 
   if (loading) {
@@ -457,6 +460,28 @@ export default function WhatIDid() {
               >
                 Login
               </button>
+            </div>
+          )}
+
+          {isAdmin && (
+            <div className="mt-4 bg-purple-50 border-2 border-purple-300 rounded-lg shadow-md p-4 max-w-md mx-auto">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Shield size={20} className="text-purple-600" />
+                  <h3 className="font-semibold text-purple-800">Admin Mode Active</h3>
+                </div>
+                <button
+                  onClick={() => { 
+                    setIsAdmin(false); 
+                    setAdminKeywords(''); 
+                    setShowAdminLogin(false);
+                  }}
+                  className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors"
+                >
+                  Logout
+                </button>
+              </div>
+              <p className="text-sm text-gray-600">You have access to admin features</p>
             </div>
           )}
 
@@ -724,7 +749,7 @@ export default function WhatIDid() {
           </button>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-6" id="experiences-section">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">Shared Experiences ({experiences.length})</h2>
           
           {/* Rating Statistics - Compact Left-Aligned Layout */}
@@ -1190,21 +1215,31 @@ export default function WhatIDid() {
         <footer className="mt-12 pt-8 border-t-2 border-gray-200">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="flex gap-6 text-sm">
-              <button
-                onClick={() => setShowAdminLogin(!showAdminLogin)}
-                className="text-gray-600 hover:text-purple-600 font-medium transition-colors"
-              >
-                Admin
-              </button>
-              <a href="#" className="text-gray-600 hover:text-purple-600 font-medium transition-colors">
+              {!isAdmin ? (
+                <button
+                  onClick={() => setShowAdminLogin(!showAdminLogin)}
+                  className="text-gray-600 hover:text-purple-600 font-medium transition-colors"
+                >
+                  Admin
+                </button>
+              ) : (
+                <span className="text-purple-600 font-medium flex items-center gap-2">
+                  <Shield size={14} />
+                  Admin Mode
+                </span>
+              )}
+              <span className="text-gray-300">|</span>
+              <button className="text-gray-600 hover:text-purple-600 font-medium transition-colors">
                 Contact
-              </a>
-              <a href="#" className="text-gray-600 hover:text-purple-600 font-medium transition-colors">
+              </button>
+              <span className="text-gray-300">|</span>
+              <button className="text-gray-600 hover:text-purple-600 font-medium transition-colors">
                 Privacy Policy
-              </a>
-              <a href="#" className="text-gray-600 hover:text-purple-600 font-medium transition-colors">
+              </button>
+              <span className="text-gray-300">|</span>
+              <button className="text-gray-600 hover:text-purple-600 font-medium transition-colors">
                 About
-              </a>
+              </button>
             </div>
             <div className="text-sm text-gray-500">
               © 2026 WhatIDid - All rights reserved
