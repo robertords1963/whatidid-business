@@ -388,7 +388,8 @@ export default function WhatIDid() {
     );
     const matchesResultCategory = !filters.resultCategory || exp.resultCategory === filters.resultCategory;
     const roundedRating = Math.round(exp.avgRating);
-    const matchesRating = !filters.rating || roundedRating === parseInt(filters.rating);
+    const matchesRating = !filters.rating || 
+      (filters.rating === '0' ? exp.totalRatings === 0 : roundedRating === parseInt(filters.rating) && exp.totalRatings > 0);
     const matchesGender = !filters.gender || exp.gender === filters.gender;
     const matchesAge = !filters.age || exp.age === filters.age;
     const matchesCountry = !filters.country || exp.country === filters.country;
@@ -729,34 +730,68 @@ export default function WhatIDid() {
         <div className="space-y-6">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">Shared Experiences ({experiences.length})</h2>
           
-          {/* NEW: Vertical Clickable Rating Statistics */}
+          {/* Rating Statistics - Compact Left-Aligned Layout */}
           <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl shadow-md p-6 mb-6">
             <h3 className="text-lg font-semibold text-gray-700 mb-4">Rating Statistics</h3>
+            
+            {/* Overall Average Rating */}
+            <div className="mb-4">
+              <div className="flex items-center gap-2 mb-2">
+                {(() => {
+                  const ratedExperiences = experiences.filter(exp => exp.totalRatings > 0);
+                  const avgRating = ratedExperiences.length > 0 
+                    ? ratedExperiences.reduce((sum, exp) => sum + exp.avgRating, 0) / ratedExperiences.length 
+                    : 0;
+                  return (
+                    <>
+                      {[1, 2, 3, 4, 5].map(star => (
+                        <Star
+                          key={star}
+                          size={24}
+                          className={star <= Math.round(avgRating) ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}
+                        />
+                      ))}
+                      <span className="text-2xl font-bold text-gray-800 ml-2">
+                        {avgRating.toFixed(1)}
+                      </span>
+                      <span className="text-gray-600">out of 5</span>
+                    </>
+                  );
+                })()}
+              </div>
+              <div className="text-sm font-medium text-gray-600">
+                {(() => {
+                  const ratedCount = experiences.filter(exp => exp.totalRatings > 0).length;
+                  return `${ratedCount} global ${ratedCount === 1 ? 'rating' : 'ratings'}`;
+                })()}
+              </div>
+            </div>
+
+            {/* Rating Breakdown - 3 Column Compact */}
             <div className="space-y-2">
-              {[5, 4, 3, 2, 1].map(stars => {
-                const count = experiences.filter(exp => Math.round(exp.avgRating) === stars).length;
+              {[5, 4, 3, 2, 1, 0].map(stars => {
+                const count = stars === 0 
+                  ? experiences.filter(exp => exp.totalRatings === 0).length
+                  : experiences.filter(exp => Math.round(exp.avgRating) === stars && exp.totalRatings > 0).length;
+                const totalExperiences = experiences.length;
+                const percentage = totalExperiences > 0 ? ((count / totalExperiences) * 100).toFixed(1) : 0;
+                const label = stars === 0 ? 'None' : `${stars} ${stars === 1 ? 'Star' : 'Stars'}`;
+                
                 return (
                   <button
                     key={stars}
                     onClick={() => setFilters({...filters, rating: stars.toString()})}
-                    className="w-full flex items-center justify-between bg-white rounded-lg p-4 hover:bg-purple-50 transition-colors shadow-sm"
+                    className="flex items-center gap-4 hover:bg-white/50 px-3 py-2 rounded transition-colors w-fit"
                   >
-                    <div className="flex items-center gap-3">
-                      <span className="font-semibold text-gray-700 min-w-[70px]">
-                        {stars} {stars === 1 ? 'Star' : 'Stars'}
-                      </span>
-                      <div className="flex gap-1">
-                        {[...Array(stars)].map((_, i) => (
-                          <span key={i}>⭐</span>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-2xl font-bold text-purple-600">{count}</div>
-                      <div className="text-xs text-gray-500">
-                        {count === 1 ? 'experience' : 'experiences'}
-                      </div>
-                    </div>
+                    <span className="font-medium text-gray-700 w-16">
+                      {label}
+                    </span>
+                    <span className="font-bold text-purple-600 w-12 text-right">
+                      {count}
+                    </span>
+                    <span className="text-sm text-gray-600 w-16">
+                      ({percentage}%)
+                    </span>
                   </button>
                 );
               })}
@@ -806,6 +841,7 @@ export default function WhatIDid() {
                   <option value="3">⭐⭐⭐ (3)</option>
                   <option value="2">⭐⭐ (2)</option>
                   <option value="1">⭐ (1)</option>
+                  <option value="0">None (Not rated)</option>
                 </select>
               </div>
               <div>
