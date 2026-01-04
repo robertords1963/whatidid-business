@@ -952,7 +952,6 @@ export default function WhatIDid() {
                 
                 return (
                   <>
-                    <span className="text-gray-400">|</span>
                     <div className="flex items-center gap-1">
                       {[1, 2, 3, 4, 5].map(star => {
                         const fillPercentage = Math.min(Math.max(avgRating - star + 1, 0), 1) * 100;
