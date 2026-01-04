@@ -214,6 +214,8 @@ export default function WhatIDid() {
   const [hoverRating, setHoverRating] = useState({});
   const [newComment, setNewComment] = useState({});
   const [showComments, setShowComments] = useState({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const experiencesPerPage = 20;
 
   const maxChars = {
     problem: 300,
@@ -396,6 +398,22 @@ export default function WhatIDid() {
     return matchesProblemCategory && matchesSearchText && matchesResultCategory && matchesRating && matchesGender && matchesAge && matchesCountry;
   });
 
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters]);
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredExperiences.length / experiencesPerPage);
+  const indexOfLastExperience = currentPage * experiencesPerPage;
+  const indexOfFirstExperience = indexOfLastExperience - experiencesPerPage;
+  const currentExperiences = filteredExperiences.slice(indexOfFirstExperience, indexOfLastExperience);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
@@ -417,28 +435,7 @@ export default function WhatIDid() {
               <Share2 className="text-purple-600" size={36} />
               WhatIDid
             </h1>
-            <div className="flex-1 flex justify-end">
-              {!isAdmin ? (
-                <button
-                  onClick={() => setShowAdminLogin(!showAdminLogin)}
-                  className="text-sm text-gray-500 hover:text-purple-600 flex items-center gap-2"
-                >
-                  <Shield size={16} />
-                  Admin
-                </button>
-              ) : (
-                <div className="flex items-center gap-2 text-sm text-purple-600">
-                  <Shield size={16} />
-                  <span>Admin Mode</span>
-                  <button
-                    onClick={() => { setIsAdmin(false); setAdminKeywords(''); }}
-                    className="text-xs text-gray-500 hover:text-red-600"
-                  >
-                    (Logout)
-                  </button>
-                </div>
-              )}
-            </div>
+            <div className="flex-1"></div>
           </div>
           <p className="text-gray-700 font-medium mb-1">Real problems. Real solutions. Real people.</p>
           <p className="text-gray-600">Share your experience, help someone else</p>
@@ -742,15 +739,26 @@ export default function WhatIDid() {
                   const avgRating = ratedExperiences.length > 0 
                     ? ratedExperiences.reduce((sum, exp) => sum + exp.avgRating, 0) / ratedExperiences.length 
                     : 0;
+                  
                   return (
                     <>
-                      {[1, 2, 3, 4, 5].map(star => (
-                        <Star
-                          key={star}
-                          size={24}
-                          className={star <= Math.round(avgRating) ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}
-                        />
-                      ))}
+                      {[1, 2, 3, 4, 5].map(star => {
+                        const fillPercentage = Math.min(Math.max(avgRating - star + 1, 0), 1) * 100;
+                        
+                        return (
+                          <div key={star} className="relative inline-block">
+                            {/* Background star (empty) */}
+                            <Star size={24} className="text-gray-300" />
+                            {/* Foreground star (filled) with clip */}
+                            <div 
+                              className="absolute top-0 left-0 overflow-hidden"
+                              style={{ width: `${fillPercentage}%` }}
+                            >
+                              <Star size={24} className="text-yellow-500 fill-yellow-500" />
+                            </div>
+                          </div>
+                        );
+                      })}
                       <span className="text-2xl font-bold text-gray-800 ml-2">
                         {avgRating.toFixed(1)}
                       </span>
@@ -906,7 +914,7 @@ export default function WhatIDid() {
             </div>
           ) : (
             <div className="space-y-4">
-              {filteredExperiences.map(exp => (
+              {currentExperiences.map(exp => (
                 <div key={exp.id} className="bg-white rounded-2xl shadow-lg p-6">
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex items-center gap-3 flex-wrap">
@@ -1083,7 +1091,126 @@ export default function WhatIDid() {
               ))}
             </div>
           )}
+
+          {/* Pagination */}
+          {filteredExperiences.length > experiencesPerPage && (
+            <div className="mt-8 flex flex-col items-center gap-4">
+              <div className="text-sm text-gray-600">
+                Page {currentPage} of {totalPages} • Showing {indexOfFirstExperience + 1}-{Math.min(indexOfLastExperience, filteredExperiences.length)} of {filteredExperiences.length} experiences
+              </div>
+              <div className="flex items-center gap-2 flex-wrap justify-center">
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="px-4 py-2 bg-white border-2 border-gray-200 rounded-lg font-medium text-gray-700 hover:bg-purple-50 hover:border-purple-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  ← Previous
+                </button>
+                
+                <div className="flex gap-2 flex-wrap justify-center">
+                  {(() => {
+                    const pages = [];
+                    const showEllipsisStart = currentPage > 3;
+                    const showEllipsisEnd = currentPage < totalPages - 2;
+                    
+                    pages.push(
+                      <button
+                        key={1}
+                        onClick={() => handlePageChange(1)}
+                        className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                          currentPage === 1
+                            ? 'bg-purple-600 text-white'
+                            : 'bg-white border-2 border-gray-200 text-gray-700 hover:bg-purple-50 hover:border-purple-300'
+                        }`}
+                      >
+                        1
+                      </button>
+                    );
+                    
+                    if (showEllipsisStart) {
+                      pages.push(<span key="ellipsis-start" className="px-2 text-gray-500">...</span>);
+                    }
+                    
+                    const startPage = Math.max(2, currentPage - 1);
+                    const endPage = Math.min(totalPages - 1, currentPage + 1);
+                    
+                    for (let i = startPage; i <= endPage; i++) {
+                      pages.push(
+                        <button
+                          key={i}
+                          onClick={() => handlePageChange(i)}
+                          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                            currentPage === i
+                              ? 'bg-purple-600 text-white'
+                              : 'bg-white border-2 border-gray-200 text-gray-700 hover:bg-purple-50 hover:border-purple-300'
+                          }`}
+                        >
+                          {i}
+                        </button>
+                      );
+                    }
+                    
+                    if (showEllipsisEnd) {
+                      pages.push(<span key="ellipsis-end" className="px-2 text-gray-500">...</span>);
+                    }
+                    
+                    if (totalPages > 1) {
+                      pages.push(
+                        <button
+                          key={totalPages}
+                          onClick={() => handlePageChange(totalPages)}
+                          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                            currentPage === totalPages
+                              ? 'bg-purple-600 text-white'
+                              : 'bg-white border-2 border-gray-200 text-gray-700 hover:bg-purple-50 hover:border-purple-300'
+                          }`}
+                        >
+                          {totalPages}
+                        </button>
+                      );
+                    }
+                    
+                    return pages;
+                  })()}
+                </div>
+                
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="px-4 py-2 bg-white border-2 border-gray-200 rounded-lg font-medium text-gray-700 hover:bg-purple-50 hover:border-purple-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Next →
+                </button>
+              </div>
+            </div>
+          )}
         </div>
+
+        {/* Footer */}
+        <footer className="mt-12 pt-8 border-t-2 border-gray-200">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="flex gap-6 text-sm">
+              <button
+                onClick={() => setShowAdminLogin(!showAdminLogin)}
+                className="text-gray-600 hover:text-purple-600 font-medium transition-colors"
+              >
+                Admin
+              </button>
+              <a href="#" className="text-gray-600 hover:text-purple-600 font-medium transition-colors">
+                Contact
+              </a>
+              <a href="#" className="text-gray-600 hover:text-purple-600 font-medium transition-colors">
+                Privacy Policy
+              </a>
+              <a href="#" className="text-gray-600 hover:text-purple-600 font-medium transition-colors">
+                About
+              </a>
+            </div>
+            <div className="text-sm text-gray-500">
+              © 2026 WhatIDid - All rights reserved
+            </div>
+          </div>
+        </footer>
       </div>
     </div>
   );
