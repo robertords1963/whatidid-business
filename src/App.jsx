@@ -687,7 +687,7 @@ export default function WhatIDid() {
                   Top 3 Experiences This Week
                   <Star className="text-yellow-500 fill-yellow-500" size={32} />
                 </h2>
-                <p className="text-gray-600">Handpicked experiences that made a real difference</p>
+                <p className="text-gray-600">Handpicked experiences, worth learning from</p>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
@@ -695,11 +695,25 @@ export default function WhatIDid() {
                   <button
                     key={exp.id}
                     onClick={() => {
-                      const expElement = document.getElementById(`exp-${exp.id}`);
-                      if (expElement) {
-                        const yOffset = -100;
-                        const y = expElement.getBoundingClientRect().top + window.pageYOffset + yOffset;
-                        window.scrollTo({ top: y, behavior: 'smooth' });
+                      // Find which page this experience is on
+                      const expIndex = filteredExperiences.findIndex(e => e.id === exp.id);
+                      if (expIndex !== -1) {
+                        const expPage = Math.ceil((expIndex + 1) / experiencesPerPage);
+                        
+                        // Change to that page if different
+                        if (expPage !== currentPage) {
+                          setCurrentPage(expPage);
+                        }
+                        
+                        // Wait for page to render, then scroll
+                        setTimeout(() => {
+                          const expElement = document.getElementById(`exp-${exp.id}`);
+                          if (expElement) {
+                            const yOffset = -100;
+                            const y = expElement.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                            window.scrollTo({ top: y, behavior: 'smooth' });
+                          }
+                        }, expPage !== currentPage ? 300 : 100);
                       }
                     }}
                     className="bg-white rounded-xl shadow-lg p-6 relative hover:shadow-2xl hover:scale-105 transition-all duration-300 text-left cursor-pointer"
@@ -923,7 +937,47 @@ export default function WhatIDid() {
         </div>
 
         <div className="space-y-6" id="experiences-section">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Shared Experiences ({experiences.length})</h2>
+          <div className="flex items-center gap-6 mb-4 flex-wrap">
+            <h2 className="text-2xl font-bold text-gray-800">Shared Experiences ({experiences.length})</h2>
+            
+            {/* Average Rating Display */}
+            <div className="flex items-center gap-2">
+              {(() => {
+                const ratedExperiences = experiences.filter(exp => exp.totalRatings > 0);
+                const avgRating = ratedExperiences.length > 0 
+                  ? ratedExperiences.reduce((sum, exp) => sum + exp.avgRating, 0) / ratedExperiences.length 
+                  : 0;
+                
+                if (ratedExperiences.length === 0) return null;
+                
+                return (
+                  <>
+                    <span className="text-gray-400">|</span>
+                    <div className="flex items-center gap-1">
+                      {[1, 2, 3, 4, 5].map(star => {
+                        const fillPercentage = Math.min(Math.max(avgRating - star + 1, 0), 1) * 100;
+                        return (
+                          <div key={star} className="relative inline-block">
+                            <Star size={18} className="text-gray-300" />
+                            <div 
+                              className="absolute top-0 left-0 overflow-hidden"
+                              style={{ width: `${fillPercentage}%` }}
+                            >
+                              <Star size={18} className="text-yellow-500 fill-yellow-500" />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <span className="text-lg font-bold text-gray-700">
+                      {avgRating.toFixed(1)}
+                    </span>
+                    <span className="text-sm text-gray-600">out of 5</span>
+                  </>
+                );
+              })()}
+            </div>
+          </div>
           
           {/* RATING STATISTICS - TEMPORARILY DISABLED */}
           {/* 
