@@ -443,8 +443,13 @@ export default function WhatIDid() {
   };
 
   const addQuote = async () => {
-    if (!newQuote.text.trim() || !newQuote.author.trim()) {
-      alert('Please enter both quote text and author');
+    if (!newQuote.text.trim()) {
+      alert('Please enter quote text');
+      return;
+    }
+    
+    if (newQuote.position === 'bottom' && !newQuote.author.trim()) {
+      alert('Author is required for bottom quotes');
       return;
     }
     
@@ -800,7 +805,9 @@ export default function WhatIDid() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Author</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Author {newQuote.position === 'top' && <span className="text-gray-500 font-normal">(optional for Top)</span>}
+                    </label>
                     <input
                       type="text"
                       value={newQuote.author}
@@ -927,8 +934,8 @@ export default function WhatIDid() {
               <div className="animate-marquee whitespace-nowrap inline-block">
                 {topQuotes.concat(topQuotes).map((quote, index) => (
                   <span key={index} className="inline-block mx-8 text-gray-700" style={{ whiteSpace: 'pre' }}>
-                    <span className="italic">"{quote.text}"</span>
-                    <span className="text-indigo-600 ml-2">— {quote.author}</span>
+                    <span className="italic">{quote.text}</span>
+                    {quote.author && <span className="text-indigo-600 ml-2">— {quote.author}</span>}
                   </span>
                 ))}
               </div>
