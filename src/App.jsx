@@ -15,7 +15,7 @@ const marqueeStyles = `
     100% { transform: translateX(-50%); }
   }
   .animate-marquee {
-    animation: marquee 60s linear infinite;
+    animation: marquee 90s linear infinite;
   }
   .animate-marquee:hover {
     animation-play-state: paused;
@@ -303,7 +303,7 @@ export default function WhatIDid() {
   const [quotes, setQuotes] = useState([]);
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
   const [editingQuote, setEditingQuote] = useState(null);
-  const [newQuote, setNewQuote] = useState({ text: '', author: '' });
+  const [newQuote, setNewQuote] = useState({ text: '', author: '', position: 'top' });
 
   const maxChars = {
     problem: 300,
@@ -454,12 +454,13 @@ export default function WhatIDid() {
         .insert([{
           text: newQuote.text,
           author: newQuote.author,
+          position: newQuote.position,
           active: true
         }]);
       
       if (error) throw error;
       
-      setNewQuote({ text: '', author: '' });
+      setNewQuote({ text: '', author: '', position: 'top' });
       await loadQuotes();
     } catch (error) {
       console.error('Error adding quote:', error);
@@ -467,11 +468,11 @@ export default function WhatIDid() {
     }
   };
 
-  const updateQuote = async (id, text, author) => {
+  const updateQuote = async (id, text, author, position) => {
     try {
       const { error } = await supabase
         .from('quotes')
-        .update({ text, author })
+        .update({ text, author, position })
         .eq('id', id);
       
       if (error) throw error;
@@ -808,6 +809,17 @@ export default function WhatIDid() {
                       className="w-full p-2 border-2 border-gray-300 rounded-lg"
                     />
                   </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Position</label>
+                    <select
+                      value={newQuote.position}
+                      onChange={(e) => setNewQuote({...newQuote, position: e.target.value})}
+                      className="w-full p-2 border-2 border-gray-300 rounded-lg"
+                    >
+                      <option value="top">Top (above Top 3)</option>
+                      <option value="bottom">Bottom (below Top 3)</option>
+                    </select>
+                  </div>
                   <button
                     onClick={addQuote}
                     className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
@@ -839,12 +851,21 @@ export default function WhatIDid() {
                               id={`edit-author-${quote.id}`}
                               className="w-full p-2 border-2 border-gray-300 rounded"
                             />
+                            <select
+                              defaultValue={quote.position || 'top'}
+                              id={`edit-position-${quote.id}`}
+                              className="w-full p-2 border-2 border-gray-300 rounded"
+                            >
+                              <option value="top">Top (above Top 3)</option>
+                              <option value="bottom">Bottom (below Top 3)</option>
+                            </select>
                             <div className="flex gap-2">
                               <button
                                 onClick={() => {
                                   const text = document.getElementById(`edit-text-${quote.id}`).value;
                                   const author = document.getElementById(`edit-author-${quote.id}`).value;
-                                  updateQuote(quote.id, text, author);
+                                  const position = document.getElementById(`edit-position-${quote.id}`).value;
+                                  updateQuote(quote.id, text, author, position);
                                 }}
                                 className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
                               >
@@ -860,7 +881,12 @@ export default function WhatIDid() {
                           </div>
                         ) : (
                           <>
-                            <p className="text-sm italic text-gray-700 mb-2">"{quote.text}"</p>
+                            <div className="flex items-start justify-between mb-2">
+                              <p className="text-sm italic text-gray-700 flex-1">"{quote.text}"</p>
+                              <span className={`ml-2 px-2 py-1 text-xs rounded ${quote.position === 'top' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'}`}>
+                                {quote.position === 'top' ? 'Top' : 'Bottom'}
+                              </span>
+                            </div>
                             <p className="text-xs text-gray-600 mb-2">— {quote.author}</p>
                             <div className="flex gap-2">
                               <button
@@ -891,6 +917,24 @@ export default function WhatIDid() {
             </div>
           )}
         </div>
+
+        {/* Inspirational Quotes Marquee - Top */}
+        {(() => {
+          const topQuotes = quotes.filter(q => q.position === 'top');
+          if (topQuotes.length === 0) return null;
+          return (
+            <div className="overflow-hidden py-2 mb-8">
+              <div className="animate-marquee whitespace-nowrap inline-block">
+                {topQuotes.concat(topQuotes).map((quote, index) => (
+                  <span key={index} className="inline-block mx-8 text-gray-700">
+                    <span className="italic">"{quote.text}"</span>
+                    <span className="text-indigo-600 ml-2">— {quote.author}</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Top 3 Experiences This Week - MOVED TO TOP */}
         {(() => {
@@ -1001,19 +1045,23 @@ export default function WhatIDid() {
           );
         })()}
 
-        {/* Inspirational Quotes Marquee */}
-        {quotes.length > 0 && (
-          <div className="overflow-hidden py-2 mb-8">
-            <div className="animate-marquee whitespace-nowrap inline-block">
-              {quotes.concat(quotes).map((quote, index) => (
-                <span key={index} className="inline-block mx-8 text-gray-700">
-                  <span className="italic">"{quote.text}"</span>
-                  <span className="text-indigo-600 ml-2">— {quote.author}</span>
-                </span>
-              ))}
+        {/* Inspirational Quotes Marquee - Bottom */}
+        {(() => {
+          const bottomQuotes = quotes.filter(q => q.position === 'bottom');
+          if (bottomQuotes.length === 0) return null;
+          return (
+            <div className="overflow-hidden py-2 mb-8">
+              <div className="animate-marquee whitespace-nowrap inline-block">
+                {bottomQuotes.concat(bottomQuotes).map((quote, index) => (
+                  <span key={index} className="inline-block mx-8 text-gray-700">
+                    <span className="italic">"{quote.text}"</span>
+                    <span className="text-indigo-600 ml-2">— {quote.author}</span>
+                  </span>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
           <h2 className="text-2xl font-bold text-gray-800 mb-6">Share Your Experiences</h2>
