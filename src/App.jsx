@@ -8,6 +8,20 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 console.log('🔧 WhatIDid App loaded with Supabase!');
 
+// Add marquee animation styles
+const marqueeStyles = `
+  @keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  .animate-marquee {
+    animation: marquee 60s linear infinite;
+  }
+  .animate-marquee:hover {
+    animation-play-state: paused;
+  }
+`;
+
 export default function WhatIDid() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminPassword, setAdminPassword] = useState('');
@@ -599,7 +613,9 @@ export default function WhatIDid() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 p-6">
+    <>
+      <style>{marqueeStyles}</style>
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 p-6">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-8">
           <div className="flex items-center justify-between mb-4">
@@ -985,16 +1001,16 @@ export default function WhatIDid() {
           );
         })()}
 
-        {/* Inspirational Quote Rotation */}
+        {/* Inspirational Quotes Marquee */}
         {quotes.length > 0 && (
-          <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl shadow-md p-8 mb-8 border-l-4 border-indigo-400">
-            <div className="text-center transition-opacity duration-1000">
-              <p className="text-lg md:text-xl italic text-gray-700 mb-3 leading-relaxed">
-                "{quotes[currentQuoteIndex]?.text}"
-              </p>
-              <p className="text-sm md:text-base font-semibold text-indigo-600">
-                — {quotes[currentQuoteIndex]?.author}
-              </p>
+          <div className="overflow-hidden py-4 mb-8">
+            <div className="animate-marquee whitespace-nowrap inline-block">
+              {quotes.concat(quotes).map((quote, index) => (
+                <span key={index} className="inline-block mx-8 text-gray-700">
+                  <span className="italic">"{quote.text}"</span>
+                  <span className="font-semibold text-indigo-600 ml-2">— {quote.author}</span>
+                </span>
+              ))}
             </div>
           </div>
         )}
@@ -1814,5 +1830,6 @@ export default function WhatIDid() {
         </footer>
       </div>
     </div>
+    </>
   );
 }
