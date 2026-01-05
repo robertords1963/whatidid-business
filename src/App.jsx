@@ -24,6 +24,7 @@ export default function WhatIDid() {
     detectUserCountry();
     loadExperiences();
     loadTopExperiences();
+    loadQuotes();
   }, []);
   
   const detectUserCountry = async () => {
@@ -285,6 +286,10 @@ export default function WhatIDid() {
   const [currentPage, setCurrentPage] = useState(1);
   const experiencesPerPage = 20;
   const [topExperiences, setTopExperiences] = useState({ 1: null, 2: null, 3: null });
+  const [quotes, setQuotes] = useState([]);
+  const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
+  const [editingQuote, setEditingQuote] = useState(null);
+  const [newQuote, setNewQuote] = useState({ text: '', author: '' });
 
   const maxChars = {
     problem: 300,
@@ -393,6 +398,93 @@ export default function WhatIDid() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }, [showAdminLogin, isAdmin]);
+
+  // Rotate quotes every 7 seconds
+  useEffect(() => {
+    if (quotes.length === 0) return;
+    
+    const interval = setInterval(() => {
+      setCurrentQuoteIndex(prev => (prev + 1) % quotes.length);
+    }, 7000);
+    
+    return () => clearInterval(interval);
+  }, [quotes.length]);
+
+  const loadQuotes = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('quotes')
+        .select('*')
+        .eq('active', true)
+        .order('id', { ascending: true });
+      
+      if (error) throw error;
+      
+      // Randomize order
+      const shuffled = data ? [...data].sort(() => Math.random() - 0.5) : [];
+      setQuotes(shuffled);
+    } catch (error) {
+      console.error('Error loading quotes:', error);
+    }
+  };
+
+  const addQuote = async () => {
+    if (!newQuote.text.trim() || !newQuote.author.trim()) {
+      alert('Please enter both quote text and author');
+      return;
+    }
+    
+    try {
+      const { error } = await supabase
+        .from('quotes')
+        .insert([{
+          text: newQuote.text,
+          author: newQuote.author,
+          active: true
+        }]);
+      
+      if (error) throw error;
+      
+      setNewQuote({ text: '', author: '' });
+      await loadQuotes();
+    } catch (error) {
+      console.error('Error adding quote:', error);
+      alert('Error adding quote');
+    }
+  };
+
+  const updateQuote = async (id, text, author) => {
+    try {
+      const { error } = await supabase
+        .from('quotes')
+        .update({ text, author })
+        .eq('id', id);
+      
+      if (error) throw error;
+      
+      setEditingQuote(null);
+      await loadQuotes();
+    } catch (error) {
+      console.error('Error updating quote:', error);
+      alert('Error updating quote');
+    }
+  };
+
+  const deleteQuote = async (id) => {
+    try {
+      const { error } = await supabase
+        .from('quotes')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+      
+      await loadQuotes();
+    } catch (error) {
+      console.error('Error deleting quote:', error);
+      alert('Error deleting quote');
+    }
+  };
 
   const handleDelete = (expId) => {
     if (confirmDelete === `exp-${expId}`) {
@@ -669,6 +761,119 @@ export default function WhatIDid() {
               </div>
             </div>
           )}
+
+          {isAdmin && (
+            <div className="mt-4 bg-green-50 border-2 border-green-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
+              <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                <MessageCircle size={20} />
+                Manage Inspirational Quotes
+              </h3>
+              
+              <div className="bg-white rounded p-4 mb-4">
+                <h4 className="font-medium text-gray-700 mb-3">Add New Quote</h4>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Quote Text</label>
+                    <textarea
+                      value={newQuote.text}
+                      onChange={(e) => setNewQuote({...newQuote, text: e.target.value})}
+                      placeholder="Enter the quote..."
+                      className="w-full p-2 border-2 border-gray-300 rounded-lg resize-none"
+                      rows="3"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Author</label>
+                    <input
+                      type="text"
+                      value={newQuote.author}
+                      onChange={(e) => setNewQuote({...newQuote, author: e.target.value})}
+                      placeholder="Author name..."
+                      className="w-full p-2 border-2 border-gray-300 rounded-lg"
+                    />
+                  </div>
+                  <button
+                    onClick={addQuote}
+                    className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
+                  >
+                    Add Quote
+                  </button>
+                </div>
+              </div>
+
+              <div className="bg-white rounded p-4">
+                <h4 className="font-medium text-gray-700 mb-3">Existing Quotes ({quotes.length})</h4>
+                {quotes.length === 0 ? (
+                  <p className="text-sm text-gray-500">No quotes yet</p>
+                ) : (
+                  <div className="space-y-3 max-h-96 overflow-y-auto">
+                    {quotes.map((quote) => (
+                      <div key={quote.id} className="border border-gray-300 rounded p-3">
+                        {editingQuote === quote.id ? (
+                          <div className="space-y-2">
+                            <textarea
+                              defaultValue={quote.text}
+                              id={`edit-text-${quote.id}`}
+                              className="w-full p-2 border-2 border-gray-300 rounded resize-none"
+                              rows="2"
+                            />
+                            <input
+                              type="text"
+                              defaultValue={quote.author}
+                              id={`edit-author-${quote.id}`}
+                              className="w-full p-2 border-2 border-gray-300 rounded"
+                            />
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => {
+                                  const text = document.getElementById(`edit-text-${quote.id}`).value;
+                                  const author = document.getElementById(`edit-author-${quote.id}`).value;
+                                  updateQuote(quote.id, text, author);
+                                }}
+                                className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
+                              >
+                                Save
+                              </button>
+                              <button
+                                onClick={() => setEditingQuote(null)}
+                                className="px-3 py-1 bg-gray-500 text-white rounded text-sm hover:bg-gray-600"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <p className="text-sm italic text-gray-700 mb-2">"{quote.text}"</p>
+                            <p className="text-xs text-gray-600 mb-2">— {quote.author}</p>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => setEditingQuote(quote.id)}
+                                className="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => {
+                                  if (window.confirm('Delete this quote?')) {
+                                    deleteQuote(quote.id);
+                                  }
+                                }}
+                                className="px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 flex items-center gap-1"
+                              >
+                                <Trash2 size={12} />
+                                Delete
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Top 3 Experiences This Week - MOVED TO TOP */}
@@ -779,6 +984,20 @@ export default function WhatIDid() {
             </div>
           );
         })()}
+
+        {/* Inspirational Quote Rotation */}
+        {quotes.length > 0 && (
+          <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl shadow-md p-8 mb-8 border-l-4 border-indigo-400">
+            <div className="text-center transition-opacity duration-1000">
+              <p className="text-lg md:text-xl italic text-gray-700 mb-3 leading-relaxed">
+                "{quotes[currentQuoteIndex]?.text}"
+              </p>
+              <p className="text-sm md:text-base font-semibold text-indigo-600">
+                — {quotes[currentQuoteIndex]?.author}
+              </p>
+            </div>
+          </div>
+        )}
 
         <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
           <h2 className="text-2xl font-bold text-gray-800 mb-6">Share Your Experiences</h2>
