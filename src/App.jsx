@@ -903,10 +903,10 @@ export default function WhatIDid() {
           return (
             <div className="bg-gradient-to-r from-purple-100 to-blue-100 rounded-2xl shadow-xl p-8 mb-8 border-2 border-purple-300">
               <div className="text-center mb-6">
-                <h2 className="text-3xl font-bold text-gray-800 flex items-center justify-center gap-3 mb-2">
-                  <Star className="text-yellow-500 fill-yellow-500" size={32} />
+                <h2 className="text-2xl font-bold text-gray-800 flex items-center justify-center gap-3 mb-2">
+                  <Star className="text-yellow-500 fill-yellow-500" size={28} />
                   Top 3 Experiences This Week
-                  <Star className="text-yellow-500 fill-yellow-500" size={32} />
+                  <Star className="text-yellow-500 fill-yellow-500" size={28} />
                 </h2>
                 <p className="text-gray-600">Handpicked experiences, worth learning from</p>
               </div>
