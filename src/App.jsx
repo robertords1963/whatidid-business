@@ -1003,12 +1003,12 @@ export default function WhatIDid() {
 
         {/* Inspirational Quotes Marquee */}
         {quotes.length > 0 && (
-          <div className="overflow-hidden py-4 mb-8">
+          <div className="overflow-hidden py-2 mb-8">
             <div className="animate-marquee whitespace-nowrap inline-block">
               {quotes.concat(quotes).map((quote, index) => (
                 <span key={index} className="inline-block mx-8 text-gray-700">
                   <span className="italic">"{quote.text}"</span>
-                  <span className="font-semibold text-indigo-600 ml-2">— {quote.author}</span>
+                  <span className="text-indigo-600 ml-2">— {quote.author}</span>
                 </span>
               ))}
             </div>
