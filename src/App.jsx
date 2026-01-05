@@ -926,7 +926,7 @@ export default function WhatIDid() {
             <div className="overflow-hidden py-2 mb-8">
               <div className="animate-marquee whitespace-nowrap inline-block">
                 {topQuotes.concat(topQuotes).map((quote, index) => (
-                  <span key={index} className="inline-block mx-8 text-gray-700">
+                  <span key={index} className="inline-block mx-8 text-gray-700" style={{ whiteSpace: 'pre' }}>
                     <span className="italic">"{quote.text}"</span>
                     <span className="text-indigo-600 ml-2">— {quote.author}</span>
                   </span>
