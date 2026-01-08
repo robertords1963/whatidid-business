@@ -39,6 +39,7 @@ export default function WhatIDid() {
     loadExperiences();
     loadTopExperiences();
     loadQuotes();
+    loadContentPages();
   }, []);
   
   const detectUserCountry = async () => {
@@ -304,6 +305,13 @@ export default function WhatIDid() {
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
   const [editingQuote, setEditingQuote] = useState(null);
   const [newQuote, setNewQuote] = useState({ text: '', author: '', position: 'top' });
+  const [showGuidelinesModal, setShowGuidelinesModal] = useState(false);
+  const [showHowItWorksModal, setShowHowItWorksModal] = useState(false);
+  const [guidelines, setGuidelines] = useState('');
+  const [editingGuidelines, setEditingGuidelines] = useState(false);
+  const [contentPages, setContentPages] = useState({});
+  const [editingContent, setEditingContent] = useState({ key: '', content: '' });
+  const [showModal, setShowModal] = useState(null);
 
   const maxChars = {
     problem: 300,
@@ -503,6 +511,42 @@ export default function WhatIDid() {
     } catch (error) {
       console.error('Error deleting quote:', error);
       alert('Error deleting quote');
+    }
+  };
+
+  const loadContentPages = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('content_pages')
+        .select('*');
+      
+      if (error) throw error;
+      
+      const pagesObj = {};
+      data?.forEach(page => {
+        pagesObj[page.page_key] = page;
+      });
+      setContentPages(pagesObj);
+    } catch (error) {
+      console.error('Error loading content pages:', error);
+    }
+  };
+
+  const updateContentPage = async (pageKey, content) => {
+    try {
+      const { error } = await supabase
+        .from('content_pages')
+        .update({ content, updated_at: new Date().toISOString() })
+        .eq('page_key', pageKey);
+      
+      if (error) throw error;
+      
+      await loadContentPages();
+      setEditingContent({ key: '', content: '' });
+      alert('Content updated successfully!');
+    } catch (error) {
+      console.error('Error updating content:', error);
+      alert('Error updating content');
     }
   };
 
@@ -920,6 +964,69 @@ export default function WhatIDid() {
                     ))}
                   </div>
                 )}
+              </div>
+            </div>
+          )}
+
+          {isAdmin && (
+            <div className="mt-4 bg-blue-50 border-2 border-blue-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
+              <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                <MessageCircle size={20} />
+                Manage Content Pages
+              </h3>
+              
+              <div className="space-y-4">
+                {['community_guidelines', 'how_it_works'].map(pageKey => {
+                  const page = contentPages[pageKey];
+                  if (!page) return null;
+                  
+                  return (
+                    <div key={pageKey} className="bg-white rounded p-4">
+                      <div className="flex justify-between items-center mb-3">
+                        <h4 className="font-medium text-gray-700">{page.title}</h4>
+                        <button
+                          onClick={() => setEditingContent({ key: pageKey, content: page.content })}
+                          className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+                        >
+                          Edit Content
+                        </button>
+                      </div>
+                      
+                      {editingContent.key === pageKey ? (
+                        <div className="space-y-3">
+                          <textarea
+                            value={editingContent.content}
+                            onChange={(e) => setEditingContent({ ...editingContent, content: e.target.value })}
+                            className="w-full p-3 border-2 border-gray-300 rounded-lg resize-none font-mono text-sm"
+                            rows="15"
+                            placeholder="Enter content in Markdown format..."
+                          />
+                          <div className="text-xs text-gray-600 mb-2">
+                            <strong>Markdown Tips:</strong> Use # for titles, ## for subtitles, ### for sections, - for bullet points
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => updateContentPage(pageKey, editingContent.content)}
+                              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                            >
+                              Save Changes
+                            </button>
+                            <button
+                              onClick={() => setEditingContent({ key: '', content: '' })}
+                              className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-gray-600">
+                          {page.content.substring(0, 200)}...
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -1844,6 +1951,42 @@ export default function WhatIDid() {
           )}
         </div>
 
+        {/* Content Modal */}
+        {showModal && contentPages[showModal] && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowModal(null)}>
+            <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+              <div className="sticky top-0 bg-white border-b-2 border-gray-200 p-6 flex justify-between items-center">
+                <h2 className="text-2xl font-bold text-gray-800">{contentPages[showModal].title}</h2>
+                <button
+                  onClick={() => setShowModal(null)}
+                  className="text-gray-500 hover:text-gray-700 text-3xl leading-none"
+                >
+                  ×
+                </button>
+              </div>
+              <div className="p-6">
+                <div className="prose prose-sm max-w-none">
+                  {contentPages[showModal].content.split('\n').map((line, index) => {
+                    if (line.startsWith('# ')) {
+                      return <h1 key={index} className="text-2xl font-bold mb-4 mt-6">{line.substring(2)}</h1>;
+                    } else if (line.startsWith('## ')) {
+                      return <h2 key={index} className="text-xl font-bold mb-3 mt-5">{line.substring(3)}</h2>;
+                    } else if (line.startsWith('### ')) {
+                      return <h3 key={index} className="text-lg font-bold mb-2 mt-4">{line.substring(4)}</h3>;
+                    } else if (line.startsWith('- ')) {
+                      return <li key={index} className="ml-6 mb-1">{line.substring(2)}</li>;
+                    } else if (line.trim() === '') {
+                      return <br key={index} />;
+                    } else {
+                      return <p key={index} className="mb-3">{line}</p>;
+                    }
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Footer */}
         <footer className="mt-12 pt-8 border-t-2 border-gray-200">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
@@ -1876,6 +2019,20 @@ export default function WhatIDid() {
               <span className="text-gray-300">|</span>
               <button className="text-gray-600 hover:text-purple-600 font-medium transition-colors">
                 About
+              </button>
+              <span className="text-gray-300">|</span>
+              <button 
+                onClick={() => setShowModal('community_guidelines')}
+                className="text-gray-600 hover:text-purple-600 font-medium transition-colors"
+              >
+                Community Guidelines
+              </button>
+              <span className="text-gray-300">|</span>
+              <button 
+                onClick={() => setShowModal('how_it_works')}
+                className="text-gray-600 hover:text-purple-600 font-medium transition-colors"
+              >
+                How It Works
               </button>
             </div>
             <div className="text-sm text-gray-500">
