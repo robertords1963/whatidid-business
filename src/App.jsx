@@ -320,7 +320,7 @@ export default function WhatIDid() {
     comment: 500
   };
 
-  const problemCategories = ['Health', 'Work', 'Relationship', 'Finance', 'Family', 'Education', 'Well-being', 'Other'];
+  const problemCategories = ['Health', 'Work', 'Relationship', 'Family', 'Finance', 'Education', 'Well-Being / Lifestyle', 'Entertainment / Creativity', 'Travel / Adventure', 'Technology / Others'];
   const genderOptions = ['Male', 'Female', 'Other'];
   const ageOptions = ['0-20', '21-40', '41-60', '61-Up'];
   const countryOptions = [
