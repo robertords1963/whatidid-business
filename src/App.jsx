@@ -976,7 +976,7 @@ export default function WhatIDid() {
               </h3>
               
               <div className="space-y-4">
-                {['community_guidelines', 'how_it_works'].map(pageKey => {
+                {['community_guidelines', 'how_it_works', 'about'].map(pageKey => {
                   const page = contentPages[pageKey];
                   if (!page) return null;
                   
@@ -2003,6 +2003,13 @@ export default function WhatIDid() {
                 className="text-gray-600 hover:text-purple-600 font-medium transition-colors"
               >
                 Community Guidelines
+              </button>
+              <span className="text-gray-300">|</span>
+              <button 
+                onClick={() => setShowModal('about')}
+                className="text-gray-600 hover:text-purple-600 font-medium transition-colors"
+              >
+                About
               </button>
               <span className="text-gray-300">|</span>
               <button
