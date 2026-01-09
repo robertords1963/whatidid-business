@@ -1991,6 +1991,20 @@ export default function WhatIDid() {
         <footer className="mt-12 pt-8 border-t-2 border-gray-200">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="flex gap-6 text-sm">
+              <button 
+                onClick={() => setShowModal('how_it_works')}
+                className="text-gray-600 hover:text-purple-600 font-medium transition-colors"
+              >
+                How It Works
+              </button>
+              <span className="text-gray-300">|</span>
+              <button 
+                onClick={() => setShowModal('community_guidelines')}
+                className="text-gray-600 hover:text-purple-600 font-medium transition-colors"
+              >
+                Community Guidelines
+              </button>
+              <span className="text-gray-300">|</span>
               <button
                 onClick={() => {
                   if (isAdmin) {
@@ -2007,32 +2021,6 @@ export default function WhatIDid() {
               >
                 {isAdmin && <Shield size={14} />}
                 {isAdmin ? 'Admin Mode (Click to Logout)' : 'Admin'}
-              </button>
-              <span className="text-gray-300">|</span>
-              <button className="text-gray-600 hover:text-purple-600 font-medium transition-colors">
-                Contact
-              </button>
-              <span className="text-gray-300">|</span>
-              <button className="text-gray-600 hover:text-purple-600 font-medium transition-colors">
-                Privacy Policy
-              </button>
-              <span className="text-gray-300">|</span>
-              <button className="text-gray-600 hover:text-purple-600 font-medium transition-colors">
-                About
-              </button>
-              <span className="text-gray-300">|</span>
-              <button 
-                onClick={() => setShowModal('community_guidelines')}
-                className="text-gray-600 hover:text-purple-600 font-medium transition-colors"
-              >
-                Community Guidelines
-              </button>
-              <span className="text-gray-300">|</span>
-              <button 
-                onClick={() => setShowModal('how_it_works')}
-                className="text-gray-600 hover:text-purple-600 font-medium transition-colors"
-              >
-                How It Works
               </button>
             </div>
             <div className="text-sm text-gray-500">
