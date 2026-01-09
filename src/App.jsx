@@ -69,7 +69,7 @@ export default function WhatIDid() {
       const { data, error } = await supabase
         .from('experiences')
         .select('*')
-        .order('id', { ascending: false });
+        .order('random_order', { ascending: true });
       
       if (error) throw error;
       
