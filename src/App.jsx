@@ -70,7 +70,8 @@ export default function WhatIDid() {
         .from('experiences')
         .select('*')
         .order('created_at', { ascending: false })
-        .order('random_order', { ascending: true });
+        .order('random_order', { ascending: true })
+        .limit(10000);
       
       if (error) throw error;
       
