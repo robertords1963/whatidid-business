@@ -73,6 +73,8 @@ export default function WhatIDid() {
         .order('random_order', { ascending: true })
         .limit(10000);
       
+      console.log('🔍 DEBUG - Total experiências carregadas:', data?.length); 
+      
       if (error) throw error;
       
       const transformedData = data.map(exp => ({
