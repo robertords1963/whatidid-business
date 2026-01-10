@@ -64,67 +64,82 @@ export default function WhatIDid() {
   };
   
   const loadExperiences = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('experiences')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .order('random_order', { ascending: true })
-        .limit(10000);
-      
-      console.log('🔍 DEBUG - Total experiências carregadas:', data?.length); 
-      
-      if (error) throw error;
-      
-      const transformedData = data.map(exp => ({
-        id: exp.id,
-        problem: exp.problem,
-        problemCategory: exp.problem_category,
-        solution: exp.solution,
-        result: exp.result,
-        resultCategory: exp.result_category,
-        author: exp.author || '',
-        gender: exp.gender || '',
-        age: exp.age || '',
-        country: exp.country || '',
-        avgRating: exp.avg_rating || 0,
-        totalRatings: exp.total_ratings || 0,
-        comments: []
-      }));
-      
-      const { data: allComments } = await supabase
-        .from('comments')
-        .select('*')
-        .order('created_at', { ascending: true });
+  try {
+    setLoading(true);
+    
+    // Buscar primeiro lote (0-999) - Supabase limita em 1000
+    const { data: batch1, error: error1 } = await supabase
+      .from('experiences')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .order('random_order', { ascending: true })
+      .range(0, 999);
+    
+    if (error1) throw error1;
+    
+    // Buscar segundo lote (1000-1999) - pega as 53 restantes
+    const { data: batch2, error: error2 } = await supabase
+      .from('experiences')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .order('random_order', { ascending: true })
+      .range(1000, 1999);
+    
+    if (error2) throw error2;
+    
+    // Combinar os 2 lotes
+    const data = [...(batch1 || []), ...(batch2 || [])];
+    
+    console.log('🔍 DEBUG - Total experiências carregadas:', data.length);
+    
+    const transformedData = data.map(exp => ({
+      id: exp.id,
+      problem: exp.problem,
+      problemCategory: exp.problem_category,
+      solution: exp.solution,
+      result: exp.result,
+      resultCategory: exp.result_category,
+      author: exp.author || '',
+      gender: exp.gender || '',
+      age: exp.age || '',
+      country: exp.country || '',
+      avgRating: exp.avg_rating || 0,
+      totalRatings: exp.total_ratings || 0,
+      comments: []
+    }));
+    
+    const { data: allComments } = await supabase
+      .from('comments')
+      .select('*')
+      .order('created_at', { ascending: true });
 
-      if (allComments) {
-        const commentsByExp = {};
-        allComments.forEach(c => {
-          if (!commentsByExp[c.experience_id]) {
-            commentsByExp[c.experience_id] = [];
-          }
-          commentsByExp[c.experience_id].push({
-            id: c.id,
-            text: c.comment_text,
-            author: c.author,
-            country: c.country
-          });
+    if (allComments) {
+      const commentsByExp = {};
+      allComments.forEach(c => {
+        if (!commentsByExp[c.experience_id]) {
+          commentsByExp[c.experience_id] = [];
+        }
+        commentsByExp[c.experience_id].push({
+          id: c.id,
+          text: c.comment_text,
+          author: c.author,
+          country: c.country
         });
-        
-        transformedData.forEach(exp => {
-          exp.comments = commentsByExp[exp.id] || [];
-        });
-      }
-
-      setExperiences(transformedData);
-    } catch (error) {
-      console.error('Error loading experiences:', error);
-      alert('Error loading data. Please refresh the page.');
-    } finally {
-      setLoading(false);
+      });
+      
+      transformedData.forEach(exp => {
+        exp.comments = commentsByExp[exp.id] || [];
+      });
     }
-  };
+
+    setExperiences(transformedData);
+  } catch (error) {
+    console.error('Error loading experiences:', error);
+    alert('Error loading data. Please refresh the page.');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const loadTopExperiences = async () => {
     try {
