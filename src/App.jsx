@@ -1813,14 +1813,17 @@ export default function WhatIDid() {
                       <p className={`text-sm text-gray-700 ${exp.author === 'key_insights' ? 'whitespace-pre-line' : ''}`}>
   {exp.solution}
 </p>
-                    <div className="flex items-center justify-between">
-  <h4 className="font-semibold text-green-600 flex items-center gap-2">
-    <Share2 size={16} />
-    Result
-  </h4>
-  <span className={`text-xs px-3 py-1 rounded-full ${getResultColor(exp.resultCategory)}`}>
-    {getResultLabel(exp.resultCategory)}
-  </span>
+                    <div className="space-y-2">
+  <div className="flex items-center justify-between">
+    <h4 className="font-semibold text-green-600 flex items-center gap-2">
+      <Share2 size={16} />
+      Result
+    </h4>
+    <span className={`text-xs px-3 py-1 rounded-full ${getResultColor(exp.resultCategory)}`}>
+      {getResultLabel(exp.resultCategory)}
+    </span>
+  </div>
+  <p className="text-sm text-gray-700">{exp.result}</p>
 </div>
 
                   {isAdmin && (() => {
