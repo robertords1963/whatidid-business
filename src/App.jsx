@@ -1813,6 +1813,7 @@ export default function WhatIDid() {
                       <p className={`text-sm text-gray-700 ${exp.author === 'key_insights' ? 'whitespace-pre-line' : ''}`}>
   {exp.solution}
 </p>
+                      </div>
                     <div className="space-y-2">
   <div className="flex items-center justify-between">
     <h4 className="font-semibold text-green-600 flex items-center gap-2">
