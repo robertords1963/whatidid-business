@@ -1826,7 +1826,7 @@ export default function WhatIDid() {
   </div>
   <p className="text-sm text-gray-700">{exp.result}</p>
 </div>
-
+</div>
                   {isAdmin && (() => {
                     const confirmKey = `exp-${exp.id}`;
                     const isConfirming = confirmDelete === confirmKey;
