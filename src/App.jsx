@@ -638,10 +638,15 @@ export default function WhatIDid() {
   const filteredExperiences = experiences.filter(exp => {
   // Se Key Insights ativo, mostrar apenas Key Insights da categoria
   if (showKeyInsights) {
-    return exp.author === keyInsightCategory && exp.problemCategory === keyInsightCategory;
+    return exp.author === 'key_insights' && exp.problemCategory === keyInsightCategory;
   }
   
-  // Senão, usar filtros normais
+  // IMPORTANTE: Excluir Key Insights dos filtros normais
+  if (exp.author === 'key_insights') {
+    return false;
+  }
+  
+  // Filtros normais (sem Key Insights)
   const matchesProblemCategory = !filters.problemCategory || exp.problemCategory === filters.problemCategory;
   const searchTerms = filters.searchText.toLowerCase().trim().split(/\s+/);
   const matchesSearchText = !filters.searchText || searchTerms.every(term => 
@@ -658,9 +663,7 @@ export default function WhatIDid() {
   const matchesAge = !filters.age || exp.age === filters.age;
   const matchesCountry = !filters.country || exp.country === filters.country;
   return matchesProblemCategory && matchesSearchText && matchesResultCategory && matchesRating && matchesGender && matchesAge && matchesCountry;
-});urn matchesProblemCategory && matchesSearchText && matchesResultCategory && matchesRating && matchesGender && matchesAge && matchesCountry;
-  });
-
+});
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
