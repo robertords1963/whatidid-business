@@ -1154,7 +1154,10 @@ export default function WhatIDid() {
                           <TrendingUp size={16} />
                           Action
                         </h4>
-                      <p className={`text-sm text-gray-700 whitespace-pre-line ${exp.author === 'key_insights' ? '' : 'line-clamp-3'}`}>
+<p 
+  className={`text-sm text-gray-700 ${exp.author === 'key_insights' ? '' : 'line-clamp-3'}`}
+  style={{ whiteSpace: 'pre-line' }}
+>
   {exp.solution}
 </p>
                       </div>
