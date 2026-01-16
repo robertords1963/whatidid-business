@@ -1820,9 +1820,15 @@ export default function WhatIDid() {
       <Share2 size={16} />
       Result
     </h4>
-    <span className={`text-xs px-3 py-1 rounded-full ${getResultColor(exp.resultCategory)}`}>
-      {getResultLabel(exp.resultCategory)}
-    </span>
+    {exp.author === 'key_insights' && exp.resultCategory === 'varies' ? (
+      <span className="text-xs px-3 py-1 rounded-full bg-purple-100 text-purple-800">
+        Result Varies
+      </span>
+    ) : (
+      <span className={`text-xs px-3 py-1 rounded-full ${getResultColor(exp.resultCategory)}`}>
+        {getResultLabel(exp.resultCategory)}
+      </span>
+    )}
   </div>
   <p className="text-sm text-gray-700">{exp.result}</p>
 </div>
