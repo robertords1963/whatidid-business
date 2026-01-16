@@ -71,8 +71,8 @@ export default function WhatIDid() {
     const { data: batch1, error: error1 } = await supabase
       .from('experiences')
       .select('*')
+      .order('source', { ascending: true })
       .order('created_at', { ascending: false })
-      .order('random_order', { ascending: true })
       .range(0, 999);
     
     if (error1) throw error1;
@@ -81,8 +81,8 @@ export default function WhatIDid() {
     const { data: batch2, error: error2 } = await supabase
       .from('experiences')
       .select('*')
+      .order('source', { ascending: true })
       .order('created_at', { ascending: false })
-      .order('random_order', { ascending: true })
       .range(1000, 1999);
     
     if (error2) throw error2;
@@ -105,6 +105,7 @@ export default function WhatIDid() {
       country: exp.country || '',
       avgRating: exp.avg_rating || 0,
       totalRatings: exp.total_ratings || 0,
+      source: exp.source || 'upload',
       comments: []
     }));
     
@@ -223,7 +224,8 @@ export default function WhatIDid() {
           age: newExperience.age || '',
           country: newExperience.country || '',
           avg_rating: 0,
-          total_ratings: 0
+          total_ratings: 0,
+          source: 'app'
         }])
         .select();
       
