@@ -1155,8 +1155,7 @@ export default function WhatIDid() {
                           Action
                         </h4>
 <p 
-  className={`text-sm text-gray-700 ${exp.author === 'key_insights' ? '' : 'line-clamp-3'}`}
-  style={{ whiteSpace: 'pre-line' }}
+  className={`text-sm text-gray-700 ${exp.author === 'key_insights' ? 'whitespace-pre-line' : 'line-clamp-3 whitespace-pre-line'}`}
 >
   {exp.solution}
 </p>
