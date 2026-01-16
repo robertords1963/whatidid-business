@@ -315,6 +315,9 @@ export default function WhatIDid() {
     country: ''
   });
 
+  const [showKeyInsights, setShowKeyInsights] = useState(false);
+  const [keyInsightCategory, setKeyInsightCategory] = useState('');
+
   const [userRatings, setUserRatings] = useState({});
   const [hoverRating, setHoverRating] = useState({});
   const [newComment, setNewComment] = useState({});
@@ -633,22 +636,29 @@ export default function WhatIDid() {
   const getResultLabel = (category) => resultCategories.find(r => r.value === category)?.label || '';
 
   const filteredExperiences = experiences.filter(exp => {
-    const matchesProblemCategory = !filters.problemCategory || exp.problemCategory === filters.problemCategory;
-    const searchTerms = filters.searchText.toLowerCase().trim().split(/\s+/);
-    const matchesSearchText = !filters.searchText || searchTerms.every(term => 
-      exp.problem.toLowerCase().includes(term) ||
-      exp.solution.toLowerCase().includes(term) ||
-      exp.result.toLowerCase().includes(term) ||
-      (exp.author && exp.author.toLowerCase().includes(term))
-    );
-    const matchesResultCategory = !filters.resultCategory || exp.resultCategory === filters.resultCategory;
-    const roundedRating = Math.round(exp.avgRating);
-    const matchesRating = !filters.rating || 
-      (filters.rating === '0' ? exp.totalRatings === 0 : roundedRating === parseInt(filters.rating) && exp.totalRatings > 0);
-    const matchesGender = !filters.gender || exp.gender === filters.gender;
-    const matchesAge = !filters.age || exp.age === filters.age;
-    const matchesCountry = !filters.country || exp.country === filters.country;
-    return matchesProblemCategory && matchesSearchText && matchesResultCategory && matchesRating && matchesGender && matchesAge && matchesCountry;
+  // Se Key Insights ativo, mostrar apenas Key Insights da categoria
+  if (showKeyInsights) {
+    return exp.author === keyInsightCategory && exp.problemCategory === keyInsightCategory;
+  }
+  
+  // Senão, usar filtros normais
+  const matchesProblemCategory = !filters.problemCategory || exp.problemCategory === filters.problemCategory;
+  const searchTerms = filters.searchText.toLowerCase().trim().split(/\s+/);
+  const matchesSearchText = !filters.searchText || searchTerms.every(term => 
+    exp.problem.toLowerCase().includes(term) ||
+    exp.solution.toLowerCase().includes(term) ||
+    exp.result.toLowerCase().includes(term) ||
+    (exp.author && exp.author.toLowerCase().includes(term))
+  );
+  const matchesResultCategory = !filters.resultCategory || exp.resultCategory === filters.resultCategory;
+  const roundedRating = Math.round(exp.avgRating);
+  const matchesRating = !filters.rating || 
+    (filters.rating === '0' ? exp.totalRatings === 0 : roundedRating === parseInt(filters.rating) && exp.totalRatings > 0);
+  const matchesGender = !filters.gender || exp.gender === filters.gender;
+  const matchesAge = !filters.age || exp.age === filters.age;
+  const matchesCountry = !filters.country || exp.country === filters.country;
+  return matchesProblemCategory && matchesSearchText && matchesResultCategory && matchesRating && matchesGender && matchesAge && matchesCountry;
+});urn matchesProblemCategory && matchesSearchText && matchesResultCategory && matchesRating && matchesGender && matchesAge && matchesCountry;
   });
 
   // Reset to page 1 when filters change
@@ -1354,6 +1364,57 @@ export default function WhatIDid() {
           </button>
         </div>
 
+{/* KEY INSIGHTS SECTION */}
+<div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl shadow-md p-6 mb-6 border-2 border-blue-200">
+  <div className="mb-4">
+    <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2 mb-2">
+      📊 Key Insights
+      <span className="text-sm font-normal text-gray-600">(Curated Patterns)</span>
+    </h3>
+    <p className="text-sm text-gray-600">
+      View expert-curated insights based on real experiences
+    </p>
+  </div>
+  
+  <div className="flex items-center gap-4 flex-wrap">
+    <label className="block text-sm font-medium text-gray-700">Select Category:</label>
+    <div className="flex gap-2 flex-wrap">
+      {['Work', 'Health', 'Relationship', 'Finance'].map(cat => (
+        <button
+          key={cat}
+          onClick={() => {
+            setShowKeyInsights(true);
+            setKeyInsightCategory(cat);
+            setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '' });
+          }}
+          className={`px-4 py-2 rounded-lg font-medium transition-all ${
+            showKeyInsights && keyInsightCategory === cat
+              ? 'bg-blue-600 text-white shadow-lg'
+              : 'bg-white border-2 border-gray-200 text-gray-700 hover:border-blue-300 hover:bg-blue-50'
+          }`}
+        >
+          {cat}
+        </button>
+      ))}
+    </div>
+    {showKeyInsights && (
+      <button
+        onClick={() => {
+          setShowKeyInsights(false);
+          setKeyInsightCategory('');
+        }}
+        className="text-sm text-gray-600 hover:text-gray-800 underline"
+      >
+        Clear Key Insights
+      </button>
+    )}
+  </div>
+  
+  <div className="mt-4 text-center text-gray-500 text-sm">
+    ────── OR ──────
+  </div>
+</div>
+        
         <div className="space-y-6" id="experiences-section">
           <div className="flex items-center gap-6 mb-4 flex-wrap">
             <h2 className="text-2xl font-bold text-gray-800">Shared Experiences ({experiences.length})</h2>
