@@ -1810,7 +1810,9 @@ export default function WhatIDid() {
                         <TrendingUp size={16} />
                         Action
                       </h4>
-                      <p className="text-sm text-gray-700">{exp.solution}</p>
+                      <p className={`text-sm text-gray-700 ${exp.author === 'key_insights' ? 'whitespace-pre-line' : ''}`}>
+  {exp.solution}
+</p>
                     </div>
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
