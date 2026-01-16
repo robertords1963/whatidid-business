@@ -72,7 +72,7 @@ export default function WhatIDid() {
       .from('experiences')
       .select('*')
       .order('source', { ascending: true })
-      .order('created_at', { ascending: false })
+      .order('random_order', { ascending: true })
       .range(0, 999);
     
     if (error1) throw error1;
@@ -82,7 +82,7 @@ export default function WhatIDid() {
       .from('experiences')
       .select('*')
       .order('source', { ascending: true })
-      .order('created_at', { ascending: false })
+      .order('random_order', { ascending: true })
       .range(1000, 1999);
     
     if (error2) throw error2;
