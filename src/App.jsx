@@ -2068,9 +2068,9 @@ const filteredExperiences = experiences.filter(exp => {
             </div>
           ) : (
             <div className="space-y-4" id="first-experience">
-              {currentExperiences.map(exp => (
-               <>
-                <div key={exp.id} id={`exp-${exp.id}`} className="bg-white rounded-2xl shadow-lg p-6">
+            {currentExperiences.map(exp => (
+              <div key={exp.id}>
+                <div id={`exp-${exp.id}`} className="bg-white rounded-2xl shadow-lg p-6">
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex items-center gap-3 flex-wrap">
                       {(exp.author || exp.gender || exp.age) && (
@@ -2282,7 +2282,7 @@ const filteredExperiences = experiences.filter(exp => {
                     )}
                   </div>
                 </div>
-              </div>
+            
               
               {isAdmin && editingExperience === exp.id && (
                   <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-4 mt-4">
@@ -2430,7 +2430,7 @@ const filteredExperiences = experiences.filter(exp => {
                     </button>
                   </div>
                 )}
-              </>
+              </div>
               ))}
             </div>
           )}
