@@ -2069,6 +2069,7 @@ const filteredExperiences = experiences.filter(exp => {
           ) : (
             <div className="space-y-4" id="first-experience">
               {currentExperiences.map(exp => (
+               <>
                 <div key={exp.id} id={`exp-${exp.id}`} className="bg-white rounded-2xl shadow-lg p-6">
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex items-center gap-3 flex-wrap">
@@ -2428,7 +2429,7 @@ const filteredExperiences = experiences.filter(exp => {
                     </button>
                   </div>
                 )}
-              
+              </>
               ))}
             </div>
           )}
