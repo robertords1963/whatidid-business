@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Share2, TrendingUp, AlertCircle, Star, MessageCircle, Send, Shield, Trash2, Search } from 'lucide-react';
+import { Share2, TrendingUp, AlertCircle, Star, MessageCircle, Send, Shield, Trash2, Search, Users, Target } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = 'https://vtnzsyrojybyfeenkave.supabase.co';
@@ -317,7 +317,8 @@ export default function WhatIDid() {
 
   const [showKeyInsights, setShowKeyInsights] = useState(false);
   const [keyInsightCategory, setKeyInsightCategory] = useState('');
-
+  const [filterMode, setFilterMode] = useState('individual');
+  
   const [userRatings, setUserRatings] = useState({});
   const [hoverRating, setHoverRating] = useState({});
   const [newComment, setNewComment] = useState({});
@@ -1370,57 +1371,6 @@ export default function WhatIDid() {
             Share Experience
           </button>
         </div>
-
-{/* KEY INSIGHTS SECTION */}
-<div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl shadow-md p-6 mb-6 border-2 border-blue-200">
-  <div className="mb-4">
-    <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2 mb-2">
-      📊 Key Insights
-      <span className="text-sm font-normal text-gray-600">(Curated Patterns)</span>
-    </h3>
-    <p className="text-sm text-gray-600">
-      View expert-curated insights based on real experiences
-    </p>
-  </div>
-  
-  <div className="flex items-center gap-4 flex-wrap">
-    <label className="block text-sm font-medium text-gray-700">Select Category:</label>
-    <div className="flex gap-2 flex-wrap">
-      {['Work', 'Health', 'Relationship', 'Finance'].map(cat => (
-        <button
-          key={cat}
-          onClick={() => {
-            setShowKeyInsights(true);
-            setKeyInsightCategory(cat);
-            setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '' });
-          }}
-          className={`px-4 py-2 rounded-lg font-medium transition-all ${
-            showKeyInsights && keyInsightCategory === cat
-              ? 'bg-blue-600 text-white shadow-lg'
-              : 'bg-white border-2 border-gray-200 text-gray-700 hover:border-blue-300 hover:bg-blue-50'
-          }`}
-        >
-          {cat}
-        </button>
-      ))}
-    </div>
-    {showKeyInsights && (
-      <button
-        onClick={() => {
-          setShowKeyInsights(false);
-          setKeyInsightCategory('');
-        }}
-        className="text-sm text-gray-600 hover:text-gray-800 underline"
-      >
-        Clear Key Insights
-      </button>
-    )}
-  </div>
-  
-  <div className="mt-4 text-center text-gray-500 text-sm">
-    ────── OR ──────
-  </div>
-</div>
         
         <div className="space-y-6" id="experiences-section">
           <div className="flex items-center gap-6 mb-4 flex-wrap">
@@ -1541,105 +1491,181 @@ export default function WhatIDid() {
           </div>
           */}
           
-          <div className="bg-white rounded-xl shadow-md p-6 mb-6">
+<div className="bg-white rounded-xl shadow-md p-6 mb-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-gray-700">Filter Experiences</h3>
               <div className="text-sm font-medium text-purple-600">
                 {filteredExperiences.length} {filteredExperiences.length === 1 ? 'experience found' : 'experiences found'}
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-2">Category</label>
-                <select
-                  value={filters.problemCategory}
-                  onChange={(e) => setFilters({...filters, problemCategory: e.target.value})}
-                  className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-                >
-                  <option value="">All</option>
-                  {problemCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-2">Result</label>
-                <select
-                  value={filters.resultCategory}
-                  onChange={(e) => setFilters({...filters, resultCategory: e.target.value})}
-                  className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:outline-none"
-                >
-                  <option value="">All</option>
-                  {resultCategories.map(cat => <option key={cat.value} value={cat.value}>{cat.label}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-2">Rating</label>
-                <select
-                  value={filters.rating}
-                  onChange={(e) => setFilters({...filters, rating: e.target.value})}
-                  className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-yellow-500 focus:outline-none"
-                >
-                  <option value="">All</option>
-                  <option value="5">⭐⭐⭐⭐⭐ (5)</option>
-                  <option value="4">⭐⭐⭐⭐ (4)</option>
-                  <option value="3">⭐⭐⭐ (3)</option>
-                  <option value="2">⭐⭐ (2)</option>
-                  <option value="1">⭐ (1)</option>
-                  <option value="0">None (Not rated)</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-2">Gender</label>
-                <select
-                  value={filters.gender}
-                  onChange={(e) => setFilters({...filters, gender: e.target.value})}
-                  className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-                >
-                  <option value="">All</option>
-                  {genderOptions.map(gender => <option key={gender} value={gender}>{gender}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-2">Age</label>
-                <select
-                  value={filters.age}
-                  onChange={(e) => setFilters({...filters, age: e.target.value})}
-                  className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-                >
-                  <option value="">All</option>
-                  {ageOptions.map(age => <option key={age} value={age}>{age}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-2">Country</label>
-                <select
-                  value={filters.country}
-                  onChange={(e) => setFilters({...filters, country: e.target.value})}
-                  className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-                >
-                  <option value="">All</option>
-                  {countryOptions.map(country => <option key={country} value={country}>{country}</option>)}
-                </select>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-600 mb-2">Enter Keywords</label>
-                <input
-                  type="text"
-                  value={filters.searchText}
-                  onChange={(e) => setFilters({...filters, searchText: e.target.value})}
-                  placeholder="Search..."
-                  className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-                />
-              </div>
-            </div>
-            {(filters.problemCategory || filters.searchText || filters.resultCategory || filters.rating || filters.gender || filters.age || filters.country) && (
+            
+            {/* TABS */}
+            <div className="flex gap-2 mb-6 border-b-2 border-gray-200 pb-2">
               <button
-                onClick={() => setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '' })}
-                className="mt-4 text-sm text-purple-600 hover:text-purple-800 font-medium"
+                onClick={() => {
+                  setFilterMode('individual');
+                  setShowKeyInsights(false);
+                  setKeyInsightCategory('');
+                  setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '' });
+                }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-medium transition-all ${
+                  filterMode === 'individual'
+                    ? 'bg-blue-600 text-white shadow-lg'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
               >
-                Clear filters
+                <Users size={18} />
+                Individual Experiences (User Stories)
               </button>
+              
+              <button
+                onClick={() => {
+                  setFilterMode('key_insights');
+                  setShowKeyInsights(false);
+                  setKeyInsightCategory('');
+                  setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '' });
+                }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-medium transition-all ${
+                  filterMode === 'key_insights'
+                    ? 'bg-blue-600 text-white shadow-lg'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                <Target size={18} />
+                Key Insights (Curated Patterns)
+              </button>
+            </div>
+
+            {/* CONTEÚDO DA TAB INDIVIDUAL EXPERIENCES */}
+            {filterMode === 'individual' && (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-2">Category</label>
+                    <select
+                      value={filters.problemCategory}
+                      onChange={(e) => setFilters({...filters, problemCategory: e.target.value})}
+                      className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                    >
+                      <option value="">All</option>
+                      {problemCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-2">Result</label>
+                    <select
+                      value={filters.resultCategory}
+                      onChange={(e) => setFilters({...filters, resultCategory: e.target.value})}
+                      className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:outline-none"
+                    >
+                      <option value="">All</option>
+                      {resultCategories.map(cat => <option key={cat.value} value={cat.value}>{cat.label}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-2">Rating</label>
+                    <select
+                      value={filters.rating}
+                      onChange={(e) => setFilters({...filters, rating: e.target.value})}
+                      className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-yellow-500 focus:outline-none"
+                    >
+                      <option value="">All</option>
+                      <option value="5">⭐⭐⭐⭐⭐ (5)</option>
+                      <option value="4">⭐⭐⭐⭐ (4)</option>
+                      <option value="3">⭐⭐⭐ (3)</option>
+                      <option value="2">⭐⭐ (2)</option>
+                      <option value="1">⭐ (1)</option>
+                      <option value="0">None (Not rated)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-2">Gender</label>
+                    <select
+                      value={filters.gender}
+                      onChange={(e) => setFilters({...filters, gender: e.target.value})}
+                      className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                    >
+                      <option value="">All</option>
+                      {genderOptions.map(gender => <option key={gender} value={gender}>{gender}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-2">Age</label>
+                    <select
+                      value={filters.age}
+                      onChange={(e) => setFilters({...filters, age: e.target.value})}
+                      className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                    >
+                      <option value="">All</option>
+                      {ageOptions.map(age => <option key={age} value={age}>{age}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-2">Country</label>
+                    <select
+                      value={filters.country}
+                      onChange={(e) => setFilters({...filters, country: e.target.value})}
+                      className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                    >
+                      <option value="">All</option>
+                      {countryOptions.map(country => <option key={country} value={country}>{country}</option>)}
+                    </select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-600 mb-2">Enter Keywords</label>
+                    <input
+                      type="text"
+                      value={filters.searchText}
+                      onChange={(e) => setFilters({...filters, searchText: e.target.value})}
+                      placeholder="Search..."
+                      className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                    />
+                  </div>
+                </div>
+                {(filters.problemCategory || filters.searchText || filters.resultCategory || filters.rating || filters.gender || filters.age || filters.country) && (
+                  <button
+                    onClick={() => setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '' })}
+                    className="mt-4 text-sm text-purple-600 hover:text-purple-800 font-medium"
+                  >
+                    Clear filters
+                  </button>
+                )}
+              </>
+            )}
+
+            {/* CONTEÚDO DA TAB KEY INSIGHTS */}
+            {filterMode === 'key_insights' && (
+              <div className="py-4">
+                <label className="block text-sm font-medium text-gray-700 mb-3">Select Category:</label>
+                <select
+                  value={keyInsightCategory}
+                  onChange={(e) => {
+                    setKeyInsightCategory(e.target.value);
+                    setShowKeyInsights(true);
+                    setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '' });
+                  }}
+                  className="w-full md:w-1/3 p-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"
+                >
+                  <option value="">Select a category...</option>
+                  {problemCategories.map(cat => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+                
+                {showKeyInsights && keyInsightCategory && (
+                  <button
+                    onClick={() => {
+                      setShowKeyInsights(false);
+                      setKeyInsightCategory('');
+                    }}
+                    className="mt-4 text-sm text-gray-600 hover:text-gray-800 underline"
+                  >
+                    Clear Key Insights
+                  </button>
+                )}
+              </div>
             )}
           </div>
 
