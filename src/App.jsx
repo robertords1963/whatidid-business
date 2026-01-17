@@ -1492,11 +1492,8 @@ export default function WhatIDid() {
           */}
           
 <div className="bg-white rounded-xl shadow-md p-6 mb-6">
-            <div className="flex justify-between items-center mb-4">
+<div className="mb-4">
               <h3 className="text-lg font-semibold text-gray-700">Filter Experiences</h3>
-              <div className="text-sm font-medium text-purple-600">
-                {filteredExperiences.length} {filteredExperiences.length === 1 ? 'experience found' : 'experiences found'}
-              </div>
             </div>
             
             {/* TABS */}
@@ -1514,8 +1511,7 @@ export default function WhatIDid() {
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                <Users size={18} />
-                Individual Experiences (User Stories)
+              👥 <strong>Individual Experiences</strong> (User Stories)
               </button>
               
               <button
@@ -1531,8 +1527,7 @@ export default function WhatIDid() {
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                <Target size={18} />
-                Key Insights (Curated Patterns)
+              🎯 <strong>Key Insights</strong> (Curated Patterns)
               </button>
             </div>
 
@@ -1624,20 +1619,25 @@ export default function WhatIDid() {
                     />
                   </div>
                 </div>
-                {(filters.problemCategory || filters.searchText || filters.resultCategory || filters.rating || filters.gender || filters.age || filters.country) && (
-                  <button
-                    onClick={() => setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '' })}
-                    className="mt-4 text-sm text-purple-600 hover:text-purple-800 font-medium"
-                  >
-                    Clear filters
-                  </button>
-                )}
+                <div className="mt-4">
+                  <div className="text-sm font-medium text-purple-600 mb-2">
+                    {filteredExperiences.length} {filteredExperiences.length === 1 ? 'experience found' : 'experiences found'}
+                  </div>
+                  {(filters.problemCategory || filters.searchText || filters.resultCategory || filters.rating || filters.gender || filters.age || filters.country) && (
+                    <button
+                      onClick={() => setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '' })}
+                      className="text-sm text-purple-600 hover:text-purple-800 font-medium"
+                    >
+                      Clear filters
+                    </button>
+                  )}
+                </div>
               </>
             )}
 
             {/* CONTEÚDO DA TAB KEY INSIGHTS */}
-            {filterMode === 'key_insights' && (
-              <div className="py-4">
+{filterMode === 'key_insights' && (
+              <div className="pt-2 pb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-3">Select Category:</label>
                 <select
                   value={keyInsightCategory}
@@ -1655,15 +1655,20 @@ export default function WhatIDid() {
                 </select>
                 
                 {showKeyInsights && keyInsightCategory && (
-                  <button
-                    onClick={() => {
-                      setShowKeyInsights(false);
-                      setKeyInsightCategory('');
-                    }}
-                    className="mt-4 text-sm text-gray-600 hover:text-gray-800 underline"
-                  >
-                    Clear Key Insights
-                  </button>
+                  <div className="mt-4">
+                    <div className="text-sm font-medium text-purple-600 mb-2">
+                      {filteredExperiences.length} {filteredExperiences.length === 1 ? 'experience found' : 'experiences found'}
+                    </div>
+                    <button
+                      onClick={() => {
+                        setShowKeyInsights(false);
+                        setKeyInsightCategory('');
+                      }}
+                      className="text-sm text-purple-600 hover:text-purple-800 font-medium"
+                    >
+                      Clear filters
+                    </button>
+                  </div>
                 )}
               </div>
             )}
