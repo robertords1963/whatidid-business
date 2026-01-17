@@ -1681,22 +1681,7 @@ export default function WhatIDid() {
 )}
 </div>
 
----
 
-## 📋 **RESUMO CLARO:**
-
-✅ **Mudança 1:** Remover `py-4` (ou `pt-2 pb-4`) da div do Key Insights - deixar só `<div>`
-
-✅ **Mudança 2:** Adicionar o bloco "X experiences found" NO TOPO do Key Insights, ANTES do "Select Category:"
-
----
-
-🎯 **Resultado esperado:**
-
-Quando abrir a tab Key Insights, você verá:
-```
-7 experiences found         ← NOVO! Aparece sempre
-Select Category: [dropdown]
           </div>
 
           {/* Pagination - Top */}
