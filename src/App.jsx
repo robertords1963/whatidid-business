@@ -642,6 +642,20 @@ export default function WhatIDid() {
   const getResultColor = (category) => resultCategories.find(r => r.value === category)?.color || '';
   const getResultLabel = (category) => resultCategories.find(r => r.value === category)?.label || '';
 
+  const highlightText = (text, searchTerms) => {
+  if (!searchTerms || searchTerms.length === 0 || !filters.searchText) return text;
+  
+  let highlightedText = text;
+  searchTerms.forEach(term => {
+    if (term.length > 0) {
+      const regex = new RegExp(`(${term})`, 'gi');
+      highlightedText = highlightedText.replace(regex, '<mark class="bg-yellow-300 font-semibold">$1</mark>');
+    }
+  });
+  
+  return <span dangerouslySetInnerHTML={{ __html: highlightedText }} />;
+};
+
 const filteredExperiences = experiences.filter(exp => {
   // Se está na tab Key Insights
   if (filterMode === 'key_insights') {
@@ -2130,14 +2144,18 @@ const filteredExperiences = experiences.filter(exp => {
                         </h4>
                         <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full">{exp.problemCategory}</span>
                       </div>
-                      <p className="text-sm text-gray-700">{exp.problem}</p>
+                      <p className="text-sm text-gray-700">
+  {highlightText(exp.problem, filters.searchText ? filters.searchText.toLowerCase().trim().split(/\s+/) : [])}
+</p>
                     </div>
                     <div className="space-y-2">
                       <h4 className="font-semibold text-blue-600 flex items-center gap-2">
                         <TrendingUp size={16} />
                         Action
                       </h4>
-                      <p className={`text-sm text-gray-700 ${exp.author === 'key_insights' ? 'whitespace-pre-line' : ''}`}>
+                     <p className={`text-sm text-gray-700 ${exp.author === 'key_insights' ? 'whitespace-pre-line' : ''}`}>
+  {highlightText(exp.solution, filters.searchText ? filters.searchText.toLowerCase().trim().split(/\s+/) : [])}
+</p>
   {exp.solution}
 </p>
                       </div>
@@ -2157,7 +2175,9 @@ const filteredExperiences = experiences.filter(exp => {
       </span>
     )}
   </div>
-  <p className="text-sm text-gray-700">{exp.result}</p>
+<p className="text-sm text-gray-700">
+  {highlightText(exp.result, filters.searchText ? filters.searchText.toLowerCase().trim().split(/\s+/) : [])}
+</p>
 </div>
 </div>
                   {isAdmin && (() => {
