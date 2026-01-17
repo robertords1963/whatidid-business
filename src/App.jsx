@@ -1499,36 +1499,42 @@ export default function WhatIDid() {
             {/* TABS */}
             <div className="flex gap-2 mb-6 border-b-2 border-gray-200 pb-2">
               <button
-                onClick={() => {
-                  setFilterMode('individual');
-                  setShowKeyInsights(false);
-                  setKeyInsightCategory('');
-                  setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '' });
-                }}
-                className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-medium transition-all ${
-                  filterMode === 'individual'
-                    ? 'bg-blue-600 text-white shadow-lg'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-              👥 <strong>Individual Experiences</strong> (User Stories)
-              </button>
+  onClick={() => {
+    setFilterMode('individual');
+    setShowKeyInsights(false);
+    setKeyInsightCategory('');
+    setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '' });
+  }}
+  className={`flex flex-col items-center justify-center px-4 py-3 rounded-t-lg font-medium transition-all ${
+    filterMode === 'individual'
+      ? 'bg-blue-600 text-white shadow-lg'
+      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+  }`}
+>
+  <span className="text-2xl mb-1">👥</span>
+  <span className="font-bold text-sm">Individual</span>
+  <span className="font-bold text-sm">Experiences</span>
+  <span className="text-[10px] opacity-80">(User Stories)</span>
+</button>
               
-              <button
-                onClick={() => {
-                  setFilterMode('key_insights');
-                  setShowKeyInsights(false);
-                  setKeyInsightCategory('');
-                  setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '' });
-                }}
-                className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-medium transition-all ${
-                  filterMode === 'key_insights'
-                    ? 'bg-blue-600 text-white shadow-lg'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-              🎯 <strong>Key Insights</strong> (Curated Patterns)
-              </button>
+<button
+  onClick={() => {
+    setFilterMode('key_insights');
+    setShowKeyInsights(false);
+    setKeyInsightCategory('');
+    setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '' });
+  }}
+  className={`flex flex-col items-center justify-center px-4 py-3 rounded-t-lg font-medium transition-all ${
+    filterMode === 'key_insights'
+      ? 'bg-blue-600 text-white shadow-lg'
+      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+  }`}
+>
+  <span className="text-2xl mb-1">🎯</span>
+  <span className="font-bold text-sm">Key</span>
+  <span className="font-bold text-sm">Insights</span>
+  <span className="text-[10px] opacity-80">(Curated Patterns)</span>
+</button>
             </div>
 
             {/* CONTEÚDO DA TAB INDIVIDUAL EXPERIENCES */}
@@ -1620,9 +1626,9 @@ export default function WhatIDid() {
                   </div>
                 </div>
                 <div className="mt-4">
-                  <div className="text-sm font-medium text-purple-600 mb-2">
-                    {filteredExperiences.length} {filteredExperiences.length === 1 ? 'experience found' : 'experiences found'}
-                  </div>
+<div className="text-sm font-bold text-purple-600 mb-2">
+  {filteredExperiences.length} {filteredExperiences.length === 1 ? 'experience found' : 'experiences found'}
+</div>
                   {(filters.problemCategory || filters.searchText || filters.resultCategory || filters.rating || filters.gender || filters.age || filters.country) && (
                     <button
                       onClick={() => setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '' })}
@@ -1637,7 +1643,7 @@ export default function WhatIDid() {
 
             {/* CONTEÚDO DA TAB KEY INSIGHTS */}
 {filterMode === 'key_insights' && (
-              <div className="pt-2 pb-4">
+  <div className="py-4">
                 <label className="block text-sm font-medium text-gray-700 mb-3">Select Category:</label>
                 <select
                   value={keyInsightCategory}
@@ -1656,9 +1662,9 @@ export default function WhatIDid() {
                 
                 {showKeyInsights && keyInsightCategory && (
                   <div className="mt-4">
-                    <div className="text-sm font-medium text-purple-600 mb-2">
-                      {filteredExperiences.length} {filteredExperiences.length === 1 ? 'experience found' : 'experiences found'}
-                    </div>
+<div className="text-sm font-bold text-purple-600 mb-2">
+  {filteredExperiences.length} {filteredExperiences.length === 1 ? 'experience found' : 'experiences found'}
+</div>
                     <button
                       onClick={() => {
                         setShowKeyInsights(false);
