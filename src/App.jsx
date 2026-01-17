@@ -1682,7 +1682,7 @@ export default function WhatIDid() {
 </div>
 
 
-          </div>
+
 
           {/* Pagination - Top */}
           {filteredExperiences.length > experiencesPerPage && (
