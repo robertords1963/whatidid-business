@@ -1643,7 +1643,7 @@ export default function WhatIDid() {
 
             {/* CONTEÚDO DA TAB KEY INSIGHTS */}
 {filterMode === 'key_insights' && (
-  <div className="py-4">
+  <div>
                 <label className="block text-sm font-medium text-gray-700 mb-3">Select Category:</label>
                 <select
                   value={keyInsightCategory}
