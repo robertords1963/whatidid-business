@@ -2153,10 +2153,8 @@ const filteredExperiences = experiences.filter(exp => {
                         <TrendingUp size={16} />
                         Action
                       </h4>
-                     <p className={`text-sm text-gray-700 ${exp.author === 'key_insights' ? 'whitespace-pre-line' : ''}`}>
+<p className={`text-sm text-gray-700 ${exp.author === 'key_insights' ? 'whitespace-pre-line' : ''}`}>
   {highlightText(exp.solution, filters.searchText ? filters.searchText.toLowerCase().trim().split(/\s+/) : [])}
-</p>
-  {exp.solution}
 </p>
                       </div>
                     <div className="space-y-2">
