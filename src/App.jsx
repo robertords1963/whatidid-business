@@ -1644,40 +1644,59 @@ export default function WhatIDid() {
             {/* CONTEÚDO DA TAB KEY INSIGHTS */}
 {filterMode === 'key_insights' && (
   <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">Select Category:</label>
-                <select
-                  value={keyInsightCategory}
-                  onChange={(e) => {
-                    setKeyInsightCategory(e.target.value);
-                    setShowKeyInsights(true);
-                    setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '' });
-                  }}
-                  className="w-full md:w-1/3 p-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"
-                >
-                  <option value="">Select a category...</option>
-                  {problemCategories.map(cat => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
-                </select>
-                
-                {showKeyInsights && keyInsightCategory && (
-                  <div className="mt-4">
-<div className="text-sm font-bold text-purple-600 mb-2">
-  {filteredExperiences.length} {filteredExperiences.length === 1 ? 'experience found' : 'experiences found'}
-</div>
-                    <button
-                      onClick={() => {
-                        setShowKeyInsights(false);
-                        setKeyInsightCategory('');
-                      }}
-                      className="text-sm text-purple-600 hover:text-purple-800 font-medium"
-                    >
-                      Clear filters
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
+    <div className="text-sm font-bold text-purple-600 mb-4">
+      {filteredExperiences.length} {filteredExperiences.length === 1 ? 'experience found' : 'experiences found'}
+    </div>
+    
+    <label className="block text-sm font-medium text-gray-700 mb-3">Select Category:</label>
+    <select
+      value={keyInsightCategory}
+      onChange={(e) => {
+        setKeyInsightCategory(e.target.value);
+        setShowKeyInsights(true);
+        setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '' });
+      }}
+      className="w-full md:w-1/3 p-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"
+    >
+      <option value="">Select a category...</option>
+      {problemCategories.map(cat => (
+        <option key={cat} value={cat}>{cat}</option>
+      ))}
+    </select>
+    
+    {showKeyInsights && keyInsightCategory && (
+      <div className="mt-4">
+        <button
+          onClick={() => {
+            setShowKeyInsights(false);
+            setKeyInsightCategory('');
+          }}
+          className="text-sm text-purple-600 hover:text-purple-800 font-medium"
+        >
+          Clear filters
+        </button>
+      </div>
+    )}
+  </div>
+)}
+```
+
+---
+
+## 📋 **RESUMO CLARO:**
+
+✅ **Mudança 1:** Remover `py-4` (ou `pt-2 pb-4`) da div do Key Insights - deixar só `<div>`
+
+✅ **Mudança 2:** Adicionar o bloco "X experiences found" NO TOPO do Key Insights, ANTES do "Select Category:"
+
+---
+
+🎯 **Resultado esperado:**
+
+Quando abrir a tab Key Insights, você verá:
+```
+7 experiences found         ← NOVO! Aparece sempre
+Select Category: [dropdown]
           </div>
 
           {/* Pagination - Top */}
