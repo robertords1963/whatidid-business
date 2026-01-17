@@ -636,10 +636,15 @@ export default function WhatIDid() {
   const getResultColor = (category) => resultCategories.find(r => r.value === category)?.color || '';
   const getResultLabel = (category) => resultCategories.find(r => r.value === category)?.label || '';
 
-  const filteredExperiences = experiences.filter(exp => {
-  // Se Key Insights ativo, mostrar apenas Key Insights da categoria
-  if (showKeyInsights) {
-    return exp.author === 'key_insights' && exp.problemCategory === keyInsightCategory;
+const filteredExperiences = experiences.filter(exp => {
+  // Se está na tab Key Insights
+  if (filterMode === 'key_insights') {
+    // Se selecionou categoria específica, filtrar por ela
+    if (showKeyInsights && keyInsightCategory) {
+      return exp.author === 'key_insights' && exp.problemCategory === keyInsightCategory;
+    }
+    // Se não selecionou categoria (All), mostrar todos os Key Insights
+    return exp.author === 'key_insights';
   }
   
   // IMPORTANTE: Excluir Key Insights dos filtros normais
@@ -1644,28 +1649,32 @@ export default function WhatIDid() {
             {/* CONTEÚDO DA TAB KEY INSIGHTS */}
 {filterMode === 'key_insights' && (
   <div>
-    <div className="text-sm font-bold text-purple-600 mb-4">
-      {filteredExperiences.length} {filteredExperiences.length === 1 ? 'experience found' : 'experiences found'}
-    </div>
-    
     <label className="block text-sm font-medium text-gray-700 mb-3">Select Category:</label>
     <select
       value={keyInsightCategory}
       onChange={(e) => {
-        setKeyInsightCategory(e.target.value);
-        setShowKeyInsights(true);
+        const value = e.target.value;
+        setKeyInsightCategory(value);
+        if (value) {
+          setShowKeyInsights(true);
+        } else {
+          setShowKeyInsights(false);
+        }
         setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '' });
       }}
       className="w-full md:w-1/3 p-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"
     >
-      <option value="">Select a category...</option>
+      <option value="">All</option>
       {problemCategories.map(cat => (
         <option key={cat} value={cat}>{cat}</option>
       ))}
     </select>
     
-    {showKeyInsights && keyInsightCategory && (
-      <div className="mt-4">
+    <div className="mt-4">
+      <div className="text-sm font-bold text-purple-600 mb-2">
+        {filteredExperiences.length} {filteredExperiences.length === 1 ? 'common case found' : 'common cases found'}
+      </div>
+      {keyInsightCategory && (
         <button
           onClick={() => {
             setShowKeyInsights(false);
@@ -1675,8 +1684,8 @@ export default function WhatIDid() {
         >
           Clear filters
         </button>
-      </div>
-    )}
+      )}
+    </div>
   </div>
 )}
 </div>
@@ -1789,7 +1798,7 @@ export default function WhatIDid() {
                     <div className="flex items-center gap-3 flex-wrap">
                       {(exp.author || exp.gender || exp.age) && (
                         <span className="text-xs font-medium text-purple-600 bg-purple-50 px-3 py-1 rounded-full">
-                          By: {[exp.author, exp.gender, exp.age].filter(Boolean).join(', ')}
+                          By: {exp.author === 'key_insights' ? 'COMMON CASES' : [exp.author, exp.gender, exp.age].filter(Boolean).join(', ')}
                         </span>
                       )}
                       {exp.country && (
