@@ -326,6 +326,8 @@ export default function WhatIDid() {
   const [currentPage, setCurrentPage] = useState(1);
   const experiencesPerPage = 20;
   const [topExperiences, setTopExperiences] = useState({ 1: null, 2: null, 3: null });
+  const [editingExperience, setEditingExperience] = useState(null);
+  const [editingData, setEditingData] = useState({});
   const [quotes, setQuotes] = useState([]);
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
   const [editingQuote, setEditingQuote] = useState(null);
@@ -410,6 +412,10 @@ export default function WhatIDid() {
   };
 
   const handleUserRating = async (expId, rating) => {
+      if (userRatings[expId]) {
+    alert('You have already rated this experience in this session!');
+    return;
+  }
     try {
       setUserRatings({...userRatings, [expId]: rating});
       const exp = experiences.find(e => e.id === expId);
@@ -1072,6 +1078,276 @@ const filteredExperiences = experiences.filter(exp => {
           )}
         </div>
 
+{isAdmin && (
+  <div className="mt-4 bg-orange-50 border-2 border-orange-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
+    <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+      ⭐ Assign Ratings to Experiences
+    </h3>
+    
+    <div className="bg-white rounded p-4">
+      <div className="space-y-4 mb-4">
+        {/* 1. TARGET SELECTION */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            1. Select Target:
+          </label>
+          <select
+            id="rating-target"
+            className="w-full p-2 border-2 border-gray-300 rounded"
+            defaultValue="upload"
+          >
+            <option value="upload">Upload (User Experiences)</option>
+            <option value="key_insights">Key Insights (Curated)</option>
+            <option value="both">Both</option>
+          </select>
+        </div>
+
+        {/* 2. MODE SELECTION */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            2. Apply To:
+          </label>
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="rating-mode"
+                value="without"
+                defaultChecked
+                className="w-4 h-4"
+              />
+              <span className="text-sm">Only experiences WITHOUT ratings (safe)</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="rating-mode"
+                value="all"
+                className="w-4 h-4"
+              />
+              <span className="text-sm text-red-600">ALL experiences (will overwrite existing ratings!)</span>
+            </label>
+          </div>
+        </div>
+
+        {/* 3. PERCENTAGE */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            3. Percentage of Target to Receive Ratings:
+          </label>
+          <div className="flex items-center gap-2">
+            <input
+              type="number"
+              id="rating-percentage"
+              min="1"
+              max="100"
+              defaultValue="50"
+              className="w-24 p-2 border-2 border-gray-300 rounded"
+            />
+            <span className="text-sm text-gray-600">%</span>
+          </div>
+          <p className="text-xs text-gray-500 mt-1">Enter a number between 1-100</p>
+        </div>
+
+        {/* 4. RATINGS RANGE */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            4. Number of Ratings per Experience (Range):
+          </label>
+          <div className="flex items-center gap-2">
+            <input
+              type="number"
+              id="rating-min"
+              min="1"
+              defaultValue="1"
+              className="w-24 p-2 border-2 border-gray-300 rounded"
+            />
+            <span className="text-sm text-gray-600">to</span>
+            <input
+              type="number"
+              id="rating-max"
+              min="1"
+              defaultValue="100"
+              className="w-24 p-2 border-2 border-gray-300 rounded"
+            />
+            <span className="text-sm text-gray-600">ratings</span>
+          </div>
+          <p className="text-xs text-gray-500 mt-1">e.g., 1-100, or 20-30</p>
+        </div>
+
+        {/* 5. STARS DISTRIBUTION */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            5. Stars Distribution (Default):
+          </label>
+          <div className="bg-gray-50 p-3 rounded text-xs space-y-1">
+            <div className="flex justify-between">
+              <span>⭐ 1-2 stars:</span>
+              <span className="font-semibold">5%</span>
+            </div>
+            <div className="flex justify-between">
+              <span>⭐⭐ 2-3 stars:</span>
+              <span className="font-semibold">15%</span>
+            </div>
+            <div className="flex justify-between">
+              <span>⭐⭐⭐ 3-4 stars:</span>
+              <span className="font-semibold">30%</span>
+            </div>
+            <div className="flex justify-between">
+              <span>⭐⭐⭐⭐ 4-5 stars:</span>
+              <span className="font-semibold">50%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button
+        onClick={async () => {
+          const target = document.getElementById('rating-target').value;
+          const mode = document.querySelector('input[name="rating-mode"]:checked').value;
+          const percentage = parseInt(document.getElementById('rating-percentage').value);
+          const ratingMin = parseInt(document.getElementById('rating-min').value);
+          const ratingMax = parseInt(document.getElementById('rating-max').value);
+
+          // Validações
+          if (!percentage || percentage < 1 || percentage > 100) {
+            alert('⚠️ Percentage must be between 1-100');
+            return;
+          }
+
+          if (!ratingMin || !ratingMax || ratingMin < 1 || ratingMax < ratingMin) {
+            alert('⚠️ Invalid ratings range. Max must be >= Min, and both must be >= 1');
+            return;
+          }
+
+          const confirmMsg = mode === 'all' 
+            ? `⚠️ WARNING: This will OVERWRITE existing ratings!\n\nTarget: ${target}\nPercentage: ${percentage}%\nRatings: ${ratingMin}-${ratingMax}\n\nContinue?`
+            : `Target: ${target}\nMode: Only without ratings\nPercentage: ${percentage}%\nRatings: ${ratingMin}-${ratingMax}\n\nContinue?`;
+
+          if (!window.confirm(confirmMsg)) return;
+
+          const button = document.getElementById('assign-ratings-btn');
+          const originalText = button.textContent;
+          button.disabled = true;
+          button.textContent = '⏳ Processing...';
+
+          try {
+            // Construir query baseado no target
+            let query = supabase
+              .from('experiences')
+              .select('id, author, total_ratings');
+
+            if (target === 'upload') {
+              query = query.or('author.neq.key_insights,author.is.null');
+            } else if (target === 'key_insights') {
+              query = query.eq('author', 'key_insights');
+            }
+            // Se target === 'both', não filtra por author
+
+            // Filtrar por modo
+            if (mode === 'without') {
+              query = query.eq('total_ratings', 0);
+            }
+
+            const { data: experiences, error } = await query;
+
+            if (error) throw error;
+
+            if (!experiences || experiences.length === 0) {
+              alert('ℹ️ No experiences found matching the criteria.');
+              return;
+            }
+
+            console.log(`📊 Found ${experiences.length} experiences`);
+
+            // Calcular quantas experiências receberão ratings
+            const count = Math.ceil(experiences.length * (percentage / 100));
+            const selectedExps = experiences.slice(0, count);
+
+            console.log(`✨ Assigning ratings to ${selectedExps.length} experiences (${percentage}%)...`);
+
+            let updates = [];
+
+            selectedExps.forEach(exp => {
+              // Distribuição de stars
+              const rand = Math.random();
+              let avgRating;
+              let totalRatings;
+
+              // Gerar número aleatório de ratings entre min e max
+              totalRatings = Math.floor(Math.random() * (ratingMax - ratingMin + 1)) + ratingMin;
+
+              if (rand < 0.05) {
+                // 5% → 1-2 stars
+                avgRating = 1 + Math.random() * 1;
+              } else if (rand < 0.20) {
+                // 15% → 2-3 stars (rand entre 0.05 e 0.20)
+                avgRating = 2 + Math.random() * 1;
+              } else if (rand < 0.50) {
+                // 30% → 3-4 stars (rand entre 0.20 e 0.50)
+                avgRating = 3 + Math.random() * 1;
+              } else {
+                // 50% → 4-5 stars (rand entre 0.50 e 1.0)
+                avgRating = 4 + Math.random() * 1;
+              }
+
+              updates.push({
+                id: exp.id,
+                avg_rating: parseFloat(avgRating.toFixed(2)),
+                total_ratings: totalRatings
+              });
+            });
+
+            console.log(`💾 Updating ${updates.length} experiences...`);
+
+            // Atualizar em lotes de 10
+            let processed = 0;
+            for (let i = 0; i < updates.length; i += 10) {
+              const batch = updates.slice(i, i + 10);
+
+              for (const update of batch) {
+                const { error } = await supabase
+                  .from('experiences')
+                  .update({
+                    avg_rating: update.avg_rating,
+                    total_ratings: update.total_ratings
+                  })
+                  .eq('id', update.id);
+
+                if (error) {
+                  console.error(`❌ Error updating ${update.id}:`, error);
+                } else {
+                  processed++;
+                }
+              }
+
+              button.textContent = `⏳ Processing... ${processed}/${updates.length}`;
+            }
+
+            alert(`🎉 Success!\n\nAssigned ratings to ${processed} experiences!\n\nRatings range: ${ratingMin}-${ratingMax}\nStars: Distributed according to default pattern`);
+            await loadExperiences();
+
+          } catch (error) {
+            console.error('Error:', error);
+            alert('❌ Error assigning ratings. Check console for details.');
+          } finally {
+            button.disabled = false;
+            button.textContent = originalText;
+          }
+        }}
+        id="assign-ratings-btn"
+        className="w-full px-6 py-3 bg-orange-600 text-white rounded hover:bg-orange-700 font-semibold transition-colors"
+      >
+        ⭐ Execute: Assign Ratings
+      </button>
+
+      <p className="text-xs text-gray-500 mt-3 text-center">
+        💡 Tip: Start with a small percentage to test, then increase as needed
+      </p>
+    </div>
+  </div>
+)}
+        
         {/* Inspirational Quotes Marquee - Top */}
         {(() => {
           const topQuotes = quotes.filter(q => q.position === 'top');
@@ -1662,7 +1938,7 @@ const filteredExperiences = experiences.filter(exp => {
         }
         setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '' });
       }}
-      className="w-full md:w-1/3 p-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"
+      className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
     >
       <option value="">All</option>
       {problemCategories.map(cat => (
@@ -1890,6 +2166,12 @@ const filteredExperiences = experiences.filter(exp => {
                       <div className="mt-4 mb-4">
                         <div className="flex gap-2 items-center flex-wrap">
                           <button
+                            onClick={() => setEditingExperience(editingExperience === exp.id ? null : exp.id)}
+                            className="px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 flex items-center gap-2"
+                          >
+                            ✏️ {editingExperience === exp.id ? 'Cancel Edit' : 'Edit Experience'}
+                          </button>
+                          <button
                             onClick={async () => {
                               const isConfirming = confirmDelete === `exp-${exp.id}`;
                               if (isConfirming) {
@@ -1999,6 +2281,154 @@ const filteredExperiences = experiences.filter(exp => {
                     )}
                   </div>
                 </div>
+
+{isAdmin && editingExperience === exp.id && (
+                  <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-4 mt-4">
+                    <h4 className="font-semibold text-gray-800 mb-3">Edit Experience #{exp.id}</h4>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Problem Category</label>
+                        <select
+                          value={editingData[exp.id]?.problemCategory || exp.problemCategory}
+                          onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), problemCategory: e.target.value}})}
+                          className="w-full p-2 border-2 border-gray-300 rounded"
+                        >
+                          {problemCategories.map(cat => (
+                            <option key={cat} value={cat}>{cat}</option>
+                          ))}
+                        </select>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Result Category</label>
+                        <select
+                          value={editingData[exp.id]?.resultCategory || exp.resultCategory}
+                          onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), resultCategory: e.target.value}})}
+                          className="w-full p-2 border-2 border-gray-300 rounded"
+                        >
+                          {resultCategories.map(cat => (
+                            <option key={cat.value} value={cat.value}>{cat.label}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-3 mb-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Problem</label>
+                        <textarea
+                          value={editingData[exp.id]?.problem || exp.problem}
+                          onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), problem: e.target.value}})}
+                          className="w-full p-2 border-2 border-gray-300 rounded"
+                          rows="3"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Solution</label>
+                        <textarea
+                          value={editingData[exp.id]?.solution || exp.solution}
+                          onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), solution: e.target.value}})}
+                          className="w-full p-2 border-2 border-gray-300 rounded"
+                          rows="3"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Result</label>
+                        <textarea
+                          value={editingData[exp.id]?.result || exp.result}
+                          onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), result: e.target.value}})}
+                          className="w-full p-2 border-2 border-gray-300 rounded"
+                          rows="2"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Author</label>
+                        <input
+                          type="text"
+                          value={editingData[exp.id]?.author || exp.author}
+                          onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), author: e.target.value}})}
+                          className="w-full p-2 border-2 border-gray-300 rounded"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Gender</label>
+                        <select
+                          value={editingData[exp.id]?.gender || exp.gender}
+                          onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), gender: e.target.value}})}
+                          className="w-full p-2 border-2 border-gray-300 rounded"
+                        >
+                          <option value="">None</option>
+                          {genderOptions.map(g => (
+                            <option key={g} value={g}>{g}</option>
+                          ))}
+                        </select>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Age</label>
+                        <select
+                          value={editingData[exp.id]?.age || exp.age}
+                          onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), age: e.target.value}})}
+                          className="w-full p-2 border-2 border-gray-300 rounded"
+                        >
+                          <option value="">None</option>
+                          {ageOptions.map(a => (
+                            <option key={a} value={a}>{a}</option>
+                          ))}
+                        </select>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Country</label>
+                        <input
+                          type="text"
+                          value={editingData[exp.id]?.country || exp.country}
+                          onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), country: e.target.value}})}
+                          className="w-full p-2 border-2 border-gray-300 rounded"
+                        />
+                      </div>
+                    </div>
+                    
+                    <button
+                      onClick={async () => {
+                        const updatedExp = editingData[exp.id] || exp;
+                        const { error } = await supabase
+                          .from('experiences')
+                          .update({
+                            problem: updatedExp.problem,
+                            problem_category: updatedExp.problemCategory,
+                            solution: updatedExp.solution,
+                            result: updatedExp.result,
+                            result_category: updatedExp.resultCategory,
+                            author: updatedExp.author,
+                            gender: updatedExp.gender,
+                            age: updatedExp.age,
+                            country: updatedExp.country
+                          })
+                          .eq('id', exp.id);
+                        
+                        if (error) {
+                          alert('Error updating experience');
+                        } else {
+                          await loadExperiences();
+                          setEditingExperience(null);
+                          setEditingData({});
+                        }
+                      }}
+                      className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 font-semibold"
+                    >
+                      💾 Save Changes
+                    </button>
+                  </div>
+                )}
+              
               ))}
             </div>
           )}
