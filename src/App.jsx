@@ -2300,25 +2300,52 @@ const filteredExperiences = experiences.filter(exp => {
                     )}
                   </div>
 
-{/* Share Your Experience CTA - Inside Card */}
-                <div className="text-center mt-6 pt-6 border-t-2 border-gray-100">
-                  <button
-                    onClick={() => {
-                      const shareSection = document.querySelector('.bg-white.rounded-2xl.shadow-xl.p-8.mb-8');
-                      if (shareSection) {
-                        const yOffset = -100;
-                        const y = shareSection.getBoundingClientRect().top + window.pageYOffset + yOffset;
-                        window.scrollTo({ top: y, behavior: 'smooth' });
-                      }
-                    }}
-                    className="text-purple-600 hover:text-purple-800 font-medium text-sm flex items-center gap-2 mx-auto transition-colors"
-                  >
-                    <Share2 size={16} />
-                    Share your experience
-                    <Share2 size={16} className="rotate-180" />
-                  </button>
-                  
-                </div>
+{/* Navigation CTA */}
+                  <div className="text-center mt-6 pt-6 border-t-2 border-gray-100">
+                    <div className="flex items-center justify-center gap-3 text-sm">
+                      <button
+                        onClick={() => {
+                          const filterSection = document.querySelector('.bg-white.rounded-xl.shadow-md.p-6.mb-6');
+                          if (filterSection) {
+                            const yOffset = -100;
+                            const y = filterSection.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                            window.scrollTo({ top: y, behavior: 'smooth' });
+                          }
+                        }}
+                        className="text-purple-600 hover:text-purple-800 font-medium transition-colors"
+                      >
+                        Filter
+                      </button>
+                      <span className="text-gray-400">•</span>
+                      <button
+                        onClick={() => {
+                          const top3Section = document.querySelector('.bg-gradient-to-r.from-purple-100.to-blue-100');
+                          if (top3Section) {
+                            const yOffset = -100;
+                            const y = top3Section.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                            window.scrollTo({ top: y, behavior: 'smooth' });
+                          }
+                        }}
+                        className="text-purple-600 hover:text-purple-800 font-medium transition-colors"
+                      >
+                        Top3
+                      </button>
+                      <span className="text-gray-400">•</span>
+                      <button
+                        onClick={() => {
+                          const shareSection = document.querySelector('.bg-white.rounded-2xl.shadow-xl.p-8.mb-8');
+                          if (shareSection) {
+                            const yOffset = -100;
+                            const y = shareSection.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                            window.scrollTo({ top: y, behavior: 'smooth' });
+                          }
+                        }}
+                        className="text-purple-600 hover:text-purple-800 font-medium transition-colors"
+                      >
+                        Share your story
+                      </button>
+                    </div>
+                  </div>
 
                  
                 </div>
