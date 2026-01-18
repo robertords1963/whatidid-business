@@ -1474,9 +1474,9 @@ const filteredExperiences = experiences.filter(exp => {
 
                     {/* Click to comment CTA */}
                     <div className="mt-4 pt-4 border-t-2 border-purple-200">
-                      <p className="text-center text-sm text-purple-600 font-medium">
-                        💬 Click to comment
-                      </p>
+                    <p className="text-center text-lg">
+                      💬 ✍️
+                    </p>
                     </div>
                     
                   </button>
@@ -1714,7 +1714,7 @@ const filteredExperiences = experiences.filter(exp => {
                             );
                           })}
                         </div>
-                        <span className="font-medium text-gray-700">{avgRating.toFixed(1)} out of 5</span>
+                        <span className="font-medium text-gray-700"><span className="font-bold">{avgRating.toFixed(1)}</span> out of 5</span>
                       </div>
                     </>
                   );
@@ -2075,7 +2075,7 @@ const filteredExperiences = experiences.filter(exp => {
                 </div>
                 <div className="mt-4">
 <div className="text-sm font-bold text-purple-600 mb-2">
-  {filteredExperiences.length} {filteredExperiences.length === 1 ? 'experience found' : 'experiences found'} - Check below
+  {filteredExperiences.length} {filteredExperiences.length === 1 ? 'experience found' : 'experiences found'} - Listed below
 </div>
                   {(filters.problemCategory || filters.searchText || filters.resultCategory || filters.rating || filters.gender || filters.age || filters.country) && (
                     <button
@@ -2115,7 +2115,7 @@ const filteredExperiences = experiences.filter(exp => {
     
     <div className="mt-4">
       <div className="text-sm font-bold text-purple-600 mb-2">
-        {filteredExperiences.length} {filteredExperiences.length === 1 ? 'common case found' : 'common cases found'} - Check below
+        {filteredExperiences.length} {filteredExperiences.length === 1 ? 'common case found' : 'common cases found'} - Listed below
       </div>
       {keyInsightCategory && (
         <button
