@@ -1714,7 +1714,7 @@ const filteredExperiences = experiences.filter(exp => {
                 );
               })()}
             </div>
-          </div>
+       
           
           {/* RATING STATISTICS - TEMPORARILY DISABLED */}
           {/* 
