@@ -2316,9 +2316,8 @@ const filteredExperiences = experiences.filter(exp => {
                       </div>
                     )}
                   </div>
-                </div>
 
-                 {/* Share Your Experience CTA - Inside Card */}
+{/* Share Your Experience CTA - Inside Card */}
                 <div className="text-center mt-6 pt-6 border-t-2 border-gray-100">
                   <button
                     onClick={() => {
@@ -2335,6 +2334,10 @@ const filteredExperiences = experiences.filter(exp => {
                     Share your experience
                     <Share2 size={16} className="rotate-180" />
                   </button>
+                  
+                </div>
+
+                 
                 </div>
               </div>
               
