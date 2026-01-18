@@ -6,7 +6,7 @@ const supabaseUrl = 'https://vtnzsyrojybyfeenkave.supabase.co';
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0bnpzeXJvanlieWZlZW5rYXZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY3OTg1ODEsImV4cCI6MjA4MjM3NDU4MX0.6W9ueperYZpiIsLmBzNgJ9-wxPrwJ-mkhdDe2VGbKxU';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-console.log('🔧 WhatIDid App loaded with Supabase!');
+console.log('🔧 WhatIDid App loaded with Supabase!'); 
 
 // Add marquee animation styles
 const marqueeStyles = `
