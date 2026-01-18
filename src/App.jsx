@@ -2317,7 +2317,26 @@ const filteredExperiences = experiences.filter(exp => {
                     )}
                   </div>
                 </div>
-            
+
+                 {/* Share Your Experience CTA - Inside Card */}
+                <div className="text-center mt-6 pt-6 border-t-2 border-gray-100">
+                  <button
+                    onClick={() => {
+                      const shareSection = document.querySelector('.bg-white.rounded-2xl.shadow-xl.p-8.mb-8');
+                      if (shareSection) {
+                        const yOffset = -100;
+                        const y = shareSection.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                        window.scrollTo({ top: y, behavior: 'smooth' });
+                      }
+                    }}
+                    className="text-purple-600 hover:text-purple-800 font-medium text-sm flex items-center gap-2 mx-auto transition-colors"
+                  >
+                    <Share2 size={16} />
+                    Share your experience
+                    <Share2 size={16} className="rotate-180" />
+                  </button>
+                </div>
+              </div>
               
               {isAdmin && editingExperience === exp.id && (
                   <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-4 mt-4">
@@ -2468,26 +2487,7 @@ const filteredExperiences = experiences.filter(exp => {
               </div>
               ))}
 
-{/* Share Your Experience CTA - Bottom */}
-              {filteredExperiences.length > 0 && (
-                <div className="text-center mt-8 pt-8 border-t-2 border-gray-200">
-                  <button
-                    onClick={() => {
-                      const shareSection = document.querySelector('.bg-white.rounded-2xl.shadow-xl.p-8.mb-8');
-                      if (shareSection) {
-                        const yOffset = -100;
-                        const y = shareSection.getBoundingClientRect().top + window.pageYOffset + yOffset;
-                        window.scrollTo({ top: y, behavior: 'smooth' });
-                      }
-                    }}
-                    className="text-purple-600 hover:text-purple-800 font-medium text-sm flex items-center gap-2 mx-auto transition-colors"
-                  >
-                    <Share2 size={16} />
-                    Share your experience
-                    <Share2 size={16} className="rotate-180" />
-                  </button>
-                </div>
-              )}
+
 
               
             </div>
