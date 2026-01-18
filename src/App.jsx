@@ -1470,6 +1470,14 @@ const filteredExperiences = experiences.filter(exp => {
                         <p className="text-sm text-gray-700 line-clamp-3">{exp.result}</p>
                       </div>
                     </div>
+
+                    {/* Click to comment CTA */}
+                    <div className="mt-4 pt-4 border-t-2 border-purple-200">
+                      <p className="text-center text-sm text-purple-600 font-medium">
+                        💬 Click to comment
+                      </p>
+                    </div>
+                    
                   </button>
                 ))}
               </div>
