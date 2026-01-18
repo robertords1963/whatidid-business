@@ -1474,8 +1474,8 @@ const filteredExperiences = experiences.filter(exp => {
 
                     {/* Click to comment CTA */}
                     <div className="mt-4 pt-4 border-t-2 border-purple-200">
-                      <p className="text-center text-lg">
-                        💬 👆
+                      <p className="text-center text-sm text-purple-600 font-medium">
+                        💬 Click to comment
                       </p>
                     </div>
                     
@@ -1676,7 +1676,51 @@ const filteredExperiences = experiences.filter(exp => {
           </button>
         </div>
         
-
+<div className="space-y-6" id="experiences-section">
+          
+          <div className="bg-white rounded-xl shadow-md p-6 mb-6">
+            {/* Título e Info */}
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">See What Others Did</h2>
+              <div className="flex items-center gap-4 text-sm text-gray-600 flex-wrap">
+                <span className="font-medium">{experiences.length} experiences shared</span>
+                
+                {/* Average Rating */}
+                {(() => {
+                  const ratedExperiences = experiences.filter(exp => exp.totalRatings > 0);
+                  const avgRating = ratedExperiences.length > 0 
+                    ? ratedExperiences.reduce((sum, exp) => sum + exp.avgRating, 0) / ratedExperiences.length 
+                    : 0;
+                  
+                  if (ratedExperiences.length === 0) return null;
+                  
+                  return (
+                    <>
+                      <span className="text-gray-400">•</span>
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
+                          {[1, 2, 3, 4, 5].map(star => {
+                            const fillPercentage = Math.min(Math.max(avgRating - star + 1, 0), 1) * 100;
+                            return (
+                              <div key={star} className="relative inline-block">
+                                <Star size={16} className="text-gray-300" />
+                                <div 
+                                  className="absolute top-0 left-0 overflow-hidden"
+                                  style={{ width: `${fillPercentage}%` }}
+                                >
+                                  <Star size={16} className="text-yellow-500 fill-yellow-500" />
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        <span className="font-medium text-gray-700">{avgRating.toFixed(1)} out of 5</span>
+                      </div>
+                    </>
+                  );
+                })()}
+              </div>
+            </div>
             
             {/* TABS */}
             <div className="flex gap-2 mb-6 border-b-2 border-gray-200 pb-2">
@@ -1714,7 +1758,7 @@ const filteredExperiences = experiences.filter(exp => {
                 );
               })()}
             </div>
-       </div>
+          </div>
           
           {/* RATING STATISTICS - TEMPORARILY DISABLED */}
           {/* 
@@ -1794,49 +1838,9 @@ const filteredExperiences = experiences.filter(exp => {
           */}
           
 <div className="bg-white rounded-xl shadow-md p-6 mb-6">
-{/* Título e Info */}
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">See What Others Did</h2>
-              <div className="flex items-center gap-4 text-sm text-gray-600 flex-wrap">
-                <span className="font-medium">{experiences.length} experiences shared</span>
-                
-                {/* Average Rating */}
-                {(() => {
-                  const ratedExperiences = experiences.filter(exp => exp.totalRatings > 0);
-                  const avgRating = ratedExperiences.length > 0 
-                    ? ratedExperiences.reduce((sum, exp) => sum + exp.avgRating, 0) / ratedExperiences.length 
-                    : 0;
-                  
-                  if (ratedExperiences.length === 0) return null;
-                  
-                  return (
-                    <>
-                      <span className="text-gray-400">•</span>
-                      <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-1">
-                          {[1, 2, 3, 4, 5].map(star => {
-                            const fillPercentage = Math.min(Math.max(avgRating - star + 1, 0), 1) * 100;
-                            return (
-                              <div key={star} className="relative inline-block">
-                                <Star size={16} className="text-gray-300" />
-                                <div 
-                                  className="absolute top-0 left-0 overflow-hidden"
-                                  style={{ width: `${fillPercentage}%` }}
-                                >
-                                  <Star size={16} className="text-yellow-500 fill-yellow-500" />
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                        <span className="font-medium text-gray-700"><span className="font-bold">{avgRating.toFixed(1)}</span> out of 5</span>
-                      </div>
-                    </>
-                  );
-                })()}
-              </div>
+<div className="mb-4">
+              <h3 className="text-lg font-semibold text-gray-700">Filter Experiences</h3>
             </div>
-
             
             {/* TABS */}
             <div className="flex gap-2 mb-6 border-b-2 border-gray-200 pb-2">
@@ -1983,10 +1987,95 @@ const filteredExperiences = experiences.filter(exp => {
                   </div>
                 )}
                 
-              
+                {/* Count e Clear filters */}
+                <div className="mt-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-2">Category</label>
+                    <select
+                      value={filters.problemCategory}
+                      onChange={(e) => setFilters({...filters, problemCategory: e.target.value})}
+                      className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                    >
+                      <option value="">All</option>
+                      {problemCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-2">Result</label>
+                    <select
+                      value={filters.resultCategory}
+                      onChange={(e) => setFilters({...filters, resultCategory: e.target.value})}
+                      className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:outline-none"
+                    >
+                      <option value="">All</option>
+                      {resultCategories.map(cat => <option key={cat.value} value={cat.value}>{cat.label}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-2">Rating</label>
+                    <select
+                      value={filters.rating}
+                      onChange={(e) => setFilters({...filters, rating: e.target.value})}
+                      className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-yellow-500 focus:outline-none"
+                    >
+                      <option value="">All</option>
+                      <option value="5">⭐⭐⭐⭐⭐ (5)</option>
+                      <option value="4">⭐⭐⭐⭐ (4)</option>
+                      <option value="3">⭐⭐⭐ (3)</option>
+                      <option value="2">⭐⭐ (2)</option>
+                      <option value="1">⭐ (1)</option>
+                      <option value="0">None (Not rated)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-2">Gender</label>
+                    <select
+                      value={filters.gender}
+                      onChange={(e) => setFilters({...filters, gender: e.target.value})}
+                      className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                    >
+                      <option value="">All</option>
+                      {genderOptions.map(gender => <option key={gender} value={gender}>{gender}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-2">Age</label>
+                    <select
+                      value={filters.age}
+                      onChange={(e) => setFilters({...filters, age: e.target.value})}
+                      className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                    >
+                      <option value="">All</option>
+                      {ageOptions.map(age => <option key={age} value={age}>{age}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-2">Country</label>
+                    <select
+                      value={filters.country}
+                      onChange={(e) => setFilters({...filters, country: e.target.value})}
+                      className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                    >
+                      <option value="">All</option>
+                      {countryOptions.map(country => <option key={country} value={country}>{country}</option>)}
+                    </select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-600 mb-2">Enter Keywords</label>
+                    <input
+                      type="text"
+                      value={filters.searchText}
+                      onChange={(e) => setFilters({...filters, searchText: e.target.value})}
+                      placeholder="Search..."
+                      className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                    />
+                  </div>
+                </div>
                 <div className="mt-4">
 <div className="text-sm font-bold text-purple-600 mb-2">
-  {filteredExperiences.length} {filteredExperiences.length === 1 ? 'experience found' : 'experiences found'} - Listed below
+  {filteredExperiences.length} {filteredExperiences.length === 1 ? 'experience found' : 'experiences found'} - Check below
 </div>
                   {(filters.problemCategory || filters.searchText || filters.resultCategory || filters.rating || filters.gender || filters.age || filters.country) && (
                     <button
@@ -2026,7 +2115,7 @@ const filteredExperiences = experiences.filter(exp => {
     
     <div className="mt-4">
       <div className="text-sm font-bold text-purple-600 mb-2">
-        {filteredExperiences.length} {filteredExperiences.length === 1 ? 'common case found' : 'common cases found'} - Listed below
+        {filteredExperiences.length} {filteredExperiences.length === 1 ? 'common case found' : 'common cases found'} - Check below
       </div>
       {keyInsightCategory && (
         <button
