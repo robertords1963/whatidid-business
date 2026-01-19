@@ -1758,8 +1758,47 @@ const filteredExperiences = experiences.filter(exp => {
           */}
           
 <div className="bg-white rounded-xl shadow-md p-6 mb-6">
-<div className="mb-4">
-              <h3 className="text-lg font-semibold text-gray-700">Filter Experiences</h3>
+{/* Título e Info */}
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">See What Others Did</h2>
+              <div className="flex items-center gap-4 text-sm text-gray-600 flex-wrap">
+                <span className="font-medium">{experiences.length} experiences shared</span>
+                
+                {/* Average Rating */}
+                {(() => {
+                  const ratedExperiences = experiences.filter(exp => exp.totalRatings > 0);
+                  const avgRating = ratedExperiences.length > 0 
+                    ? ratedExperiences.reduce((sum, exp) => sum + exp.avgRating, 0) / ratedExperiences.length 
+                    : 0;
+                  
+                  if (ratedExperiences.length === 0) return null;
+                  
+                  return (
+                    <>
+                      <span className="text-gray-400">•</span>
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
+                          {[1, 2, 3, 4, 5].map(star => {
+                            const fillPercentage = Math.min(Math.max(avgRating - star + 1, 0), 1) * 100;
+                            return (
+                              <div key={star} className="relative inline-block">
+                                <Star size={16} className="text-gray-300" />
+                                <div 
+                                  className="absolute top-0 left-0 overflow-hidden"
+                                  style={{ width: `${fillPercentage}%` }}
+                                >
+                                  <Star size={16} className="text-yellow-500 fill-yellow-500" />
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        <span className="font-medium text-gray-700"><span className="font-bold">{avgRating.toFixed(1)}</span> out of 5</span>
+                      </div>
+                    </>
+                  );
+                })()}
+              </div>
             </div>
             
             {/* TABS */}
