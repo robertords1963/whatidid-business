@@ -20,6 +20,54 @@ const marqueeStyles = `
   .animate-marquee:hover {
     animation-play-state: paused;
   }
+/* EFEITO 1: Pulso suave no box */
+  @keyframes pulse-soft {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+  }
+  .animate-pulse-soft {
+    animation: pulse-soft 3s ease-in-out infinite;
+  }
+
+  /* EFEITO 2: Borda gradiente animada */
+  @keyframes gradient-border {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  .animate-gradient-border {
+    background: linear-gradient(90deg, #9333ea, #3b82f6, #9333ea, #3b82f6);
+    background-size: 300% 300%;
+    animation: gradient-border 4s ease infinite;
+  }
+
+  /* EFEITO 3: Sombra pulsante */
+  @keyframes shadow-pulse {
+    0%, 100% { box-shadow: 0 0 20px rgba(147, 51, 234, 0.3); }
+    50% { box-shadow: 0 0 40px rgba(147, 51, 234, 0.6); }
+  }
+  .animate-shadow-pulse {
+    animation: shadow-pulse 2s ease-in-out infinite;
+  }
+
+  /* EFEITO 4: Ícone pulsante */
+  @keyframes icon-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.3); }
+  }
+  .animate-icon-pulse {
+    animation: icon-pulse 1.5s ease-in-out infinite;
+  }
+
+  /* EFEITO 5: Badge bounce */
+  @keyframes badge-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+  }
+  .animate-badge-bounce {
+    animation: badge-bounce 2s ease-in-out infinite;
+  }
+ 
 `;
 
 export default function WhatIDid() {
