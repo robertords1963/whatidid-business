@@ -1688,8 +1688,8 @@ const filteredExperiences = experiences.filter(exp => {
               <select
   value={currentEntry.age}
   onChange={(e) => setCurrentEntry({...currentEntry, age: e.target.value})}
-  className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-  
+  className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none bg-white"
+  style={{ backgroundImage: 'none' }} 
               >
                 <option value="">Prefer not to say</option>
                 {ageOptions.map(age => (
