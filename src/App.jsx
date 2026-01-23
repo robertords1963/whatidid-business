@@ -2301,30 +2301,84 @@ const filteredExperiences = experiences.filter(exp => {
                     </div>
 
                     {exp.comments.length > 0 && (
-                      <div>
-                        <button
-                          onClick={() => setShowComments({...showComments, [exp.id]: !showComments[exp.id]})}
-                          className="text-sm text-purple-600 hover:text-purple-800 font-medium mb-3 flex items-center gap-2"
-                        >
-                          <MessageCircle size={16} />
-                          {showComments[exp.id] ? 'Hide' : 'Show'} {exp.comments.length} Previous {exp.comments.length === 1 ? 'Comment' : 'Comments'}
-                        </button>
-                        {showComments[exp.id] && (
-                          <div className="space-y-3">
-                            {exp.comments.map(comment => (
-                              <div key={comment.id} className="bg-gray-50 rounded-lg p-3">
-                                <p className="text-sm text-gray-700">
-                                  {comment.text}
-                                  {comment.country && (
-                                    <span className="text-gray-500 ml-2">({comment.country})</span>
-                                  )}
-                                </p>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    )}
+  <div>
+    <button
+      onClick={() => setShowComments({...showComments, [exp.id]: !showComments[exp.id]})}
+      className="text-sm text-purple-600 hover:text-purple-800 font-medium mb-3 flex items-center gap-2"
+    >
+      <MessageCircle size={16} />
+      {showComments[exp.id] ? 'Hide' : 'Show'} {exp.comments.length} Previous {exp.comments.length === 1 ? 'Comment' : 'Comments'}
+    </button>
+    {showComments[exp.id] && (
+      <div className="space-y-3">
+        {exp.comments.map(comment => (
+          <div key={comment.id} className="bg-gray-50 rounded-lg p-3">
+            {/* Conteúdo do comentário do Ajuste #5 */}
+            {(comment.author || comment.age || comment.gender) && (
+              <p className="text-xs text-gray-600 mb-2">
+                By: {[comment.author, comment.age, comment.gender].filter(Boolean).join(', ')}
+                {comment.country && <span className="ml-2">({comment.country})</span>}
+              </p>
+            )}
+            
+            {comment.rating && (
+              <div className="flex items-center gap-1 mb-2">
+                {[1, 2, 3, 4, 5].map(star => (
+                  <Star
+                    key={star}
+                    size={14}
+                    className={star <= comment.rating ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}
+                  />
+                ))}
+              </div>
+            )}
+            
+            <p className="text-sm text-gray-700">
+              {comment.text}
+            </p>
+          </div>
+        ))}
+      </div>
+    )}
+    
+    {/* ⭐ NOVO: Último comentário sempre visível quando lista está fechada */}
+    {!showComments[exp.id] && (
+      <div className="space-y-3 mt-3">
+        {(() => {
+          const lastComment = exp.comments[exp.comments.length - 1];
+          return (
+            <div key={lastComment.id} className="bg-gray-50 rounded-lg p-3 border-2 border-purple-200">
+              {(lastComment.author || lastComment.age || lastComment.gender) && (
+                <p className="text-xs text-gray-600 mb-2">
+                  By: {[lastComment.author, lastComment.age, lastComment.gender].filter(Boolean).join(', ')}
+                  {lastComment.country && <span className="ml-2">({lastComment.country})</span>}
+                </p>
+              )}
+              
+              {lastComment.rating && (
+                <div className="flex items-center gap-1 mb-2">
+                  {[1, 2, 3, 4, 5].map(star => (
+                    <Star
+                      key={star}
+                      size={14}
+                      className={star <= lastComment.rating ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}
+                    />
+                  ))}
+                </div>
+              )}
+              
+              <p className="text-sm text-gray-700">
+                {lastComment.text}
+              </p>
+            </div>
+          );
+        })()}
+      </div>
+    )}
+  </div>
+)}
+
+                    
                   </div>
 
 {/* Navigation CTA */}
