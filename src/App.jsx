@@ -257,41 +257,46 @@ export default function WhatIDid() {
   };
 
   const handleAddComment = async (experienceId) => {
-    const commentText = newComment[experienceId];
+  const commentText = newComment[experienceId];
+  
+  if (!commentText?.trim()) {
+    alert('Please enter a comment!');
+    return;
+  }
+  
+  try {
+    // Salvar posição atual
+    const expElement = document.getElementById(`exp-${experienceId}`);
+    const scrollPosition = expElement ? expElement.offsetTop - 100 : 0;
     
-    if (!commentText?.trim()) {
-      alert('Please enter a comment!');
-      return;
-    }
+    const { data, error } = await supabase
+      .from('comments')
+      .insert([{
+        experience_id: experienceId,
+        comment_text: commentText,
+        author: '',
+        country: userCountryName || ''
+      }])
+      .select();
     
-    try {
-      setAddingComment(experienceId);
-      
-      const { data, error } = await supabase
-        .from('comments')
-        .insert([{
-          experience_id: experienceId,
-          comment_text: commentText,
-          author: '',
-          country: userCountryName || ''
-        }])
-        .select();
-      
-      if (error) throw error;
-      
-      const updatedComments = {...newComment};
-      delete updatedComments[experienceId];
-      setNewComment(updatedComments);
-      
-      await loadExperiences();
-      
-    } catch (error) {
-      console.error('Error:', error);
-      alert('Error adding comment.');
-    } finally {
-      setAddingComment(null);
-    }
-  };
+    if (error) throw error;
+    
+    const updatedComments = {...newComment};
+    delete updatedComments[experienceId];
+    setNewComment(updatedComments);
+    
+    await loadExperiences();
+    
+    // Restaurar posição
+    setTimeout(() => {
+      window.scrollTo({ top: scrollPosition, behavior: 'instant' });
+    }, 100);
+    
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error adding comment.');
+  }
+};
 
   const [currentEntry, setCurrentEntry] = useState({
     problem: '',
@@ -413,29 +418,40 @@ export default function WhatIDid() {
   };
 
   const handleUserRating = async (expId, rating) => {
-      if (userRatings[expId]) {
+  if (userRatings[expId]) {
     alert('You have already rated this experience in this session!');
     return;
   }
-    try {
-      setUserRatings({...userRatings, [expId]: rating});
-      const exp = experiences.find(e => e.id === expId);
-      if (!exp) return;
-      const newTotalRatings = exp.totalRatings + 1;
-      const newAvgRating = ((exp.avgRating * exp.totalRatings) + rating) / newTotalRatings;
-      const { error } = await supabase
-        .from('experiences')
-        .update({ avg_rating: newAvgRating, total_ratings: newTotalRatings })
-        .eq('id', expId);
-      if (error) {
-        console.error('Error saving rating:', error);
-        return;
-      }
-      await loadExperiences();
-    } catch (error) {
-      console.error('Error in handleUserRating:', error);
+  
+  try {
+    // Salvar posição atual
+    const expElement = document.getElementById(`exp-${expId}`);
+    const scrollPosition = expElement ? expElement.offsetTop - 100 : 0;
+    
+    setUserRatings({...userRatings, [expId]: rating});
+    const exp = experiences.find(e => e.id === expId);
+    if (!exp) return;
+    const newTotalRatings = exp.totalRatings + 1;
+    const newAvgRating = ((exp.avgRating * exp.totalRatings) + rating) / newTotalRatings;
+    const { error } = await supabase
+      .from('experiences')
+      .update({ avg_rating: newAvgRating, total_ratings: newTotalRatings })
+      .eq('id', expId);
+    if (error) {
+      console.error('Error saving rating:', error);
+      return;
     }
-  };
+    await loadExperiences();
+    
+    // Restaurar posição
+    setTimeout(() => {
+      window.scrollTo({ top: scrollPosition, behavior: 'instant' });
+    }, 100);
+  } catch (error) {
+    console.error('Error in handleUserRating:', error);
+  }
+};
+
 
   const handleAdminLogin = () => {
     if (adminPassword === 'admin123') {
@@ -1405,9 +1421,39 @@ const filteredExperiences = experiences.filter(exp => {
                   <button
                     key={exp.id}
                     onClick={() => {
-                      // Find which page this experience is on
-                      const expIndex = filteredExperiences.findIndex(e => e.id === exp.id);
-                      if (expIndex !== -1) {
+  // Se estiver em Key Insights, mudar para Individual
+  if (filterMode === 'key_insights') {
+    setFilterMode('individual');
+    setShowKeyInsights(false);
+    setKeyInsightCategory('');
+    setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '' });
+  }
+  
+  // Aguardar um pouco para o modo mudar e os filtros aplicarem
+  setTimeout(() => {
+    // Find which page this experience is on
+    const expIndex = filteredExperiences.findIndex(e => e.id === exp.id);
+    if (expIndex !== -1) {
+      const expPage = Math.ceil((expIndex + 1) / experiencesPerPage);
+      
+      // Change to that page if different
+      if (expPage !== currentPage) {
+        setCurrentPage(expPage);
+      }
+      
+      // Wait for page to render, then scroll
+      setTimeout(() => {
+        const expElement = document.getElementById(`exp-${exp.id}`);
+        if (expElement) {
+          const yOffset = -100;
+          const y = expElement.getBoundingClientRect().top + window.pageYOffset + yOffset;
+          window.scrollTo({ top: y, behavior: 'smooth' });
+        }
+      }, expPage !== currentPage ? 300 : 100);
+    }
+  }, filterMode === 'key_insights' ? 100 : 0);
+}}
+
                         const expPage = Math.ceil((expIndex + 1) / experiencesPerPage);
                         
                         // Change to that page if different
@@ -2289,7 +2335,7 @@ const filteredExperiences = experiences.filter(exp => {
                         />
                         <button
                           onClick={() => handleAddComment(exp.id)}
-                          disabled={!newComment[exp.id]?.trim() || addingComment === exp.id}
+                          disabled={!newComment[exp.id]?.trim()}
                           className="px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
                         >
                           <Send size={18} />
