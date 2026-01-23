@@ -1453,27 +1453,9 @@ const filteredExperiences = experiences.filter(exp => {
     }
   }, filterMode === 'key_insights' ? 100 : 0);
 }}
-
-                        const expPage = Math.ceil((expIndex + 1) / experiencesPerPage);
-                        
-                        // Change to that page if different
-                        if (expPage !== currentPage) {
-                          setCurrentPage(expPage);
-                        }
-                        
-                        // Wait for page to render, then scroll
-                        setTimeout(() => {
-                          const expElement = document.getElementById(`exp-${exp.id}`);
-                          if (expElement) {
-                            const yOffset = -100;
-                            const y = expElement.getBoundingClientRect().top + window.pageYOffset + yOffset;
-                            window.scrollTo({ top: y, behavior: 'smooth' });
-                          }
-                        }, expPage !== currentPage ? 300 : 100);
-                      }
-                    }}
                     className="bg-white rounded-xl shadow-lg p-6 relative hover:shadow-2xl hover:scale-105 transition-all duration-300 text-left cursor-pointer"
-                  >
+                  
+                >
                     <div className="absolute -top-3 -left-3 bg-yellow-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg shadow-lg">
                       #{index + 1}
                     </div>
