@@ -63,9 +63,11 @@ export default function WhatIDid() {
     }
   };
   
-  const loadExperiences = async () => {
+const loadExperiences = async (skipLoading = false) => {
   try {
-    setLoading(true);
+    if (!skipLoading) {
+      setLoading(true);
+    }
     
     // Buscar primeiro lote (0-999) - Supabase limita em 1000
     const { data: batch1, error: error1 } = await supabase
@@ -138,7 +140,9 @@ export default function WhatIDid() {
     console.error('Error loading experiences:', error);
     alert('Error loading data. Please refresh the page.');
   } finally {
-    setLoading(false);
+    if (!skipLoading) {
+      setLoading(false);
+    }
   }
 };
 
@@ -285,7 +289,7 @@ export default function WhatIDid() {
     delete updatedComments[experienceId];
     setNewComment(updatedComments);
     
-    await loadExperiences();
+    await loadExperiences(true);
     
     // Restaurar posição
     setTimeout(() => {
@@ -2347,7 +2351,7 @@ const filteredExperiences = experiences.filter(exp => {
       className="text-sm text-purple-600 hover:text-purple-800 font-medium mb-3 flex items-center gap-2"
     >
       <MessageCircle size={16} />
-      {showComments[exp.id] ? 'Hide' : 'Show'} {exp.comments.length} Previous {exp.comments.length === 1 ? 'Comment' : 'Comments'}
+      {showComments[exp.id] ? 'Hide all' : 'Show all'} {exp.comments.length} previous {exp.comments.length === 1 ? 'comment' : 'comments'}
     </button>
     {showComments[exp.id] && (
   <div className="space-y-3">
@@ -2388,7 +2392,7 @@ const filteredExperiences = experiences.filter(exp => {
         )}
         
         {comment.rating && (
-          <div className="flex items-center gap-1 mb-2">
+           <div className="flex items-center gap-1 mb-2 mt-1">
             {[1, 2, 3, 4, 5].map(star => (
               <Star
                 key={star}
@@ -2409,7 +2413,7 @@ const filteredExperiences = experiences.filter(exp => {
 
     
     {/* ⭐ NOVO: Último comentário sempre visível quando lista está fechada */}
-   {!showComments[exp.id] && (
+   {!showComments[exp.id] && exp.comments.length > 0 && (
   <div className="space-y-3 mt-3">
     {(() => {
       const lastComment = exp.comments[exp.comments.length - 1];
