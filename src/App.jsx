@@ -607,20 +607,30 @@ export default function WhatIDid() {
     }
   };
 
-  const handleDeleteComment = (expId, commentId) => {
-    const confirmKey = `comment-${expId}-${commentId}`;
-    if (confirmDelete === confirmKey) {
-      setExperiences(experiences.map(exp => {
-        if (exp.id === expId) {
-          return { ...exp, comments: exp.comments.filter(c => c.id !== commentId) };
-        }
-        return exp;
-      }));
+  const handleDeleteComment = async (expId, commentId) => {
+  const confirmKey = `comment-${expId}-${commentId}`;
+  if (confirmDelete === confirmKey) {
+    try {
+      // Deletar do banco
+      const { error } = await supabase
+        .from('comments')
+        .delete()
+        .eq('id', commentId);
+      
+      if (error) throw error;
+      
+      // Recarregar experiências
+      await loadExperiences();
       setConfirmDelete(null);
-    } else {
-      setConfirmDelete(confirmKey);
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+      alert('Error deleting comment.');
     }
-  };
+  } else {
+    setConfirmDelete(confirmKey);
+  }
+};
+
 
   const getKeywordMatches = () => {
     if (!adminKeywords.trim()) return [];
@@ -2338,71 +2348,127 @@ const filteredExperiences = experiences.filter(exp => {
       {showComments[exp.id] ? 'Hide' : 'Show'} {exp.comments.length} Previous {exp.comments.length === 1 ? 'Comment' : 'Comments'}
     </button>
     {showComments[exp.id] && (
-      <div className="space-y-3">
-        {exp.comments.map(comment => (
-          <div key={comment.id} className="bg-gray-50 rounded-lg p-3">
-            {/* Conteúdo do comentário do Ajuste #5 */}
-            {(comment.author || comment.age || comment.gender) && (
-              <p className="text-xs text-gray-600 mb-2">
-                By: {[comment.author, comment.age, comment.gender].filter(Boolean).join(', ')}
-                {comment.country && <span className="ml-2">({comment.country})</span>}
-              </p>
-            )}
-            
-            {comment.rating && (
-              <div className="flex items-center gap-1 mb-2">
-                {[1, 2, 3, 4, 5].map(star => (
-                  <Star
-                    key={star}
-                    size={14}
-                    className={star <= comment.rating ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}
-                  />
-                ))}
-              </div>
-            )}
-            
-            <p className="text-sm text-gray-700">
-              {comment.text}
-            </p>
-          </div>
-        ))}
-      </div>
-    )}
-    
-    {/* ⭐ NOVO: Último comentário sempre visível quando lista está fechada */}
-    {!showComments[exp.id] && (
-      <div className="space-y-3 mt-3">
-        {(() => {
-          const lastComment = exp.comments[exp.comments.length - 1];
+  <div className="space-y-3">
+    {exp.comments.map(comment => (
+      <div key={comment.id} className="bg-gray-50 rounded-lg p-3 relative">
+        {/* Botão delete admin */}
+        {isAdmin && (() => {
+          const confirmKey = `comment-${exp.id}-${comment.id}`;
+          const isConfirming = confirmDelete === confirmKey;
           return (
-            <div key={lastComment.id} className="bg-gray-50 rounded-lg p-3 border-2 border-purple-200">
-              {(lastComment.author || lastComment.age || lastComment.gender) && (
-                <p className="text-xs text-gray-600 mb-2">
-                  By: {[lastComment.author, lastComment.age, lastComment.gender].filter(Boolean).join(', ')}
-                  {lastComment.country && <span className="ml-2">({lastComment.country})</span>}
-                </p>
+            <div className="absolute top-2 right-2 flex gap-2">
+              <button
+                onClick={() => handleDeleteComment(exp.id, comment.id)}
+                className={`px-2 py-1 text-white text-xs rounded flex items-center gap-1 ${
+                  isConfirming ? 'bg-orange-600 hover:bg-orange-700 animate-pulse' : 'bg-red-600 hover:bg-red-700'
+                }`}
+              >
+                <Trash2 size={12} />
+                {isConfirming ? 'Confirm!' : 'Delete'}
+              </button>
+              {isConfirming && (
+                <button
+                  onClick={() => setConfirmDelete(null)}
+                  className="px-2 py-1 bg-gray-500 text-white text-xs rounded hover:bg-gray-600"
+                >
+                  Cancel
+                </button>
               )}
-              
-              {lastComment.rating && (
-                <div className="flex items-center gap-1 mb-2">
-                  {[1, 2, 3, 4, 5].map(star => (
-                    <Star
-                      key={star}
-                      size={14}
-                      className={star <= lastComment.rating ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}
-                    />
-                  ))}
-                </div>
-              )}
-              
-              <p className="text-sm text-gray-700">
-                {lastComment.text}
-              </p>
             </div>
           );
         })()}
+        
+        {(comment.author || comment.age || comment.gender) && (
+          <p className="text-xs text-gray-600 mb-2">
+            By: {[comment.author, comment.age, comment.gender].filter(Boolean).join(', ')}
+            {comment.country && <span className="ml-2">({comment.country})</span>}
+          </p>
+        )}
+        
+        {comment.rating && (
+          <div className="flex items-center gap-1 mb-2">
+            {[1, 2, 3, 4, 5].map(star => (
+              <Star
+                key={star}
+                size={14}
+                className={star <= comment.rating ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}
+              />
+            ))}
+          </div>
+        )}
+        
+        <p className="text-sm text-gray-700">
+          {comment.text}
+        </p>
       </div>
-    )}
+    ))}
+  </div>
+)}
+
+    
+    {/* ⭐ NOVO: Último comentário sempre visível quando lista está fechada */}
+   {!showComments[exp.id] && (
+  <div className="space-y-3 mt-3">
+    {(() => {
+      const lastComment = exp.comments[exp.comments.length - 1];
+      return (
+        <div key={lastComment.id} className="bg-gray-50 rounded-lg p-3 border-2 border-purple-200 relative">
+          {/* Botão delete admin */}
+          {isAdmin && (() => {
+            const confirmKey = `comment-${exp.id}-${lastComment.id}`;
+            const isConfirming = confirmDelete === confirmKey;
+            return (
+              <div className="absolute top-2 right-2 flex gap-2">
+                <button
+                  onClick={() => handleDeleteComment(exp.id, lastComment.id)}
+                  className={`px-2 py-1 text-white text-xs rounded flex items-center gap-1 ${
+                    isConfirming ? 'bg-orange-600 hover:bg-orange-700 animate-pulse' : 'bg-red-600 hover:bg-red-700'
+                  }`}
+                >
+                  <Trash2 size={12} />
+                  {isConfirming ? 'Confirm!' : 'Delete'}
+                </button>
+                {isConfirming && (
+                  <button
+                    onClick={() => setConfirmDelete(null)}
+                    className="px-2 py-1 bg-gray-500 text-white text-xs rounded hover:bg-gray-600"
+                  >
+                    Cancel
+                  </button>
+                )}
+              </div>
+            );
+          })()}
+          
+          {(lastComment.author || lastComment.age || lastComment.gender) && (
+            <p className="text-xs text-gray-600 mb-2">
+              By: {[lastComment.author, lastComment.age, lastComment.gender].filter(Boolean).join(', ')}
+              {lastComment.country && <span className="ml-2">({lastComment.country})</span>}
+            </p>
+          )}
+          
+          {lastComment.rating && (
+            <div className="flex items-center gap-1 mb-2">
+              {[1, 2, 3, 4, 5].map(star => (
+                <Star
+                  key={star}
+                  size={14}
+                  className={star <= lastComment.rating ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}
+                />
+              ))}
+            </div>
+          )}
+          
+          <p className="text-sm text-gray-700">
+            {lastComment.text}
+          </p>
+        </div>
+      );
+    })()}
+  </div>
+)}
+
+    
   </div>
 )}
 
