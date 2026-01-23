@@ -2447,10 +2447,10 @@ const filteredExperiences = experiences.filter(exp => {
           })()}
           
           {(lastComment.author || lastComment.age || lastComment.gender) && (
-            <div> className="text-xs text-gray-600 mb-2">
+            <div className="text-xs text-gray-600 mb-2">
               By: {[lastComment.author, lastComment.age, lastComment.gender].filter(Boolean).join(', ')}
               {lastComment.country && <span className="ml-2">({lastComment.country})</span>}
-            </p>
+            </div>
           )}
           
 {comment.rating && (
