@@ -2384,11 +2384,11 @@ const filteredExperiences = experiences.filter(exp => {
           );
         })()}
         
-        {(comment.author || comment.age || comment.gender) && (
-          <p className="text-xs text-gray-600 mb-2">
+{(comment.author || comment.age || comment.gender) && (
+  <div className="text-xs text-gray-600 mb-2">
             By: {[comment.author, comment.age, comment.gender].filter(Boolean).join(', ')}
             {comment.country && <span className="ml-2">({comment.country})</span>}
-          </p>
+         </div>
         )}
         
         {comment.rating && (
@@ -2447,14 +2447,14 @@ const filteredExperiences = experiences.filter(exp => {
           })()}
           
           {(lastComment.author || lastComment.age || lastComment.gender) && (
-            <p className="text-xs text-gray-600 mb-2">
+            <div> className="text-xs text-gray-600 mb-2">
               By: {[lastComment.author, lastComment.age, lastComment.gender].filter(Boolean).join(', ')}
               {lastComment.country && <span className="ml-2">({lastComment.country})</span>}
             </p>
           )}
           
-          {lastComment.rating && (
-            <div className="flex items-center gap-1 mb-2">
+{comment.rating && (
+  <div className="flex items-center gap-1 mb-2 clear-both">
               {[1, 2, 3, 4, 5].map(star => (
                 <Star
                   key={star}
