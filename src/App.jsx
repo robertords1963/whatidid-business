@@ -291,11 +291,27 @@ const loadExperiences = async (skipLoading = false) => {
     setNewComment(updatedComments);
     
     await loadExperiences(true);
-    
-    // Restaurar posição
-    setTimeout(() => {
-      window.scrollTo({ top: scrollPosition, behavior: 'instant' });
-    }, 100);
+
+// Aguardar renderização e scrollar
+const scrollToExp = () => {
+  const expElement = document.getElementById(`exp-${experienceId}`);
+  if (expElement) {
+    const yOffset = -100;
+    const y = expElement.getBoundingClientRect().top + window.pageYOffset + yOffset;
+    window.scrollTo({ top: y, behavior: 'smooth' });
+    return true;
+  }
+  return false;
+};
+
+// Tentar várias vezes até encontrar
+let attempts = 0;
+const tryScroll = setInterval(() => {
+  if (scrollToExp() || attempts >= 10) {
+    clearInterval(tryScroll);
+  }
+  attempts++;
+}, 200);
     
   } catch (error) {
     console.error('Error:', error);
@@ -447,12 +463,28 @@ const loadExperiences = async (skipLoading = false) => {
       console.error('Error saving rating:', error);
       return;
     }
-    await loadExperiences();
-    
-    // Restaurar posição
-    setTimeout(() => {
-      window.scrollTo({ top: scrollPosition, behavior: 'instant' });
-    }, 100);
+await loadExperiences();
+
+// Aguardar renderização e scrollar
+const scrollToExp = () => {
+  const expElement = document.getElementById(`exp-${expId}`);
+  if (expElement) {
+    const yOffset = -100;
+    const y = expElement.getBoundingClientRect().top + window.pageYOffset + yOffset;
+    window.scrollTo({ top: y, behavior: 'smooth' });
+    return true;
+  }
+  return false;
+};
+
+// Tentar várias vezes até encontrar
+let attempts = 0;
+const tryScroll = setInterval(() => {
+  if (scrollToExp() || attempts >= 10) {
+    clearInterval(tryScroll);
+  }
+  attempts++;
+}, 200);
   } catch (error) {
     console.error('Error in handleUserRating:', error);
   }
