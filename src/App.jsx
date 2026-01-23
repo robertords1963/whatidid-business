@@ -2157,56 +2157,61 @@ const filteredExperiences = experiences.filter(exp => {
             {currentExperiences.map(exp => (
               <div key={exp.id}>
                 <div id={`exp-${exp.id}`} className="bg-white rounded-2xl shadow-lg p-6">
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="flex items-center gap-3 flex-wrap">
-                      {(exp.author || exp.gender || exp.age) && (
-                        <span className="text-xs font-medium text-purple-600 bg-purple-50 px-3 py-1 rounded-full">
-                          By: {exp.author === 'key_insights' ? 'COMMON CASES' : [exp.author, exp.gender, exp.age].filter(Boolean).join(', ')}
-                        </span>
-                      )}
-                      {exp.country && (
-                        <span className="text-xs font-medium text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
-                          {exp.country}
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex flex-col items-end gap-3">
-                      <div className="flex items-center gap-2 bg-yellow-50 px-3 py-2 rounded-lg">
-                        <div className="flex gap-1">
-                          {[1, 2, 3, 4, 5].map(star => (
-                            <Star
-                              key={star}
-                              size={18}
-                              className={star <= Math.round(exp.avgRating) ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}
-                            />
-                          ))}
-                        </div>
-                        <div className="text-sm font-semibold text-gray-700">
-                          {exp.avgRating.toFixed(1)} 
-                          <span className="text-xs text-gray-500 ml-1">({exp.totalRatings} {exp.totalRatings === 1 ? 'rating' : 'ratings'})</span>
-                        </div>
-                      </div>
-                      <div className="flex flex-col items-end">
-                        <div className="text-xs text-gray-600 mb-1">Your rating:</div>
-                        <div className="flex gap-1">
-                          {[1, 2, 3, 4, 5].map(star => (
-                            <button
-                              key={star}
-                              onClick={() => handleUserRating(exp.id, star)}
-                              onMouseEnter={() => setHoverRating({...hoverRating, [exp.id]: star})}
-                              onMouseLeave={() => setHoverRating({...hoverRating, [exp.id]: 0})}
-                              className="transition-transform hover:scale-110"
-                            >
-                              <Star
-                                size={20}
-                                className={star <= (hoverRating[exp.id] || userRatings[exp.id] || 0) ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}
-                              />
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <div className="mb-4">
+  {/* Linha 1: By à esquerda, sem cor */}
+  <div className="mb-3">
+    {(exp.author || exp.gender || exp.age || exp.country) && (
+      <span className="text-xs text-gray-600">
+        By: {exp.author === 'key_insights' ? 'COMMON CASES' : [exp.author, exp.gender, exp.age].filter(Boolean).join(', ')}
+        {exp.country && <span> ({exp.country})</span>}
+      </span>
+    )}
+  </div>
+  
+  {/* Linhas 2-4: Ratings à direita */}
+  <div className="flex justify-end">
+    <div className="flex flex-col items-end gap-3">
+      {/* Linha 2: Rating médio */}
+      <div className="flex items-center gap-2 bg-yellow-50 px-3 py-2 rounded-lg">
+        <div className="flex gap-1">
+          {[1, 2, 3, 4, 5].map(star => (
+            <Star
+              key={star}
+              size={18}
+              className={star <= Math.round(exp.avgRating) ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}
+            />
+          ))}
+        </div>
+        <div className="text-sm font-semibold text-gray-700">
+          {exp.avgRating.toFixed(1)} 
+          <span className="text-xs text-gray-500 ml-1">({exp.totalRatings} {exp.totalRatings === 1 ? 'rating' : 'ratings'})</span>
+        </div>
+      </div>
+      
+      {/* Linhas 3-4: Your rating */}
+      <div className="flex flex-col items-end">
+        <div className="text-xs text-gray-600 mb-1">Your rating:</div>
+        <div className="flex gap-1">
+          {[1, 2, 3, 4, 5].map(star => (
+            <button
+              key={star}
+              onClick={() => handleUserRating(exp.id, star)}
+              onMouseEnter={() => setHoverRating({...hoverRating, [exp.id]: star})}
+              onMouseLeave={() => setHoverRating({...hoverRating, [exp.id]: 0})}
+              className="transition-transform hover:scale-110"
+            >
+              <Star
+                size={20}
+                className={star <= (hoverRating[exp.id] || userRatings[exp.id] || 0) ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}
+              />
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+                  
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
