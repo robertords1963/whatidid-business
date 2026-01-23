@@ -1467,7 +1467,7 @@ const filteredExperiences = experiences.filter(exp => {
         }
       }, expPage !== currentPage ? 300 : 100);
     }
-  }, filterMode === 'key_insights' ? 100 : 0);
+  }, filterMode === 'key_insights' ? 800 : 0);
 }}
                     className="bg-white rounded-xl shadow-lg p-6 relative hover:shadow-2xl hover:scale-105 transition-all duration-300 text-left cursor-pointer"
                   
