@@ -419,6 +419,7 @@ export default function WhatIDid() {
 
   const handleUserRating = async (expId, rating) => {
   if (userRatings[expId]) {
+    console.log('🔍 Rating:', { expId, rating, filterMode });
     alert('You have already rated this experience in this session!');
     return;
   }
