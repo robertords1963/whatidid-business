@@ -2591,7 +2591,7 @@ onClick={() => {
                         }}
                         className="text-purple-600 hover:text-purple-800 font-medium transition-colors"
                       >
-                        Filter
+                        Find stories
                       </button>
                       <span className="text-gray-400">•</span>
                       <button
@@ -2619,7 +2619,7 @@ onClick={() => {
                         }}
                         className="text-purple-600 hover:text-purple-800 font-medium transition-colors"
                       >
-                        Share your story
+                        Share yours
                       </button>
                     </div>
                   </div>
