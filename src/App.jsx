@@ -245,21 +245,30 @@ const loadExperiences = async (skipLoading = false) => {
   };
 
   const deleteExperienceFromSupabase = async (id) => {
-    try {
-      const { error } = await supabase
-        .from('experiences')
-        .delete()
-        .eq('id', id);
-      
-      if (error) throw error;
-      await loadExperiences();
-      return true;
-    } catch (error) {
-      console.error('Error deleting experience:', error);
-      alert('Error deleting experience.');
-      return false;
-    }
-  };
+  try {
+    // Salvar posição
+    const scrollPosition = window.pageYOffset;
+    
+    const { error } = await supabase
+      .from('experiences')
+      .delete()
+      .eq('id', id);
+    
+    if (error) throw error;
+    await loadExperiences();
+    
+    // Restaurar posição
+    setTimeout(() => {
+      window.scrollTo({ top: scrollPosition, behavior: 'instant' });
+    }, 100);
+    
+    return true;
+  } catch (error) {
+    console.error('Error deleting experience:', error);
+    alert('Error deleting experience.');
+    return false;
+  }
+};
 
   const handleAddComment = async (experienceId) => {
   const commentText = newComment[experienceId];
@@ -665,6 +674,10 @@ const tryScroll = setInterval(() => {
   const confirmKey = `comment-${expId}-${commentId}`;
   if (confirmDelete === confirmKey) {
     try {
+      // Salvar posição
+      const expElement = document.getElementById(`exp-${expId}`);
+      const scrollPosition = expElement ? expElement.offsetTop - 100 : window.pageYOffset;
+      
       // Deletar do banco
       const { error } = await supabase
         .from('comments')
@@ -676,6 +689,11 @@ const tryScroll = setInterval(() => {
       // Recarregar experiências
       await loadExperiences();
       setConfirmDelete(null);
+      
+      // Restaurar posição
+      setTimeout(() => {
+        window.scrollTo({ top: scrollPosition, behavior: 'instant' });
+      }, 100);
     } catch (error) {
       console.error('Error deleting comment:', error);
       alert('Error deleting comment.');
@@ -2725,31 +2743,42 @@ onClick={() => {
                     </div>
                     
                     <button
+                      
                       onClick={async () => {
-                        const updatedExp = editingData[exp.id] || exp;
-                        const { error } = await supabase
-                          .from('experiences')
-                          .update({
-                            problem: updatedExp.problem,
-                            problem_category: updatedExp.problemCategory,
-                            solution: updatedExp.solution,
-                            result: updatedExp.result,
-                            result_category: updatedExp.resultCategory,
-                            author: updatedExp.author,
-                            gender: updatedExp.gender,
-                            age: updatedExp.age,
-                            country: updatedExp.country
-                          })
-                          .eq('id', exp.id);
-                        
-                        if (error) {
-                          alert('Error updating experience');
-                        } else {
-                          await loadExperiences();
-                          setEditingExperience(null);
-                          setEditingData({});
-                        }
-                      }}
+  // Salvar posição
+  const expElement = document.getElementById(`exp-${exp.id}`);
+  const scrollPosition = expElement ? expElement.offsetTop - 100 : window.pageYOffset;
+  
+  const updatedExp = editingData[exp.id] || exp;
+  const { error } = await supabase
+    .from('experiences')
+    .update({
+      problem: updatedExp.problem,
+      problem_category: updatedExp.problemCategory,
+      solution: updatedExp.solution,
+      result: updatedExp.result,
+      result_category: updatedExp.resultCategory,
+      author: updatedExp.author,
+      gender: updatedExp.gender,
+      age: updatedExp.age,
+      country: updatedExp.country
+    })
+    .eq('id', exp.id);
+  
+  if (error) {
+    alert('Error updating experience');
+  } else {
+    await loadExperiences();
+    setEditingExperience(null);
+    setEditingData({});
+    
+    // Restaurar posição
+    setTimeout(() => {
+      window.scrollTo({ top: scrollPosition, behavior: 'instant' });
+    }, 100);
+  }
+}}
+                      
                       className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 font-semibold"
                     >
                       💾 Save Changes
