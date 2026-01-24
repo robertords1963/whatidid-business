@@ -1469,38 +1469,49 @@ const filteredExperiences = experiences.filter(exp => {
                   <button
                     key={exp.id}
                     onClick={() => {
-  // Se estiver em Key Insights, mudar para Individual
-  if (filterMode === 'key_insights') {
-    setFilterMode('individual');
-    setShowKeyInsights(false);
-    setKeyInsightCategory('');
-    setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '' });
-  }
+onClick={() => {
+  // SEMPRE mudar para Individual e limpar TODOS os filtros
+  setFilterMode('individual');
+  setShowKeyInsights(false);
+  setKeyInsightCategory('');
+  setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '' });
   
-  // Aguardar um pouco para o modo mudar e os filtros aplicarem
+  // Aguardar aplicação dos filtros e renderização
   setTimeout(() => {
-    // Find which page this experience is on
-    const expIndex = filteredExperiences.findIndex(e => e.id === exp.id);
-    if (expIndex !== -1) {
-      const expPage = Math.ceil((expIndex + 1) / experiencesPerPage);
+    // Buscar experiência repetidamente até encontrar
+    let attempts = 0;
+    const findAndScroll = setInterval(() => {
+      const expIndex = filteredExperiences.findIndex(e => e.id === exp.id);
       
-      // Change to that page if different
-      if (expPage !== currentPage) {
-        setCurrentPage(expPage);
+      if (expIndex !== -1 || attempts >= 15) {
+        clearInterval(findAndScroll);
+        
+        if (expIndex !== -1) {
+          const expPage = Math.ceil((expIndex + 1) / experiencesPerPage);
+          
+          // Mudar página se necessário
+          if (expPage !== currentPage) {
+            setCurrentPage(expPage);
+          }
+          
+          // Scroll para experiência
+          setTimeout(() => {
+            const expElement = document.getElementById(`exp-${exp.id}`);
+            if (expElement) {
+              const yOffset = -100;
+              const y = expElement.getBoundingClientRect().top + window.pageYOffset + yOffset;
+              window.scrollTo({ top: y, behavior: 'smooth' });
+            }
+          }, expPage !== currentPage ? 400 : 100);
+        }
       }
       
-      // Wait for page to render, then scroll
-      setTimeout(() => {
-        const expElement = document.getElementById(`exp-${exp.id}`);
-        if (expElement) {
-          const yOffset = -100;
-          const y = expElement.getBoundingClientRect().top + window.pageYOffset + yOffset;
-          window.scrollTo({ top: y, behavior: 'smooth' });
-        }
-      }, expPage !== currentPage ? 300 : 100);
-    }
-  }, filterMode === 'key_insights' ? 800 : 0);
+      attempts++;
+    }, 200);
+  }, 500);
 }}
+
+                    
                     className="bg-white rounded-xl shadow-lg p-6 relative hover:shadow-2xl hover:scale-105 transition-all duration-300 text-left cursor-pointer"
                   
                 >
