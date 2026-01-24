@@ -421,9 +421,11 @@ const tryScroll = setInterval(() => {
   ];
 
   const handleSubmit = async () => {
-    if (currentEntry.problem && currentEntry.problemCategory && 
-        currentEntry.solution && currentEntry.result && currentEntry.resultCategory) {
-      await addExperienceToSupabase(currentEntry);
+  if (currentEntry.problem && currentEntry.problemCategory && 
+      currentEntry.solution && currentEntry.result && currentEntry.resultCategory) {
+    const success = await addExperienceToSupabase(currentEntry);
+    
+    if (success) {
       setCurrentEntry({
         problem: '',
         problemCategory: '',
@@ -435,8 +437,22 @@ const tryScroll = setInterval(() => {
         age: '',
         country: userCountryName || ''
       });
+      
+      // Voltar para página 1
+      setCurrentPage(1);
+      
+      // Aguardar reload e scrollar para primeira experiência
+      setTimeout(() => {
+        const firstExp = document.getElementById('first-experience');
+        if (firstExp) {
+          const yOffset = -100;
+          const y = firstExp.getBoundingClientRect().top + window.pageYOffset + yOffset;
+          window.scrollTo({ top: y, behavior: 'smooth' });
+        }
+      }, 500);
     }
-  };
+  }
+};
 
   const handleUserRating = async (expId, rating) => {
   if (userRatings[expId]) {
