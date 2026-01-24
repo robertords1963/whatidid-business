@@ -1472,56 +1472,41 @@ const filteredExperiences = experiences.filter(exp => {
 onClick={() => {
   const expId = exp.id;
   
-  console.log('🔍 Top3 clicado:', expId);
-  
   // SEMPRE mudar para Individual e limpar TODOS os filtros
   setFilterMode('individual');
   setShowKeyInsights(false);
   setKeyInsightCategory('');
   setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '' });
   
-  // Aguardar React renderizar
+  // Aguardar React renderizar (reduzido)
   setTimeout(() => {
-    // Calcular manualmente a lista filtrada
     const individualExps = experiences.filter(e => e.author !== 'key_insights');
     const expIndex = individualExps.findIndex(e => e.id === expId);
     
-    console.log('📊 Experiências Individual:', individualExps.length);
-    console.log('📍 Índice encontrado:', expIndex);
-    
     if (expIndex !== -1) {
       const expPage = Math.ceil((expIndex + 1) / experiencesPerPage);
-      console.log('📄 Página calculada:', expPage);
-      
-      // Mudar para página correta
       setCurrentPage(expPage);
       
-      // Aguardar renderização e scrollar
+      // Aguardar renderização e scrollar (MAIS RÁPIDO)
       setTimeout(() => {
         let attempts = 0;
         const tryScroll = setInterval(() => {
           const expElement = document.getElementById(`exp-${expId}`);
           
-          console.log(`🔄 Tentativa ${attempts + 1}: Elemento`, expElement ? 'ENCONTRADO' : 'NÃO ENCONTRADO');
-          
           if (expElement) {
             clearInterval(tryScroll);
-            console.log('✅ Scrollando!');
             const yOffset = -100;
             const y = expElement.getBoundingClientRect().top + window.pageYOffset + yOffset;
             window.scrollTo({ top: y, behavior: 'smooth' });
-          } else if (attempts >= 20) {
-            console.log('❌ Desistiu após 20 tentativas');
+          } else if (attempts >= 15) {
             clearInterval(tryScroll);
           }
           
           attempts++;
-        }, 300);
-      }, 1000);
-    } else {
-      console.log('❌ Experiência não encontrada!');
+        }, 150);
+      }, 400);
     }
-  }, 100);
+  }, 50);
 }}
 
 
