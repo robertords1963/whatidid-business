@@ -1468,7 +1468,7 @@ const filteredExperiences = experiences.filter(exp => {
                 {top3Data.map((exp, index) => (
                   <button
                     key={exp.id}
-                    onClick={() => {
+
 onClick={() => {
   // SEMPRE mudar para Individual e limpar TODOS os filtros
   setFilterMode('individual');
