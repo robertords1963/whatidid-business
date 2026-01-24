@@ -1477,26 +1477,38 @@ onClick={() => {
   setShowKeyInsights(false);
   setKeyInsightCategory('');
   setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '' });
-  setCurrentPage(1);
   
-  // Tentar scrollar repetidamente até encontrar o elemento
-  let attempts = 0;
-  const maxAttempts = 30;
-  
-  const tryScroll = setInterval(() => {
-    const expElement = document.getElementById(`exp-${expId}`);
+  // Aguardar MAIS tempo para filtros aplicarem (2 segundos)
+  setTimeout(() => {
+    // Agora filteredExperiences deve estar atualizado
+    const expIndex = filteredExperiences.findIndex(e => e.id === expId);
     
-    if (expElement) {
-      clearInterval(tryScroll);
-      const yOffset = -100;
-      const y = expElement.getBoundingClientRect().top + window.pageYOffset + yOffset;
-      window.scrollTo({ top: y, behavior: 'smooth' });
-    } else if (attempts >= maxAttempts) {
-      clearInterval(tryScroll);
+    if (expIndex !== -1) {
+      const expPage = Math.ceil((expIndex + 1) / experiencesPerPage);
+      
+      // Mudar para página correta
+      setCurrentPage(expPage);
+      
+      // Aguardar renderização da página e scrollar
+      setTimeout(() => {
+        let attempts = 0;
+        const tryScroll = setInterval(() => {
+          const expElement = document.getElementById(`exp-${expId}`);
+          
+          if (expElement) {
+            clearInterval(tryScroll);
+            const yOffset = -100;
+            const y = expElement.getBoundingClientRect().top + window.pageYOffset + yOffset;
+            window.scrollTo({ top: y, behavior: 'smooth' });
+          } else if (attempts >= 10) {
+            clearInterval(tryScroll);
+          }
+          
+          attempts++;
+        }, 200);
+      }, 500);
     }
-    
-    attempts++;
-  }, 200);
+  }, 2000);
 }}
 
 
