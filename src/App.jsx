@@ -2929,9 +2929,9 @@ onClick={() => {
         {/* Footer */}
         <footer className="mt-12 pt-8 border-t-2 border-gray-200">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="flex gap-6 text-sm">
-              <button 
-                onClick={() => setShowModal('how_it_works')}
+<div className="flex gap-3 text-sm flex-wrap">
+  <button 
+    onClick={() => setShowModal('how_it_works')}
                 className="text-gray-600 hover:text-purple-600 font-medium transition-colors"
               >
                 How It Works
