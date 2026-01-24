@@ -2385,13 +2385,27 @@ const filteredExperiences = experiences.filter(exp => {
                     {exp.comments.length > 0 && (
   <div>
     <button
-      onClick={() => setShowComments({...showComments, [exp.id]: !showComments[exp.id]})}
+      onClick={() => {
+  if (showComments[exp.id] === true) {
+    setShowComments({...showComments, [exp.id]: false});
+  } else if (showComments[exp.id] === false) {
+    setShowComments({...showComments, [exp.id]: true});
+  } else {
+    if (exp.comments.length === 1) {
+      setShowComments({...showComments, [exp.id]: false});
+    } else {
+      setShowComments({...showComments, [exp.id]: true});
+    }
+  }
+}}
       className="text-sm text-purple-600 hover:text-purple-800 font-medium mb-3 flex items-center gap-2"
     >
       <MessageCircle size={16} />
-      {showComments[exp.id] ? 'Hide all' : 'Show all'} {exp.comments.length} previous {exp.comments.length === 1 ? 'comment' : 'comments'}
+      {showComments[exp.id] === true ? 'Hide all comments' : 
+ showComments[exp.id] === false ? `Show all ${exp.comments.length} previous ${exp.comments.length === 1 ? 'comment' : 'comments'}` :
+ exp.comments.length === 1 ? 'Hide all comments' : `Show all ${exp.comments.length} previous ${exp.comments.length === 1 ? 'comment' : 'comments'}`}
     </button>
-    {showComments[exp.id] && (
+   {showComments[exp.id] === true && (
   <div className="space-y-3">
     {exp.comments.map(comment => (
       <div key={comment.id} className="bg-gray-50 rounded-lg p-3 relative">
@@ -2451,7 +2465,7 @@ const filteredExperiences = experiences.filter(exp => {
 
     
     {/* ⭐ NOVO: Último comentário sempre visível quando lista está fechada */}
-   {!showComments[exp.id] && exp.comments.length > 0 && (
+{showComments[exp.id] !== true && showComments[exp.id] !== false && exp.comments.length > 0 && (
   <div className="space-y-3 mt-3">
     {(() => {
       const lastComment = exp.comments[exp.comments.length - 1];
