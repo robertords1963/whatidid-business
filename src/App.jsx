@@ -2615,7 +2615,7 @@ onClick={() => {
                         }}
                         className="text-purple-600 hover:text-purple-800 font-medium transition-colors"
                       >
-                        Filter
+                        Browse
                       </button>
                       <span className="text-gray-400">•</span>
                       <button
