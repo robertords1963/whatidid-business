@@ -841,6 +841,27 @@ const filteredExperiences = experiences.filter(exp => {
           <p className="text-gray-700 font-medium mb-1">Real problems. Real solutions. Real people.</p>
           <p className="text-gray-600">Share your experience, help someone else</p>
 
+{/* Navigation Buttons */}
+<div className="flex flex-wrap gap-3 justify-center mt-6 mb-2">
+  <button
+    onClick={() => {
+      document.getElementById('experiences-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }}
+    className="px-6 py-2.5 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-colors text-sm md:text-base shadow-md hover:shadow-lg"
+  >
+    What Others Did
+  </button>
+  <button
+    onClick={() => {
+      document.getElementById('share-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }}
+    className="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors text-sm md:text-base shadow-md hover:shadow-lg"
+  >
+    Share Your Experience
+  </button>
+</div>
+
+          
           {showAdminLogin && !isAdmin && (
             <div className="mt-4 bg-white rounded-lg shadow-md p-4 max-w-md mx-auto">
               <h3 className="font-semibold mb-2">Admin Login</h3>
@@ -1643,8 +1664,8 @@ onClick={() => {
           );
         })()}
 
-        <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">Share Your Experiences</h2>
+<div id="share-section" className="bg-white rounded-2xl shadow-xl p-8 mb-8">
+  <h2 className="text-2xl font-bold text-gray-800 mb-6">Share Your Experiences</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div className="space-y-3">
               <div className="flex items-center gap-2 mb-2">
@@ -1926,7 +1947,7 @@ onClick={() => {
             </div>
             
             {/* TABS */}
-            <div className="flex gap-2 mb-6 border-b-2 border-gray-200 pb-2">
+           <div id="experiences-section" className="flex gap-2 mb-6 border-b-2 border-gray-200 pb-2">
               <button
   onClick={() => {
     setFilterMode('individual');
