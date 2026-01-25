@@ -235,7 +235,7 @@ const loadExperiences = async (skipLoading = false) => {
         .select();
       
       if (error) throw error;
-      await loadExperiences();
+      await loadExperiences(true);
       return true;
     } catch (error) {
       console.error('Error adding experience:', error);
@@ -255,7 +255,7 @@ const loadExperiences = async (skipLoading = false) => {
       .eq('id', id);
     
     if (error) throw error;
-    await loadExperiences();
+    await loadExperiences(true);
     
     // Restaurar posição
     setTimeout(() => {
@@ -488,7 +488,7 @@ const tryScroll = setInterval(() => {
       console.error('Error saving rating:', error);
       return;
     }
-await loadExperiences();
+await loadExperiences(true);
 
 // Aguardar renderização e scrollar
 const scrollToExp = () => {
@@ -687,7 +687,7 @@ const tryScroll = setInterval(() => {
       if (error) throw error;
       
       // Recarregar experiências
-      await loadExperiences();
+      await loadExperiences(true);
       setConfirmDelete(null);
       
       // Restaurar posição
@@ -1441,7 +1441,7 @@ const filteredExperiences = experiences.filter(exp => {
             }
 
             alert(`🎉 Success!\n\nAssigned ratings to ${processed} experiences!\n\nRatings range: ${ratingMin}-${ratingMax}\nStars: Distributed according to default pattern`);
-            await loadExperiences();
+            await loadExperiences(true);
 
           } catch (error) {
             console.error('Error:', error);
@@ -2771,7 +2771,7 @@ onClick={() => {
   if (error) {
     alert('Error updating experience');
   } else {
-    await loadExperiences();
+    await loadExperiences(true);
     setEditingExperience(null);
     setEditingData({});
     
