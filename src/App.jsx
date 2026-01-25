@@ -849,7 +849,7 @@ const filteredExperiences = experiences.filter(exp => {
     }}
     className="px-6 py-2.5 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-colors text-sm md:text-base shadow-md hover:shadow-lg"
   >
-    What Others Did
+    See What Others Did
   </button>
   <button
     onClick={() => {
