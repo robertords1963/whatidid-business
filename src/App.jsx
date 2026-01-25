@@ -811,16 +811,19 @@ const filteredExperiences = experiences.filter(exp => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 text-lg">Loading experiences...</p>
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center">
+      <div className="text-center">
+        <div className="mb-4">
+          <Share2 className="text-purple-600 mx-auto mb-3" size={48} />
+          <h1 className="text-3xl font-bold text-gray-800">WhatIDid</h1>
         </div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-3 border-purple-600 mx-auto mb-3"></div>
+        <p className="text-gray-600">Loading experiences...</p>
       </div>
-    );
-  }
-
+    </div>
+  );
+}
   return (
     <>
       <style>{marqueeStyles}</style>
