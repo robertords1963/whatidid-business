@@ -1398,8 +1398,15 @@ const filteredExperiences = experiences.filter(exp => {
             console.log(`📊 Found ${experiences.length} experiences`);
 
             // Calcular quantas experiências receberão ratings
-            const count = Math.ceil(experiences.length * (percentage / 100));
-            const selectedExps = experiences.slice(0, count);
+const count = Math.ceil(experiences.length * (percentage / 100));
+
+// Fisher-Yates shuffle (mais eficiente)
+const shuffled = [...experiences];
+for (let i = shuffled.length - 1; i > 0; i--) {
+  const j = Math.floor(Math.random() * (i + 1));
+  [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+}
+const selectedExps = shuffled.slice(0, count);
 
             console.log(`✨ Assigning ratings to ${selectedExps.length} experiences (${percentage}%)...`);
 
