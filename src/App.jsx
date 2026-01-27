@@ -15,16 +15,18 @@ const marqueeStyles = `
     0% { transform: translateX(0); }
     100% { transform: translateX(-50%); }
   }
-  .animate-marquee {
+  
+  .animate-marquee-top {
     animation: marquee 90s linear infinite;
   }
-  .animate-marquee:hover {
+  .animate-marquee-top:hover {
     animation-play-state: paused;
   }
-  .animate-marquee-slow {
-    animation: marquee 150s linear infinite;
+  
+  .animate-marquee-bottom {
+    animation: marquee 250s linear infinite;
   }
-  .animate-marquee-slow:hover {
+  .animate-marquee-bottom:hover {
     animation-play-state: paused;
   }
 `;
