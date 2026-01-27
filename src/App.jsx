@@ -1216,6 +1216,7 @@ const filteredExperiences = experiences.filter(exp => {
         </div>
 
 {isAdmin && (
+{isAdmin && (
   <div className="mt-4 bg-orange-50 border-2 border-orange-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
       ⭐ Assign Ratings to Experiences
@@ -1262,7 +1263,7 @@ const filteredExperiences = experiences.filter(exp => {
                 value="all"
                 className="w-4 h-4"
               />
-              <span className="text-sm text-red-600">ALL experiences (will overwrite existing ratings!)</span>
+              <span className="text-sm text-red-600 font-medium">ALL experiences (will RESET all ratings to 0 first, then assign new ones!)</span>
             </label>
           </div>
         </div>
@@ -1357,31 +1358,57 @@ const filteredExperiences = experiences.filter(exp => {
             return;
           }
 
-          const confirmMsg = mode === 'all' 
-            ? `⚠️ WARNING: This will OVERWRITE existing ratings!\n\nTarget: ${target}\nPercentage: ${percentage}%\nRatings: ${ratingMin}-${ratingMax}\n\nContinue?`
-            : `Target: ${target}\nMode: Only without ratings\nPercentage: ${percentage}%\nRatings: ${ratingMin}-${ratingMax}\n\nContinue?`;
+          let confirmMsg = '';
+          if (mode === 'all') {
+            confirmMsg = `🔴 WARNING: This will RESET ALL RATINGS TO ZERO first!\n\nThen assign new ratings to:\nTarget: ${target}\nPercentage: ${percentage}%\nRatings: ${ratingMin}-${ratingMax}\n\nContinue?`;
+          } else {
+            confirmMsg = `Target: ${target}\nMode: Only without ratings\nPercentage: ${percentage}%\nRatings: ${ratingMin}-${ratingMax}\n\nContinue?`;
+          }
 
           if (!window.confirm(confirmMsg)) return;
 
           const button = document.getElementById('assign-ratings-btn');
           const originalText = button.textContent;
           button.disabled = true;
-          button.textContent = '⏳ Processing...';
 
           try {
-            // Construir query baseado no target
+            // STEP 1: Reset ALL ratings if mode is "all"
+            if (mode === 'all') {
+              button.textContent = '⏳ Step 1/2: Resetting ALL ratings to 0...';
+              
+              let resetQuery = supabase
+                .from('experiences')
+                .update({ avg_rating: 0, total_ratings: 0 });
+              
+              // Aplicar filtro de target no reset também
+              if (target === 'upload') {
+                resetQuery = resetQuery.or('author.neq.key_insights,author.is.null');
+              } else if (target === 'key_insights') {
+                resetQuery = resetQuery.eq('author', 'key_insights');
+              }
+              // Se target === 'both', reseta todos
+              
+              const { error: resetError } = await resetQuery;
+              if (resetError) throw resetError;
+              
+              console.log('✅ All ratings reset to 0');
+            }
+
+            // STEP 2: Query experiences based on mode
+            button.textContent = mode === 'all' ? '⏳ Step 2/2: Assigning new ratings...' : '⏳ Processing...';
+            
             let query = supabase
               .from('experiences')
               .select('id, author, total_ratings');
 
+            // Aplicar filtro de target
             if (target === 'upload') {
               query = query.or('author.neq.key_insights,author.is.null');
             } else if (target === 'key_insights') {
               query = query.eq('author', 'key_insights');
             }
-            // Se target === 'both', não filtra por author
 
-            // Filtrar por modo
+            // Aplicar filtro de mode (apenas se mode = 'without')
             if (mode === 'without') {
               query = query.eq('total_ratings', 0);
             }
@@ -1397,16 +1424,16 @@ const filteredExperiences = experiences.filter(exp => {
 
             console.log(`📊 Found ${experiences.length} experiences`);
 
-            // Calcular quantas experiências receberão ratings
-const count = Math.ceil(experiences.length * (percentage / 100));
+            // Embaralhar usando Fisher-Yates
+            const shuffled = [...experiences];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+              const j = Math.floor(Math.random() * (i + 1));
+              [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
 
-// Fisher-Yates shuffle (mais eficiente)
-const shuffled = [...experiences];
-for (let i = shuffled.length - 1; i > 0; i--) {
-  const j = Math.floor(Math.random() * (i + 1));
-  [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-}
-const selectedExps = shuffled.slice(0, count);
+            // Calcular quantas experiências receberão ratings
+            const count = Math.ceil(shuffled.length * (percentage / 100));
+            const selectedExps = shuffled.slice(0, count);
 
             console.log(`✨ Assigning ratings to ${selectedExps.length} experiences (${percentage}%)...`);
 
@@ -1425,13 +1452,13 @@ const selectedExps = shuffled.slice(0, count);
                 // 5% → 1-2 stars
                 avgRating = 1 + Math.random() * 1;
               } else if (rand < 0.20) {
-                // 15% → 2-3 stars (rand entre 0.05 e 0.20)
+                // 15% → 2-3 stars
                 avgRating = 2 + Math.random() * 1;
               } else if (rand < 0.50) {
-                // 30% → 3-4 stars (rand entre 0.20 e 0.50)
+                // 30% → 3-4 stars
                 avgRating = 3 + Math.random() * 1;
               } else {
-                // 50% → 4-5 stars (rand entre 0.50 e 1.0)
+                // 50% → 4-5 stars
                 avgRating = 4 + Math.random() * 1;
               }
 
@@ -1468,7 +1495,11 @@ const selectedExps = shuffled.slice(0, count);
               button.textContent = `⏳ Processing... ${processed}/${updates.length}`;
             }
 
-            alert(`🎉 Success!\n\nAssigned ratings to ${processed} experiences!\n\nRatings range: ${ratingMin}-${ratingMax}\nStars: Distributed according to default pattern`);
+            const successMsg = mode === 'all'
+              ? `🎉 Success!\n\nStep 1: All ratings reset to 0\nStep 2: Assigned new ratings to ${processed} experiences!\n\nRatings range: ${ratingMin}-${ratingMax}\nStars: Distributed according to default pattern`
+              : `🎉 Success!\n\nAssigned ratings to ${processed} experiences!\n\nRatings range: ${ratingMin}-${ratingMax}\nStars: Distributed according to default pattern`;
+            
+            alert(successMsg);
             await loadExperiences(true);
 
           } catch (error) {
@@ -1486,7 +1517,7 @@ const selectedExps = shuffled.slice(0, count);
       </button>
 
       <p className="text-xs text-gray-500 mt-3 text-center">
-        💡 Tip: Start with a small percentage to test, then increase as needed
+        💡 Tip: Use "ALL" mode to reset and redistribute ratings from scratch
       </p>
     </div>
   </div>
