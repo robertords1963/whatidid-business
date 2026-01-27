@@ -22,7 +22,7 @@ const marqueeStyles = `
     animation-play-state: paused;
   }
   .animate-marquee-slow {
-    animation: marquee 150s linear infinite;
+    animation: marquee 250s linear infinite;
   }
   .animate-marquee-slow:hover {
     animation-play-state: paused;
