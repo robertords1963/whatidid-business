@@ -1215,7 +1215,7 @@ const filteredExperiences = experiences.filter(exp => {
           )}
         </div>
 
-{isAdmin && (
+
 {isAdmin && (
   <div className="mt-4 bg-orange-50 border-2 border-orange-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
