@@ -16,7 +16,7 @@ const marqueeStyles = `
     100% { transform: translateX(-50%); }
   }
   .animate-marquee {
-    animation: marquee 150s linear infinite;
+    animation: marquee 90s linear infinite;
   }
   .animate-marquee:hover {
     animation-play-state: paused;
