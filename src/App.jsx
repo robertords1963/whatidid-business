@@ -304,7 +304,7 @@ const loadExperiences = async (skipLoading = false) => {
     const updatedComments = {...newComment};
     delete updatedComments[experienceId];
     setNewComment(updatedComments);
-    
+     setRatedInSession(new Set([...ratedInSession, experienceId]));
     await loadExperiences(true);
 
 // Aguardar renderização e scrollar
@@ -361,6 +361,7 @@ const tryScroll = setInterval(() => {
   const [filterMode, setFilterMode] = useState('individual');
   
   const [userRatings, setUserRatings] = useState({});
+  const [ratedInSession, setRatedInSession] = useState(new Set());
   const [hoverRating, setHoverRating] = useState({});
   const [newComment, setNewComment] = useState({});
   const [showComments, setShowComments] = useState({});
@@ -482,6 +483,7 @@ const tryScroll = setInterval(() => {
     const scrollPosition = expElement ? expElement.offsetTop - 100 : 0;
     
     setUserRatings({...userRatings, [expId]: rating});
+    setRatedInSession(new Set([...ratedInSession, expId]));  
     const exp = experiences.find(e => e.id === expId);
     if (!exp) return;
     const newTotalRatings = exp.totalRatings + 1;
@@ -793,7 +795,11 @@ const filteredExperiences = experiences.filter(exp => {
   const matchesGender = !filters.gender || exp.gender === filters.gender;
   const matchesAge = !filters.age || exp.age === filters.age;
   const matchesCountry = !filters.country || exp.country === filters.country;
-  return matchesProblemCategory && matchesSearchText && matchesResultCategory && matchesRating && matchesGender && matchesAge && matchesCountry;
+  // Sempre mostrar experiências avaliadas/comentadas na sessão, mesmo que não atendam o filtro
+const wasInteractedInSession = ratedInSession.has(exp.id);
+if (wasInteractedInSession) return true;
+
+return matchesProblemCategory && matchesSearchText && matchesResultCategory && matchesRating && matchesGender && matchesAge && matchesCountry;
 });
   // Reset to page 1 when filters change
   useEffect(() => {
