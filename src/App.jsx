@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Share2, TrendingUp, AlertCircle, Star, MessageCircle, Send, Shield, Trash2, Search, Users, Target } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js'; 
@@ -519,6 +518,19 @@ const scrollToExp = () => {
   }
   return false;
 };
+    
+// Tentar várias vezes até encontrar
+let attempts = 0;
+const tryScroll = setInterval(() => {
+  if (scrollToExp() || attempts >= 10) {
+    clearInterval(tryScroll);
+  }
+  attempts++;
+}, 200);
+  } catch (error) {
+    console.error('Error in handleUserRating:', error);
+  }
+};
 
 const openVideoModal = (index) => {
   setCurrentVideoIndex(index);
@@ -538,22 +550,6 @@ const nextVideo = () => {
 const prevVideo = () => {
   setCurrentVideoIndex((prev) => (prev - 1 + promotionalVideos.length) % promotionalVideos.length);
 };
-
-
-    
-// Tentar várias vezes até encontrar
-let attempts = 0;
-const tryScroll = setInterval(() => {
-  if (scrollToExp() || attempts >= 10) {
-    clearInterval(tryScroll);
-  }
-  attempts++;
-}, 200);
-  } catch (error) {
-    console.error('Error in handleUserRating:', error);
-  }
-};
-
 
   const handleAdminLogin = () => {
     if (adminPassword === 'admin123') {
@@ -884,7 +880,38 @@ return matchesProblemCategory && matchesSearchText && matchesResultCategory && m
           <p className="text-gray-700 font-medium mb-1">Real problems. Real solutions. Real people.</p>
           <p className="text-gray-600">Share your experience, help someone else</p>
 
-
+{/* Video Carousel Section */}
+<div className="mb-8">
+  <div className="flex justify-center items-center gap-4 flex-wrap">
+    {promotionalVideos.map((video, index) => (
+      <div 
+        key={video.id}
+        onClick={() => openVideoModal(index)}
+        className="relative w-40 h-28 sm:w-48 sm:h-32 rounded-lg overflow-hidden cursor-pointer group shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
+      >
+        {/* Thumbnail - primeiro frame do vídeo */}
+        <video 
+          className="w-full h-full object-cover"
+          preload="metadata"
+        >
+          <source src={`${video.url}#t=0.1`} type="video/mp4" />
+        </video>
+        
+        {/* Overlay escuro */}
+        <div className="absolute inset-0 bg-black bg-opacity-30 group-hover:bg-opacity-40 transition-all"></div>
+        
+        {/* Ícone Play centralizado */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-16 h-16 bg-white bg-opacity-90 rounded-full flex items-center justify-center group-hover:bg-opacity-100 transition-all group-hover:scale-110">
+            <svg className="w-8 h-8 text-purple-600 ml-1" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
 
           
 {/* Navigation Buttons */}
@@ -2338,6 +2365,7 @@ onClick={() => {
             </div>
           ) : (
             <div className="space-y-4" id="first-experience">
+            {/* REST OF THE EXPERIENCES RENDERING CODE - CONTINUES IN NEXT MESSAGE DUE TO LENGTH */}
             {currentExperiences.map(exp => (
               <div key={exp.id}>
                 <div id={`exp-${exp.id}`} className="bg-white rounded-2xl shadow-lg p-6">
@@ -3084,6 +3112,77 @@ onClick={() => {
         </footer>
       </div>
     </div>
+
+    {/* Video Modal */}
+    {videoModalOpen && (
+      <div 
+        className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4"
+        onClick={closeVideoModal}
+      >
+        <div 
+          className="relative w-full max-w-4xl"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            onClick={closeVideoModal}
+            className="absolute -top-12 right-0 text-white text-2xl hover:text-gray-300 transition-colors"
+          >
+            ✕ Close
+          </button>
+          
+          <div className="bg-black rounded-lg overflow-hidden">
+            <video 
+              key={currentVideoIndex}
+              controls 
+              autoPlay
+              className="w-full"
+            >
+              <source src={promotionalVideos[currentVideoIndex].url} type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+          </div>
+          
+          <div className="flex justify-between items-center mt-4 text-white">
+            <button
+              onClick={prevVideo}
+              className="flex items-center gap-2 px-4 py-2 bg-purple-600 rounded-lg hover:bg-purple-700 transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Previous
+            </button>
+            
+            <span className="text-lg">
+              {currentVideoIndex + 1} / {promotionalVideos.length}
+            </span>
+            
+            <button
+              onClick={nextVideo}
+              className="flex items-center gap-2 px-4 py-2 bg-purple-600 rounded-lg hover:bg-purple-700 transition-colors"
+            >
+              Next
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+          
+          <div className="mt-6 text-center">
+            <button
+              onClick={() => {
+                closeVideoModal();
+                document.getElementById('share-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }}
+              className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-lg font-semibold"
+            >
+              Share Your Experience
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+
     </>
   );
 }
