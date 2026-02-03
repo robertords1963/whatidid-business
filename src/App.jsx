@@ -41,6 +41,16 @@ export default function WhatIDid() {
   const [addingComment, setAddingComment] = useState(null);
   const [userCountryName, setUserCountryName] = useState('');
 
+  const [videoModalOpen, setVideoModalOpen] = useState(false);
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
+  
+  const promotionalVideos = [
+    { id: 4, url: 'https://vtnzsyrojybyfeenkave.supabase.co/storage/v1/object/public/promotional-videos/Video4-compressed.mp4' },
+    { id: 3, url: 'https://vtnzsyrojybyfeenkave.supabase.co/storage/v1/object/public/promotional-videos/Video3-compressed.mp4' },
+    { id: 2, url: 'https://vtnzsyrojybyfeenkave.supabase.co/storage/v1/object/public/promotional-videos/Video2-compressed.mp4' },
+    { id: 1, url: 'https://vtnzsyrojybyfeenkave.supabase.co/storage/v1/object/public/promotional-videos/Video1-compressed.mp4' }
+  ];
+
   useEffect(() => {
     detectUserCountry();
     loadExperiences();
@@ -510,6 +520,27 @@ const scrollToExp = () => {
   return false;
 };
 
+const openVideoModal = (index) => {
+  setCurrentVideoIndex(index);
+  setVideoModalOpen(true);
+  document.body.style.overflow = 'hidden';
+};
+
+const closeVideoModal = () => {
+  setVideoModalOpen(false);
+  document.body.style.overflow = 'unset';
+};
+
+const nextVideo = () => {
+  setCurrentVideoIndex((prev) => (prev + 1) % promotionalVideos.length);
+};
+
+const prevVideo = () => {
+  setCurrentVideoIndex((prev) => (prev - 1 + promotionalVideos.length) % promotionalVideos.length);
+};
+
+
+    
 // Tentar várias vezes até encontrar
 let attempts = 0;
 const tryScroll = setInterval(() => {
@@ -853,6 +884,9 @@ return matchesProblemCategory && matchesSearchText && matchesResultCategory && m
           <p className="text-gray-700 font-medium mb-1">Real problems. Real solutions. Real people.</p>
           <p className="text-gray-600">Share your experience, help someone else</p>
 
+
+
+          
 {/* Navigation Buttons */}
 <div className="flex flex-wrap gap-3 justify-center mt-6 mb-2">
   <button
