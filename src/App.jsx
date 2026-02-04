@@ -880,9 +880,10 @@ return matchesProblemCategory && matchesSearchText && matchesResultCategory && m
           <p className="text-gray-700 font-medium mb-1">Real problems. Real solutions. Real people.</p>
           <p className="text-gray-600">Share your experience, help someone else</p>
 
-{/* Video Carousel Section */}
-<div className="mb-8">
-  <div className="flex justify-center items-center gap-2 flex-wrap">
+{/* Video Carousel Section - com ícone e espaçamento melhor */}
+<div className="my-8">
+  <div className="flex justify-center items-center gap-3 flex-wrap">
+    <span className="text-2xl">🎬</span>
     {promotionalVideos.map((video, index) => (
       <div 
         key={video.id}
@@ -915,7 +916,7 @@ return matchesProblemCategory && matchesSearchText && matchesResultCategory && m
 
           
 {/* Navigation Buttons */}
-<div className="flex flex-wrap gap-3 justify-center mt-6 mb-2">
+<div className="flex flex-wrap gap-3 justify-center mt-8 mb-2">
   <button
     onClick={() => {
       document.getElementById('experiences-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -3123,13 +3124,17 @@ onClick={() => {
           className="relative w-full max-w-2xl"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="bg-black rounded-lg overflow-hidden shadow-2xl relative">
-            {/* Botão Fechar - DENTRO do vídeo, canto superior direito */}
+          {/* Container do vídeo - SEM background preto, SÓ o vídeo */}
+          <div className="relative rounded-lg overflow-hidden shadow-2xl">
+            {/* Botão Fechar - Grande e vermelho no mobile */}
             <button
-              onClick={closeVideoModal}
-              className="absolute top-2 right-2 z-10 bg-red-600 hover:bg-red-700 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-lg font-semibold transition-colors flex items-center gap-1 shadow-lg"
+              onClick={(e) => {
+                e.stopPropagation();
+                closeVideoModal();
+              }}
+              className="absolute top-3 right-3 z-20 bg-red-600 hover:bg-red-700 text-white w-10 h-10 sm:w-auto sm:h-auto sm:px-4 sm:py-2 rounded-lg font-bold transition-colors flex items-center justify-center gap-1 shadow-xl border-2 border-white"
             >
-              <span className="text-lg sm:text-xl">✕</span>
+              <span className="text-2xl sm:text-xl leading-none">✕</span>
               <span className="hidden sm:inline text-sm">Close</span>
             </button>
             
@@ -3137,17 +3142,21 @@ onClick={() => {
               key={currentVideoIndex}
               controls 
               autoPlay
-              className="w-full max-h-[70vh] object-contain"
+              className="w-full max-h-[70vh] rounded-lg"
+              style={{ backgroundColor: 'transparent' }}
             >
               <source src={promotionalVideos[currentVideoIndex].url} type="video/mp4" />
               Your browser does not support the video tag.
             </video>
           </div>
           
-          <div className="flex justify-between items-center mt-4 text-white">
+          <div className="flex justify-between items-center mt-4">
             <button
-              onClick={prevVideo}
-              className="flex items-center gap-2 px-4 py-2 bg-purple-600 rounded-lg hover:bg-purple-700 transition-colors text-sm md:text-base"
+              onClick={(e) => {
+                e.stopPropagation();
+                prevVideo();
+              }}
+              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm md:text-base shadow-lg"
             >
               <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -3156,13 +3165,16 @@ onClick={() => {
               <span className="sm:hidden">◀</span>
             </button>
             
-            <span className="text-base md:text-lg font-semibold">
+            <span className="text-base md:text-lg font-semibold text-white bg-black bg-opacity-70 px-4 py-2 rounded-lg">
               {currentVideoIndex + 1} / {promotionalVideos.length}
             </span>
             
             <button
-              onClick={nextVideo}
-              className="flex items-center gap-2 px-4 py-2 bg-purple-600 rounded-lg hover:bg-purple-700 transition-colors text-sm md:text-base"
+              onClick={(e) => {
+                e.stopPropagation();
+                nextVideo();
+              }}
+              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm md:text-base shadow-lg"
             >
               <span className="hidden sm:inline">Next</span>
               <span className="sm:hidden">▶</span>
@@ -3174,9 +3186,12 @@ onClick={() => {
           
           <div className="mt-4 text-center">
             <button
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 closeVideoModal();
-                document.getElementById('share-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                setTimeout(() => {
+                  document.getElementById('share-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 100);
               }}
               className="px-6 py-2 md:px-8 md:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-base md:text-lg font-semibold w-full sm:w-auto"
             >
