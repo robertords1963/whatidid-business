@@ -58,10 +58,10 @@ export default function WhatIDid() {
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   
   const promotionalVideos = [
-    { id: 4, url: 'https://vtnzsyrojybyfeenkave.supabase.co/storage/v1/object/public/promotional-videos/Video4-compressed.mp4' },
-    { id: 1, url: 'https://vtnzsyrojybyfeenkave.supabase.co/storage/v1/object/public/promotional-videos/Video1-compressed.mp4' },
-    { id: 2, url: 'https://vtnzsyrojybyfeenkave.supabase.co/storage/v1/object/public/promotional-videos/Video2-compressed.mp4' },
-    { id: 3, url: 'https://vtnzsyrojybyfeenkave.supabase.co/storage/v1/object/public/promotional-videos/Video3-compressed.mp4' }
+    { id: 4, url: 'https://vtnzsyrojybyfeenkave.supabase.co/storage/v1/object/public/promotional-videos/Video4-compressed.mp4', duration: '0:30' },
+    { id: 1, url: 'https://vtnzsyrojybyfeenkave.supabase.co/storage/v1/object/public/promotional-videos/Video1-compressed.mp4', duration: '1:15' },
+    { id: 2, url: 'https://vtnzsyrojybyfeenkave.supabase.co/storage/v1/object/public/promotional-videos/Video2-compressed.mp4', duration: '0:45' },
+    { id: 3, url: 'https://vtnzsyrojybyfeenkave.supabase.co/storage/v1/object/public/promotional-videos/Video3-compressed.mp4', duration: '1:00' }
   ];
 
   useEffect(() => {
@@ -928,6 +928,11 @@ return matchesProblemCategory && matchesSearchText && matchesResultCategory && m
               <path d="M8 5v14l11-7z"/>
             </svg>
           </div>
+        </div>
+        
+        {/* Duração do vídeo - canto inferior direito */}
+        <div className="absolute bottom-1 right-1 bg-black bg-opacity-75 text-white text-[9px] sm:text-[10px] px-1 py-0.5 rounded">
+          {video.duration}
         </div>
       </div>
     ))}
@@ -3144,22 +3149,22 @@ onClick={() => {
           className="video-modal-container relative w-full h-full sm:h-auto sm:max-w-2xl flex flex-col justify-center"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Botão Fechar - SEMPRE visível, um clique fecha tudo */}
+          {/* Botão Fechar - Menor no mobile */}
           <button
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
               closeVideoModal();
             }}
-            className="video-modal-close-btn absolute top-4 left-4 z-[9999] bg-red-600 hover:bg-red-700 text-white w-16 h-16 sm:w-auto sm:h-auto sm:px-4 sm:py-3 rounded-full sm:rounded-lg font-black transition-colors flex items-center justify-center gap-1 shadow-2xl border-4 border-white"
+            className="video-modal-close-btn absolute top-4 left-4 z-[9999] bg-red-600 hover:bg-red-700 text-white w-10 h-10 sm:w-auto sm:h-auto sm:px-4 sm:py-2 rounded-full sm:rounded-lg font-bold transition-colors flex items-center justify-center gap-1 shadow-2xl border-3 border-white"
             aria-label="Close video"
             style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
           >
-            <span className="text-4xl sm:text-xl leading-none font-black">✕</span>
-            <span className="hidden sm:inline text-sm ml-1 font-bold">Close</span>
+            <span className="text-xl sm:text-lg leading-none">✕</span>
+            <span className="hidden sm:inline text-sm ml-1">Close</span>
           </button>
           
-          {/* Container do vídeo */}
+          {/* Container do vídeo - SEM background preto no desktop */}
           <div className="relative w-full h-auto sm:rounded-lg overflow-hidden shadow-2xl">
             <video 
               key={currentVideoIndex}
@@ -3168,7 +3173,7 @@ onClick={() => {
               playsInline
               preload="auto"
               className="w-full h-auto max-h-screen sm:max-h-[70vh] sm:rounded-lg"
-              style={{ backgroundColor: 'black' }}
+              style={{ backgroundColor: 'transparent' }}
             >
               <source src={promotionalVideos[currentVideoIndex].url} type="video/mp4" />
               Your browser does not support the video tag.
