@@ -593,11 +593,20 @@ const openVideoModal = (index) => {
 };
 
 const closeVideoModal = () => {
-  // Se estiver em fullscreen, sair primeiro
-  if (document.fullscreenElement || 
-      document.webkitFullscreenElement || 
-      document.mozFullScreenElement || 
-      document.msFullscreenElement) {
+  console.log('closeVideoModal called');
+  
+  // Verificar se estiver em fullscreen, sair primeiro
+  const isFullscreen = !!(
+    document.fullscreenElement || 
+    document.webkitFullscreenElement || 
+    document.mozFullScreenElement || 
+    document.msFullscreenElement
+  );
+  
+  if (isFullscreen) {
+    console.log('In fullscreen, exiting...');
+    
+    // Tentar sair de fullscreen
     if (document.exitFullscreen) {
       document.exitFullscreen();
     } else if (document.webkitExitFullscreen) {
@@ -607,11 +616,20 @@ const closeVideoModal = () => {
     } else if (document.msExitFullscreen) {
       document.msExitFullscreen();
     }
+    
+    // Tentar também no elemento video para iOS
+    const video = document.querySelector('.video-modal-player');
+    if (video && video.webkitExitFullscreen) {
+      video.webkitExitFullscreen();
+    }
+    
     // O useEffect vai detectar a saída de fullscreen e fechar o modal
+    console.log('Waiting for fullscreen exit detection...');
     return;
   }
   
   // Se não está em fullscreen, fecha direto
+  console.log('Not in fullscreen, closing modal directly');
   setVideoModalOpen(false);
   document.body.style.overflow = 'unset';
   // Pausar o vídeo ao fechar
@@ -707,8 +725,11 @@ const prevVideo = () => {
         document.msFullscreenElement
       );
 
-      // Se não está mais em fullscreen E o modal está aberto, fecha o modal
-      if (!isFullscreen && videoModalOpen) {
+      console.log('Fullscreen change detected. Is fullscreen:', isFullscreen);
+
+      // Se não está mais em fullscreen, fecha o modal
+      if (!isFullscreen) {
+        console.log('Closing modal automatically...');
         setTimeout(() => {
           setVideoModalOpen(false);
           document.body.style.overflow = 'unset';
@@ -719,7 +740,7 @@ const prevVideo = () => {
               video.pause();
             }
           });
-        }, 100);
+        }, 300); // Aumentado para 300ms
       }
     };
 
@@ -728,12 +749,27 @@ const prevVideo = () => {
     document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
     document.addEventListener('mozfullscreenchange', handleFullscreenChange);
     document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+    
+    // Eventos adicionais para iOS e outros navegadores
+    document.addEventListener('webkitendfullscreen', handleFullscreenChange);
+    
+    // Listener no próprio elemento video para iOS
+    const videos = document.querySelectorAll('.video-modal-player');
+    videos.forEach(video => {
+      video.addEventListener('webkitendfullscreen', handleFullscreenChange);
+    });
 
     return () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
       document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
       document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
       document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
+      document.removeEventListener('webkitendfullscreen', handleFullscreenChange);
+      
+      const videos = document.querySelectorAll('.video-modal-player');
+      videos.forEach(video => {
+        video.removeEventListener('webkitendfullscreen', handleFullscreenChange);
+      });
     };
   }, [videoModalOpen]);
 
@@ -3319,6 +3355,16 @@ onClick={() => {
                 // Forçar fullscreen no mobile quando o vídeo carregar
                 if (window.innerWidth <= 640) {
                   const video = e.target;
+                  
+                  // Adicionar listener para saída de fullscreen (iOS)
+                  video.addEventListener('webkitendfullscreen', () => {
+                    console.log('webkitendfullscreen event detected');
+                    setTimeout(() => {
+                      setVideoModalOpen(false);
+                      document.body.style.overflow = 'unset';
+                    }, 200);
+                  });
+                  
                   setTimeout(() => {
                     if (video.requestFullscreen) {
                       video.requestFullscreen().catch(err => console.log('Fullscreen error:', err));
