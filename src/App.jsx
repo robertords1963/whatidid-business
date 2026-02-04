@@ -880,10 +880,9 @@ return matchesProblemCategory && matchesSearchText && matchesResultCategory && m
           <p className="text-gray-700 font-medium mb-1">Real problems. Real solutions. Real people.</p>
           <p className="text-gray-600">Share your experience, help someone else</p>
 
-{/* Video Carousel Section - com ícone e espaçamento melhor */}
-<div className="my-8">
-  <div className="flex justify-center items-center gap-3 flex-wrap">
-    <span className="text-2xl">🎬</span>
+{/* Video Carousel Section - sem ícone, espaçamento menor */}
+<div className="my-5">
+  <div className="flex justify-center items-center gap-2 flex-wrap">
     {promotionalVideos.map((video, index) => (
       <div 
         key={video.id}
@@ -916,7 +915,7 @@ return matchesProblemCategory && matchesSearchText && matchesResultCategory && m
 
           
 {/* Navigation Buttons */}
-<div className="flex flex-wrap gap-3 justify-center mt-8 mb-2">
+<div className="flex flex-wrap gap-3 justify-center mt-5 mb-2">
   <button
     onClick={() => {
       document.getElementById('experiences-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -3124,26 +3123,30 @@ onClick={() => {
           className="relative w-full max-w-2xl"
           onClick={(e) => e.stopPropagation()}
         >
+          {/* Botão Fechar - ÚNICO, grande, vermelho, impossível não ver */}
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              closeVideoModal();
+            }}
+            className="absolute -top-3 -right-3 sm:top-2 sm:right-2 z-50 bg-red-600 hover:bg-red-700 text-white w-12 h-12 rounded-full sm:rounded-lg sm:w-auto sm:px-4 sm:py-2 font-bold transition-colors flex items-center justify-center gap-1 shadow-2xl border-4 border-white"
+            style={{ touchAction: 'manipulation' }}
+          >
+            <span className="text-2xl sm:text-xl leading-none">✕</span>
+            <span className="hidden sm:inline text-sm">Close</span>
+          </button>
+          
           {/* Container do vídeo - SEM background preto, SÓ o vídeo */}
           <div className="relative rounded-lg overflow-hidden shadow-2xl">
-            {/* Botão Fechar - Grande e vermelho no mobile */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                closeVideoModal();
-              }}
-              className="absolute top-3 right-3 z-20 bg-red-600 hover:bg-red-700 text-white w-10 h-10 sm:w-auto sm:h-auto sm:px-4 sm:py-2 rounded-lg font-bold transition-colors flex items-center justify-center gap-1 shadow-xl border-2 border-white"
-            >
-              <span className="text-2xl sm:text-xl leading-none">✕</span>
-              <span className="hidden sm:inline text-sm">Close</span>
-            </button>
-            
             <video 
               key={currentVideoIndex}
               controls 
               autoPlay
+              playsInline
               className="w-full max-h-[70vh] rounded-lg"
               style={{ backgroundColor: 'transparent' }}
+              controlsList="nodownload"
             >
               <source src={promotionalVideos[currentVideoIndex].url} type="video/mp4" />
               Your browser does not support the video tag.
