@@ -30,14 +30,30 @@ const marqueeStyles = `
   /* Estilos para modal de vídeo no mobile */
   @media (max-width: 640px) {
     .video-modal-container {
-      height: 100vh;
-      width: 100vw;
+      height: 100vh !important;
+      width: 100vw !important;
+      max-width: 100vw !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      background-color: black !important;
     }
     .video-modal-close-btn {
       position: fixed !important;
       top: 1rem !important;
       left: 1rem !important;
-      z-index: 9999 !important;
+      z-index: 99999 !important;
+    }
+    .video-modal-player {
+      background-color: black !important;
+    }
+  }
+  
+  @media (min-width: 641px) {
+    .video-modal-container {
+      background-color: transparent !important;
+    }
+    .video-modal-player {
+      background-color: transparent !important;
     }
   }
 `;
@@ -921,17 +937,17 @@ return matchesProblemCategory && matchesSearchText && matchesResultCategory && m
         {/* Overlay escuro */}
         <div className="absolute inset-0 bg-black bg-opacity-30 group-hover:bg-opacity-40 transition-all"></div>
         
-        {/* Ícone Play centralizado - MUITO MENOR */}
+        {/* Ícone Play centralizado - Menor no mobile */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-6 h-6 bg-white bg-opacity-90 rounded-full flex items-center justify-center group-hover:bg-opacity-100 transition-all group-hover:scale-110">
-            <svg className="w-3 h-3 text-purple-600 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+          <div className="w-5 h-5 sm:w-6 sm:h-6 bg-white bg-opacity-90 rounded-full flex items-center justify-center group-hover:bg-opacity-100 transition-all group-hover:scale-110">
+            <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-purple-600 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
               <path d="M8 5v14l11-7z"/>
             </svg>
           </div>
         </div>
         
-        {/* Duração do vídeo - canto inferior direito */}
-        <div className="absolute bottom-1 right-1 bg-black bg-opacity-75 text-white text-[9px] sm:text-[10px] px-1 py-0.5 rounded">
+        {/* Duração do vídeo - canto inferior direito - 40% menor */}
+        <div className="absolute bottom-1 right-1 bg-black bg-opacity-75 text-white text-[5.5px] sm:text-[6px] px-1 py-0.5 rounded leading-none">
           {video.duration}
         </div>
       </div>
@@ -3142,60 +3158,64 @@ onClick={() => {
     {/* Video Modal */}
     {videoModalOpen && (
       <div 
-        className="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-0 sm:p-4"
+        className="fixed inset-0 bg-black bg-opacity-60 sm:bg-opacity-60 z-50 flex items-center justify-center p-0 sm:p-4"
         onClick={closeVideoModal}
       >
         <div 
           className="video-modal-container relative w-full h-full sm:h-auto sm:max-w-2xl flex flex-col justify-center"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Botão Fechar - Menor no mobile */}
+          {/* Botão Fechar - GRANDE e sempre acessível no mobile */}
           <button
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
               closeVideoModal();
             }}
-            className="video-modal-close-btn absolute top-4 left-4 z-[9999] bg-red-600 hover:bg-red-700 text-white w-10 h-10 sm:w-auto sm:h-auto sm:px-4 sm:py-2 rounded-full sm:rounded-lg font-bold transition-colors flex items-center justify-center gap-1 shadow-2xl border-3 border-white"
+            className="video-modal-close-btn fixed sm:absolute top-3 left-3 z-[99999] bg-red-600 hover:bg-red-700 active:bg-red-800 text-white w-12 h-12 sm:w-auto sm:h-auto sm:px-4 sm:py-2 rounded-full sm:rounded-lg font-bold transition-colors flex items-center justify-center gap-1 shadow-2xl border-2 sm:border-3 border-white"
             aria-label="Close video"
-            style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+            style={{ 
+              touchAction: 'manipulation', 
+              WebkitTapHighlightColor: 'transparent',
+              WebkitUserSelect: 'none',
+              userSelect: 'none'
+            }}
           >
-            <span className="text-xl sm:text-lg leading-none">✕</span>
-            <span className="hidden sm:inline text-sm ml-1">Close</span>
+            <span className="text-2xl sm:text-lg leading-none pointer-events-none">✕</span>
+            <span className="hidden sm:inline text-sm ml-1 pointer-events-none">Close</span>
           </button>
           
-          {/* Container do vídeo - SEM background preto no desktop */}
-          <div className="relative w-full h-auto sm:rounded-lg overflow-hidden shadow-2xl">
+          {/* Container do vídeo - Tela cheia no mobile */}
+          <div className="relative w-full h-full sm:h-auto sm:rounded-lg overflow-hidden shadow-2xl flex items-center justify-center">
             <video 
               key={currentVideoIndex}
               controls 
               autoPlay
               playsInline
               preload="auto"
-              className="w-full h-auto max-h-screen sm:max-h-[70vh] sm:rounded-lg"
-              style={{ backgroundColor: 'transparent' }}
+              className="video-modal-player w-full h-full sm:h-auto sm:max-h-[70vh] sm:rounded-lg object-contain"
             >
               <source src={promotionalVideos[currentVideoIndex].url} type="video/mp4" />
               Your browser does not support the video tag.
             </video>
           </div>
           
-          <div className="flex justify-between items-center mt-4 px-4 sm:px-0">
+          <div className="flex justify-between items-center mt-0 sm:mt-4 px-4 py-3 sm:py-0 sm:px-0 bg-black sm:bg-transparent absolute sm:relative bottom-16 sm:bottom-auto left-0 right-0 sm:left-auto sm:right-auto">
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 prevVideo();
               }}
-              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm md:text-base shadow-lg"
+              className="flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm md:text-base shadow-lg"
             >
               <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
               <span className="hidden sm:inline">Previous</span>
-              <span className="sm:hidden">◀</span>
+              <span className="sm:hidden text-xs">◀</span>
             </button>
             
-            <span className="text-base md:text-lg font-semibold text-white bg-black bg-opacity-70 px-4 py-2 rounded-lg">
+            <span className="text-sm md:text-lg font-semibold text-white bg-black sm:bg-black bg-opacity-70 sm:bg-opacity-70 px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg">
               {currentVideoIndex + 1} / {promotionalVideos.length}
             </span>
             
@@ -3204,17 +3224,17 @@ onClick={() => {
                 e.stopPropagation();
                 nextVideo();
               }}
-              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm md:text-base shadow-lg"
+              className="flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm md:text-base shadow-lg"
             >
               <span className="hidden sm:inline">Next</span>
-              <span className="sm:hidden">▶</span>
+              <span className="sm:hidden text-xs">▶</span>
               <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </button>
           </div>
           
-          <div className="mt-4 text-center px-4 sm:px-0 mb-4 sm:mb-0">
+          <div className="mt-0 sm:mt-4 text-center px-4 py-3 sm:py-0 sm:px-0 bg-black sm:bg-transparent absolute sm:relative bottom-0 sm:bottom-auto left-0 right-0 sm:left-auto sm:right-auto">
             <button
               onClick={(e) => {
                 e.stopPropagation();
