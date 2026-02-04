@@ -2443,7 +2443,7 @@ onClick={() => {
           {exp.avgRating.toFixed(1)} 
           <span className="text-xs text-gray-500 ml-1">({exp.totalRatings} {exp.totalRatings === 1 ? 'rating' : 'ratings'})</span>
         </div>
-      </div>
+      </div> 
       
       {/* Linhas 3-4: Your rating */}
       <div className="flex flex-col items-end">
