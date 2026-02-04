@@ -76,6 +76,29 @@ export default function WhatIDid() {
 
   const [videoModalOpen, setVideoModalOpen] = useState(false);
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
+  const [carouselStartIndex, setCarouselStartIndex] = useState(0);
+  
+  // Responsivo: 4 no desktop, 3 no tablet, 2 no mobile
+  const getVideosPerPage = () => {
+    if (typeof window === 'undefined') return 4;
+    if (window.innerWidth < 640) return 2; // Mobile
+    if (window.innerWidth < 768) return 3; // Tablet
+    return 4; // Desktop
+  };
+  
+  const [videosPerPage, setVideosPerPage] = useState(getVideosPerPage());
+  
+  // Atualizar ao redimensionar
+  useEffect(() => {
+    const handleResize = () => {
+      setVideosPerPage(getVideosPerPage());
+      // Resetar para início ao mudar tamanho
+      setCarouselStartIndex(0);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   
   useEffect(() => {
     detectUserCountry();
@@ -1262,41 +1285,94 @@ return matchesProblemCategory && matchesSearchText && matchesResultCategory && m
           <p className="text-gray-700 font-medium mb-1">Real problems. Real solutions. Real people.</p>
           <p className="text-gray-600">Share your experience, help someone else</p>
 
-{/* Video Carousel Section - sem ícone, espaçamento menor */}
+{/* Video Carousel Section - Esteira Rolante */}
 <div className="my-5">
-  <div className="flex justify-center items-center gap-2 flex-wrap">
-    {promotionalVideos.map((video, index) => (
-      <div 
-        key={video.id}
-        onClick={() => openVideoModal(index)}
-        className="relative w-16 h-11 sm:w-20 sm:h-14 rounded-md overflow-hidden cursor-pointer group shadow-md hover:shadow-lg transition-all transform hover:scale-105"
-      >
-        {/* Thumbnail - primeiro frame do vídeo */}
-        <video 
-          className="w-full h-full object-cover"
-          preload="metadata"
-        >
-          <source src={`${video.url}#t=0.1`} type="video/mp4" />
-        </video>
-        
-        {/* Overlay escuro */}
-        <div className="absolute inset-0 bg-black bg-opacity-30 group-hover:bg-opacity-40 transition-all"></div>
-        
-        {/* Ícone Play centralizado - Menor no mobile */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-5 h-5 sm:w-6 sm:h-6 bg-white bg-opacity-90 rounded-full flex items-center justify-center group-hover:bg-opacity-100 transition-all group-hover:scale-110">
-            <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-purple-600 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M8 5v14l11-7z"/>
+  <div className="max-w-4xl mx-auto">
+    {/* Grid de 3 colunas: espaço para botão esquerdo | vídeos | espaço para botão direito */}
+    <div className="grid grid-cols-[48px_1fr_48px] sm:grid-cols-[56px_1fr_56px] items-center gap-3">
+      
+      {/* Coluna Esquerda: Botão Anterior (ou espaço vazio) */}
+      <div className="flex justify-end">
+        {carouselStartIndex > 0 && (
+          <button
+            onClick={() => setCarouselStartIndex(Math.max(0, carouselStartIndex - 1))}
+            className="w-10 h-10 sm:w-12 sm:h-12 bg-purple-600 hover:bg-purple-700 text-white rounded-full flex items-center justify-center transition-colors shadow-lg"
+            aria-label="Previous videos"
+          >
+            <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-          </div>
-        </div>
-        
-        {/* Duração do vídeo - canto inferior direito - 40% menor */}
-        <div className="absolute bottom-1 right-1 bg-black bg-opacity-75 text-white text-[5.5px] sm:text-[6px] px-1 py-0.5 rounded leading-none">
-          {video.duration}
+          </button>
+        )}
+      </div>
+
+      {/* Coluna Central: Container dos vídeos (sempre centralizado) */}
+      <div className="overflow-hidden">
+        <div className="flex justify-center items-center gap-2">
+          {promotionalVideos
+            .slice(carouselStartIndex, carouselStartIndex + videosPerPage)
+            .map((video, displayIndex) => {
+              const actualIndex = carouselStartIndex + displayIndex;
+              return (
+                <div 
+                  key={video.id}
+                  onClick={() => openVideoModal(actualIndex)}
+                  className="relative w-16 h-11 sm:w-20 sm:h-14 rounded-md overflow-hidden cursor-pointer group shadow-md hover:shadow-lg transition-all transform hover:scale-105 flex-shrink-0"
+                >
+                  {/* Thumbnail - primeiro frame do vídeo */}
+                  <video 
+                    className="w-full h-full object-cover"
+                    preload="metadata"
+                  >
+                    <source src={`${video.url}#t=0.1`} type="video/mp4" />
+                  </video>
+                  
+                  {/* Overlay escuro */}
+                  <div className="absolute inset-0 bg-black bg-opacity-30 group-hover:bg-opacity-40 transition-all"></div>
+                  
+                  {/* Ícone Play centralizado - Menor no mobile */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-5 h-5 sm:w-6 sm:h-6 bg-white bg-opacity-90 rounded-full flex items-center justify-center group-hover:bg-opacity-100 transition-all group-hover:scale-110">
+                      <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-purple-600 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M8 5v14l11-7z"/>
+                      </svg>
+                    </div>
+                  </div>
+                  
+                  {/* Duração do vídeo - canto inferior direito - 40% menor */}
+                  <div className="absolute bottom-1 right-1 bg-black bg-opacity-75 text-white text-[5.5px] sm:text-[6px] px-1 py-0.5 rounded leading-none">
+                    {video.duration}
+                  </div>
+                </div>
+              );
+            })}
         </div>
       </div>
-    ))}
+
+      {/* Coluna Direita: Botão Próximo (ou espaço vazio) */}
+      <div className="flex justify-start">
+        {carouselStartIndex < promotionalVideos.length - videosPerPage && (
+          <button
+            onClick={() => setCarouselStartIndex(Math.min(promotionalVideos.length - videosPerPage, carouselStartIndex + 1))}
+            className="w-10 h-10 sm:w-12 sm:h-12 bg-purple-600 hover:bg-purple-700 text-white rounded-full flex items-center justify-center transition-colors shadow-lg"
+            aria-label="Next videos"
+          >
+            <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        )}
+      </div>
+    </div>
+    
+    {/* Indicador de posição */}
+    {promotionalVideos.length > videosPerPage && (
+      <div className="text-center mt-2">
+        <span className="text-xs text-gray-500">
+          {carouselStartIndex + 1}-{Math.min(carouselStartIndex + videosPerPage, promotionalVideos.length)} of {promotionalVideos.length}
+        </span>
+      </div>
+    )}
   </div>
 </div>
 
