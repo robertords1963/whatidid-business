@@ -27,10 +27,11 @@ const marqueeStyles = `
     animation-play-state: paused;
   }
   
-  /* Estilos para modal de vídeo no mobile */
+  /* Estilos para modal de vídeo no mobile - TELA CHEIA */
   @media (max-width: 640px) {
     .video-modal-container {
       height: 100vh !important;
+      height: 100dvh !important;
       width: 100vw !important;
       max-width: 100vw !important;
       padding: 0 !important;
@@ -44,6 +45,9 @@ const marqueeStyles = `
       z-index: 99999 !important;
     }
     .video-modal-player {
+      height: 100vh !important;
+      height: 100dvh !important;
+      width: 100vw !important;
       background-color: black !important;
     }
   }
@@ -3158,31 +3162,31 @@ onClick={() => {
     {/* Video Modal */}
     {videoModalOpen && (
       <div 
-        className="fixed inset-0 bg-black bg-opacity-60 sm:bg-opacity-60 z-50 flex items-center justify-center p-0 sm:p-4"
+        className="fixed inset-0 bg-black sm:bg-black sm:bg-opacity-60 z-50 flex items-center justify-center p-0 sm:p-4"
         onClick={closeVideoModal}
       >
         <div 
           className="video-modal-container relative w-full h-full sm:h-auto sm:max-w-2xl flex flex-col justify-center"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Botão Fechar - GRANDE e sempre acessível no mobile */}
+          {/* Botão Fechar - X preto simples sem fundo */}
           <button
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
               closeVideoModal();
             }}
-            className="video-modal-close-btn fixed sm:absolute top-3 left-3 z-[99999] bg-red-600 hover:bg-red-700 active:bg-red-800 text-white w-12 h-12 sm:w-auto sm:h-auto sm:px-4 sm:py-2 rounded-full sm:rounded-lg font-bold transition-colors flex items-center justify-center gap-1 shadow-2xl border-2 sm:border-3 border-white"
+            className="video-modal-close-btn fixed sm:absolute top-4 left-4 z-[99999] text-black sm:text-black hover:text-gray-700 w-10 h-10 sm:w-10 sm:h-10 font-bold transition-colors flex items-center justify-center"
             aria-label="Close video"
             style={{ 
               touchAction: 'manipulation', 
               WebkitTapHighlightColor: 'transparent',
               WebkitUserSelect: 'none',
-              userSelect: 'none'
+              userSelect: 'none',
+              textShadow: '0 0 3px white, 0 0 5px white'
             }}
           >
-            <span className="text-2xl sm:text-lg leading-none pointer-events-none">✕</span>
-            <span className="hidden sm:inline text-sm ml-1 pointer-events-none">Close</span>
+            <span className="text-4xl sm:text-3xl leading-none pointer-events-none">✕</span>
           </button>
           
           {/* Container do vídeo - Tela cheia no mobile */}
@@ -3200,7 +3204,7 @@ onClick={() => {
             </video>
           </div>
           
-          <div className="flex justify-between items-center mt-0 sm:mt-4 px-4 py-3 sm:py-0 sm:px-0 bg-black sm:bg-transparent absolute sm:relative bottom-16 sm:bottom-auto left-0 right-0 sm:left-auto sm:right-auto">
+          <div className="flex justify-between items-center mt-0 sm:mt-4 px-4 py-3 sm:py-0 sm:px-0 bg-black sm:bg-transparent absolute sm:relative bottom-4 sm:bottom-auto left-0 right-0 sm:left-auto sm:right-auto z-10">
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -3231,21 +3235,6 @@ onClick={() => {
               <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
-            </button>
-          </div>
-          
-          <div className="mt-0 sm:mt-4 text-center px-4 py-3 sm:py-0 sm:px-0 bg-black sm:bg-transparent absolute sm:relative bottom-0 sm:bottom-auto left-0 right-0 sm:left-auto sm:right-auto">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                closeVideoModal();
-                setTimeout(() => {
-                  document.getElementById('share-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }, 100);
-              }}
-              className="px-6 py-2 md:px-8 md:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-base md:text-lg font-semibold w-full sm:w-auto"
-            >
-              Share Your Experience
             </button>
           </div>
         </div>
