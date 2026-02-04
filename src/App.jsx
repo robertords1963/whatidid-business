@@ -882,12 +882,12 @@ return matchesProblemCategory && matchesSearchText && matchesResultCategory && m
 
 {/* Video Carousel Section */}
 <div className="mb-8">
-  <div className="flex justify-center items-center gap-3 flex-wrap">
+  <div className="flex justify-center items-center gap-2 flex-wrap">
     {promotionalVideos.map((video, index) => (
       <div 
         key={video.id}
         onClick={() => openVideoModal(index)}
-        className="relative w-24 h-16 sm:w-28 sm:h-20 rounded-lg overflow-hidden cursor-pointer group shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
+        className="relative w-16 h-11 sm:w-20 sm:h-14 rounded-md overflow-hidden cursor-pointer group shadow-md hover:shadow-lg transition-all transform hover:scale-105"
       >
         {/* Thumbnail - primeiro frame do vídeo */}
         <video 
@@ -900,10 +900,10 @@ return matchesProblemCategory && matchesSearchText && matchesResultCategory && m
         {/* Overlay escuro */}
         <div className="absolute inset-0 bg-black bg-opacity-30 group-hover:bg-opacity-40 transition-all"></div>
         
-        {/* Ícone Play centralizado */}
+        {/* Ícone Play centralizado - MUITO MENOR */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-10 h-10 bg-white bg-opacity-90 rounded-full flex items-center justify-center group-hover:bg-opacity-100 transition-all group-hover:scale-110">
-            <svg className="w-5 h-5 text-purple-600 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+          <div className="w-6 h-6 bg-white bg-opacity-90 rounded-full flex items-center justify-center group-hover:bg-opacity-100 transition-all group-hover:scale-110">
+            <svg className="w-3 h-3 text-purple-600 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
               <path d="M8 5v14l11-7z"/>
             </svg>
           </div>
@@ -3116,23 +3116,23 @@ onClick={() => {
     {/* Video Modal */}
     {videoModalOpen && (
       <div 
-        className="fixed inset-0 bg-black bg-opacity-95 z-50 flex items-center justify-center p-4"
+        className="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4"
         onClick={closeVideoModal}
       >
         <div 
           className="relative w-full max-w-2xl"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Botão Fechar - Melhorado para Desktop e Mobile */}
-          <button
-            onClick={closeVideoModal}
-            className="absolute -top-14 right-0 md:-top-12 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors flex items-center gap-2 shadow-lg"
-          >
-            <span className="text-xl">✕</span>
-            <span className="hidden sm:inline">Close</span>
-          </button>
-          
-          <div className="bg-black rounded-lg overflow-hidden shadow-2xl">
+          <div className="bg-black rounded-lg overflow-hidden shadow-2xl relative">
+            {/* Botão Fechar - DENTRO do vídeo, canto superior direito */}
+            <button
+              onClick={closeVideoModal}
+              className="absolute top-2 right-2 z-10 bg-red-600 hover:bg-red-700 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-lg font-semibold transition-colors flex items-center gap-1 shadow-lg"
+            >
+              <span className="text-lg sm:text-xl">✕</span>
+              <span className="hidden sm:inline text-sm">Close</span>
+            </button>
+            
             <video 
               key={currentVideoIndex}
               controls 
