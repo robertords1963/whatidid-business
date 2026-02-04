@@ -78,10 +78,10 @@ export default function WhatIDid() {
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   
   const promotionalVideos = [
-    { id: 4, url: 'https://vtnzsyrojybyfeenkave.supabase.co/storage/v1/object/public/promotional-videos/Video4-compressed.mp4', duration: '0:30' },
-    { id: 1, url: 'https://vtnzsyrojybyfeenkave.supabase.co/storage/v1/object/public/promotional-videos/Video1-compressed.mp4', duration: '1:15' },
-    { id: 2, url: 'https://vtnzsyrojybyfeenkave.supabase.co/storage/v1/object/public/promotional-videos/Video2-compressed.mp4', duration: '0:45' },
-    { id: 3, url: 'https://vtnzsyrojybyfeenkave.supabase.co/storage/v1/object/public/promotional-videos/Video3-compressed.mp4', duration: '1:00' }
+    { id: 4, url: 'https://vtnzsyrojybyfeenkave.supabase.co/storage/v1/object/public/promotional-videos/Video4-compressed.mp4', duration: '2:13' },
+    { id: 1, url: 'https://vtnzsyrojybyfeenkave.supabase.co/storage/v1/object/public/promotional-videos/Video1-compressed.mp4', duration: '0:44' },
+    { id: 2, url: 'https://vtnzsyrojybyfeenkave.supabase.co/storage/v1/object/public/promotional-videos/Video2-compressed.mp4', duration: '1:31' },
+    { id: 3, url: 'https://vtnzsyrojybyfeenkave.supabase.co/storage/v1/object/public/promotional-videos/Video3-compressed.mp4', duration: '1:38' }
   ];
 
   useEffect(() => {
@@ -573,6 +573,25 @@ const openVideoModal = (index) => {
 };
 
 const closeVideoModal = () => {
+  // Se estiver em fullscreen, sair primeiro
+  if (document.fullscreenElement || 
+      document.webkitFullscreenElement || 
+      document.mozFullScreenElement || 
+      document.msFullscreenElement) {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
+    } else if (document.mozCancelFullScreen) {
+      document.mozCancelFullScreen();
+    } else if (document.msExitFullscreen) {
+      document.msExitFullscreen();
+    }
+    // O useEffect vai detectar a saída de fullscreen e fechar o modal
+    return;
+  }
+  
+  // Se não está em fullscreen, fecha direto
   setVideoModalOpen(false);
   document.body.style.overflow = 'unset';
   // Pausar o vídeo ao fechar
@@ -618,6 +637,49 @@ const prevVideo = () => {
     
     return () => clearInterval(interval);
   }, [quotes.length]);
+
+  // Detectar quando o vídeo sai de fullscreen e fechar o modal automaticamente
+  useEffect(() => {
+    if (!videoModalOpen) return;
+
+    const handleFullscreenChange = () => {
+      // Verificar se saiu do fullscreen
+      const isFullscreen = !!(
+        document.fullscreenElement || 
+        document.webkitFullscreenElement || 
+        document.mozFullScreenElement || 
+        document.msFullscreenElement
+      );
+
+      // Se não está mais em fullscreen E o modal está aberto, fecha o modal
+      if (!isFullscreen && videoModalOpen) {
+        setTimeout(() => {
+          setVideoModalOpen(false);
+          document.body.style.overflow = 'unset';
+          // Pausar todos os vídeos
+          const videos = document.querySelectorAll('video');
+          videos.forEach(video => {
+            if (!video.paused) {
+              video.pause();
+            }
+          });
+        }, 100);
+      }
+    };
+
+    // Adicionar listeners para todos os navegadores
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
+    };
+  }, [videoModalOpen]);
 
   const loadQuotes = async () => {
     try {
@@ -3195,7 +3257,6 @@ onClick={() => {
               key={currentVideoIndex}
               controls 
               autoPlay
-              playsInline
               preload="auto"
               className="video-modal-player w-full h-full sm:h-auto sm:max-h-[70vh] sm:rounded-lg object-contain"
             >
