@@ -541,6 +541,13 @@ const openVideoModal = (index) => {
 const closeVideoModal = () => {
   setVideoModalOpen(false);
   document.body.style.overflow = 'unset';
+  // Pausar o vídeo ao fechar
+  const videos = document.querySelectorAll('video');
+  videos.forEach(video => {
+    if (!video.paused) {
+      video.pause();
+    }
+  });
 };
 
 const nextVideo = () => {
@@ -577,6 +584,44 @@ const prevVideo = () => {
     
     return () => clearInterval(interval);
   }, [quotes.length]);
+
+  // Detectar quando o vídeo sai de fullscreen e fechar o modal
+  useEffect(() => {
+    if (!videoModalOpen) return;
+
+    const handleFullscreenChange = () => {
+      // Se não está mais em fullscreen
+      if (!document.fullscreenElement && 
+          !document.webkitFullscreenElement && 
+          !document.mozFullScreenElement && 
+          !document.msFullscreenElement) {
+        // Pequeno delay para evitar conflitos
+        setTimeout(() => {
+          setVideoModalOpen(false);
+          document.body.style.overflow = 'unset';
+          // Pausar todos os vídeos
+          const videos = document.querySelectorAll('video');
+          videos.forEach(video => {
+            if (!video.paused) {
+              video.pause();
+            }
+          });
+        }, 100);
+      }
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
+    };
+  }, [videoModalOpen]);
 
   const loadQuotes = async () => {
     try {
@@ -3123,30 +3168,33 @@ onClick={() => {
           className="relative w-full max-w-2xl"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Botão Fechar - ÚNICO, grande, vermelho, impossível não ver */}
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              closeVideoModal();
-            }}
-            className="absolute -top-3 -right-3 sm:top-2 sm:right-2 z-50 bg-red-600 hover:bg-red-700 text-white w-12 h-12 rounded-full sm:rounded-lg sm:w-auto sm:px-4 sm:py-2 font-bold transition-colors flex items-center justify-center gap-1 shadow-2xl border-4 border-white"
-            style={{ touchAction: 'manipulation' }}
-          >
-            <span className="text-2xl sm:text-xl leading-none">✕</span>
-            <span className="hidden sm:inline text-sm">Close</span>
-          </button>
-          
-          {/* Container do vídeo - SEM background preto, SÓ o vídeo */}
+          {/* Container do vídeo */}
           <div className="relative rounded-lg overflow-hidden shadow-2xl">
+            {/* Botão Fechar - GRANDE e visível */}
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                // Fechar modal imediatamente
+                closeVideoModal();
+              }}
+              className="absolute top-3 left-3 z-50 bg-red-600 hover:bg-red-700 text-white w-12 h-12 sm:w-auto sm:h-12 sm:px-4 rounded-full sm:rounded-lg font-bold transition-colors flex items-center justify-center gap-1 shadow-2xl border-3 border-white"
+              aria-label="Close video"
+            >
+              <span className="text-2xl sm:text-xl leading-none">✕</span>
+              <span className="hidden sm:inline text-sm ml-1">Close</span>
+            </button>
+            
             <video 
               key={currentVideoIndex}
               controls 
               autoPlay
-              playsInline
               className="w-full max-h-[70vh] rounded-lg"
               style={{ backgroundColor: 'transparent' }}
-              controlsList="nodownload"
+              onEnded={() => {
+                // Opcional: fechar ao terminar o vídeo
+                // closeVideoModal();
+              }}
             >
               <source src={promotionalVideos[currentVideoIndex].url} type="video/mp4" />
               Your browser does not support the video tag.
