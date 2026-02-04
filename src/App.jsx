@@ -26,6 +26,20 @@ const marqueeStyles = `
   .animate-marquee-slow:hover {
     animation-play-state: paused;
   }
+  
+  /* Estilos para modal de vídeo no mobile */
+  @media (max-width: 640px) {
+    .video-modal-container {
+      height: 100vh;
+      width: 100vw;
+    }
+    .video-modal-close-btn {
+      position: fixed !important;
+      top: 1rem !important;
+      left: 1rem !important;
+      z-index: 9999 !important;
+    }
+  }
 `;
 
 export default function WhatIDid() {
@@ -584,44 +598,6 @@ const prevVideo = () => {
     
     return () => clearInterval(interval);
   }, [quotes.length]);
-
-  // Detectar quando o vídeo sai de fullscreen e fechar o modal
-  useEffect(() => {
-    if (!videoModalOpen) return;
-
-    const handleFullscreenChange = () => {
-      // Se não está mais em fullscreen
-      if (!document.fullscreenElement && 
-          !document.webkitFullscreenElement && 
-          !document.mozFullScreenElement && 
-          !document.msFullscreenElement) {
-        // Pequeno delay para evitar conflitos
-        setTimeout(() => {
-          setVideoModalOpen(false);
-          document.body.style.overflow = 'unset';
-          // Pausar todos os vídeos
-          const videos = document.querySelectorAll('video');
-          videos.forEach(video => {
-            if (!video.paused) {
-              video.pause();
-            }
-          });
-        }, 100);
-      }
-    };
-
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
-    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
-
-    return () => {
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
-      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
-      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
-      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
-    };
-  }, [videoModalOpen]);
 
   const loadQuotes = async () => {
     try {
@@ -2443,7 +2419,7 @@ onClick={() => {
           {exp.avgRating.toFixed(1)} 
           <span className="text-xs text-gray-500 ml-1">({exp.totalRatings} {exp.totalRatings === 1 ? 'rating' : 'ratings'})</span>
         </div>
-      </div> 
+      </div>
       
       {/* Linhas 3-4: Your rating */}
       <div className="flex flex-col items-end">
@@ -3161,47 +3137,45 @@ onClick={() => {
     {/* Video Modal */}
     {videoModalOpen && (
       <div 
-        className="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4"
+        className="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-0 sm:p-4"
         onClick={closeVideoModal}
       >
         <div 
-          className="relative w-full max-w-2xl"
+          className="video-modal-container relative w-full h-full sm:h-auto sm:max-w-2xl flex flex-col justify-center"
           onClick={(e) => e.stopPropagation()}
         >
+          {/* Botão Fechar - SEMPRE visível, um clique fecha tudo */}
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              closeVideoModal();
+            }}
+            className="video-modal-close-btn absolute top-4 left-4 z-[9999] bg-red-600 hover:bg-red-700 text-white w-16 h-16 sm:w-auto sm:h-auto sm:px-4 sm:py-3 rounded-full sm:rounded-lg font-black transition-colors flex items-center justify-center gap-1 shadow-2xl border-4 border-white"
+            aria-label="Close video"
+            style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+          >
+            <span className="text-4xl sm:text-xl leading-none font-black">✕</span>
+            <span className="hidden sm:inline text-sm ml-1 font-bold">Close</span>
+          </button>
+          
           {/* Container do vídeo */}
-          <div className="relative rounded-lg overflow-hidden shadow-2xl">
-            {/* Botão Fechar - GRANDE e visível */}
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                // Fechar modal imediatamente
-                closeVideoModal();
-              }}
-              className="absolute top-3 left-3 z-50 bg-red-600 hover:bg-red-700 text-white w-12 h-12 sm:w-auto sm:h-12 sm:px-4 rounded-full sm:rounded-lg font-bold transition-colors flex items-center justify-center gap-1 shadow-2xl border-3 border-white"
-              aria-label="Close video"
-            >
-              <span className="text-2xl sm:text-xl leading-none">✕</span>
-              <span className="hidden sm:inline text-sm ml-1">Close</span>
-            </button>
-            
+          <div className="relative w-full h-auto sm:rounded-lg overflow-hidden shadow-2xl">
             <video 
               key={currentVideoIndex}
               controls 
               autoPlay
-              className="w-full max-h-[70vh] rounded-lg"
-              style={{ backgroundColor: 'transparent' }}
-              onEnded={() => {
-                // Opcional: fechar ao terminar o vídeo
-                // closeVideoModal();
-              }}
+              playsInline
+              preload="auto"
+              className="w-full h-auto max-h-screen sm:max-h-[70vh] sm:rounded-lg"
+              style={{ backgroundColor: 'black' }}
             >
               <source src={promotionalVideos[currentVideoIndex].url} type="video/mp4" />
               Your browser does not support the video tag.
             </video>
           </div>
           
-          <div className="flex justify-between items-center mt-4">
+          <div className="flex justify-between items-center mt-4 px-4 sm:px-0">
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -3235,7 +3209,7 @@ onClick={() => {
             </button>
           </div>
           
-          <div className="mt-4 text-center">
+          <div className="mt-4 text-center px-4 sm:px-0 mb-4 sm:mb-0">
             <button
               onClick={(e) => {
                 e.stopPropagation();
