@@ -570,6 +570,26 @@ const openVideoModal = (index) => {
   setCurrentVideoIndex(index);
   setVideoModalOpen(true);
   document.body.style.overflow = 'hidden';
+  
+  // Forçar fullscreen no mobile após renderizar
+  setTimeout(() => {
+    const video = document.querySelector('.video-modal-player');
+    if (video && window.innerWidth <= 640) {
+      // Tentar entrar em fullscreen no mobile
+      if (video.requestFullscreen) {
+        video.requestFullscreen().catch(err => console.log('Fullscreen error:', err));
+      } else if (video.webkitRequestFullscreen) {
+        video.webkitRequestFullscreen();
+      } else if (video.mozRequestFullScreen) {
+        video.mozRequestFullScreen();
+      } else if (video.msRequestFullscreen) {
+        video.msRequestFullscreen();
+      } else if (video.webkitEnterFullscreen) {
+        // Para iOS Safari
+        video.webkitEnterFullscreen();
+      }
+    }
+  }, 300);
 };
 
 const closeVideoModal = () => {
@@ -605,10 +625,46 @@ const closeVideoModal = () => {
 
 const nextVideo = () => {
   setCurrentVideoIndex((prev) => (prev + 1) % promotionalVideos.length);
+  
+  // Forçar fullscreen novamente após trocar vídeo no mobile
+  setTimeout(() => {
+    const video = document.querySelector('.video-modal-player');
+    if (video && window.innerWidth <= 640) {
+      if (video.requestFullscreen) {
+        video.requestFullscreen().catch(err => console.log('Fullscreen error:', err));
+      } else if (video.webkitRequestFullscreen) {
+        video.webkitRequestFullscreen();
+      } else if (video.mozRequestFullScreen) {
+        video.mozRequestFullScreen();
+      } else if (video.msRequestFullscreen) {
+        video.msRequestFullscreen();
+      } else if (video.webkitEnterFullscreen) {
+        video.webkitEnterFullscreen();
+      }
+    }
+  }, 300);
 };
 
 const prevVideo = () => {
   setCurrentVideoIndex((prev) => (prev - 1 + promotionalVideos.length) % promotionalVideos.length);
+  
+  // Forçar fullscreen novamente após trocar vídeo no mobile
+  setTimeout(() => {
+    const video = document.querySelector('.video-modal-player');
+    if (video && window.innerWidth <= 640) {
+      if (video.requestFullscreen) {
+        video.requestFullscreen().catch(err => console.log('Fullscreen error:', err));
+      } else if (video.webkitRequestFullscreen) {
+        video.webkitRequestFullscreen();
+      } else if (video.mozRequestFullScreen) {
+        video.mozRequestFullScreen();
+      } else if (video.msRequestFullscreen) {
+        video.msRequestFullscreen();
+      } else if (video.webkitEnterFullscreen) {
+        video.webkitEnterFullscreen();
+      }
+    }
+  }, 300);
 };
 
   const handleAdminLogin = () => {
@@ -3259,6 +3315,25 @@ onClick={() => {
               autoPlay
               preload="auto"
               className="video-modal-player w-full h-full sm:h-auto sm:max-h-[70vh] sm:rounded-lg object-contain"
+              onLoadedMetadata={(e) => {
+                // Forçar fullscreen no mobile quando o vídeo carregar
+                if (window.innerWidth <= 640) {
+                  const video = e.target;
+                  setTimeout(() => {
+                    if (video.requestFullscreen) {
+                      video.requestFullscreen().catch(err => console.log('Fullscreen error:', err));
+                    } else if (video.webkitRequestFullscreen) {
+                      video.webkitRequestFullscreen();
+                    } else if (video.mozRequestFullScreen) {
+                      video.mozRequestFullScreen();
+                    } else if (video.msRequestFullscreen) {
+                      video.msRequestFullscreen();
+                    } else if (video.webkitEnterFullscreen) {
+                      video.webkitEnterFullscreen();
+                    }
+                  }, 100);
+                }
+              }}
             >
               <source src={promotionalVideos[currentVideoIndex].url} type="video/mp4" />
               Your browser does not support the video tag.
