@@ -1287,7 +1287,7 @@ return matchesProblemCategory && matchesSearchText && matchesResultCategory && m
     {carouselStartIndex > 0 && (
       <button
         onClick={() => setCarouselStartIndex(Math.max(0, carouselStartIndex - 1))}
-        className="absolute left-0 top-1/2 -translate-y-1/2 z-10 text-black hover:text-gray-600 transition-colors cursor-pointer"
+        className="absolute left-2 top-1/2 -translate-y-1/2 z-10 text-black hover:text-gray-600 transition-colors cursor-pointer"
         aria-label="Previous videos"
       >
         <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
@@ -1337,7 +1337,7 @@ return matchesProblemCategory && matchesSearchText && matchesResultCategory && m
     {carouselStartIndex < promotionalVideos.length - videosPerPage && (
       <button
         onClick={() => setCarouselStartIndex(Math.min(promotionalVideos.length - videosPerPage, carouselStartIndex + 1))}
-        className="absolute right-0 top-1/2 -translate-y-1/2 z-10 text-black hover:text-gray-600 transition-colors cursor-pointer"
+        className="absolute right-2 top-1/2 -translate-y-1/2 z-10 text-black hover:text-gray-600 transition-colors cursor-pointer"
         aria-label="Next videos"
       >
         <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
