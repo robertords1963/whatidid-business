@@ -918,18 +918,6 @@ const prevVideo = () => {
   // ==================== FUNÇÕES PARA GERENCIAR VÍDEOS PROMOCIONAIS ====================
   
   const loadPromotionalVideos = async () => {
-    // TEMPORÁRIO: Forçar 5 vídeos para teste das setas no celular
-    // TODO: Remover depois que RLS for configurado
-    setPromotionalVideos([
-      { id: 1, url: 'https://vtnzsyrojybyfeenkave.supabase.co/storage/v1/object/public/promotional-videos/Video4-compressed.mp4', duration: '2:13', display_order: 1 },
-      { id: 2, url: 'https://vtnzsyrojybyfeenkave.supabase.co/storage/v1/object/public/promotional-videos/Video1-compressed.mp4', duration: '0:44', display_order: 2 },
-      { id: 3, url: 'https://vtnzsyrojybyfeenkave.supabase.co/storage/v1/object/public/promotional-videos/Video2-compressed.mp4', duration: '1:31', display_order: 3 },
-      { id: 4, url: 'https://vtnzsyrojybyfeenkave.supabase.co/storage/v1/object/public/promotional-videos/Video3-compressed.mp4', duration: '1:38', display_order: 4 },
-      { id: 5, url: 'https://vtnzsyrojybyfeenkave.supabase.co/storage/v1/object/public/promotional-videos/Video4-compressed.mp4', duration: '2:13', display_order: 5 }
-    ]);
-    return;
-    
-    /* CÓDIGO ORIGINAL (comentado temporariamente):
     try {
       const { data, error } = await supabase
         .from('promotional_videos')
@@ -938,7 +926,6 @@ const prevVideo = () => {
       
       if (error) throw error;
       
-      // Mapear para o formato usado no componente
       const videos = data.map(video => ({
         id: video.id,
         url: video.video_url,
@@ -947,17 +934,11 @@ const prevVideo = () => {
       }));
       
       setPromotionalVideos(videos);
+      console.log('✅ Vídeos carregados do banco:', videos.length);
     } catch (error) {
-      console.error('Error loading promotional videos:', error);
-      // Fallback para vídeos padrão se houver erro
-      setPromotionalVideos([
-        { id: 1, url: 'https://vtnzsyrojybyfeenkave.supabase.co/storage/v1/object/public/promotional-videos/Video4-compressed.mp4', duration: '2:13', display_order: 1 },
-        { id: 2, url: 'https://vtnzsyrojybyfeenkave.supabase.co/storage/v1/object/public/promotional-videos/Video1-compressed.mp4', duration: '0:44', display_order: 2 },
-        { id: 3, url: 'https://vtnzsyrojybyfeenkave.supabase.co/storage/v1/object/public/promotional-videos/Video2-compressed.mp4', duration: '1:31', display_order: 3 },
-        { id: 4, url: 'https://vtnzsyrojybyfeenkave.supabase.co/storage/v1/object/public/promotional-videos/Video3-compressed.mp4', duration: '1:38', display_order: 4 }
-      ]);
+      console.error('❌ Error loading promotional videos:', error);
+      setPromotionalVideos([]);
     }
-    */
   };
 
   const uploadVideoToSupabase = async (file) => {
