@@ -1281,22 +1281,24 @@ return matchesProblemCategory && matchesSearchText && matchesResultCategory && m
 
 {/* Video Carousel Section - Esteira Rolante */}
 <div className="my-5">
-  <div className="relative max-w-4xl mx-auto">
+  <div className="flex items-center justify-center gap-2 max-w-4xl mx-auto">
     
-    {/* Seta ESQUERDA - Absolute */}
-    {carouselStartIndex > 0 && (
-      <button
-        onClick={() => setCarouselStartIndex(Math.max(0, carouselStartIndex - 1))}
-        className="absolute left-[45%] sm:left-[40%] top-1/2 -translate-y-1/2 -translate-x-full z-10 text-black hover:text-gray-600 transition-colors cursor-pointer"
-        aria-label="Previous videos"
-      >
-        <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-        </svg>
-      </button>
-    )}
+    {/* Coluna Esquerda: 24px fixo */}
+    <div className="w-6 flex items-center justify-end">
+      {carouselStartIndex > 0 && (
+        <button
+          onClick={() => setCarouselStartIndex(Math.max(0, carouselStartIndex - 1))}
+          className="text-black hover:text-gray-600 transition-colors cursor-pointer"
+          aria-label="Previous videos"
+        >
+          <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+      )}
+    </div>
     
-    {/* Container dos vídeos - Centralizado */}
+    {/* Container dos vídeos */}
     <div className="flex justify-center items-center gap-2">
       {promotionalVideos
         .slice(carouselStartIndex, carouselStartIndex + videosPerPage)
@@ -1333,18 +1335,20 @@ return matchesProblemCategory && matchesSearchText && matchesResultCategory && m
         })}
     </div>
     
-    {/* Seta DIREITA - Absolute */}
-    {carouselStartIndex < promotionalVideos.length - videosPerPage && (
-      <button
-        onClick={() => setCarouselStartIndex(Math.min(promotionalVideos.length - videosPerPage, carouselStartIndex + 1))}
-        className="absolute right-[45%] sm:right-[40%] top-1/2 -translate-y-1/2 translate-x-full z-10 text-black hover:text-gray-600 transition-colors cursor-pointer"
-        aria-label="Next videos"
-      >
-        <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-        </svg>
-      </button>
-    )}
+    {/* Coluna Direita: 24px fixo */}
+    <div className="w-6 flex items-center justify-start">
+      {carouselStartIndex < promotionalVideos.length - videosPerPage && (
+        <button
+          onClick={() => setCarouselStartIndex(Math.min(promotionalVideos.length - videosPerPage, carouselStartIndex + 1))}
+          className="text-black hover:text-gray-600 transition-colors cursor-pointer"
+          aria-label="Next videos"
+        >
+          <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      )}
+    </div>
     
   </div>
 </div>
