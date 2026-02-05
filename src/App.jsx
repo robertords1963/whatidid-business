@@ -1289,7 +1289,7 @@ return matchesProblemCategory && matchesSearchText && matchesResultCategory && m
 <div className="my-5">
   <div className="max-w-4xl mx-auto">
     {/* Grid de 3 colunas: espaço para seta esquerda | vídeos | espaço para seta direita */}
-    <div className="grid grid-cols-[20px_1fr_20px] sm:grid-cols-[24px_1fr_24px] items-center gap-1">
+    <div className="grid grid-cols-[16px_1fr_16px] sm:grid-cols-[24px_1fr_24px] items-center gap-0.5 sm:gap-1">
       
       {/* Coluna Esquerda: Seta Anterior (ou espaço vazio) */}
       <div className="flex justify-end">
