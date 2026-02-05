@@ -1281,7 +1281,7 @@ return matchesProblemCategory && matchesSearchText && matchesResultCategory && m
 
 {/* Video Carousel Section - Esteira Rolante */}
 <div className="my-5">
-  <div className="relative max-w-4xl mx-auto">
+  <div className="relative w-fit mx-auto">
     
     {/* Seta ESQUERDA - Absolute */}
     {carouselStartIndex > 0 && (
