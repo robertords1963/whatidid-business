@@ -81,7 +81,7 @@ export default function WhatIDid() {
   // Responsivo: 4 no desktop, 3 no tablet, 2 no mobile
   const getVideosPerPage = () => {
     if (typeof window === 'undefined') return 4;
-    if (window.innerWidth < 640) return 4; // Mobile - 4 vídeos
+    if (window.innerWidth < 640) return 3; // Mobile - 3 vídeos
     if (window.innerWidth < 768) return 4; // Tablet - 4 vídeos
     return 4; // Desktop - 4 vídeos
   };
@@ -918,13 +918,14 @@ const prevVideo = () => {
   // ==================== FUNÇÕES PARA GERENCIAR VÍDEOS PROMOCIONAIS ====================
   
   const loadPromotionalVideos = async () => {
-    // TEMPORÁRIO: Forçar 4 vídeos para teste no celular
+    // TEMPORÁRIO: Forçar 5 vídeos para teste das setas no celular
     // TODO: Remover depois que RLS for configurado
     setPromotionalVideos([
       { id: 1, url: 'https://vtnzsyrojybyfeenkave.supabase.co/storage/v1/object/public/promotional-videos/Video4-compressed.mp4', duration: '2:13', display_order: 1 },
       { id: 2, url: 'https://vtnzsyrojybyfeenkave.supabase.co/storage/v1/object/public/promotional-videos/Video1-compressed.mp4', duration: '0:44', display_order: 2 },
       { id: 3, url: 'https://vtnzsyrojybyfeenkave.supabase.co/storage/v1/object/public/promotional-videos/Video2-compressed.mp4', duration: '1:31', display_order: 3 },
-      { id: 4, url: 'https://vtnzsyrojybyfeenkave.supabase.co/storage/v1/object/public/promotional-videos/Video3-compressed.mp4', duration: '1:38', display_order: 4 }
+      { id: 4, url: 'https://vtnzsyrojybyfeenkave.supabase.co/storage/v1/object/public/promotional-videos/Video3-compressed.mp4', duration: '1:38', display_order: 4 },
+      { id: 5, url: 'https://vtnzsyrojybyfeenkave.supabase.co/storage/v1/object/public/promotional-videos/Video4-compressed.mp4', duration: '2:13', display_order: 5 }
     ]);
     return;
     
