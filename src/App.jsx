@@ -1283,7 +1283,7 @@ return matchesProblemCategory && matchesSearchText && matchesResultCategory && m
 <div className="my-5">
   <div className="max-w-4xl mx-auto">
     {/* Grid de 3 colunas: seta esquerda | vídeos centralizados | seta direita */}
-    <div className="grid grid-cols-[8px_1fr_8px] sm:grid-cols-[12px_1fr_12px] items-center gap-0">
+    <div className="grid grid-cols-[auto_1fr_auto] items-center gap-0">
       
       {/* Coluna Esquerda: Seta Anterior (ou espaço vazio) */}
       <div className="flex justify-end">
