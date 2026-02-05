@@ -81,9 +81,9 @@ export default function WhatIDid() {
   // Responsivo: 4 no desktop, 3 no tablet, 2 no mobile
   const getVideosPerPage = () => {
     if (typeof window === 'undefined') return 4;
-    if (window.innerWidth < 640) return 2; // Mobile
-    if (window.innerWidth < 768) return 3; // Tablet
-    return 4; // Desktop
+    if (window.innerWidth < 640) return 3; // Mobile - 3 vídeos
+    if (window.innerWidth < 768) return 3; // Tablet - 3 vídeos
+    return 4; // Desktop - 4 vídeos
   };
   
   const [videosPerPage, setVideosPerPage] = useState(getVideosPerPage());
