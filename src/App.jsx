@@ -1297,7 +1297,7 @@ return matchesProblemCategory && matchesSearchText && matchesResultCategory && m
     )}
     
     {/* Container dos vídeos - Centralizado */}
-    <div className="flex justify-center items-center gap-2 px-6">
+    <div className="flex justify-center items-center gap-2">
       {promotionalVideos
         .slice(carouselStartIndex, carouselStartIndex + videosPerPage)
         .map((video, displayIndex) => {
