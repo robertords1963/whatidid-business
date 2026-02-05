@@ -81,8 +81,8 @@ export default function WhatIDid() {
   // Responsivo: 4 no desktop, 3 no tablet, 2 no mobile
   const getVideosPerPage = () => {
     if (typeof window === 'undefined') return 4;
-    if (window.innerWidth < 640) return 3; // Mobile - 3 vídeos
-    if (window.innerWidth < 768) return 3; // Tablet - 3 vídeos
+    if (window.innerWidth < 640) return 4; // Mobile - 4 vídeos
+    if (window.innerWidth < 768) return 4; // Tablet - 4 vídeos
     return 4; // Desktop - 4 vídeos
   };
   
@@ -1364,15 +1364,6 @@ return matchesProblemCategory && matchesSearchText && matchesResultCategory && m
         )}
       </div>
     </div>
-    
-    {/* Indicador de posição */}
-    {promotionalVideos.length > videosPerPage && (
-      <div className="text-center mt-2">
-        <span className="text-xs text-gray-500">
-          {carouselStartIndex + 1}-{Math.min(carouselStartIndex + videosPerPage, promotionalVideos.length)} of {promotionalVideos.length}
-        </span>
-      </div>
-    )}
   </div>
 </div>
 
