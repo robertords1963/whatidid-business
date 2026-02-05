@@ -1288,19 +1288,19 @@ return matchesProblemCategory && matchesSearchText && matchesResultCategory && m
 {/* Video Carousel Section - Esteira Rolante */}
 <div className="my-5">
   <div className="max-w-4xl mx-auto">
-    {/* Grid de 3 colunas: espaço para botão esquerdo | vídeos | espaço para botão direito */}
-    <div className="grid grid-cols-[48px_1fr_48px] sm:grid-cols-[56px_1fr_56px] items-center gap-3">
+    {/* Grid de 3 colunas: espaço para seta esquerda | vídeos | espaço para seta direita */}
+    <div className="grid grid-cols-[20px_1fr_20px] sm:grid-cols-[24px_1fr_24px] items-center gap-1">
       
-      {/* Coluna Esquerda: Botão Anterior (ou espaço vazio) */}
+      {/* Coluna Esquerda: Seta Anterior (ou espaço vazio) */}
       <div className="flex justify-end">
         {carouselStartIndex > 0 && (
           <button
             onClick={() => setCarouselStartIndex(Math.max(0, carouselStartIndex - 1))}
-            className="w-10 h-10 sm:w-12 sm:h-12 bg-purple-600 hover:bg-purple-700 text-white rounded-full flex items-center justify-center transition-colors shadow-lg"
+            className="text-black hover:text-gray-600 transition-colors cursor-pointer"
             aria-label="Previous videos"
           >
-            <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
           </button>
         )}
@@ -1349,16 +1349,16 @@ return matchesProblemCategory && matchesSearchText && matchesResultCategory && m
         </div>
       </div>
 
-      {/* Coluna Direita: Botão Próximo (ou espaço vazio) */}
+      {/* Coluna Direita: Seta Próximo (ou espaço vazio) */}
       <div className="flex justify-start">
         {carouselStartIndex < promotionalVideos.length - videosPerPage && (
           <button
             onClick={() => setCarouselStartIndex(Math.min(promotionalVideos.length - videosPerPage, carouselStartIndex + 1))}
-            className="w-10 h-10 sm:w-12 sm:h-12 bg-purple-600 hover:bg-purple-700 text-white rounded-full flex items-center justify-center transition-colors shadow-lg"
+            className="text-black hover:text-gray-600 transition-colors cursor-pointer"
             aria-label="Next videos"
           >
-            <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
             </svg>
           </button>
         )}
