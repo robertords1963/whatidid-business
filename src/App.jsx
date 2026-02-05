@@ -1301,81 +1301,76 @@ return matchesProblemCategory && matchesSearchText && matchesResultCategory && m
 {/* Video Carousel Section - Esteira Rolante */}
 <div className="my-5">
   <div className="max-w-4xl mx-auto">
-    {/* Grid de 3 colunas: espaço para seta esquerda | vídeos | espaço para seta direita */}
-    <div className="grid grid-cols-[16px_1fr_16px] sm:grid-cols-[24px_1fr_24px] items-center gap-2">
+    {/* Flex único: setas e vídeos juntos, centralizados */}
+    <div className="flex justify-center items-center gap-2">
       
-      {/* Coluna Esquerda: Seta Anterior (ou espaço vazio) */}
-      <div className="flex justify-end">
-        {carouselStartIndex > 0 && (
-          <button
-            onClick={() => setCarouselStartIndex(Math.max(0, carouselStartIndex - 1))}
-            className="text-black hover:text-gray-600 transition-colors cursor-pointer"
-            aria-label="Previous videos"
-          >
-            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-        )}
-      </div>
+      {/* Seta Anterior */}
+      {carouselStartIndex > 0 && (
+        <button
+          onClick={() => setCarouselStartIndex(Math.max(0, carouselStartIndex - 1))}
+          className="text-black hover:text-gray-600 transition-colors cursor-pointer flex-shrink-0"
+          aria-label="Previous videos"
+        >
+          <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+      )}
 
-      {/* Coluna Central: Container dos vídeos (sempre centralizado) */}
-      <div className="overflow-hidden">
-        <div className="flex justify-center items-center gap-2">
-          {promotionalVideos
-            .slice(carouselStartIndex, carouselStartIndex + videosPerPage)
-            .map((video, displayIndex) => {
-              const actualIndex = carouselStartIndex + displayIndex;
-              return (
-                <div 
-                  key={video.id}
-                  onClick={() => openVideoModal(actualIndex)}
-                  className="relative w-16 h-11 sm:w-20 sm:h-14 rounded-md overflow-hidden cursor-pointer group shadow-md hover:shadow-lg transition-all transform hover:scale-105 flex-shrink-0"
+      {/* Container dos vídeos */}
+      <div className="flex items-center gap-2">
+        {promotionalVideos
+          .slice(carouselStartIndex, carouselStartIndex + videosPerPage)
+          .map((video, displayIndex) => {
+            const actualIndex = carouselStartIndex + displayIndex;
+            return (
+              <div 
+                key={video.id}
+                onClick={() => openVideoModal(actualIndex)}
+                className="relative w-16 h-11 sm:w-20 sm:h-14 rounded-md overflow-hidden cursor-pointer group shadow-md hover:shadow-lg transition-all transform hover:scale-105 flex-shrink-0"
+              >
+                {/* Thumbnail - primeiro frame do vídeo */}
+                <video 
+                  className="w-full h-full object-cover"
+                  preload="metadata"
                 >
-                  {/* Thumbnail - primeiro frame do vídeo */}
-                  <video 
-                    className="w-full h-full object-cover"
-                    preload="metadata"
-                  >
-                    <source src={`${video.url}#t=0.1`} type="video/mp4" />
-                  </video>
-                  
-                  {/* Overlay escuro */}
-                  <div className="absolute inset-0 bg-black bg-opacity-30 group-hover:bg-opacity-40 transition-all"></div>
-                  
-                  {/* Ícone Play centralizado - Menor no mobile */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-5 h-5 sm:w-6 sm:h-6 bg-white bg-opacity-90 rounded-full flex items-center justify-center group-hover:bg-opacity-100 transition-all group-hover:scale-110">
-                      <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-purple-600 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M8 5v14l11-7z"/>
-                      </svg>
-                    </div>
-                  </div>
-                  
-                  {/* Duração do vídeo - canto inferior direito - 40% menor */}
-                  <div className="absolute bottom-1 right-1 bg-black bg-opacity-75 text-white text-[5.5px] sm:text-[6px] px-1 py-0.5 rounded leading-none">
-                    {video.duration}
+                  <source src={`${video.url}#t=0.1`} type="video/mp4" />
+                </video>
+                
+                {/* Overlay escuro */}
+                <div className="absolute inset-0 bg-black bg-opacity-30 group-hover:bg-opacity-40 transition-all"></div>
+                
+                {/* Ícone Play centralizado - Menor no mobile */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-5 h-5 sm:w-6 sm:h-6 bg-white bg-opacity-90 rounded-full flex items-center justify-center group-hover:bg-opacity-100 transition-all group-hover:scale-110">
+                    <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-purple-600 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z"/>
+                    </svg>
                   </div>
                 </div>
-              );
-            })}
-        </div>
+                
+                {/* Duração do vídeo - canto inferior direito - 40% menor */}
+                <div className="absolute bottom-1 right-1 bg-black bg-opacity-75 text-white text-[5.5px] sm:text-[6px] px-1 py-0.5 rounded leading-none">
+                  {video.duration}
+                </div>
+              </div>
+            );
+          })}
       </div>
 
-      {/* Coluna Direita: Seta Próximo (ou espaço vazio) */}
-      <div className="flex justify-start">
-        {carouselStartIndex < promotionalVideos.length - videosPerPage && (
-          <button
-            onClick={() => setCarouselStartIndex(Math.min(promotionalVideos.length - videosPerPage, carouselStartIndex + 1))}
-            className="text-black hover:text-gray-600 transition-colors cursor-pointer"
-            aria-label="Next videos"
-          >
-            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-        )}
-      </div>
+      {/* Seta Próximo */}
+      {carouselStartIndex < promotionalVideos.length - videosPerPage && (
+        <button
+          onClick={() => setCarouselStartIndex(Math.min(promotionalVideos.length - videosPerPage, carouselStartIndex + 1))}
+          className="text-black hover:text-gray-600 transition-colors cursor-pointer flex-shrink-0"
+          aria-label="Next videos"
+        >
+          <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      )}
+      
     </div>
   </div>
 </div>
