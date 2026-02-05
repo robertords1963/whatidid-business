@@ -3812,7 +3812,7 @@ onClick={() => {
             
             <button
               onClick={(e) => {
-                e.stopPropagation();
+                e.stopPropagation(); 
                 nextVideo();
               }}
               className="flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm md:text-base shadow-lg"
