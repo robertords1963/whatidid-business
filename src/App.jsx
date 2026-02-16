@@ -213,22 +213,27 @@ const loadExperiences = async (skipLoading = false) => {
   }
 };
 
-  const loadTopExperiences = async () => {
-  try {
-    const { data, error } = await supabase
-      .from('experiences')
-      .select('*')
-      .eq('author', 'COMMON CASES')
-      .order('random_order', { ascending: true });
-    
-    if (error) throw error;
-    
-    setTopExperiences(data || []);
-  } catch (error) {
-    console.error('Error loading top experiences:', error);
-    setTopExperiences([]);
-  }
-};
+const loadTopExperiences = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('top_experiences')
+        .select('position, experience_id');
+      
+      if (error) throw error;
+      
+      const topExp = { 1: null, 2: null, 3: null };
+      if (data) {
+        data.forEach(item => {
+          if (item.experience_id) {
+            topExp[item.position] = item.experience_id;
+          }
+        });
+      }
+      setTopExperiences(topExp);
+    } catch (error) {
+      console.error('Error loading top experiences:', error);
+    }
+  };
 
   const setTopExperience = async (position, experienceId) => {
     try {
