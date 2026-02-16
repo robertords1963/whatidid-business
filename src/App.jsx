@@ -214,26 +214,21 @@ const loadExperiences = async (skipLoading = false) => {
 };
 
   const loadTopExperiences = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('top_experiences')
-        .select('position, experience_id');
-      
-      if (error) throw error;
-      
-      const topExp = { 1: null, 2: null, 3: null };
-      if (data) {
-        data.forEach(item => {
-          if (item.experience_id) {
-            topExp[item.position] = item.experience_id;
-          }
-        });
-      }
-      setTopExperiences(topExp);
-    } catch (error) {
-      console.error('Error loading top experiences:', error);
-    }
-  };
+  try {
+    const { data, error } = await supabase
+      .from('experiences')
+      .select('*')
+      .eq('author', 'COMMON CASES')
+      .order('random_order', { ascending: true });
+    
+    if (error) throw error;
+    
+    setTopExperiences(data || []);
+  } catch (error) {
+    console.error('Error loading top experiences:', error);
+    setTopExperiences([]);
+  }
+};
 
   const setTopExperience = async (position, experienceId) => {
     try {
@@ -457,7 +452,17 @@ const tryScroll = setInterval(() => {
     comment: 500
   };
 
-  const problemCategories = ['Health', 'Work', 'Relationship', 'Family', 'Finance', 'Education', 'Well-Being / Lifestyle', 'Entertainment / Creativity', 'Travel / Adventure', 'Technology / Others', 'Home', 'Shopping'];
+  const problemCategories = [
+  'Project Execution',
+  'Process & Operations',
+  'Technology & Systems',
+  'Commercial Execution',
+  'Risk & Controls',
+  'Strategy Execution',
+  'Leadership & Governance',
+  'Customer Experience & Delivery',
+  'Other'
+];
   const genderOptions = ['Male', 'Female', 'Other'];
   const ageOptions = ['0-20', '21-40', '41-60', '61-Up'];
   const countryOptions = [
