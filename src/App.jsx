@@ -3233,44 +3233,7 @@ onClick={() => {
   </div>
 
     {/* ⭐ NOVO: Badge Industry Sector */}
-  {exp.industrySector && (
-    <div className="mb-3">
-      <span className="inline-flex items-center gap-1 text-xs bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full">
-        <Briefcase size={12} />
-        {exp.industrySector}
-      </span>
-    </div>
-  )}                  
-
-  {exp.relatedCommonCaseId && exp.source === 'app' && (
-    <div className="mb-3">
-      <button
-        onClick={() => navigateToKeyInsight(exp.relatedCommonCaseId)}
-        className="inline-flex items-center gap-1 text-xs bg-purple-100 text-purple-800 px-3 py-1 rounded-full border-2 border-purple-300 hover:bg-purple-200 transition-colors cursor-pointer"
-      >
-        <Target size={12} />
-        🎯 Common Case: {getCommonCaseName(exp.relatedCommonCaseId).substring(0, 30)}... →
-      </button>
-    </div>
-  )}
-
-  {(() => {
-    const mappedCount = experiences.filter(e => e.source === 'app' && e.relatedCommonCaseId === exp.id).length;
-    if (mappedCount > 0) {
-      return (
-        <div className="mb-3">
-          <button
-            onClick={() => showMappedExperiences(exp.id)}
-            className="inline-flex items-center gap-1 text-xs bg-green-100 text-green-800 px-3 py-1 rounded-full border-2 border-green-300 hover:bg-green-200 transition-colors cursor-pointer"
-          >
-            <Users size={12} />
-            👥 {mappedCount} real {mappedCount === 1 ? 'example' : 'examples'} →
-          </button>
-        </div>
-      );
-    }
-    return null;
-  })()}
+  
                     
   {/* Linhas 2-4: Ratings à direita */}
   <div className="flex justify-end">
@@ -3359,6 +3322,44 @@ onClick={() => {
 </p>
 </div>
 </div>
+
+                  {/* Badges - Agora embaixo do grid */}
+                  <div className="mb-4 flex flex-wrap gap-2">
+                    {exp.industrySector && (
+                      <span className="inline-flex items-center gap-1 text-xs bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full">
+                        <Briefcase size={12} />
+                        {exp.industrySector}
+                      </span>
+                    )}
+                    
+                    {exp.relatedCommonCaseId && exp.source === 'app' && (
+                      <button
+                        onClick={() => navigateToKeyInsight(exp.relatedCommonCaseId)}
+                        className="inline-flex items-center gap-1 text-xs bg-purple-100 text-purple-800 px-3 py-1 rounded-full border-2 border-purple-300 hover:bg-purple-200 transition-colors cursor-pointer"
+                      >
+                        <Target size={12} />
+                        🎯 Matching Common Case: {getCommonCaseName(exp.relatedCommonCaseId).substring(0, 25)}... →
+                      </button>
+                    )}
+                    
+                    {(() => {
+                      const mappedCount = experiences.filter(e => e.source === 'app' && e.relatedCommonCaseId === exp.id).length;
+                      if (mappedCount > 0) {
+                        return (
+                          <button
+                            onClick={() => showMappedExperiences(exp.id)}
+                            className="inline-flex items-center gap-1 text-xs bg-green-100 text-green-800 px-3 py-1 rounded-full border-2 border-green-300 hover:bg-green-200 transition-colors cursor-pointer"
+                          >
+                            <Users size={12} />
+                            👥 {mappedCount} Matching {mappedCount === 1 ? 'Experience' : 'Experiences'} →
+                          </button>
+                        );
+                      }
+                      return null;
+                    })()}
+                  </div>
+
+                  
                   {isAdmin && (() => {
                     const confirmKey = `exp-${exp.id}`;
                     const isConfirming = confirmDelete === confirmKey;
