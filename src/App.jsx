@@ -312,9 +312,9 @@ const loadTopExperiences = async () => {
     let bestScore = 0;
     
     keyInsights.forEach(insight => {
-      const insightKeywords = insight.solution.toLowerCase()
-        .split(' ')
-        .filter(word => word.length > 4);
+    const insightKeywords = `${insight.problem} ${insight.solution}`.toLowerCase()
+      .split(' ')
+      .filter(word => word.length > 4);
       
       let score = 0;
       insightKeywords.forEach(keyword => {
