@@ -2884,7 +2884,7 @@ onClick={() => {
             {filterMode === 'individual' && (
               <>
                 {/* Filtros principais */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-2">Category</label>
                     <select
@@ -2896,6 +2896,25 @@ onClick={() => {
                       {problemCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
                     </select>
                   </div>
+
+                  {/* ⭐ NOVO: Industry Sector Filter */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-2">
+                      <Briefcase className="inline mr-1" size={14} />
+                      Industry Sector
+                    </label>
+                    <select
+                      value={filters.industrySector}
+                      onChange={(e) => setFilters({...filters, industrySector: e.target.value})}
+                      className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                    >
+                      <option value="">All Sectors</option>
+                      {industrySectors.map(sector => (
+                        <option key={sector} value={sector}>{sector}</option>
+                      ))}
+                    </select>
+                  </div>
+                  
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-2">Result</label>
                     <select
