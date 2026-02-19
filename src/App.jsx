@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Share2, TrendingUp, AlertCircle, Star, MessageCircle, Send, Shield, Trash2, Search, Users, Target } from 'lucide-react';
+import { Share2, TrendingUp, AlertCircle, Star, MessageCircle, Send, Shield, Trash2, Search, Users, Target, Briefcase } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js'; 
 
 const supabaseUrl = 'https://scurkpoasiulwkmmechz.supabase.co';
@@ -60,6 +60,15 @@ const marqueeStyles = `
       background-color: transparent !important;
     }
   }
+  /* ⭐ ADICIONAR AQUI - Highlight flash animation */
+  @keyframes highlight-flash {
+    0%, 100% { background-color: transparent; }
+    50% { background-color: rgba(147, 51, 234, 0.1); }
+  }
+  .highlight-flash {
+    animation: highlight-flash 2s ease-in-out;
+    border: 2px solid #9333ea !important;
+  }
 `;
 
 export default function WhatIDid() {
@@ -77,6 +86,11 @@ export default function WhatIDid() {
   const [videoModalOpen, setVideoModalOpen] = useState(false);
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [carouselStartIndex, setCarouselStartIndex] = useState(0);
+  // NOVOS ESTADOS: Mapeamento e Navegação
+  const [showMappingModal, setShowMappingModal] = useState(false);
+  const [suggestedMapping, setSuggestedMapping] = useState(null);
+  const [pendingExperience, setPendingExperience] = useState(null);
+  const [mappedFilter, setMappedFilter] = useState(null);
   
   // Responsivo: 4 no desktop, 3 no tablet, 2 no mobile
   const getVideosPerPage = () => {
