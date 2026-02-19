@@ -3332,6 +3332,10 @@ onClick={() => {
                       </span>
                     )}
                     
+                    
+                  </div>
+{/* Badges bi-direcionais - Movidos para baixo */}
+                  <div className="mb-4 flex flex-wrap gap-2">
                     {exp.relatedCommonCaseId && exp.source === 'app' && (
                       <button
                         onClick={() => navigateToKeyInsight(exp.relatedCommonCaseId)}
