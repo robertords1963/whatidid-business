@@ -3010,7 +3010,7 @@ onClick={() => {
 </div>
                   {(filters.problemCategory || filters.searchText || filters.resultCategory || filters.rating || filters.gender || filters.age || filters.country) && (
                     <button
-                      onClick={() => setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '' })}
+                      onClick={() => setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '', industrySector: '' })}
                       className="text-sm text-purple-600 hover:text-purple-800 font-medium"
                     >
                       Clear filters
