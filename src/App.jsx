@@ -300,45 +300,60 @@ const loadTopExperiences = async () => {
 
 // FUNÇÃO 1: Auto-matching
   const findBestCommonCaseMatch = (userExperience) => {
-    const userText = `${userExperience.problem} ${userExperience.solution} ${userExperience.result}`.toLowerCase();
-    
-    const keyInsights = experiences.filter(
-      exp => exp.author === 'key_insights' && exp.problemCategory === userExperience.problemCategory
-    );
-    
-    if (keyInsights.length === 0) return null;
-    
-    let bestMatch = null;
-    let bestScore = 0;
-    
-    keyInsights.forEach(insight => {
+  const userText = `${userExperience.problem} ${userExperience.solution} ${userExperience.result}`.toLowerCase();
+  
+  console.log('🔍 USER TEXT:', userText);
+  
+  const keyInsights = experiences.filter(
+    exp => exp.author === 'key_insights' && exp.problemCategory === userExperience.problemCategory
+  );
+  
+  console.log('🎯 KEY INSIGHTS FOUND:', keyInsights.length);
+  
+  if (keyInsights.length === 0) return null;
+  
+  let bestMatch = null;
+  let bestScore = 0;
+  
+  keyInsights.forEach(insight => {
     const insightKeywords = `${insight.problem} ${insight.solution}`.toLowerCase()
       .split(' ')
       .filter(word => word.length > 4);
-      
-      let score = 0;
-      insightKeywords.forEach(keyword => {
-        if (userText.includes(keyword)) {
-          score += 1;
-        }
-      });
-      
-      const normalizedScore = insightKeywords.length > 0 
-        ? (score / insightKeywords.length) * 100 
-        : 0;
-      
-      if (normalizedScore > bestScore) {
-        bestScore = normalizedScore;
-        bestMatch = insight;
+    
+    console.log('📝 INSIGHT:', insight.problem.substring(0, 50));
+    console.log('🔑 KEYWORDS:', insightKeywords);
+    
+    let score = 0;
+    insightKeywords.forEach(keyword => {
+      if (userText.includes(keyword)) {
+        score += 1;
+        console.log('✅ MATCH:', keyword);
       }
     });
     
-    if (bestScore >= 70) {
-      return { match: bestMatch, confidence: Math.round(bestScore) };
-    }
+    const normalizedScore = insightKeywords.length > 0 
+      ? (score / insightKeywords.length) * 100 
+      : 0;
     
-    return null;
-  };
+    console.log('📊 SCORE:', normalizedScore.toFixed(1) + '%', `(${score}/${insightKeywords.length})`);
+    
+    if (normalizedScore > bestScore) {
+      bestScore = normalizedScore;
+      bestMatch = insight;
+    }
+  });
+  
+  console.log('🏆 BEST SCORE:', bestScore.toFixed(1) + '%');
+  console.log('🚪 THRESHOLD: 70%');
+  
+  if (bestScore >= 70) {
+    console.log('✅ MODAL SHOULD APPEAR!');
+    return { match: bestMatch, confidence: Math.round(bestScore) };
+  }
+  
+  console.log('❌ SCORE TOO LOW, NO MODAL');
+  return null;
+};
 
   // FUNÇÃO 2: Reset form
   const resetForm = () => {
