@@ -182,6 +182,8 @@ const loadExperiences = async (skipLoading = false) => {
       solution: exp.solution,
       result: exp.result,
       resultCategory: exp.result_category,
+      industrySector: exp.industry_sector || '', // ⭐ ADICIONAR
+      relatedCommonCaseId: exp.related_common_case_id || null, // ⭐ ADICIONAR
       author: exp.author || '',
       gender: exp.gender || '',
       age: exp.age || '',
@@ -294,7 +296,154 @@ const loadTopExperiences = async () => {
     }
   };
 
-  const addExperienceToSupabase = async (newExperience) => {
+// FUNÇÃO 1: Auto-matching
+  const findBestCommonCaseMatch = (userExperience) => {
+    const userText = `${userExperience.problem} ${userExperience.solution} ${userExperience.result}`.toLowerCase();
+    
+    const keyInsights = experiences.filter(
+      exp => exp.author === 'key_insights' && exp.problemCategory === userExperience.problemCategory
+    );
+    
+    if (keyInsights.length === 0) return null;
+    
+    let bestMatch = null;
+    let bestScore = 0;
+    
+    keyInsights.forEach(insight => {
+      const insightKeywords = insight.solution.toLowerCase()
+        .split(' ')
+        .filter(word => word.length > 4);
+      
+      let score = 0;
+      insightKeywords.forEach(keyword => {
+        if (userText.includes(keyword)) {
+          score += 1;
+        }
+      });
+      
+      const normalizedScore = insightKeywords.length > 0 
+        ? (score / insightKeywords.length) * 100 
+        : 0;
+      
+      if (normalizedScore > bestScore) {
+        bestScore = normalizedScore;
+        bestMatch = insight;
+      }
+    });
+    
+    if (bestScore >= 70) {
+      return { match: bestMatch, confidence: Math.round(bestScore) };
+    }
+    
+    return null;
+  };
+
+  // FUNÇÃO 2: Reset form
+  const resetForm = () => {
+    setCurrentEntry({
+      problem: '',
+      problemCategory: '',
+      solution: '',
+      result: '',
+      resultCategory: '',
+      industrySector: '',
+      author: '',
+      gender: '',
+      age: '',
+      country: userCountryName || ''
+    });
+    
+    setCurrentPage(1);
+    
+    setTimeout(() => {
+      const firstExp = document.getElementById('first-experience');
+      if (firstExp) {
+        const yOffset = -100;
+        const y = firstExp.getBoundingClientRect().top + window.pageYOffset + yOffset;
+        window.scrollTo({ top: y, behavior: 'smooth' });
+      }
+    }, 500);
+  };
+
+  // FUNÇÃO 3: Confirmar mapeamento
+  const confirmMapping = async (accepted) => {
+    setShowMappingModal(false);
+    
+    const relatedId = accepted ? suggestedMapping.match.id : null;
+    const success = await addExperienceToSupabase(pendingExperience, relatedId);
+    
+    if (success) {
+      resetForm();
+    }
+    
+    setSuggestedMapping(null);
+    setPendingExperience(null);
+  };
+
+  // FUNÇÃO 4: Navegar Pro → Key Insight
+  const navigateToKeyInsight = (commonCaseId) => {
+    setFilterMode('key_insights');
+    setShowKeyInsights(false);
+    setKeyInsightCategory('');
+    setFilters({
+      problemCategory: '',
+      searchText: '',
+      resultCategory: '',
+      rating: '',
+      gender: '',
+      age: '',
+      country: '',
+      industrySector: ''
+    });
+    setMappedFilter(null);
+    setCurrentPage(1);
+    
+    setTimeout(() => {
+      const expElement = document.getElementById(`exp-${commonCaseId}`);
+      if (expElement) {
+        const yOffset = -100;
+        const y = expElement.getBoundingClientRect().top + window.pageYOffset + yOffset;
+        window.scrollTo({ top: y, behavior: 'smooth' });
+        
+        expElement.classList.add('highlight-flash');
+        setTimeout(() => expElement.classList.remove('highlight-flash'), 2000);
+      }
+    }, 500);
+  };
+
+  // FUNÇÃO 5: Navegar Key Insight → Pro
+  const showMappedExperiences = (commonCaseId) => {
+    setFilterMode('individual');
+    setFilters({
+      problemCategory: '',
+      searchText: '',
+      resultCategory: '',
+      rating: '',
+      gender: '',
+      age: '',
+      country: '',
+      industrySector: ''
+    });
+    setMappedFilter(commonCaseId);
+    setCurrentPage(1);
+    
+    setTimeout(() => {
+      const experiencesSection = document.getElementById('experiences-section');
+      if (experiencesSection) {
+        const yOffset = -100;
+        const y = experiencesSection.getBoundingClientRect().top + window.pageYOffset + yOffset;
+        window.scrollTo({ top: y, behavior: 'smooth' });
+      }
+    }, 300);
+  };
+
+  // FUNÇÃO 6: Get Common Case Name
+  const getCommonCaseName = (commonCaseId) => {
+    const commonCase = experiences.find(e => e.id === commonCaseId);
+    return commonCase ? commonCase.solution.substring(0, 60) + '...' : 'Common Pattern';
+  };
+  
+  const addExperienceToSupabase = async (newExperience, relatedCommonCaseId = null) => {
     try {
       const { data, error } = await supabase
         .from('experiences')
@@ -304,6 +453,8 @@ const loadTopExperiences = async () => {
           solution: newExperience.solution,
           result: newExperience.result,
           result_category: newExperience.resultCategory,
+          industry_sector: newExperience.industrySector || '', // ⭐ ADICIONAR
+          related_common_case_id: relatedCommonCaseId, // ⭐ ADICIONAR
           author: newExperience.author || '',
           gender: newExperience.gender || '',
           age: newExperience.age || '',
@@ -545,33 +696,19 @@ const industrySectors = [
   const handleSubmit = async () => {
   if (currentEntry.problem && currentEntry.problemCategory && 
       currentEntry.solution && currentEntry.result && currentEntry.resultCategory) {
-    const success = await addExperienceToSupabase(currentEntry);
     
-    if (success) {
-      setCurrentEntry({
-        problem: '',
-        problemCategory: '',
-        solution: '',
-        result: '',
-        resultCategory: '',
-        author: '',
-        gender: '',
-        age: '',
-        country: userCountryName || ''
-      });
+    const matchResult = findBestCommonCaseMatch(currentEntry);
+    
+    if (matchResult) {
+      setSuggestedMapping(matchResult);
+      setPendingExperience(currentEntry);
+      setShowMappingModal(true);
+    } else {
+      const success = await addExperienceToSupabase(currentEntry, null);
       
-      // Voltar para página 1
-      setCurrentPage(1);
-      
-      // Aguardar reload e scrollar para primeira experiência
-      setTimeout(() => {
-        const firstExp = document.getElementById('first-experience');
-        if (firstExp) {
-          const yOffset = -100;
-          const y = firstExp.getBoundingClientRect().top + window.pageYOffset + yOffset;
-          window.scrollTo({ top: y, behavior: 'smooth' });
-        }
-      }, 500);
+      if (success) {
+        resetForm();
+      }
     }
   }
 };
@@ -1229,6 +1366,11 @@ const prevVideo = () => {
 };
 
 const filteredExperiences = experiences.filter(exp => {
+  // NOVO: Filtro por Common Case mapeado
+  if (mappedFilter) {
+    return exp.source === 'app' && exp.relatedCommonCaseId === mappedFilter;
+  }
+
   // Se está na tab Key Insights
   if (filterMode === 'key_insights') {
     // Se selecionou categoria específica, filtrar por ela
@@ -1260,11 +1402,13 @@ const filteredExperiences = experiences.filter(exp => {
   const matchesGender = !filters.gender || exp.gender === filters.gender;
   const matchesAge = !filters.age || exp.age === filters.age;
   const matchesCountry = !filters.country || exp.country === filters.country;
+  const matchesIndustrySector = !filters.industrySector || exp.industrySector === filters.industrySector; // ⭐ ADICIONAR
   // Sempre mostrar experiências avaliadas/comentadas na sessão, mesmo que não atendam o filtro
 const wasInteractedInSession = ratedInSession.has(exp.id);
 if (wasInteractedInSession) return true;
 
-return matchesProblemCategory && matchesSearchText && matchesResultCategory && matchesRating && matchesGender && matchesAge && matchesCountry;
+
+return matchesProblemCategory && matchesSearchText && matchesResultCategory && matchesRating && matchesGender && matchesAge && matchesCountry && matchesIndustrySector;
 });
   // Reset to page 1 when filters change
   useEffect(() => {
