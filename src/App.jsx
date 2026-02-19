@@ -300,16 +300,17 @@ const loadTopExperiences = async () => {
 
 // FUNÇÃO 1: Auto-matching
   const findBestCommonCaseMatch = (userExperience) => {
-  const userText = `${userExperience.problem} ${userExperience.solution} ${userExperience.result}`.toLowerCase();
+  // MUDANÇA: Só pegar palavras do PROBLEM do usuário
+  const userProblemText = userExperience.problem.toLowerCase();
   
-  console.log('🔍 USER TEXT:', userText);
+  console.log('🔍 USER PROBLEM:', userProblemText);
   
-  // Extrair palavras ÚNICAS do texto do USUÁRIO (>4 letras)
+  // Extrair palavras ÚNICAS do PROBLEM do usuário (>4 letras)
   const userKeywords = [...new Set(
-    userText.split(' ').filter(word => word.length > 4)
+    userProblemText.split(' ').filter(word => word.length > 4)
   )];
   
-  console.log('🔑 USER KEYWORDS:', userKeywords.length, userKeywords);
+  console.log('🔑 PROBLEM KEYWORDS:', userKeywords.length, userKeywords);
   
   const keyInsights = experiences.filter(
     exp => exp.author === 'key_insights' && exp.problemCategory === userExperience.problemCategory
@@ -336,7 +337,7 @@ const loadTopExperiences = async () => {
       }
     });
     
-    // Score = quantas palavras DO USUÁRIO aparecem no Key Insight
+    // Score = quantas palavras DO PROBLEM do usuário aparecem no Key Insight
     const normalizedScore = (score / userKeywords.length) * 100;
     
     console.log('📊 SCORE:', normalizedScore.toFixed(1) + '%', `(${score}/${userKeywords.length})`);
