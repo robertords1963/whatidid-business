@@ -2846,7 +2846,7 @@ onClick={() => {
     setFilterMode('individual');
     setShowKeyInsights(false);
     setKeyInsightCategory('');
-    setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '' });
+    setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '', industrySector: '' });
   }}
   className={`flex flex-col items-center justify-center px-4 py-3 rounded-t-lg font-medium transition-all ${
     filterMode === 'individual'
@@ -2865,7 +2865,7 @@ onClick={() => {
     setFilterMode('key_insights');
     setShowKeyInsights(false);
     setKeyInsightCategory('');
-    setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '' });
+    setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '', industrySector: '' });
   }}
   className={`flex flex-col items-center justify-center px-4 py-3 rounded-t-lg font-medium transition-all ${
     filterMode === 'key_insights'
