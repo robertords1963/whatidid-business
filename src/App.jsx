@@ -2555,7 +2555,7 @@ onClick={() => {
                   <option key={cat} value={cat}>{cat}</option>
                 ))}
               </select>
-              </select>
+             
               
               <div className="mt-3">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
