@@ -408,12 +408,13 @@ const tryScroll = setInterval(() => {
   }
 };
 
-  const [currentEntry, setCurrentEntry] = useState({
+const [currentEntry, setCurrentEntry] = useState({
     problem: '',
     problemCategory: '',
     solution: '',
     result: '',
     resultCategory: '',
+    industrySector: '', // ⭐ ADICIONAR ESTA LINHA
     author: '',
     gender: '',
     age: '',
@@ -428,6 +429,7 @@ const tryScroll = setInterval(() => {
     gender: '',
     age: '',
     country: ''
+    industrySector: ''
   });
 
   const [showKeyInsights, setShowKeyInsights] = useState(false);
@@ -482,6 +484,19 @@ const tryScroll = setInterval(() => {
   'Customer Experience & Delivery',
   'Other'
 ];
+
+const industrySectors = [
+    'Technology & Digital',
+    'Financial Services',
+    'Industrial & Manufacturing',
+    'Retail & Consumer',
+    'Healthcare & Life Sciences',
+    'Energy & Infrastructure',
+    'Professional Services',
+    'Public Sector / Non-Profit',
+    'Others'
+  ];
+
   const genderOptions = ['Male', 'Female', 'Other'];
   const ageOptions = ['0-20', '21-40', '41-60', '61-Up'];
   const countryOptions = [
