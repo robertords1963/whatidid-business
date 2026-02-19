@@ -3167,6 +3167,30 @@ onClick={() => {
           ) : (
             <div className="space-y-4" id="first-experience">
             {/* REST OF THE EXPERIENCES RENDERING CODE - CONTINUES IN NEXT MESSAGE DUE TO LENGTH */}
+
+{/* ⭐ NOVO: Banner quando filtrando por Common Case */}
+            {mappedFilter && (
+              <div className="bg-purple-50 border-2 border-purple-300 rounded-lg p-4 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-start gap-3 flex-1">
+                  <Target className="text-purple-600 flex-shrink-0 mt-1" size={20} />
+                  <div>
+                    <p className="font-semibold text-purple-900">
+                      Showing {filteredExperiences.length} {filteredExperiences.length === 1 ? 'experience' : 'experiences'} mapped to:
+                    </p>
+                    <p className="text-sm text-purple-700 mt-1">
+                      {getCommonCaseName(mappedFilter)}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setMappedFilter(null)}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm font-semibold transition-colors whitespace-nowrap"
+                >
+                  Clear Filter
+                </button>
+              </div>
+            )}
+              
             {currentExperiences.map(exp => (
               <div key={exp.id}>
                 <div id={`exp-${exp.id}`} className="bg-white rounded-2xl shadow-lg p-6">
