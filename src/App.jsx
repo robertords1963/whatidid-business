@@ -3214,7 +3214,19 @@ onClick={() => {
       </span>
     </div>
   )}                  
-  
+
+  {exp.relatedCommonCaseId && exp.source === 'app' && (
+    <div className="mb-3">
+      <button
+        onClick={() => navigateToKeyInsight(exp.relatedCommonCaseId)}
+        className="inline-flex items-center gap-1 text-xs bg-purple-100 text-purple-800 px-3 py-1 rounded-full border-2 border-purple-300 hover:bg-purple-200 transition-colors cursor-pointer"
+      >
+        <Target size={12} />
+        🎯 Common Pattern: {getCommonCaseName(exp.relatedCommonCaseId).substring(0, 30)}... →
+      </button>
+    </div>
+  )}
+                    
   {/* Linhas 2-4: Ratings à direita */}
   <div className="flex justify-end">
     <div className="flex flex-col items-end gap-3">
