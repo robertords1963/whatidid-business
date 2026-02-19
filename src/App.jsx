@@ -304,6 +304,13 @@ const loadTopExperiences = async () => {
   
   console.log('🔍 USER TEXT:', userText);
   
+  // Extrair palavras ÚNICAS do texto do USUÁRIO (>4 letras)
+  const userKeywords = [...new Set(
+    userText.split(' ').filter(word => word.length > 4)
+  )];
+  
+  console.log('🔑 USER KEYWORDS:', userKeywords.length, userKeywords);
+  
   const keyInsights = experiences.filter(
     exp => exp.author === 'key_insights' && exp.problemCategory === userExperience.problemCategory
   );
@@ -311,31 +318,28 @@ const loadTopExperiences = async () => {
   console.log('🎯 KEY INSIGHTS FOUND:', keyInsights.length);
   
   if (keyInsights.length === 0) return null;
+  if (userKeywords.length === 0) return null;
   
   let bestMatch = null;
   let bestScore = 0;
   
   keyInsights.forEach(insight => {
-    const insightKeywords = `${insight.problem} ${insight.solution}`.toLowerCase()
-      .split(' ')
-      .filter(word => word.length > 4);
+    const insightText = `${insight.problem} ${insight.solution}`.toLowerCase();
     
     console.log('📝 INSIGHT:', insight.problem.substring(0, 50));
-    console.log('🔑 KEYWORDS:', insightKeywords);
     
     let score = 0;
-    insightKeywords.forEach(keyword => {
-      if (userText.includes(keyword)) {
+    userKeywords.forEach(keyword => {
+      if (insightText.includes(keyword)) {
         score += 1;
         console.log('✅ MATCH:', keyword);
       }
     });
     
-    const normalizedScore = insightKeywords.length > 0 
-      ? (score / insightKeywords.length) * 100 
-      : 0;
+    // Score = quantas palavras DO USUÁRIO aparecem no Key Insight
+    const normalizedScore = (score / userKeywords.length) * 100;
     
-    console.log('📊 SCORE:', normalizedScore.toFixed(1) + '%', `(${score}/${insightKeywords.length})`);
+    console.log('📊 SCORE:', normalizedScore.toFixed(1) + '%', `(${score}/${userKeywords.length})`);
     
     if (normalizedScore > bestScore) {
       bestScore = normalizedScore;
