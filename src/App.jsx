@@ -4016,9 +4016,9 @@ onClick={() => {
         🎯 We found {suggestedMapping.length} matching Common {suggestedMapping.length === 1 ? 'Case' : 'Cases'}!
       </h3>
       
-      <p className="text-sm text-gray-600 mb-6">
-        Your problem matches these common cases. Select which one(s) best describe your situation:
-      </p>
+<p className="text-sm text-gray-600 mb-6">
+  Your problem matches these common cases. Select the ONE that best describes your situation:
+</p>
       
       <div className="space-y-3 mb-6">
         {suggestedMapping.map((item, index) => (
@@ -4026,11 +4026,12 @@ onClick={() => {
             key={item.match.id}
             className="flex items-start gap-3 p-4 bg-purple-50 rounded-lg border-2 border-purple-200 hover:border-purple-400 cursor-pointer transition-all"
           >
-            <input
-              type="checkbox"
-              id={`match-${item.match.id}`}
-              className="mt-1 w-5 h-5 text-purple-600 rounded focus:ring-purple-500"
-            />
+<input
+  type="radio"
+  name="commonCaseSelection"
+  id={`match-${item.match.id}`}
+  className="mt-1 w-5 h-5 text-purple-600 focus:ring-purple-500"
+/>
             <div className="flex-1">
               <div className="flex items-center justify-between mb-2">
                 <p className="font-semibold text-gray-800">
@@ -4070,16 +4071,16 @@ onClick={() => {
               )
               .map(item => item.match.id);
             
-            if (selected.length === 0) {
-              alert('Please select at least one Common Case or click "No, it\'s different"');
-              return;
-            }
+if (selected.length === 0) {
+  alert('Please select one Common Case or click "No, it\'s different"');
+  return;
+}
             
             confirmMapping(selected);
           }}
           className="flex-1 px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-semibold transition-colors"
         >
-          ✓ Link selected
+          ✓ Link to this case
         </button>
       </div>
     </div>
