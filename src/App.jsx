@@ -3204,6 +3204,16 @@ onClick={() => {
       </span>
     )}
   </div>
+
+    {/* ⭐ NOVO: Badge Industry Sector */}
+  {exp.industrySector && (
+    <div className="mb-3">
+      <span className="inline-flex items-center gap-1 text-xs bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full">
+        <Briefcase size={12} />
+        {exp.industrySector}
+      </span>
+    </div>
+  )}                  
   
   {/* Linhas 2-4: Ratings à direita */}
   <div className="flex justify-end">
