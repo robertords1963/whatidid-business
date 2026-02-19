@@ -428,7 +428,7 @@ const [currentEntry, setCurrentEntry] = useState({
     rating: '',
     gender: '',
     age: '',
-    country: ''
+    country: '',
     industrySector: ''
   });
 
