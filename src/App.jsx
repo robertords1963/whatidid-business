@@ -300,12 +300,10 @@ const loadTopExperiences = async () => {
 
 // FUNÇÃO 1: Auto-matching
   const findBestCommonCaseMatch = (userExperience) => {
-  // MUDANÇA: Só pegar palavras do PROBLEM do usuário
   const userProblemText = userExperience.problem.toLowerCase();
   
   console.log('🔍 USER PROBLEM:', userProblemText);
   
-  // Extrair palavras ÚNICAS do PROBLEM do usuário (>4 letras)
   const userKeywords = [...new Set(
     userProblemText.split(' ').filter(word => word.length > 4)
   )];
@@ -321,8 +319,7 @@ const loadTopExperiences = async () => {
   if (keyInsights.length === 0) return null;
   if (userKeywords.length === 0) return null;
   
-  let bestMatch = null;
-  let bestScore = 0;
+  const matches = [];
   
   keyInsights.forEach(insight => {
     const insightText = `${insight.problem} ${insight.solution}`.toLowerCase();
@@ -337,26 +334,28 @@ const loadTopExperiences = async () => {
       }
     });
     
-    // Score = quantas palavras DO PROBLEM do usuário aparecem no Key Insight
     const normalizedScore = (score / userKeywords.length) * 100;
     
     console.log('📊 SCORE:', normalizedScore.toFixed(1) + '%', `(${score}/${userKeywords.length})`);
     
-    if (normalizedScore > bestScore) {
-      bestScore = normalizedScore;
-      bestMatch = insight;
+    if (normalizedScore >= 70) {
+      matches.push({
+        match: insight,
+        confidence: Math.round(normalizedScore)
+      });
     }
   });
   
-  console.log('🏆 BEST SCORE:', bestScore.toFixed(1) + '%');
-  console.log('🚪 THRESHOLD: 70%');
+  console.log('🏆 TOTAL MATCHES ≥70%:', matches.length);
   
-  if (bestScore >= 70) {
-    console.log('✅ MODAL SHOULD APPEAR!');
-    return { match: bestMatch, confidence: Math.round(bestScore) };
+  if (matches.length > 0) {
+    // Ordenar por confiança (maior primeiro)
+    matches.sort((a, b) => b.confidence - a.confidence);
+    console.log('✅ MODAL SHOULD APPEAR WITH', matches.length, 'MATCHES!');
+    return matches; // Retorna ARRAY de matches
   }
   
-  console.log('❌ SCORE TOO LOW, NO MODAL');
+  console.log('❌ NO MATCHES FOUND');
   return null;
 };
 
@@ -388,19 +387,30 @@ const loadTopExperiences = async () => {
   };
 
   // FUNÇÃO 3: Confirmar mapeamento
-  const confirmMapping = async (accepted) => {
-    setShowMappingModal(false);
-    
-    const relatedId = accepted ? suggestedMapping.match.id : null;
+  const confirmMapping = async (selectedIds) => {
+  setShowMappingModal(false);
+  
+  if (selectedIds && selectedIds.length > 0) {
+    // Por enquanto, vamos linkar apenas com o primeiro selecionado
+    // (Supabase aceita só 1 related_common_case_id por experiência)
+    const relatedId = selectedIds[0];
     const success = await addExperienceToSupabase(pendingExperience, relatedId);
     
     if (success) {
       resetForm();
     }
+  } else {
+    // Usuário rejeitou todos
+    const success = await addExperienceToSupabase(pendingExperience, null);
     
-    setSuggestedMapping(null);
-    setPendingExperience(null);
-  };
+    if (success) {
+      resetForm();
+    }
+  }
+  
+  setSuggestedMapping(null);
+  setPendingExperience(null);
+};
 
   // FUNÇÃO 4: Navegar Pro → Key Insight
   const navigateToKeyInsight = (commonCaseId) => {
@@ -461,9 +471,9 @@ const loadTopExperiences = async () => {
 
   // FUNÇÃO 6: Get Common Case Name
   const getCommonCaseName = (commonCaseId) => {
-    const commonCase = experiences.find(e => e.id === commonCaseId);
-    return commonCase ? commonCase.solution.substring(0, 60) + '...' : 'Common Pattern';
-  };
+  const commonCase = experiences.find(e => e.id === commonCaseId);
+  return commonCase ? commonCase.problem.substring(0, 60) + '...' : 'Common Case';
+};
   
   const addExperienceToSupabase = async (newExperience, relatedCommonCaseId = null) => {
     try {
@@ -719,10 +729,10 @@ const industrySectors = [
   if (currentEntry.problem && currentEntry.problemCategory && 
       currentEntry.solution && currentEntry.result && currentEntry.resultCategory) {
     
-    const matchResult = findBestCommonCaseMatch(currentEntry);
+    const matchResults = findBestCommonCaseMatch(currentEntry);
     
-    if (matchResult) {
-      setSuggestedMapping(matchResult);
+    if (matchResults && matchResults.length > 0) {
+      setSuggestedMapping(matchResults); // Array agora
       setPendingExperience(currentEntry);
       setShowMappingModal(true);
     } else {
@@ -3242,7 +3252,7 @@ onClick={() => {
         className="inline-flex items-center gap-1 text-xs bg-purple-100 text-purple-800 px-3 py-1 rounded-full border-2 border-purple-300 hover:bg-purple-200 transition-colors cursor-pointer"
       >
         <Target size={12} />
-        🎯 Common Pattern: {getCommonCaseName(exp.relatedCommonCaseId).substring(0, 30)}... →
+        🎯 Common Case: {getCommonCaseName(exp.relatedCommonCaseId).substring(0, 30)}... →
       </button>
     </div>
   )}
@@ -3999,56 +4009,102 @@ onClick={() => {
     </div>
 
 {/* Mapping Confirmation Modal */}
-    {showMappingModal && suggestedMapping && (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-6">
-          <h3 className="text-xl font-bold text-gray-800 mb-4">
-            🎯 We found a matching Common Pattern!
-          </h3>
-          
-          <div className="bg-purple-50 rounded-lg p-4 mb-4">
-            <p className="text-sm text-gray-700 mb-2">
-              <strong>Common Pattern:</strong>
-            </p>
-            <p className="text-sm text-gray-800 italic">
-              {suggestedMapping.match.solution}
-            </p>
-          </div>
-          
-          <div className="mb-6">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-sm font-semibold text-gray-700">Match Confidence:</span>
-              <span className="text-sm font-bold text-purple-600">{suggestedMapping.confidence}%</span>
+{showMappingModal && suggestedMapping && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full p-6 max-h-[80vh] overflow-y-auto">
+      <h3 className="text-xl font-bold text-gray-800 mb-4">
+        🎯 We found {suggestedMapping.length} matching Common {suggestedMapping.length === 1 ? 'Case' : 'Cases'}!
+      </h3>
+      
+      <p className="text-sm text-gray-600 mb-6">
+        Your problem matches these common cases. Select which one(s) best describe your situation:
+      </p>
+      
+      <div className="space-y-3 mb-6">
+        {suggestedMapping.map((item, index) => (
+          <label 
+            key={item.match.id}
+            className="flex items-start gap-3 p-4 bg-purple-50 rounded-lg border-2 border-purple-200 hover:border-purple-400 cursor-pointer transition-all"
+          >
+            <input
+              type="checkbox"
+              id={`match-${item.match.id}`}
+              className="mt-1 w-5 h-5 text-purple-600 rounded focus:ring-purple-500"
+            />
+            <div className="flex-1">
+              <div className="flex items-center justify-between mb-2">
+                <p className="font-semibold text-gray-800">
+                  {item.match.problem}
+                </p>
+                <span className="ml-3 text-sm font-bold text-purple-600 whitespace-nowrap">
+                  {item.confidence}% match
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-purple-600 h-2 rounded-full transition-all"
+                  style={{ width: `${item.confidence}%` }}
+                ></div>
+              </div>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div 
-                className="bg-purple-600 h-2 rounded-full transition-all"
-                style={{ width: `${suggestedMapping.confidence}%` }}
-              ></div>
-            </div>
-          </div>
-          
-          <p className="text-sm text-gray-600 mb-6">
-            Would you like to link your experience to this common pattern? This helps other users find related real-world examples.
-          </p>
-          
-          <div className="flex gap-3">
-            <button
-              onClick={() => confirmMapping(false)}
-              className="flex-1 px-4 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 font-semibold transition-colors"
-            >
-              No, it's different
-            </button>
-            <button
-              onClick={() => confirmMapping(true)}
-              className="flex-1 px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-semibold transition-colors"
-            >
-              ✓ Yes, link it!
-            </button>
-          </div>
-        </div>
+          </label>
+        ))}
       </div>
-    )}
+      
+      <p className="text-xs text-gray-500 mb-6">
+        Note: Linking helps other users find real examples related to these common cases.
+      </p>
+      
+      <div className="flex gap-3">
+        <button
+          onClick={() => confirmMapping([])}
+          className="flex-1 px-4 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 font-semibold transition-colors"
+        >
+          No, it's different
+        </button>
+        <button
+          onClick={() => {
+            const selected = suggestedMapping
+              .filter((item, index) => 
+                document.getElementById(`match-${item.match.id}`).checked
+              )
+              .map(item => item.match.id);
+            
+            if (selected.length === 0) {
+              alert('Please select at least one Common Case or click "No, it\'s different"');
+              return;
+            }
+            
+            confirmMapping(selected);
+          }}
+          className="flex-1 px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-semibold transition-colors"
+        >
+          ✓ Link selected
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+```
+
+---
+
+## 📋 RESUMO:
+
+**SUBSTITUIR:**
+- Modal antigo (~60 linhas) 
+- **POR** 
+- Modal novo (~70 linhas)
+
+**É um bloco por outro bloco, mesmo tamanho aproximado.**
+
+---
+
+## 🔍 COMO ENCONTRAR:
+
+**CTRL+F e busque por:**
+```
+Mapping Confirmation Modal
       
     {/* Video Modal */}
     {videoModalOpen && (
