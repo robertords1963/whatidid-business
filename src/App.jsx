@@ -2589,10 +2589,7 @@ onClick={() => {
               </select>
 
               <div className="mt-3">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <Briefcase className="inline mr-2" size={16} />
-                  Industry Sector *
-                </label>
+
                 <select
                   value={currentEntry.industrySector}
                   onChange={(e) => setCurrentEntry({...currentEntry, industrySector: e.target.value})}
