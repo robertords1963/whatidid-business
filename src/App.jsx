@@ -3243,7 +3243,7 @@ onClick={() => {
     )
   
                     
-  {/* Linhas 2-4: Ratings à direita */}
+
   <div className="flex justify-end">
     <div className="flex flex-col items-end gap-3">
       {/* Linha 2: Rating médio */}
