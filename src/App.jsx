@@ -2407,8 +2407,8 @@ onClick={() => {
   setFilterMode('individual');
   setShowKeyInsights(false);
   setKeyInsightCategory('');
-  setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '' });
-  
+  ssetFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '', industrySector: '' });
+  setMappedFilter(null);
   // Aguardar React renderizar (reduzido)
   setTimeout(() => {
     const individualExps = experiences.filter(e => e.author !== 'key_insights');
@@ -3226,6 +3226,24 @@ onClick={() => {
       </button>
     </div>
   )}
+
+  {(() => {
+    const mappedCount = experiences.filter(e => e.source === 'app' && e.relatedCommonCaseId === exp.id).length;
+    if (mappedCount > 0) {
+      return (
+        <div className="mb-3">
+          <button
+            onClick={() => showMappedExperiences(exp.id)}
+            className="inline-flex items-center gap-1 text-xs bg-green-100 text-green-800 px-3 py-1 rounded-full border-2 border-green-300 hover:bg-green-200 transition-colors cursor-pointer"
+          >
+            <Users size={12} />
+            👥 {mappedCount} real {mappedCount === 1 ? 'example' : 'examples'} →
+          </button>
+        </div>
+      );
+    }
+    return null;
+  })()}
                     
   {/* Linhas 2-4: Ratings à direita */}
   <div className="flex justify-end">
@@ -3960,6 +3978,58 @@ onClick={() => {
       </div>
     </div>
 
+{/* Mapping Confirmation Modal */}
+    {showMappingModal && suggestedMapping && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-6">
+          <h3 className="text-xl font-bold text-gray-800 mb-4">
+            🎯 We found a matching Common Pattern!
+          </h3>
+          
+          <div className="bg-purple-50 rounded-lg p-4 mb-4">
+            <p className="text-sm text-gray-700 mb-2">
+              <strong>Common Pattern:</strong>
+            </p>
+            <p className="text-sm text-gray-800 italic">
+              {suggestedMapping.match.solution}
+            </p>
+          </div>
+          
+          <div className="mb-6">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-sm font-semibold text-gray-700">Match Confidence:</span>
+              <span className="text-sm font-bold text-purple-600">{suggestedMapping.confidence}%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className="bg-purple-600 h-2 rounded-full transition-all"
+                style={{ width: `${suggestedMapping.confidence}%` }}
+              ></div>
+            </div>
+          </div>
+          
+          <p className="text-sm text-gray-600 mb-6">
+            Would you like to link your experience to this common pattern? This helps other users find related real-world examples.
+          </p>
+          
+          <div className="flex gap-3">
+            <button
+              onClick={() => confirmMapping(false)}
+              className="flex-1 px-4 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 font-semibold transition-colors"
+            >
+              No, it's different
+            </button>
+            <button
+              onClick={() => confirmMapping(true)}
+              className="flex-1 px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-semibold transition-colors"
+            >
+              ✓ Yes, link it!
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+      
     {/* Video Modal */}
     {videoModalOpen && (
       <div 
