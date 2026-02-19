@@ -3233,6 +3233,14 @@ onClick={() => {
   </div>
 
     {/* ⭐ NOVO: Badge Industry Sector */}
+                    {exp.industrySector && (
+      <div className="mb-3">
+        <span className="inline-flex items-center gap-1 text-xs bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full">
+          <Briefcase size={12} />
+          {exp.industrySector}
+        </span>
+      </div>
+    )
   
                     
   {/* Linhas 2-4: Ratings à direita */}
@@ -3325,12 +3333,7 @@ onClick={() => {
 
                   {/* Badges - Agora embaixo do grid */}
                   <div className="mb-4 flex flex-wrap gap-2">
-                    {exp.industrySector && (
-                      <span className="inline-flex items-center gap-1 text-xs bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full">
-                        <Briefcase size={12} />
-                        {exp.industrySector}
-                      </span>
-                    )}
+                    
                     
                     
                   </div>
