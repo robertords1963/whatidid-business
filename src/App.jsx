@@ -2545,6 +2545,7 @@ onClick={() => {
                 <AlertCircle className="text-red-500" size={20} />
                 <h3 className="text-lg font-semibold text-gray-800">Problem</h3>
               </div>
+              
               <select
                 value={currentEntry.problemCategory}
                 onChange={(e) => setCurrentEntry({...currentEntry, problemCategory: e.target.value})}
@@ -2556,6 +2557,25 @@ onClick={() => {
                   <option key={cat} value={cat}>{cat}</option>
                 ))}
               </select>
+
+              <div className="mt-3">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <Briefcase className="inline mr-2" size={16} />
+                  Industry Sector *
+                </label>
+                <select
+                  value={currentEntry.industrySector}
+                  onChange={(e) => setCurrentEntry({...currentEntry, industrySector: e.target.value})}
+                  className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                  required
+                >
+                  <option value="">Select your industry sector...</option>
+                  {industrySectors.map(sector => (
+                    <option key={sector} value={sector}>{sector}</option>
+                  ))}
+                </select>
+              </div>
+              
               <div className="relative">
                 <textarea
                   value={currentEntry.problem}
