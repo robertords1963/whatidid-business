@@ -445,29 +445,30 @@ const loadTopExperiences = async () => {
 
   // FUNÇÃO 5: Navegar Key Insight → Pro
   const showMappedExperiences = (commonCaseId) => {
-    setFilterMode('individual');
-    setFilters({
-      problemCategory: '',
-      searchText: '',
-      resultCategory: '',
-      rating: '',
-      gender: '',
-      age: '',
-      country: '',
-      industrySector: ''
-    });
-    setMappedFilter(commonCaseId);
-    setCurrentPage(1);
-    
-    setTimeout(() => {
-      const experiencesSection = document.getElementById('experiences-section');
-      if (experiencesSection) {
-        const yOffset = -100;
-        const y = experiencesSection.getBoundingClientRect().top + window.pageYOffset + yOffset;
-        window.scrollTo({ top: y, behavior: 'smooth' });
-      }
-    }, 300);
-  };
+  setFilterMode('individual');
+  setFilters({
+    problemCategory: '',
+    searchText: '',
+    resultCategory: '',
+    rating: '',
+    gender: '',
+    age: '',
+    country: '',
+    industrySector: ''
+  });
+  setMappedFilter(commonCaseId);
+  setCurrentPage(1);
+  
+  setTimeout(() => {
+    // Scroll para o primeiro card de experiência (onde está o banner roxo)
+    const firstExp = document.getElementById('first-experience');
+    if (firstExp) {
+      const yOffset = -120; // Margem do topo
+      const y = firstExp.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    }
+  }, 500); // Aumentar timeout para dar tempo do banner renderizar
+};
 
   // FUNÇÃO 6: Get Common Case Name
   const getCommonCaseName = (commonCaseId) => {
