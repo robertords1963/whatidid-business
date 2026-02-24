@@ -3357,6 +3357,7 @@ onClick={() => {
   <Target size={12} />
   🎯 Matching Common Case →
 </button>
+  )}
                     
                     {(() => {
                       const mappedCount = experiences.filter(e => (e.source === 'uploaded' || e.source === 'app') && e.relatedCommonCaseId === exp.id).length;
