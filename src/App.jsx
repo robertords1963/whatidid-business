@@ -664,12 +664,12 @@ const [currentEntry, setCurrentEntry] = useState({
   'Process & Operations',
   'Technology & Systems',
   'Commercial Execution',
-  'Risk & Controls',
-  'Strategy Execution',
-  'Leadership & Governance',
-  'Customer Experience & Delivery',
-  'Other'
+  'People & Leadership',
+  'Governance & Compliance',
+  'Strategy & Growth',
+  'Customer Experience & Service'
 ];
+
 
 const industrySectors = [
     'Technology & Digital',
