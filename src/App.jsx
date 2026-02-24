@@ -3337,7 +3337,7 @@ onClick={() => {
                     
                     
                   </div>
-{/* Badges bi-direcionais - Movidos para baixo */}
+{/* Badges bi-direcionais - Movidos para baixo */} 
 <div className="mb-4 flex flex-wrap gap-2">
   {exp.relatedCommonCaseId && exp.source === 'uploaded' && (
                       <button
