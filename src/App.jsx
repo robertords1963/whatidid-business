@@ -415,6 +415,9 @@ const loadTopExperiences = async () => {
 
   // FUNÇÃO 4: Navegar Pro → Key Insight
   const navigateToKeyInsight = (commonCaseId) => {
+    console.log('=== navigateToKeyInsight ===');
+    console.log('commonCaseId:', commonCaseId);
+    
     setFilterMode('key_insights');
     setShowKeyInsights(false);
     setKeyInsightCategory('');
@@ -431,15 +434,24 @@ const loadTopExperiences = async () => {
     setMappedFilter(null);
     setCurrentPage(1);
     
+    console.log('Estado alterado para key_insights');
+    
     setTimeout(() => {
+      console.log('Procurando elemento:', `exp-${commonCaseId}`);
       const expElement = document.getElementById(`exp-${commonCaseId}`);
+      console.log('Elemento encontrado?', !!expElement);
+      
       if (expElement) {
         const yOffset = -100;
         const y = expElement.getBoundingClientRect().top + window.pageYOffset + yOffset;
+        console.log('Scrollando para y:', y);
         window.scrollTo({ top: y, behavior: 'smooth' });
         
         expElement.classList.add('highlight-flash');
         setTimeout(() => expElement.classList.remove('highlight-flash'), 2000);
+      } else {
+        console.log('❌ ELEMENTO NÃO ENCONTRADO!');
+        console.log('Experiences filtradas:', experiences.filter(e => e.author === 'key_insights').length);
       }
     }, 500);
   };
