@@ -4093,26 +4093,7 @@ if (selected.length === 0) {
     </div>
   </div>
 )}
-```
 
----
-
-## 📋 RESUMO:
-
-**SUBSTITUIR:**
-- Modal antigo (~60 linhas) 
-- **POR** 
-- Modal novo (~70 linhas)
-
-**É um bloco por outro bloco, mesmo tamanho aproximado.**
-
----
-
-## 🔍 COMO ENCONTRAR:
-
-**CTRL+F e busque por:**
-```
-Mapping Confirmation Modal
       
     {/* Video Modal */}
     {videoModalOpen && (
