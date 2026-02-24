@@ -436,12 +436,18 @@ const loadTopExperiences = async () => {
     
     console.log('Estado alterado para key_insights');
     
-    setTimeout(() => {
-      console.log('Procurando elemento:', `exp-${commonCaseId}`);
+    // Tentar múltiplas vezes até encontrar o elemento
+    let attempts = 0;
+    const tryScroll = setInterval(() => {
+      attempts++;
+      console.log(`Tentativa ${attempts}: Procurando exp-${commonCaseId}`);
+      
       const expElement = document.getElementById(`exp-${commonCaseId}`);
-      console.log('Elemento encontrado?', !!expElement);
       
       if (expElement) {
+        console.log('✅ ELEMENTO ENCONTRADO!');
+        clearInterval(tryScroll);
+        
         const yOffset = -100;
         const y = expElement.getBoundingClientRect().top + window.pageYOffset + yOffset;
         console.log('Scrollando para y:', y);
@@ -449,11 +455,11 @@ const loadTopExperiences = async () => {
         
         expElement.classList.add('highlight-flash');
         setTimeout(() => expElement.classList.remove('highlight-flash'), 2000);
-      } else {
-        console.log('❌ ELEMENTO NÃO ENCONTRADO!');
-        console.log('Experiences filtradas:', experiences.filter(e => e.author === 'key_insights').length);
+      } else if (attempts >= 15) {
+        console.log('❌ Desistindo após 15 tentativas');
+        clearInterval(tryScroll);
       }
-    }, 500);
+    }, 200); // Tentar a cada 200ms
   };
 
   // FUNÇÃO 5: Navegar Key Insight → Pro
