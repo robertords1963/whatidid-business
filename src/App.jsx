@@ -3339,15 +3339,15 @@ onClick={() => {
                     
                     
                   </div>
-{/* Badges bi-direcionais - Movidos para baixo */} 
-<div className="mb-4 flex flex-wrap gap-2">
-  {exp.relatedCommonCaseId && (exp.source === 'uploaded' || exp.source === 'app') && (
+{/* Badges bi-direcionais - Movidos para baixo */}
+                  <div className="mb-4 flex flex-wrap gap-2 justify-end">
+                    {exp.relatedCommonCaseId && (exp.source === 'uploaded' || exp.source === 'app') && (
                       <button
                         onClick={() => navigateToKeyInsight(exp.relatedCommonCaseId)}
                         className="inline-flex items-center gap-1 text-xs bg-purple-100 text-purple-800 px-3 py-1 rounded-full border-2 border-purple-300 hover:bg-purple-200 transition-colors cursor-pointer"
                       >
                         <Target size={12} />
-                        🎯 Matching Common Case: {getCommonCaseName(exp.relatedCommonCaseId).substring(0, 25)}... →
+                        🎯 Matching Common Case →
                       </button>
                     )}
                     
@@ -3367,6 +3367,7 @@ onClick={() => {
                       return null;
                     })()}
                   </div>
+
 
                   
                   {isAdmin && (() => {
