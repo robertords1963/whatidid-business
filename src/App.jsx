@@ -435,6 +435,15 @@ const loadTopExperiences = async () => {
     setCurrentPage(1);
     
     console.log('Estado alterado para key_insights');
+
+    // ⭐ ADICIONAR ESTAS 6 LINHAS AQUI ⭐
+    const keyInsights = experiences.filter(e => e.author === 'key_insights');
+    console.log('Total Key Insights:', keyInsights.length);
+    console.log('Key Insights IDs:', keyInsights.map(e => e.id).sort((a,b) => a-b));
+    console.log('ID 374 existe?', keyInsights.some(e => e.id === 374));
+    const cc374 = keyInsights.find(e => e.id === 374);
+    console.log('Common Case 374:', cc374);
+    // ⭐ FIM DAS 6 LINHAS ⭐
     
     // Tentar múltiplas vezes até encontrar o elemento
     let attempts = 0;
