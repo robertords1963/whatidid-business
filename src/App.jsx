@@ -3350,14 +3350,26 @@ onClick={() => {
 {/* Badges bi-direcionais - Movidos para baixo */}
                   <div className="mb-4 flex flex-wrap gap-2 justify-end">
                     {exp.relatedCommonCaseId && (exp.source === 'uploaded' || exp.source === 'app') && (
-  <button
-  onClick={() => navigateToKeyInsight(exp.relatedCommonCaseId)}
-  className="inline-flex items-center gap-1 text-xs bg-purple-100 text-purple-800 px-3 py-1 rounded-full border-2 border-purple-300 hover:bg-purple-200 transition-colors cursor-pointer"
->
-  <Target size={12} />
-  🎯 Matching Common Case →
-</button>
-  )}
+                      <button
+                        onClick={() => {
+                          console.log('=== BADGE CLICADO ===');
+                          console.log('Exp ID:', exp.id);
+                          console.log('Exp Category:', exp.problemCategory);
+                          console.log('Related Common Case ID:', exp.relatedCommonCaseId);
+                          
+                          const commonCase = experiences.find(e => e.id === exp.relatedCommonCaseId);
+                          console.log('Common Case encontrado:', commonCase);
+                          console.log('Common Case problem:', commonCase?.problem);
+                          console.log('Common Case category:', commonCase?.problemCategory);
+                          
+                          navigateToKeyInsight(exp.relatedCommonCaseId);
+                        }}
+                        className="inline-flex items-center gap-1 text-xs bg-purple-100 text-purple-800 px-3 py-1 rounded-full border-2 border-purple-300 hover:bg-purple-200 transition-colors cursor-pointer"
+                      >
+                        <Target size={12} />
+                        🎯 Matching Common Case →
+                      </button>
+                    )}
                     
                     {(() => {
                       const mappedCount = experiences.filter(e => (e.source === 'uploaded' || e.source === 'app') && e.relatedCommonCaseId === exp.id).length;
