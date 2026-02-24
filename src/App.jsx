@@ -3352,7 +3352,7 @@ onClick={() => {
                     )}
                     
                     {(() => {
-                      const mappedCount = experiences.filter(e => e.source (exp.source === 'uploaded' || exp.source === 'app') && e.relatedCommonCaseId === exp.id).length;
+                      const mappedCount = experiences.filter(e => e.source (e.source === 'uploaded' || e.source === 'app') && e.relatedCommonCaseId === exp.id).length;
                       if (mappedCount > 0) {
                         return (
                           <button
