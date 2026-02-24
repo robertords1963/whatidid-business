@@ -3338,8 +3338,8 @@ onClick={() => {
                     
                   </div>
 {/* Badges bi-direcionais - Movidos para baixo */}
-                  <div className="mb-4 flex flex-wrap gap-2">
-                    {exp.relatedCommonCaseId && exp.source === 'app' && (
+<div className="mb-4 flex flex-wrap gap-2">
+  {exp.relatedCommonCaseId && exp.source === 'uploaded' && (
                       <button
                         onClick={() => navigateToKeyInsight(exp.relatedCommonCaseId)}
                         className="inline-flex items-center gap-1 text-xs bg-purple-100 text-purple-800 px-3 py-1 rounded-full border-2 border-purple-300 hover:bg-purple-200 transition-colors cursor-pointer"
@@ -3350,7 +3350,7 @@ onClick={() => {
                     )}
                     
                     {(() => {
-                      const mappedCount = experiences.filter(e => e.source === 'app' && e.relatedCommonCaseId === exp.id).length;
+                      const mappedCount = experiences.filter(e => e.source === 'uploaded' && e.relatedCommonCaseId === exp.id).length;
                       if (mappedCount > 0) {
                         return (
                           <button
