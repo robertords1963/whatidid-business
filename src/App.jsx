@@ -1403,7 +1403,7 @@ const prevVideo = () => {
 const filteredExperiences = experiences.filter(exp => {
   // NOVO: Filtro por Common Case mapeado
 if (mappedFilter) {
-    return exp.source === 'uploaded' && exp.relatedCommonCaseId === mappedFilter;
+    return (exp.source === 'uploaded' || exp.source === 'app') && exp.relatedCommonCaseId === mappedFilter;
   }
 
   // Se está na tab Key Insights
@@ -3341,7 +3341,7 @@ onClick={() => {
                   </div>
 {/* Badges bi-direcionais - Movidos para baixo */} 
 <div className="mb-4 flex flex-wrap gap-2">
-  {exp.relatedCommonCaseId && exp.source === 'uploaded' && (
+  {exp.relatedCommonCaseId && exp.source (exp.source === 'uploaded' || exp.source === 'app') && (
                       <button
                         onClick={() => navigateToKeyInsight(exp.relatedCommonCaseId)}
                         className="inline-flex items-center gap-1 text-xs bg-purple-100 text-purple-800 px-3 py-1 rounded-full border-2 border-purple-300 hover:bg-purple-200 transition-colors cursor-pointer"
@@ -3352,7 +3352,7 @@ onClick={() => {
                     )}
                     
                     {(() => {
-                      const mappedCount = experiences.filter(e => e.source === 'uploaded' && e.relatedCommonCaseId === exp.id).length;
+                      const mappedCount = experiences.filter(e => e.source (exp.source === 'uploaded' || exp.source === 'app') && e.relatedCommonCaseId === exp.id).length;
                       if (mappedCount > 0) {
                         return (
                           <button
