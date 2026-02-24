@@ -494,7 +494,7 @@ const loadTopExperiences = async () => {
           country: newExperience.country || '',
           avg_rating: 0,
           total_ratings: 0,
-          source: 'app'
+          source: 'uploaded'
         }])
         .select();
       
@@ -1400,8 +1400,8 @@ const prevVideo = () => {
 
 const filteredExperiences = experiences.filter(exp => {
   // NOVO: Filtro por Common Case mapeado
-  if (mappedFilter) {
-    return exp.source === 'app' && exp.relatedCommonCaseId === mappedFilter;
+if (mappedFilter) {
+    return exp.source === 'uploaded' && exp.relatedCommonCaseId === mappedFilter;
   }
 
   // Se está na tab Key Insights
