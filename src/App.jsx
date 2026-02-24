@@ -667,7 +667,8 @@ const [currentEntry, setCurrentEntry] = useState({
   'People & Leadership',
   'Governance & Compliance',
   'Strategy & Growth',
-  'Customer Experience & Service'
+  'Customer Experience & Service',
+  'Other'
 ];
 
 
