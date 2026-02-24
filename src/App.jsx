@@ -401,6 +401,7 @@ const loadTopExperiences = async () => {
     }
   } else {
     // Usuário rejeitou todos
+    console.log('❌ No mapping selected');
     const success = await addExperienceToSupabase(pendingExperience, null);
     
     if (success) {
@@ -495,6 +496,7 @@ const loadTopExperiences = async () => {
           avg_rating: 0,
           total_ratings: 0,
           source: 'uploaded'
+          random_order: Math.floor(Math.random() * 1000000)
         }])
         .select();
       
