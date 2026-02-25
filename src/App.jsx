@@ -433,7 +433,13 @@ const loadTopExperiences = async () => {
       industrySector: ''
     });
     setMappedFilter(null);
-    setCurrentPage(1);
+    // ⭐ CALCULAR PÁGINA CORRETA DO COMMON CASE
+const keyInsights = experiences.filter(e => e.author === 'key_insights');
+const index = keyInsights.findIndex(e => e.id === commonCaseId);
+const correctPage = Math.ceil((index + 1) / experiencesPerPage);
+
+console.log(`Common Case ${commonCaseId} está no índice ${index}, página ${correctPage}`);
+setCurrentPage(correctPage > 0 ? correctPage : 1);
     
     console.log('Estado alterado para key_insights');
 
