@@ -374,12 +374,6 @@ const loadTopExperiences = async () => {
     country: userCountryName || '',
     industrySector: ''
   });
-  
-  // ⭐ FORÇAR MUDANÇA PARA INDIVIDUAL EXPERIENCES
-  setFilterMode('individual');
-  setShowKeyInsights(false);
-  setKeyInsightCategory('');
-  
   setCurrentPage(1);
   
   setTimeout(() => {
