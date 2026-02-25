@@ -3252,6 +3252,9 @@ onClick={() => {
                 </button>
               </div>
             )}
+
+{/* DEBUG: Verificar o que está sendo renderizado */}
+{console.log('🎨 Renderizando página', currentPage, '- Total cards:', currentExperiences.length, '- IDs:', currentExperiences.map(e => e.id))}
               
             {currentExperiences.map(exp => (
               <div key={exp.id}>
