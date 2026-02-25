@@ -1478,9 +1478,18 @@ if (wasInteractedInSession) return true;
 return matchesProblemCategory && matchesSearchText && matchesResultCategory && matchesRating && matchesGender && matchesAge && matchesCountry && matchesIndustrySector;
 });
   // Reset to page 1 when filters change
-  useEffect(() => {
+// Reset to page 1 when filters change (exceto quando navegando para Key Insight)
+useEffect(() => {
+  // Não resetar se estiver no modo Key Insights sem filtros ativos
+  const hasActiveFilters = filters.problemCategory || filters.searchText || 
+                          filters.resultCategory || filters.rating || 
+                          filters.gender || filters.age || filters.country || 
+                          filters.industrySector;
+  
+  if (hasActiveFilters) {
     setCurrentPage(1);
-  }, [filters]);
+  }
+}, [filters]);
 
   // Pagination logic
   const totalPages = Math.ceil(filteredExperiences.length / experiencesPerPage);
