@@ -508,24 +508,24 @@ const loadTopExperiences = async () => {
   const addExperienceToSupabase = async (newExperience, relatedCommonCaseId = null) => {
     try {
       const { data, error } = await supabase
-        .from('experiences')
-        .insert([{
-          problem: newExperience.problem,
-          problem_category: newExperience.problemCategory,
-          solution: newExperience.solution,
-          result: newExperience.result,
-          result_category: newExperience.resultCategory,
-          industry_sector: newExperience.industrySector || '', // ⭐ ADICIONAR
-          related_common_case_id: relatedCommonCaseId, // ⭐ ADICIONAR
-          author: newExperience.author || '',
-          gender: newExperience.gender || '',
-          age: newExperience.age || '',
-          country: newExperience.country || '',
-          avg_rating: 0,
-          total_ratings: 0,
-          source: 'uploaded',
-          random_order: Math.floor(Math.random() * 1000000)
-        }])
+  .from('experiences')
+  .insert([{
+    problem: newExperience.problem,
+    problem_category: newExperience.problemCategory,
+    solution: newExperience.solution,
+    result: newExperience.result,
+    result_category: newExperience.resultCategory,
+    industry_sector: newExperience.industrySector || '',
+    related_common_case_id: relatedCommonCaseId,
+    author: newExperience.author || '',
+    gender: newExperience.gender || '',
+    age: newExperience.age || '',
+    country: newExperience.country || '',
+    avg_rating: 0,
+    total_ratings: 0,
+    source: 'app'
+    // ⭐ REMOVER: random_order: Math.floor(Math.random() * 1000000)
+  }])
         .select();
       
       if (error) throw error;
