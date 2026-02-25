@@ -472,7 +472,7 @@ setTimeout(() => {
         clearInterval(tryScroll);
       }
     }, 200); // Tentar a cada 200ms
-    }, 300); // ⭐ ADICIONAR ESTA LINHA: Fim do setTimeout
+    }, 800); // ⭐ Aumentado para dar mais tempo ao React renderizar
   };
 
   // FUNÇÃO 5: Navegar Key Insight → Pro
