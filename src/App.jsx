@@ -2469,7 +2469,7 @@ onClick={() => {
   setFilterMode('individual');
   setShowKeyInsights(false);
   setKeyInsightCategory('');
-  ssetFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '', industrySector: '' });
+  setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '', industrySector: '' });
   setMappedFilter(null);
   // Aguardar React renderizar (reduzido)
   setTimeout(() => {
