@@ -363,30 +363,35 @@ const loadTopExperiences = async () => {
 
   // FUNÇÃO 2: Reset form
   const resetForm = () => {
-    setCurrentEntry({
-      problem: '',
-      problemCategory: '',
-      solution: '',
-      result: '',
-      resultCategory: '',
-      industrySector: '',
-      author: '',
-      gender: '',
-      age: '',
-      country: userCountryName || ''
-    });
-    
-    setCurrentPage(1);
-    
-    setTimeout(() => {
-      const firstExp = document.getElementById('first-experience');
-      if (firstExp) {
-        const yOffset = -100;
-        const y = firstExp.getBoundingClientRect().top + window.pageYOffset + yOffset;
-        window.scrollTo({ top: y, behavior: 'smooth' });
-      }
-    }, 500);
-  };
+  setCurrentEntry({
+    problem: '',
+    problemCategory: '',
+    solution: '',
+    result: '',
+    resultCategory: '',
+    author: '',
+    gender: '',
+    age: '',
+    country: userCountryName || '',
+    industrySector: ''
+  });
+  
+  // ⭐ FORÇAR MUDANÇA PARA INDIVIDUAL EXPERIENCES
+  setFilterMode('individual');
+  setShowKeyInsights(false);
+  setKeyInsightCategory('');
+  
+  setCurrentPage(1);
+  
+  setTimeout(() => {
+    const firstExp = document.getElementById('first-experience');
+    if (firstExp) {
+      const yOffset = -100;
+      const y = firstExp.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    }
+  }, 500);
+};
 
   // FUNÇÃO 3: Confirmar mapeamento
   const confirmMapping = async (selectedIds) => {
