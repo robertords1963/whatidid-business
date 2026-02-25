@@ -374,6 +374,11 @@ const loadTopExperiences = async () => {
       age: '',
       country: userCountryName || ''
     });
+
+    // ⭐ FORÇAR MUDANÇA PARA INDIVIDUAL EXPERIENCES
+    setFilterMode('individual');
+    setShowKeyInsights(false);
+    setKeyInsightCategory('');
     
     setCurrentPage(1);
     
