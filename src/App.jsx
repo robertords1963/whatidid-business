@@ -522,8 +522,8 @@ const loadTopExperiences = async () => {
     country: newExperience.country || '',
     avg_rating: 0,
     total_ratings: 0,
-    source: 'app'
-    // ⭐ REMOVER: random_order: Math.floor(Math.random() * 1000000)
+    source: 'uploaded',
+    random_order: Math.floor(Math.random() * 1000000)
   }])
         .select();
       
