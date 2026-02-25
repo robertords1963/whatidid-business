@@ -1,6 +1,7 @@
 
 
 
+
 import React, { useState, useEffect } from 'react';
 import { Share2, TrendingUp, AlertCircle, Star, MessageCircle, Send, Shield, Trash2, Search, Users, Target, Briefcase } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js'; 
@@ -416,6 +417,9 @@ const loadTopExperiences = async () => {
 
   // FUNÇÃO 4: Navegar Pro → Key Insight
   const navigateToKeyInsight = (commonCaseId) => {
+    console.log('=== navigateToKeyInsight ===');
+    console.log('commonCaseId:', commonCaseId);
+    
     setFilterMode('key_insights');
     setShowKeyInsights(false);
     setKeyInsightCategory('');
@@ -432,24 +436,41 @@ const loadTopExperiences = async () => {
     setMappedFilter(null);
     setCurrentPage(1);
     
+    console.log('Estado alterado para key_insights');
+
+    // ⭐ ADICIONAR ESTAS 6 LINHAS AQUI ⭐
+    const keyInsights = experiences.filter(e => e.author === 'key_insights');
+    console.log('Total Key Insights:', keyInsights.length);
+    console.log('Key Insights IDs:', keyInsights.map(e => e.id).sort((a,b) => a-b));
+    console.log('ID 374 existe?', keyInsights.some(e => e.id === 374));
+    const cc374 = keyInsights.find(e => e.id === 374);
+    console.log('Common Case 374:', cc374);
+    // ⭐ FIM DAS 6 LINHAS ⭐
+    
     // Tentar múltiplas vezes até encontrar o elemento
     let attempts = 0;
     const tryScroll = setInterval(() => {
       attempts++;
+      console.log(`Tentativa ${attempts}: Procurando exp-${commonCaseId}`);
+      
       const expElement = document.getElementById(`exp-${commonCaseId}`);
       
       if (expElement) {
+        console.log('✅ ELEMENTO ENCONTRADO!');
         clearInterval(tryScroll);
+        
         const yOffset = -100;
         const y = expElement.getBoundingClientRect().top + window.pageYOffset + yOffset;
+        console.log('Scrollando para y:', y);
         window.scrollTo({ top: y, behavior: 'smooth' });
         
         expElement.classList.add('highlight-flash');
         setTimeout(() => expElement.classList.remove('highlight-flash'), 2000);
       } else if (attempts >= 15) {
+        console.log('❌ Desistindo após 15 tentativas');
         clearInterval(tryScroll);
       }
-    }, 200);
+    }, 200); // Tentar a cada 200ms
   };
 
   // FUNÇÃO 5: Navegar Key Insight → Pro
@@ -488,24 +509,24 @@ const loadTopExperiences = async () => {
   const addExperienceToSupabase = async (newExperience, relatedCommonCaseId = null) => {
     try {
       const { data, error } = await supabase
-        .from('experiences')
-        .insert([{
-          problem: newExperience.problem,
-          problem_category: newExperience.problemCategory,
-          solution: newExperience.solution,
-          result: newExperience.result,
-          result_category: newExperience.resultCategory,
-          industry_sector: newExperience.industrySector || '', // ⭐ ADICIONAR
-          related_common_case_id: relatedCommonCaseId, // ⭐ ADICIONAR
-          author: newExperience.author || '',
-          gender: newExperience.gender || '',
-          age: newExperience.age || '',
-          country: newExperience.country || '',
-          avg_rating: 0,
-          total_ratings: 0,
-          source: 'uploaded',
-          random_order: Math.floor(Math.random() * 1000000)
-        }])
+  .from('experiences')
+  .insert([{
+    problem: newExperience.problem,
+    problem_category: newExperience.problemCategory,
+    solution: newExperience.solution,
+    result: newExperience.result,
+    result_category: newExperience.resultCategory,
+    industry_sector: newExperience.industrySector || '',
+    related_common_case_id: relatedCommonCaseId,
+    author: newExperience.author || '',
+    gender: newExperience.gender || '',
+    age: newExperience.age || '',
+    country: newExperience.country || '',
+    avg_rating: 0,
+    total_ratings: 0,
+    source: 'app'
+    // ⭐ REMOVER: random_order: Math.floor(Math.random() * 1000000)
+  }])
         .select();
       
       if (error) throw error;
@@ -3352,13 +3373,25 @@ onClick={() => {
                   <div className="mb-4 flex flex-wrap gap-2 justify-end">
                     {exp.relatedCommonCaseId && (exp.source === 'uploaded' || exp.source === 'app') && (
   <button
-  onClick={() => navigateToKeyInsight(exp.relatedCommonCaseId)}
-  className="inline-flex items-center gap-1 text-xs bg-purple-100 text-purple-800 px-3 py-1 rounded-full border-2 border-purple-300 hover:bg-purple-200 transition-colors cursor-pointer"
->
-  <Target size={12} />
-  🎯 Matching Common Case →
-</button>
-  )}
+    onClick={() => {
+      console.log('=== BADGE CLICADO ===');
+      console.log('Exp ID:', exp.id);
+      console.log('Exp Category:', exp.problemCategory);
+      console.log('Related Common Case ID:', exp.relatedCommonCaseId);
+      
+      const commonCase = experiences.find(e => e.id === exp.relatedCommonCaseId);
+      console.log('Common Case encontrado:', commonCase);
+      console.log('Common Case problem:', commonCase?.problem);
+      console.log('Common Case category:', commonCase?.problemCategory);
+      
+      navigateToKeyInsight(exp.relatedCommonCaseId);
+    }}
+    className="inline-flex items-center gap-1 text-xs bg-purple-100 text-purple-800 px-3 py-1 rounded-full border-2 border-purple-300 hover:bg-purple-200 transition-colors cursor-pointer"
+  >
+    <Target size={12} />
+    🎯 Matching Common Case →
+  </button>
+)}
                     
                     {(() => {
                       const mappedCount = experiences.filter(e => (e.source === 'uploaded' || e.source === 'app') && e.relatedCommonCaseId === exp.id).length;
