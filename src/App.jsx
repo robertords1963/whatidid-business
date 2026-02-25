@@ -3736,7 +3736,7 @@ onClick={() => {
                           {resultCategories.map(cat => (
                             <option key={cat.value} value={cat.value}>{cat.label}</option>
                           ))}
-                        </select>
+                        </select> 
                       </div>
                     </div>
                     
