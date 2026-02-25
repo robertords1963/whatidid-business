@@ -445,9 +445,12 @@ setCurrentPage(correctPage > 0 ? correctPage : 1);
 
 
     
-    // Tentar múltiplas vezes até encontrar o elemento
-    let attempts = 0;
-    const tryScroll = setInterval(() => {
+// Aguardar React renderizar a página correta
+setTimeout(() => {
+  // Tentar múltiplas vezes até encontrar o elemento
+  let attempts = 0;
+  const tryScroll = setInterval(() => {
+    
       attempts++;
       console.log(`Tentativa ${attempts}: Procurando exp-${commonCaseId}`);
       
@@ -469,6 +472,7 @@ setCurrentPage(correctPage > 0 ? correctPage : 1);
         clearInterval(tryScroll);
       }
     }, 200); // Tentar a cada 200ms
+    }, 300); // ⭐ ADICIONAR ESTA LINHA: Fim do setTimeout
   };
 
   // FUNÇÃO 5: Navegar Key Insight → Pro
