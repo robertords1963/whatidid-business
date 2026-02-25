@@ -1,6 +1,7 @@
 
 
 
+
 import React, { useState, useEffect } from 'react';
 import { Share2, TrendingUp, AlertCircle, Star, MessageCircle, Send, Shield, Trash2, Search, Users, Target, Briefcase } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js'; 
@@ -362,29 +363,30 @@ const loadTopExperiences = async () => {
 
   // FUNÇÃO 2: Reset form
   const resetForm = () => {
-  setCurrentEntry({
-    problem: '',
-    problemCategory: '',
-    solution: '',
-    result: '',
-    resultCategory: '',
-    author: '',
-    gender: '',
-    age: '',
-    country: userCountryName || '',
-    industrySector: ''
-  });
-  setCurrentPage(1);
-  
-  setTimeout(() => {
-    const firstExp = document.getElementById('first-experience');
-    if (firstExp) {
-      const yOffset = -100;
-      const y = firstExp.getBoundingClientRect().top + window.pageYOffset + yOffset;
-      window.scrollTo({ top: y, behavior: 'smooth' });
-    }
-  }, 500);
-};
+    setCurrentEntry({
+      problem: '',
+      problemCategory: '',
+      solution: '',
+      result: '',
+      resultCategory: '',
+      industrySector: '',
+      author: '',
+      gender: '',
+      age: '',
+      country: userCountryName || ''
+    });
+    
+    setCurrentPage(1);
+    
+    setTimeout(() => {
+      const firstExp = document.getElementById('first-experience');
+      if (firstExp) {
+        const yOffset = -100;
+        const y = firstExp.getBoundingClientRect().top + window.pageYOffset + yOffset;
+        window.scrollTo({ top: y, behavior: 'smooth' });
+      }
+    }, 500);
+  };
 
   // FUNÇÃO 3: Confirmar mapeamento
   const confirmMapping = async (selectedIds) => {
@@ -507,24 +509,24 @@ const loadTopExperiences = async () => {
   const addExperienceToSupabase = async (newExperience, relatedCommonCaseId = null) => {
     try {
       const { data, error } = await supabase
-  .from('experiences')
-  .insert([{
-    problem: newExperience.problem,
-    problem_category: newExperience.problemCategory,
-    solution: newExperience.solution,
-    result: newExperience.result,
-    result_category: newExperience.resultCategory,
-    industry_sector: newExperience.industrySector || '',
-    related_common_case_id: relatedCommonCaseId,
-    author: newExperience.author || '',
-    gender: newExperience.gender || '',
-    age: newExperience.age || '',
-    country: newExperience.country || '',
-    avg_rating: 0,
-    total_ratings: 0,
-    source: 'uploaded',
-    random_order: Math.floor(Math.random() * 1000000)
-  }])
+        .from('experiences')
+        .insert([{
+          problem: newExperience.problem,
+          problem_category: newExperience.problemCategory,
+          solution: newExperience.solution,
+          result: newExperience.result,
+          result_category: newExperience.resultCategory,
+          industry_sector: newExperience.industrySector || '', // ⭐ ADICIONAR
+          related_common_case_id: relatedCommonCaseId, // ⭐ ADICIONAR
+          author: newExperience.author || '',
+          gender: newExperience.gender || '',
+          age: newExperience.age || '',
+          country: newExperience.country || '',
+          avg_rating: 0,
+          total_ratings: 0,
+          source: 'uploaded',
+          random_order: Math.floor(Math.random() * 1000000)
+        }])
         .select();
       
       if (error) throw error;
