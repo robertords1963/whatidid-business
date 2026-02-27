@@ -82,6 +82,14 @@ export default function WhatIDid() {
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [loading, setLoading] = useState(true);
   const [experiences, setExperiences] = useState([]);
+
+  // ⭐ ADICIONAR AQUI (junto com os outros useState) ⭐
+  const [appSettings, setAppSettings] = useState({
+    requireEmployeeLogin: false,
+    editionName: 'pro',
+    allowCvUpload: true
+  });
+
   const [userCountry, setUserCountry] = useState('');
   const [addingComment, setAddingComment] = useState(null);
   const [userCountryName, setUserCountryName] = useState('');
@@ -121,6 +129,7 @@ export default function WhatIDid() {
     detectUserCountry();
     loadExperiences();
     loadTopExperiences();
+    loadAppSettings();  // ⭐ ADICIONAR ESTA LINHA ⭐
     loadQuotes();
     loadContentPages();
     loadPromotionalVideos();
@@ -254,6 +263,30 @@ const loadTopExperiences = async () => {
     }
   };
 
+// ⭐ ADICIONAR AQUI ⭐
+  const loadAppSettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('app_settings')
+        .select('*')
+        .single();
+      
+      if (error) throw error;
+      
+      if (data) {
+        setAppSettings({
+          requireEmployeeLogin: data.require_employee_login,
+          editionName: data.edition_name,
+          allowCvUpload: data.allow_cv_upload
+        });
+      }
+    } catch (error) {
+      console.error('Error loading app settings:', error);
+    }
+  };
+  // ⭐ FIM ⭐
+
+  
   const setTopExperience = async (position, experienceId) => {
     try {
       // Check if this experience is already set in another position
