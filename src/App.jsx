@@ -1691,6 +1691,104 @@ useEffect(() => {
             </div>
           )}
 
+{isAdmin && (
+  <div className="mt-4 bg-indigo-50 border-2 border-indigo-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
+    <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+      ⚙️ App Configuration
+    </h3>
+    
+    <div className="bg-white rounded p-4 space-y-4">
+      {/* 1. Nome da Edição */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Edition Name
+        </label>
+        <select
+          value={appSettings.editionName}
+          onChange={async (e) => {
+            const newSettings = {...appSettings, editionName: e.target.value};
+            setAppSettings(newSettings);
+            
+            const { error } = await supabase
+              .from('app_settings')
+              .update({ edition_name: e.target.value })
+              .eq('id', 1);
+            
+            if (error) {
+              alert('Error updating setting');
+              console.error(error);
+            } else {
+              alert('Edition name updated!');
+            }
+          }}
+          className="w-full p-2 border-2 border-gray-300 rounded-lg"
+        >
+          <option value="pro">Pro</option>
+          <option value="corp">Corp</option>
+        </select>
+      </div>
+      
+      {/* 2. Employee Login */}
+      <div className="flex items-center gap-3">
+        <input
+          type="checkbox"
+          id="employeeLogin"
+          checked={appSettings.requireEmployeeLogin}
+          onChange={async (e) => {
+            const newSettings = {...appSettings, requireEmployeeLogin: e.target.checked};
+            setAppSettings(newSettings);
+            
+            const { error } = await supabase
+              .from('app_settings')
+              .update({ require_employee_login: e.target.checked })
+              .eq('id', 1);
+            
+            if (error) {
+              alert('Error updating setting');
+              console.error(error);
+            } else {
+              alert(`Employee login ${e.target.checked ? 'enabled' : 'disabled'}!`);
+            }
+          }}
+          className="w-5 h-5"
+        />
+        <label htmlFor="employeeLogin" className="text-sm font-medium text-gray-700 cursor-pointer">
+          Require Employee ID for access
+        </label>
+      </div>
+      
+      {/* 3. Upload CV */}
+      <div className="flex items-center gap-3">
+        <input
+          type="checkbox"
+          id="cvUpload"
+          checked={appSettings.allowCvUpload}
+          onChange={async (e) => {
+            const newSettings = {...appSettings, allowCvUpload: e.target.checked};
+            setAppSettings(newSettings);
+            
+            const { error } = await supabase
+              .from('app_settings')
+              .update({ allow_cv_upload: e.target.checked })
+              .eq('id', 1);
+            
+            if (error) {
+              alert('Error updating setting');
+              console.error(error);
+            } else {
+              alert(`CV upload ${e.target.checked ? 'enabled' : 'disabled'}!`);
+            }
+          }}
+          className="w-5 h-5"
+        />
+        <label htmlFor="cvUpload" className="text-sm font-medium text-gray-700 cursor-pointer">
+          Allow CV upload
+        </label>
+      </div>
+    </div>
+  </div>
+)}
+          
           {isAdmin && (
             <div className="mt-4 bg-purple-50 border-2 border-purple-300 rounded-lg shadow-md p-4 max-w-md mx-auto">
               <div className="flex items-center justify-between mb-3">
