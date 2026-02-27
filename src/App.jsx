@@ -1566,10 +1566,13 @@ useEffect(() => {
         <div className="text-center mb-8">
           <div className="flex items-center justify-between mb-4">
             <div className="flex-1"></div>
-            <h1 className="text-4xl font-bold text-gray-800 mb-2 flex items-center justify-center gap-3">
-              <Share2 className="text-purple-600" size={36} />
-              WhatIDid {appSettings.editionName === 'pro' ? 'Pro' : 'Corp'}
-            </h1>
+<h1 className="text-4xl font-bold text-gray-800 mb-2 flex items-center justify-center gap-3">
+  <Share2 className="text-purple-600" size={36} />
+  WhatIDid{' '}
+  <span className="text-2xl font-normal italic text-gray-600">
+    {appSettings.editionName === 'pro' ? 'Pro' : 'Corp'}
+  </span>
+</h1>
             <div className="flex-1"></div>
           </div>
           <p className="text-gray-700 font-medium mb-1">Real problems. Real solutions. Real people.</p>
