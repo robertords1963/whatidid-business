@@ -1568,7 +1568,7 @@ useEffect(() => {
             <div className="flex-1"></div>
             <h1 className="text-4xl font-bold text-gray-800 mb-2 flex items-center justify-center gap-3">
               <Share2 className="text-purple-600" size={36} />
-              WhatIDid
+              WhatIDid {appSettings.editionName === 'pro' ? 'Pro' : 'Corp'}
             </h1>
             <div className="flex-1"></div>
           </div>
@@ -2912,6 +2912,29 @@ onClick={() => {
               <p className="text-xs text-gray-500 mt-1">Detected: {userCountryName || 'Not detected'}</p>
             </div>
           </div>
+
+{/* Upload CV - só aparece se allowCvUpload = true */}
+{appSettings.allowCvUpload && (
+  <div className="md:col-span-2">
+    <label className="block text-sm font-medium text-gray-700 mb-2">
+      Upload CV (optional) - PDF only
+    </label>
+    <input
+      type="file"
+      accept=".pdf"
+      onChange={(e) => {
+        const file = e.target.files[0];
+        if (file && file.size > 5000000) {
+          alert('File too large. Max 5MB');
+          e.target.value = '';
+        }
+      }}
+      className="w-full p-2 border-2 border-gray-200 rounded-lg"
+    />
+    <p className="text-xs text-gray-500 mt-1">Max 5MB</p>
+  </div>
+)}
+  
           <button
             onClick={handleSubmit}
             className="w-full mt-6 bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all shadow-lg"
@@ -3651,6 +3674,27 @@ onClick={() => {
                           <Send size={18} />
                         </button>
                       </div>
+
+                      {/* ⭐ Upload CV para comentários ⭐ */}
+                      {appSettings.allowCvUpload && (
+                        <div className="mt-2">
+                          <input
+                            type="file"
+                            accept=".pdf"
+                            onChange={(e) => {
+                              const file = e.target.files[0];
+                              if (file && file.size > 5000000) {
+                                alert('File too large. Max 5MB');
+                                e.target.value = '';
+                              }
+                            }}
+                            className="text-xs p-1 border-2 border-gray-200 rounded"
+                          />
+                          <span className="text-xs text-gray-500 ml-2">Attach CV (optional, max 5MB)</span>
+                        </div>
+                      )}
+
+                      
                       <div className="text-xs text-gray-500 text-right mt-1">
                         {(newComment[exp.id] || '').length}/{maxChars.comment}
                       </div>
