@@ -570,26 +570,52 @@ setTimeout(() => {
 };
   
   const addExperienceToSupabase = async (newExperience, relatedCommonCaseId = null) => {
-    try {
-      const { data, error } = await supabase
-        .from('experiences')
-        .insert([{
-          problem: newExperience.problem,
-          problem_category: newExperience.problemCategory,
-          solution: newExperience.solution,
-          result: newExperience.result,
-          result_category: newExperience.resultCategory,
-          industry_sector: newExperience.industrySector || '', // ⭐ ADICIONAR
-          related_common_case_id: relatedCommonCaseId, // ⭐ ADICIONAR
-          author: newExperience.author || '',
-          gender: newExperience.gender || '',
-          age: newExperience.age || '',
-          country: newExperience.country || '',
-          avg_rating: 0,
-          total_ratings: 0,
-          source: 'app'
-        }])
-        .select();
+  try {
+    let cvUrl = null;
+    let cvFilename = null;
+    
+    // Se tem CV selecionado, fazer upload primeiro
+    if (selectedCv) {
+      const cvData = await uploadCvToSupabase(selectedCv);
+      cvUrl = cvData.url;
+      cvFilename = cvData.filename;
+    }
+    
+    const { data, error } = await supabase
+      .from('experiences')
+      .insert([{
+        problem: newExperience.problem,
+        problem_category: newExperience.problemCategory,
+        solution: newExperience.solution,
+        result: newExperience.result,
+        result_category: newExperience.resultCategory,
+        industry_sector: newExperience.industrySector || '',
+        related_common_case_id: relatedCommonCaseId,
+        author: newExperience.author || '',
+        gender: newExperience.gender || '',
+        age: newExperience.age || '',
+        country: newExperience.country || '',
+        avg_rating: 0,
+        total_ratings: 0,
+        source: 'app',
+        cv_url: cvUrl,
+        cv_filename: cvFilename
+      }])
+      .select();
+    
+    if (error) throw error;
+    
+    // Limpar CV selecionado após sucesso
+    setSelectedCv(null);
+    
+    await loadExperiences(true);
+    return true;
+  } catch (error) {
+    console.error('Error adding experience:', error);
+    alert('Error saving experience.');
+    return false;
+  }
+};
       
       if (error) throw error;
       await loadExperiences(true);
