@@ -688,43 +688,7 @@ setTimeout(() => {
     console.error('Error adding comment:', error);
     alert('Error adding comment');
   }
-};
-      .select();
-    
-    if (error) throw error;
-    
-    const updatedComments = {...newComment};
-    delete updatedComments[experienceId];
-    setNewComment(updatedComments);
-     setRatedInSession(new Set([...ratedInSession, experienceId]));
-    await loadExperiences(true);
 
-// Aguardar renderização e scrollar
-const scrollToExp = () => {
-  const expElement = document.getElementById(`exp-${experienceId}`);
-  if (expElement) {
-    const yOffset = -100;
-    const y = expElement.getBoundingClientRect().top + window.pageYOffset + yOffset;
-    window.scrollTo({ top: y, behavior: 'smooth' });
-    return true;
-  }
-  return false;
-};
-
-// Tentar várias vezes até encontrar
-let attempts = 0;
-const tryScroll = setInterval(() => {
-  if (scrollToExp() || attempts >= 10) {
-    clearInterval(tryScroll);
-  }
-  attempts++;
-}, 200);
-    
-  } catch (error) {
-    console.error('Error:', error);
-    alert('Error adding comment.');
-  }
-};
 
 const [currentEntry, setCurrentEntry] = useState({
     problem: '',
