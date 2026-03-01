@@ -223,7 +223,9 @@ const loadExperiences = async (skipLoading = false) => {
           id: c.id,
           text: c.comment_text,
           author: c.author,
-          country: c.country
+          country: c.country,
+          cvUrl: c.cv_url || null,  // ⭐ ADICIONAR
+          cvFilename: c.cv_filename || null  // ⭐ ADICIONAR
         });
       });
       
