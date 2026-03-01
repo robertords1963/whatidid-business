@@ -286,6 +286,29 @@ const loadTopExperiences = async () => {
   };
   // ⭐ FIM ⭐
 
+  // ⭐ FUNÇÃO DE UPLOAD DE CV ⭐
+  const uploadCvToSupabase = async (file) => {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const filePath = fileName;
+
+      const { data, error } = await supabase.storage
+        .from('cvs')
+        .upload(filePath, file);
+
+      if (error) throw error;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('cvs')
+        .getPublicUrl(filePath);
+
+      return { url: publicUrl, filename: file.name };
+    } catch (error) {
+      console.error('Error uploading CV:', error);
+      throw error;
+    }
+  };
   
   const setTopExperience = async (position, experienceId) => {
     try {
@@ -675,6 +698,12 @@ const [currentEntry, setCurrentEntry] = useState({
     country: ''
   });
 
+// ⭐ Estados para gerenciar CVs
+const [selectedCv, setSelectedCv] = useState(null);
+const [commentCvFiles, setCommentCvFiles] = useState({});
+const [showCvModal, setShowCvModal] = useState(false);
+const [currentCvUrl, setCurrentCvUrl] = useState(null);
+  
   const [filters, setFilters] = useState({
     problemCategory: '',
     searchText: '',
