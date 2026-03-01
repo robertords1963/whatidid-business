@@ -3964,6 +3964,22 @@ onClick={() => {
           <p className="text-sm text-gray-700">
             {lastComment.text}
           </p>
+
+{/* ⭐ Ícone CV ⭐ */}
+{lastComment.cvUrl && (
+  <div className="mt-2">
+    <button
+      onClick={() => {
+        setCurrentCvUrl(lastComment.cvUrl);
+        setShowCvModal(true);
+      }}
+      className="text-blue-600 hover:text-blue-800 inline-flex items-center gap-1 text-xs"
+    >
+      <span className="font-semibold">CV</span> 📄
+    </button>
+  </div>
+)}
+          
         </div>
       );
     })()}
