@@ -648,26 +648,47 @@ setTimeout(() => {
 };
 
   const handleAddComment = async (experienceId) => {
-  const commentText = newComment[experienceId];
-  
-  if (!commentText?.trim()) {
+  if (!newComment[experienceId]?.trim()) {
     alert('Please enter a comment!');
     return;
   }
   
   try {
-    // Salvar posição atual
-    const expElement = document.getElementById(`exp-${experienceId}`);
-    const scrollPosition = expElement ? expElement.offsetTop - 100 : 0;
+    let cvUrl = null;
+    let cvFilename = null;
     
-    const { data, error } = await supabase
+    // Se tem CV selecionado para este comentário, fazer upload
+    if (commentCvFiles[experienceId]) {
+      const cvData = await uploadCvToSupabase(commentCvFiles[experienceId]);
+      cvUrl = cvData.url;
+      cvFilename = cvData.filename;
+    }
+    
+    const { error } = await supabase
       .from('comments')
       .insert([{
         experience_id: experienceId,
-        comment_text: commentText,
+        comment_text: newComment[experienceId],
         author: '',
-        country: userCountryName || ''
-      }])
+        country: userCountryName || '',
+        cv_url: cvUrl,
+        cv_filename: cvFilename
+      }]);
+    
+    if (error) throw error;
+    
+    // Limpar campo e CV
+    setNewComment({...newComment, [experienceId]: ''});
+    const newFiles = {...commentCvFiles};
+    delete newFiles[experienceId];
+    setCommentCvFiles(newFiles);
+    
+    await loadExperiences(true);
+  } catch (error) {
+    console.error('Error adding comment:', error);
+    alert('Error adding comment');
+  }
+};
       .select();
     
     if (error) throw error;
