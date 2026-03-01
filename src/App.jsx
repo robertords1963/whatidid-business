@@ -167,7 +167,7 @@ const loadExperiences = async (skipLoading = false) => {
       .from('experiences')
       .select('*')
       .order('source', { ascending: true })
-      .order('random_order', { ascending: true })
+      .order('id', { ascending: false })
       .range(0, 999);
     
     if (error1) throw error1;
@@ -177,7 +177,7 @@ const loadExperiences = async (skipLoading = false) => {
       .from('experiences')
       .select('*')
       .order('source', { ascending: true })
-      .order('random_order', { ascending: true })
+      .order('id', { ascending: false })
       .range(1000, 1999);
     
     if (error2) throw error2;
