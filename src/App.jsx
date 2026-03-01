@@ -688,6 +688,7 @@ setTimeout(() => {
     console.error('Error adding comment:', error);
     alert('Error adding comment');
   }
+  };
 
 
 const [currentEntry, setCurrentEntry] = useState({
