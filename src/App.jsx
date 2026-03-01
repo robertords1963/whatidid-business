@@ -617,15 +617,7 @@ setTimeout(() => {
   }
 };
       
-      if (error) throw error;
-      await loadExperiences(true);
-      return true;
-    } catch (error) {
-      console.error('Error adding experience:', error);
-      alert('Error saving experience.');
-      return false;
-    }
-  };
+      
 
   const deleteExperienceFromSupabase = async (id) => {
   try {
