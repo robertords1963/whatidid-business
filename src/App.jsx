@@ -2951,18 +2951,36 @@ onClick={() => {
     <label className="block text-sm font-medium text-gray-700 mb-2">
       Upload CV (optional) - PDF only
     </label>
-    <input
-      type="file"
-      accept=".pdf"
-      onChange={(e) => {
-        const file = e.target.files[0];
-        if (file && file.size > 5000000) {
-          alert('File too large. Max 5MB');
-          e.target.value = '';
-        }
-      }}
-      className="w-full p-2 border-2 border-gray-200 rounded-lg"
-    />
+    
+    {!selectedCv ? (
+      <input
+        type="file"
+        accept=".pdf"
+        onChange={(e) => {
+          const file = e.target.files[0];
+          if (file) {
+            if (file.size > 5000000) {
+              alert('File too large. Max 5MB');
+              e.target.value = '';
+            } else {
+              setSelectedCv(file);
+            }
+          }
+        }}
+        className="w-full p-2 border-2 border-gray-200 rounded-lg"
+      />
+    ) : (
+      <div className="flex items-center gap-2 p-2 bg-green-50 border-2 border-green-300 rounded-lg">
+        <span className="text-sm text-green-700">📄 {selectedCv.name}</span>
+        <button
+          onClick={() => setSelectedCv(null)}
+          className="ml-auto text-red-600 hover:text-red-800"
+        >
+          ❌ Remove
+        </button>
+      </div>
+    )}
+    
     <p className="text-xs text-gray-500 mt-1">Max 5MB</p>
   </div>
 )}
