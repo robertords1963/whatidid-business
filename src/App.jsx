@@ -4552,7 +4552,7 @@ if (selected.length === 0) {
           </div>
           
           <div className="p-4 border-t">
-            
+            <a
               href={currentCvUrl}
               download
               target="_blank"
