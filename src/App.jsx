@@ -3855,11 +3855,26 @@ onClick={() => {
         })()}
         
         {(comment.author || comment.age || comment.gender) && (
-          <p className="text-xs text-gray-600 mb-2">
-            By: {[comment.author, comment.age, comment.gender].filter(Boolean).join(', ')}
-            {comment.country && <span className="ml-2">({comment.country})</span>}
-          </p>
-        )}
+  <p className="text-xs text-gray-600 mb-2">
+    By: {[comment.author, comment.age, comment.gender].filter(Boolean).join(', ')}
+    
+    {/* ⭐ Ícone CV no comentário ⭐ */}
+    {comment.cvUrl && (
+      <button
+        onClick={() => {
+          setCurrentCvUrl(comment.cvUrl);
+          setShowCvModal(true);
+        }}
+        className="ml-2 text-blue-600 hover:text-blue-800 inline-flex items-center"
+        title={`View CV - ${comment.cvFilename || 'CV.pdf'}`}
+      >
+        📄
+      </button>
+    )}
+    
+    {comment.country && <span className="ml-2">({comment.country})</span>}
+  </p>
+)}
         
         {comment.rating && (
            <div className="flex items-center gap-1 mb-2 mt-1">
