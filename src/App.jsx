@@ -3498,14 +3498,29 @@ onClick={() => {
                 <div id={`exp-${exp.id}`} className="bg-white rounded-2xl shadow-lg p-6">
                   <div className="mb-4">
   {/* Linha 1: By à esquerda, sem cor */}
-  <div className="mb-3">
-    {(exp.author || exp.gender || exp.age || exp.country) && (
-      <span className="text-xs text-gray-600">
-        By: {exp.author === 'key_insights' ? 'COMMON CASES' : [exp.author, exp.gender, exp.age].filter(Boolean).join(', ')}
-        {exp.country && <span> ({exp.country})</span>}
-      </span>
-    )}
-  </div>
+<div className="mb-3">
+  {(exp.author || exp.gender || exp.age || exp.country) && (
+    <span className="text-xs text-gray-600">
+      By: {exp.author === 'key_insights' ? 'COMMON CASES' : [exp.author, exp.gender, exp.age].filter(Boolean).join(', ')}
+      
+      {/* ⭐ Ícone CV - clicável ⭐ */}
+      {exp.cvUrl && exp.author !== 'key_insights' && (
+        <button
+          onClick={() => {
+            setCurrentCvUrl(exp.cvUrl);
+            setShowCvModal(true);
+          }}
+          className="ml-2 text-blue-600 hover:text-blue-800 inline-flex items-center"
+          title={`View CV - ${exp.cvFilename || 'CV.pdf'}`}
+        >
+          📄
+        </button>
+      )}
+      
+      {exp.country && <span> ({exp.country})</span>}
+    </span>
+  )}
+</div>
 
 {exp.industrySector && (
     <div className="mb-3">
