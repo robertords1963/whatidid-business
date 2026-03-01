@@ -3739,45 +3739,72 @@ onClick={() => {
                         <MessageCircle size={18} />
                         Add a Comment
                       </h4>
-                      <div className="flex gap-2">
-                        <textarea
-                          value={newComment[exp.id] || ''}
-                          onChange={(e) => {
-                            if (e.target.value.length <= maxChars.comment) {
-                              setNewComment({...newComment, [exp.id]: e.target.value});
-                            }
-                          }}
-                          placeholder="Share your thoughts..."
-                          className="flex-1 p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none resize-none"
-                          rows="2"
-                        />
-                        <button
-                          onClick={() => handleAddComment(exp.id)}
-                          disabled={!newComment[exp.id]?.trim()}
-                          className="px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
-                        >
-                          <Send size={18} />
-                        </button>
-                      </div>
+                      <div className="space-y-2">
+  <div className="flex gap-2">
+    <textarea
+      value={newComment[exp.id] || ''}
+      onChange={(e) => {
+        if (e.target.value.length <= maxChars.comment) {
+          setNewComment({...newComment, [exp.id]: e.target.value});
+        }
+      }}
+      placeholder="Share your thoughts..."
+      className="flex-1 p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none resize-none"
+      rows="2"
+    />
+    <button
+      onClick={() => handleAddComment(exp.id)}
+      disabled={!newComment[exp.id]?.trim()}
+      className="px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
+    >
+      <Send size={18} />
+    </button>
+  </div>
+  
+  {/* Upload CV dentro da caixa */}
+  {appSettings.allowCvUpload && (
+    <div className="flex items-center gap-2">
+      {!commentCvFiles[exp.id] ? (
+        <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer hover:text-purple-600">
+          <input
+            type="file"
+            accept=".pdf"
+            onChange={(e) => {
+              const file = e.target.files[0];
+              if (file) {
+                if (file.size > 5000000) {
+                  alert('File too large. Max 5MB');
+                  e.target.value = '';
+                } else {
+                  setCommentCvFiles({...commentCvFiles, [exp.id]: file});
+                }
+              }
+            }}
+            className="hidden"
+          />
+          📎 Attach CV (optional)
+        </label>
+      ) : (
+        <div className="flex items-center gap-2 text-xs bg-green-50 border border-green-300 rounded px-2 py-1">
+          <span className="text-green-700">📄 {commentCvFiles[exp.id].name}</span>
+          <button
+            onClick={() => {
+              const newFiles = {...commentCvFiles};
+              delete newFiles[exp.id];
+              setCommentCvFiles(newFiles);
+            }}
+            className="text-red-600 hover:text-red-800"
+          >
+            ❌
+          </button>
+        </div>
+      )}
+      <span className="text-xs text-gray-400">Max 5MB</span>
+    </div>
+  )}
+</div>
 
-                      {/* ⭐ Upload CV para comentários ⭐ */}
-                      {appSettings.allowCvUpload && (
-                        <div className="mt-2">
-                          <input
-                            type="file"
-                            accept=".pdf"
-                            onChange={(e) => {
-                              const file = e.target.files[0];
-                              if (file && file.size > 5000000) {
-                                alert('File too large. Max 5MB');
-                                e.target.value = '';
-                              }
-                            }}
-                            className="text-xs p-1 border-2 border-gray-200 rounded"
-                          />
-                          <span className="text-xs text-gray-500 ml-2">Attach CV (optional, max 5MB)</span>
-                        </div>
-                      )}
+{/* ⭐ Upload CV para comentários - DENTRO da caixa ⭐ */}
 
                       
                       <div className="text-xs text-gray-500 text-right mt-1">
