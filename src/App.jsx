@@ -203,6 +203,8 @@ const loadExperiences = async (skipLoading = false) => {
       avgRating: exp.avg_rating || 0,
       totalRatings: exp.total_ratings || 0,
       source: exp.source || 'upload',
+      cvUrl: exp.cv_url || null,  // ⭐ ADICIONAR
+      cvFilename: exp.cv_filename || null,  // ⭐ ADICIONAR
       comments: []
     }));
     
