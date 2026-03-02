@@ -3867,6 +3867,22 @@ onClick={() => {
         <p className="text-sm text-gray-700">
           {comment.text}
         </p>
+
+{/* ⭐ ADICIONAR AQUI ⭐ */}
+        {comment.cvUrl && (
+          <div className="mt-2">
+            <button
+              onClick={() => {
+                setCurrentCvUrl(comment.cvUrl);
+                setShowCvModal(true);
+              }}
+              className="text-blue-600 hover:text-blue-800 inline-flex items-center gap-1 text-xs"
+            >
+              <span className="font-semibold">CV</span> 📄
+            </button>
+          </div>
+        )}
+        
       </div>
     ))}
   </div>
@@ -3907,27 +3923,7 @@ onClick={() => {
             );
           })()}
           
-{(lastComment.author || lastComment.age || lastComment.gender || lastComment.cvUrl) && (
-  <p className="text-xs text-gray-600 mb-2">
-    By: {[lastComment.author, lastComment.age, lastComment.gender].filter(Boolean).join(', ') || 'Anonymous'}
-    
-    {/* ⭐ Ícone CV ⭐ */}
-    {lastComment.cvUrl && (
-      <button
-        onClick={() => {
-          setCurrentCvUrl(lastComment.cvUrl);
-          setShowCvModal(true);
-        }}
-        className="ml-2 text-blue-600 hover:text-blue-800 inline-flex items-center gap-1"
-        title={`View CV - ${lastComment.cvFilename || 'CV.pdf'}`}
-      >
-        <span className="text-xs font-semibold">CV</span> 📄
-      </button>
-    )}
-    
-    {lastComment.country && <span className="ml-2">({lastComment.country})</span>}
-  </p>
-)}
+
           
           {lastComment.rating && (
             <div className="flex items-center gap-1 mb-2">
