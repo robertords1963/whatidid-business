@@ -4672,4 +4672,50 @@ if (selected.length === 0) {
       </div>
     )}
 
+
+        {/* Modal de CV */}
+    {showCvModal && currentCvUrl && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] flex flex-col">
+          <div className="flex items-center justify-between p-4 border-b">
+            <h3 className="text-lg font-semibold">CV Preview</h3>
+            <button
+              onClick={() => {
+                setShowCvModal(false);
+                setCurrentCvUrl(null);
+              }}
+              className="text-gray-500 hover:text-gray-700 text-2xl"
+            >
+              ×
+            </button>
+          </div>
+          
+          <div className="flex-1 overflow-auto p-4">
+            <iframe
+              src={currentCvUrl}
+              className="w-full h-[600px] border-2 border-gray-200 rounded"
+              title="CV Preview"
+            />
+          </div>
+          
+          <div className="p-4 border-t">
+            <a
+              href={currentCvUrl}
+              download
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2"
+            >
+              ⬇️ Download PDF
+            </a>
+          </div>
+        </div>
+      </div>
+    )}
+    
+    </>
+    )}
+    </>
+  );
 }
+
