@@ -3384,59 +3384,72 @@ onClick={() => {
                 </div>
                 
                 {/* Filtros avançados (colapsáveis) */}
-                {showAdvancedFilters && (
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-2">Rating</label>
-                      <select
-                        value={filters.rating}
-                        onChange={(e) => setFilters({...filters, rating: e.target.value})}
-                        className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-yellow-500 focus:outline-none"
-                      >
-                        <option value="">All</option>
-                        <option value="5">⭐⭐⭐⭐⭐ (5)</option>
-                        <option value="4">⭐⭐⭐⭐ (4)</option>
-                        <option value="3">⭐⭐⭐ (3)</option>
-                        <option value="2">⭐⭐ (2)</option>
-                        <option value="1">⭐ (1)</option>
-                        <option value="0">None (Not rated)</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-2">Gender</label>
-                      <select
-                        value={filters.gender}
-                        onChange={(e) => setFilters({...filters, gender: e.target.value})}
-                        className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-                      >
-                        <option value="">All</option>
-                        {genderOptions.map(gender => <option key={gender} value={gender}>{gender}</option>)}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-2">Age</label>
-                      <select
-                        value={filters.age}
-                        onChange={(e) => setFilters({...filters, age: e.target.value})}
-                        className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-                      >
-                        <option value="">All</option>
-                        {ageOptions.map(age => <option key={age} value={age}>{age}</option>)}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-2">Country</label>
-                      <select
-                        value={filters.country}
-                        onChange={(e) => setFilters({...filters, country: e.target.value})}
-                        className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-                      >
-                        <option value="">All</option>
-                        {countryOptions.map(country => <option key={country} value={country}>{country}</option>)}
-                      </select>
-                    </div>
-                  </div>
-                )}
+{showAdvancedFilters && (
+  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+    {/* Rating - mantém em ambos */}
+    <div>
+      <label className="block text-sm font-medium text-gray-600 mb-2">Rating</label>
+      <select
+        value={filters.rating}
+        onChange={(e) => setFilters({...filters, rating: e.target.value})}
+        className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-yellow-500 focus:outline-none"
+      >
+        <option value="">All</option>
+        <option value="5">⭐⭐⭐⭐⭐ (5)</option>
+        <option value="4">⭐⭐⭐⭐ (4)</option>
+        <option value="3">⭐⭐⭐ (3)</option>
+        <option value="2">⭐⭐ (2)</option>
+        <option value="1">⭐ (1)</option>
+        <option value="0">None (Not rated)</option>
+      </select>
+    </div>
+    
+    {/* Gender - só no Pro */}
+    {!appSettings.requireEmployeeLogin && (
+      <div>
+        <label className="block text-sm font-medium text-gray-600 mb-2">Gender</label>
+        <select
+          value={filters.gender}
+          onChange={(e) => setFilters({...filters, gender: e.target.value})}
+          className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+        >
+          <option value="">All</option>
+          {genderOptions.map(gender => <option key={gender} value={gender}>{gender}</option>)}
+        </select>
+      </div>
+    )}
+    
+    {/* Age - só no Pro */}
+    {!appSettings.requireEmployeeLogin && (
+      <div>
+        <label className="block text-sm font-medium text-gray-600 mb-2">Age</label>
+        <select
+          value={filters.age}
+          onChange={(e) => setFilters({...filters, age: e.target.value})}
+          className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+        >
+          <option value="">All</option>
+          {ageOptions.map(age => <option key={age} value={age}>{age}</option>)}
+        </select>
+      </div>
+    )}
+    
+    {/* Country - só no Pro */}
+    {!appSettings.requireEmployeeLogin && (
+      <div>
+        <label className="block text-sm font-medium text-gray-600 mb-2">Country</label>
+        <select
+          value={filters.country}
+          onChange={(e) => setFilters({...filters, country: e.target.value})}
+          className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+        >
+          <option value="">All</option>
+          {countryOptions.map(country => <option key={country} value={country}>{country}</option>)}
+        </select>
+      </div>
+    )}
+  </div>
+)}
                 
                 
                 <div className="mt-4">
