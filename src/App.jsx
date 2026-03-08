@@ -2940,20 +2940,22 @@ onClick={() => {
                 ))}
               </select>
 
-              <div className="mt-3">
-
-                <select
-                  value={currentEntry.industrySector}
-                  onChange={(e) => setCurrentEntry({...currentEntry, industrySector: e.target.value})}
-                  className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-                  required
-                >
-                  <option value="">Select your industry sector...</option>
-                  {industrySectors.map(sector => (
-                    <option key={sector} value={sector}>{sector}</option>
-                  ))}
-                </select>
-              </div>
+{/* Industry Sector - só no Pro */}
+{!appSettings.requireEmployeeLogin && (
+  <div className="mt-3">
+    <select
+      value={currentEntry.industrySector}
+      onChange={(e) => setCurrentEntry({...currentEntry, industrySector: e.target.value})}
+      className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+      required
+    >
+      <option value="">Select your industry sector...</option>
+      {industrySectors.map(sector => (
+        <option key={sector} value={sector}>{sector}</option>
+      ))}
+    </select>
+  </div>
+)}
               
               <div className="relative">
                 <textarea
