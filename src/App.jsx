@@ -90,6 +90,13 @@ export default function WhatIDid() {
     allowCvUpload: true
   });
 
+  // ⭐ ADICIONAR AQUI - Estados para Employee Login ⭐
+  const [isEmployeeLoggedIn, setIsEmployeeLoggedIn] = useState(false);
+  const [employeeId, setEmployeeId] = useState('');
+  const [employeePassword, setEmployeePassword] = useState('');
+  const [loginError, setLoginError] = useState('');
+  // ⭐ FIM ⭐
+
   const [userCountry, setUserCountry] = useState('');
   const [addingComment, setAddingComment] = useState(null);
   const [userCountryName, setUserCountryName] = useState('');
@@ -134,6 +141,17 @@ export default function WhatIDid() {
     loadContentPages();
     loadPromotionalVideos();
   }, []);
+
+// Verificar login do funcionário ao carregar
+useEffect(() => {
+  const loggedIn = localStorage.getItem('employeeLoggedIn');
+  const savedEmployeeId = localStorage.getItem('employeeId');
+  
+  if (loggedIn === 'true' && savedEmployeeId) {
+    setIsEmployeeLoggedIn(true);
+    setEmployeeId(savedEmployeeId);
+  }
+}, []);
   
   const detectUserCountry = async () => {
     try {
@@ -288,6 +306,42 @@ const loadTopExperiences = async () => {
       console.error('Error loading app settings:', error);
     }
   };
+
+const handleEmployeeLogin = async () => {
+  setLoginError('');
+  
+  if (!employeeId.trim() || !employeePassword.trim()) {
+    setLoginError('Please enter Employee ID and Password');
+    return;
+  }
+  
+  try {
+    const { data, error } = await supabase
+      .from('employees')
+      .select('*')
+      .eq('employee_id', employeeId)
+      .eq('password', employeePassword)
+      .eq('active', true)
+      .single();
+    
+    if (error || !data) {
+      setLoginError('Invalid Employee ID or Password');
+      return;
+    }
+    
+    // Login bem-sucedido
+    setIsEmployeeLoggedIn(true);
+    localStorage.setItem('employeeLoggedIn', 'true');
+    localStorage.setItem('employeeId', employeeId);
+    setEmployeePassword(''); // Limpar senha
+  } catch (error) {
+    console.error('Login error:', error);
+    setLoginError('Login failed. Please try again.');
+  }
+};
+
+
+  
   // ⭐ FIM ⭐
 
   // ⭐ FUNÇÃO DE UPLOAD DE CV ⭐
