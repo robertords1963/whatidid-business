@@ -3032,59 +3032,74 @@ onClick={() => {
           </div>
 
           <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Author (optional)</label>
-              <input
-                type="text"
-                value={currentEntry.author}
-                onChange={(e) => setCurrentEntry({...currentEntry, author: e.target.value})}
-                placeholder="Your name..."
-                className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-                maxLength={50}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Gender (optional)</label>
-              <select
-                value={currentEntry.gender}
-                onChange={(e) => setCurrentEntry({...currentEntry, gender: e.target.value})}
-                className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-              >
-                <option value="">Prefer not to say</option>
-                {genderOptions.map(gender => (
-                  <option key={gender} value={gender}>{gender}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Age Range (optional)</label>
-              <select
-  value={currentEntry.age}
-  onChange={(e) => setCurrentEntry({...currentEntry, age: e.target.value})}
-  className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none bg-white"
-  style={{ backgroundImage: 'none' }} 
-              >
-                <option value="">Prefer not to say</option>
-                {ageOptions.map(age => (
-                  <option key={age} value={age}>{age}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Country (auto-detected)</label>
-              <select
-                value={currentEntry.country}
-                onChange={(e) => setCurrentEntry({...currentEntry, country: e.target.value})}
-                className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-              >
-                <option value="">Select country</option>
-                {countryOptions.map(country => (
-                  <option key={country} value={country}>{country}</option>
-                ))}
-              </select>
-              <p className="text-xs text-gray-500 mt-1">Detected: {userCountryName || 'Not detected'}</p>
-            </div>
-          </div>
+  {/* Author - só no Pro */}
+  {!appSettings.requireEmployeeLogin && (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-2">Author (optional)</label>
+      <input
+        type="text"
+        value={currentEntry.author}
+        onChange={(e) => setCurrentEntry({...currentEntry, author: e.target.value})}
+        placeholder="Your name..."
+        className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+        maxLength={50}
+      />
+    </div>
+  )}
+  
+  {/* Gender - só no Pro */}
+  {!appSettings.requireEmployeeLogin && (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-2">Gender (optional)</label>
+      <select
+        value={currentEntry.gender}
+        onChange={(e) => setCurrentEntry({...currentEntry, gender: e.target.value})}
+        className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+      >
+        <option value="">Prefer not to say</option>
+        {genderOptions.map(gender => (
+          <option key={gender} value={gender}>{gender}</option>
+        ))}
+      </select>
+    </div>
+  )}
+  
+  {/* Age - só no Pro */}
+  {!appSettings.requireEmployeeLogin && (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-2">Age Range (optional)</label>
+      <select
+        value={currentEntry.age}
+        onChange={(e) => setCurrentEntry({...currentEntry, age: e.target.value})}
+        className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none bg-white"
+        style={{ backgroundImage: 'none' }} 
+      >
+        <option value="">Prefer not to say</option>
+        {ageOptions.map(age => (
+          <option key={age} value={age}>{age}</option>
+        ))}
+      </select>
+    </div>
+  )}
+  
+  {/* Country - só no Pro */}
+  {!appSettings.requireEmployeeLogin && (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-2">Country (auto-detected)</label>
+      <select
+        value={currentEntry.country}
+        onChange={(e) => setCurrentEntry({...currentEntry, country: e.target.value})}
+        className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+      >
+        <option value="">Select country</option>
+        {countryOptions.map(country => (
+          <option key={country} value={country}>{country}</option>
+        ))}
+      </select>
+      <p className="text-xs text-gray-500 mt-1">Detected: {userCountryName || 'Not detected'}</p>
+    </div>
+  )}
+</div>
 
 {/* Upload CV - só aparece se allowCvUpload = true */}
 {appSettings.allowCvUpload && (
