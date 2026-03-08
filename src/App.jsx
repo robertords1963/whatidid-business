@@ -1651,6 +1651,65 @@ useEffect(() => {
 }
   return (
     <>
+
+{/* ⭐ TELA DE LOGIN - Bloqueia acesso se requireEmployeeLogin = true ⭐ */}
+    {appSettings.requireEmployeeLogin && !isEmployeeLoggedIn ? (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
+          <h1 className="text-3xl font-bold text-gray-800 mb-2 text-center">
+            WhatIDid {appSettings.editionName === 'pro' ? 'Pro' : 'Corp'}
+          </h1>
+          <p className="text-gray-600 text-center mb-6">Employee Login</p>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Employee ID
+              </label>
+              <input
+                type="text"
+                value={employeeId}
+                onChange={(e) => setEmployeeId(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleEmployeeLogin()}
+                className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                placeholder="Enter your Employee ID"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Password
+              </label>
+              <input
+                type="password"
+                value={employeePassword}
+                onChange={(e) => setEmployeePassword(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleEmployeeLogin()}
+                className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                placeholder="Enter your password"
+              />
+            </div>
+            
+            {loginError && (
+              <div className="bg-red-50 border-2 border-red-200 rounded-lg p-3">
+                <p className="text-red-700 text-sm">{loginError}</p>
+              </div>
+            )}
+            
+            <button
+              onClick={handleEmployeeLogin}
+              className="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 font-semibold transition-colors"
+            >
+              Login
+            </button>
+          </div>
+        </div>
+      </div>
+    ) : (
+      <>
+      {/* ⭐ App normal continua aqui ⭐ */}
+
+      
       <style>{marqueeStyles}</style>
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 p-6">
       <div className="max-w-6xl mx-auto">
@@ -4652,7 +4711,8 @@ if (selected.length === 0) {
         </div>
       </div>
     )}
-      
+    </>  {/* ⭐ LINHA 1: fecha app normal ⭐ */}
+    )}   {/* ⭐ LINHA 2: fecha ternário login ⭐ */}
     </>
   );
 }
