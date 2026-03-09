@@ -3975,14 +3975,14 @@ onClick={() => {
     rows="2"
   />
   
-  {/* Upload CV - MESMA LINHA */}
+  {/* Upload Document - MESMA LINHA - dinâmico */}
   {appSettings.allowCvUpload && (
     <div className="flex items-center">
       {!commentCvFiles[exp.id] ? (
         <label className="px-3 py-2 bg-gray-100 border-2 border-gray-200 rounded-lg hover:bg-gray-200 cursor-pointer flex items-center gap-1 text-sm h-fit">
           <input
             type="file"
-            accept=".pdf"
+            accept={appSettings.documentType === 'cv' ? '.pdf' : '.pdf,.pptx,.xlsx,.docx,.ppt,.xls,.doc'}
             onChange={(e) => {
               const file = e.target.files[0];
               if (file) {
@@ -3996,11 +3996,11 @@ onClick={() => {
             }}
             className="hidden"
           />
-          📎 CV
+          {appSettings.documentType === 'cv' ? '📎 CV' : '📎 File'}
         </label>
       ) : (
         <div className="flex items-center gap-1 bg-green-50 border-2 border-green-300 rounded-lg px-2 py-1">
-          <span className="text-xs text-green-700">✓ CV</span>
+          <span className="text-xs text-green-700">✓ {appSettings.documentType === 'cv' ? 'CV' : 'File'}</span>
           <button
             onClick={() => {
               const newFiles = {...commentCvFiles};
