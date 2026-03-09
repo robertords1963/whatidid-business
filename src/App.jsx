@@ -3658,7 +3658,7 @@ onClick={() => {
     <span className="text-xs text-gray-600">
       By: {exp.author === 'key_insights' ? 'COMMON CASES' : 
            appSettings.requireEmployeeLogin 
-             ? [exp.author, exp.employee_id].filter(Boolean).join(', ')
+             ? [exp.author, exp.employeeid].filter(Boolean).join(', ')
              : [exp.author, exp.gender, exp.age].filter(Boolean).join(', ')
           }
       
