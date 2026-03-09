@@ -1934,33 +1934,92 @@ useEffect(() => {
         </label>
       </div>
       
-      {/* 3. Upload CV */}
-      <div className="flex items-center gap-3">
-        <input
-          type="checkbox"
-          id="cvUpload"
-          checked={appSettings.allowCvUpload}
-          onChange={async (e) => {
-            const newSettings = {...appSettings, allowCvUpload: e.target.checked};
-            setAppSettings(newSettings);
+{/* 3. Upload Documents */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-3">
+          <input
+            type="checkbox"
+            id="cvUpload"
+            checked={appSettings.allowCvUpload}
+            onChange={async (e) => {
+              const newSettings = {...appSettings, allowCvUpload: e.target.checked};
+              setAppSettings(newSettings);
+              
+              const { error } = await supabase
+                .from('app_settings')
+                .update({ allow_cv_upload: e.target.checked })
+                .eq('id', 1);
+              
+              if (error) {
+                alert('Error updating setting');
+                console.error(error);
+              } else {
+                alert(`Document upload ${e.target.checked ? 'enabled' : 'disabled'}!`);
+              }
+            }}
+            className="w-5 h-5"
+          />
+          <label htmlFor="cvUpload" className="text-sm font-medium text-gray-700 cursor-pointer">
+            Allow Document Upload
+          </label>
+        </div>
+        
+        {/* Radio buttons - só aparecem se upload estiver habilitado */}
+        {appSettings.allowCvUpload && (
+          <div className="ml-8 space-y-2 bg-gray-50 p-3 rounded">
+            <label className="block text-xs font-medium text-gray-600 mb-2">Document Type:</label>
             
-            const { error } = await supabase
-              .from('app_settings')
-              .update({ allow_cv_upload: e.target.checked })
-              .eq('id', 1);
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="documentType"
+                value="cv"
+                checked={appSettings.documentType === 'cv'}
+                onChange={async (e) => {
+                  const newSettings = {...appSettings, documentType: 'cv'};
+                  setAppSettings(newSettings);
+                  
+                  const { error } = await supabase
+                    .from('app_settings')
+                    .update({ document_type: 'cv' })
+                    .eq('id', 1);
+                  
+                  if (error) {
+                    alert('Error updating document type');
+                    console.error(error);
+                  }
+                }}
+                className="w-4 h-4"
+              />
+              <span className="text-sm">📄 CV (PDF only) - for Pro edition</span>
+            </label>
             
-            if (error) {
-              alert('Error updating setting');
-              console.error(error);
-            } else {
-              alert(`CV upload ${e.target.checked ? 'enabled' : 'disabled'}!`);
-            }
-          }}
-          className="w-5 h-5"
-        />
-        <label htmlFor="cvUpload" className="text-sm font-medium text-gray-700 cursor-pointer">
-          Allow CV upload
-        </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="documentType"
+                value="other"
+                checked={appSettings.documentType === 'other'}
+                onChange={async (e) => {
+                  const newSettings = {...appSettings, documentType: 'other'};
+                  setAppSettings(newSettings);
+                  
+                  const { error } = await supabase
+                    .from('app_settings')
+                    .update({ document_type: 'other' })
+                    .eq('id', 1);
+                  
+                  if (error) {
+                    alert('Error updating document type');
+                    console.error(error);
+                  }
+                }}
+                className="w-4 h-4"
+              />
+              <span className="text-sm">📎 Other Docs (PPT, XLS, PDF, DOCX) - for Corp edition</span>
+            </label>
+          </div>
+        )}
       </div>
     </div>
   </div>
