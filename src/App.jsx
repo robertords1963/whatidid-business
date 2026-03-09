@@ -1520,38 +1520,38 @@ const prevVideo = () => {
 
 
   const getKeywordMatches = () => {
-    if (!adminKeywords.trim()) return [];
-    const keywords = adminKeywords.toLowerCase().split(',').map(k => k.trim()).filter(k => k);
-    const matches = [];
-    experiences.forEach(exp => {
-      const searchText = `${exp.problem} ${exp.solution} ${exp.result}`.toLowerCase();
+  if (!adminKeywords.trim()) return [];
+  const keywords = adminKeywords.toLowerCase().split(',').map(k => k.trim()).filter(k => k);
+  const matches = [];
+  experiences.forEach(exp => {
+    const searchText = `${exp.problem} ${exp.solution} ${exp.result} ${exp.author} ${exp.employeeId || ''}`.toLowerCase();
+    keywords.forEach(keyword => {
+      if (searchText.includes(keyword)) {
+        matches.push({
+          type: 'experience',
+          expId: exp.id,
+          keyword: keyword,
+          text: `Problem: ${exp.problem}. Solution: ${exp.solution}. Result: ${exp.result}`
+        });
+      }
+    });
+    exp.comments.forEach(comment => {
       keywords.forEach(keyword => {
-        if (searchText.includes(keyword)) {
+        if (comment.text.toLowerCase().includes(keyword)) {
           matches.push({
-            type: 'experience',
+            type: 'comment',
             expId: exp.id,
+            commentId: comment.id,
             keyword: keyword,
-            text: `Problem: ${exp.problem}. Solution: ${exp.solution}. Result: ${exp.result}`
+            text: comment.text,
+            author: comment.author
           });
         }
       });
-      exp.comments.forEach(comment => {
-        keywords.forEach(keyword => {
-          if (comment.text.toLowerCase().includes(keyword)) {
-            matches.push({
-              type: 'comment',
-              expId: exp.id,
-              commentId: comment.id,
-              keyword: keyword,
-              text: comment.text,
-              author: comment.author
-            });
-          }
-        });
-      });
     });
-    return matches;
-  };
+  });
+  return matches;
+};
 
   const getResultColor = (category) => resultCategories.find(r => r.value === category)?.color || '';
   const getResultLabel = (category) => resultCategories.find(r => r.value === category)?.label || '';
