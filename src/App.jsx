@@ -3654,11 +3654,11 @@ onClick={() => {
                   <div className="mb-4">
 {/* Linha 1: By à esquerda */}
 <div className="mb-3">
-  {(exp.author || exp.gender || exp.age || exp.country || exp.employee_id) && (
+  {(exp.author || exp.gender || exp.age || exp.country || exp.employeeId) && (
     <span className="text-xs text-gray-600">
       By: {exp.author === 'key_insights' ? 'COMMON CASES' : 
            appSettings.requireEmployeeLogin 
-             ? [exp.author, exp.employeeid].filter(Boolean).join(', ')
+             ? [exp.author, exp.employeeId].filter(Boolean).join(', ')
              : [exp.author, exp.gender, exp.age].filter(Boolean).join(', ')
           }
       
