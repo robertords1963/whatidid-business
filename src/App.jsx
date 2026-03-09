@@ -223,6 +223,7 @@ const loadExperiences = async (skipLoading = false) => {
       source: exp.source || 'upload',
       cvUrl: exp.cv_url || null,  // ⭐ ADICIONAR
       cvFilename: exp.cv_filename || null,  // ⭐ ADICIONAR
+      employeeId: exp.employee_id || null,  // ⭐ ADICIONAR
       comments: []
     }));
     
