@@ -1595,11 +1595,12 @@ if (mappedFilter) {
   const matchesProblemCategory = !filters.problemCategory || exp.problemCategory === filters.problemCategory;
   const searchTerms = filters.searchText.toLowerCase().trim().split(/\s+/);
   const matchesSearchText = !filters.searchText || searchTerms.every(term => 
-    exp.problem.toLowerCase().includes(term) ||
-    exp.solution.toLowerCase().includes(term) ||
-    exp.result.toLowerCase().includes(term) ||
-    (exp.author && exp.author.toLowerCase().includes(term))
-  );
+  exp.problem.toLowerCase().includes(term) ||
+  exp.solution.toLowerCase().includes(term) ||
+  exp.result.toLowerCase().includes(term) ||
+  (exp.author && exp.author.toLowerCase().includes(term)) ||
+  (exp.employeeId && exp.employeeId.toLowerCase().includes(term))
+);
   const matchesResultCategory = !filters.resultCategory || exp.resultCategory === filters.resultCategory;
   const roundedRating = Math.round(exp.avgRating);
   const matchesRating = !filters.rating || 
