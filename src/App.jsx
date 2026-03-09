@@ -3727,7 +3727,7 @@ onClick={() => {
              : [exp.author, exp.gender, exp.age].filter(Boolean).join(', ')
           }
       
-      {/* Ícone CV */}
+      {/* Ícone Document - dinâmico */}
       {exp.cvUrl && exp.author !== 'key_insights' && (
         <button
           onClick={() => {
@@ -3735,9 +3735,9 @@ onClick={() => {
             setShowCvModal(true);
           }}
           className="ml-2 text-blue-600 hover:text-blue-800 inline-flex items-center gap-1"
-          title={`View CV - ${exp.cvFilename || 'CV.pdf'}`}
+          title={`View ${appSettings.documentType === 'cv' ? 'CV' : 'File'} - ${exp.cvFilename || 'Document'}`}
         >
-          <span className="text-xs font-semibold">CV</span> 📄
+          <span className="text-xs font-semibold">{appSettings.documentType === 'cv' ? 'CV' : 'File'}</span> {appSettings.documentType === 'cv' ? '📄' : '📎'}
         </button>
       )}
       
@@ -3745,7 +3745,6 @@ onClick={() => {
     </span>
   )}
 </div>
-
 {exp.industrySector && (
     <div className="mb-3">
       <span className="inline-flex items-center gap-1 text-xs bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full">
