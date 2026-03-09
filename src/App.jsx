@@ -3166,17 +3166,19 @@ onClick={() => {
   )}
 </div>
 
-{/* Upload CV - só aparece se allowCvUpload = true */}
+{/* Upload Document - dinâmico baseado em documentType */}
 {appSettings.allowCvUpload && (
   <div className="md:col-span-2">
     <label className="block text-sm font-medium text-gray-700 mb-2">
-      Upload CV (optional) - PDF only
+      {appSettings.documentType === 'cv' 
+        ? 'Upload CV (optional) - PDF only'
+        : 'Upload File (optional) - PPT, XLS, PDF, DOCX'}
     </label>
     
     {!selectedCv ? (
       <input
         type="file"
-        accept=".pdf"
+        accept={appSettings.documentType === 'cv' ? '.pdf' : '.pdf,.pptx,.xlsx,.docx,.ppt,.xls,.doc'}
         onChange={(e) => {
           const file = e.target.files[0];
           if (file) {
@@ -3192,7 +3194,9 @@ onClick={() => {
       />
     ) : (
       <div className="flex items-center gap-2 p-2 bg-green-50 border-2 border-green-300 rounded-lg">
-        <span className="text-sm text-green-700">📄 {selectedCv.name}</span>
+        <span className="text-sm text-green-700">
+          {appSettings.documentType === 'cv' ? '📄' : '📎'} {selectedCv.name}
+        </span>
         <button
           onClick={() => setSelectedCv(null)}
           className="ml-auto text-red-600 hover:text-red-800"
