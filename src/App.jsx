@@ -4103,7 +4103,7 @@ onClick={() => {
           {comment.text}
         </p>
 
-{/* ⭐ ADICIONAR AQUI ⭐ */}
+{/* Ícone Document nos comentários - dinâmico */}
         {comment.cvUrl && (
           <div className="mt-2">
             <button
@@ -4113,7 +4113,7 @@ onClick={() => {
               }}
               className="text-blue-600 hover:text-blue-800 inline-flex items-center gap-1 text-xs"
             >
-              <span className="font-semibold">CV</span> 📄
+              <span className="font-semibold">{appSettings.documentType === 'cv' ? 'CV' : 'File'}</span> {appSettings.documentType === 'cv' ? '📄' : '📎'}
             </button>
           </div>
         )}
@@ -4186,7 +4186,7 @@ onClick={() => {
       }}
       className="text-blue-600 hover:text-blue-800 inline-flex items-center gap-1 text-xs"
     >
-      <span className="font-semibold">CV</span> 📄
+      <span className="font-semibold">{appSettings.documentType === 'cv' ? 'CV' : 'File'}</span> {appSettings.documentType === 'cv' ? '📄' : '📎'}
     </button>
   </div>
 )}
