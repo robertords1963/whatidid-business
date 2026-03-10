@@ -4142,6 +4142,29 @@ onClick={() => {
       const lastComment = exp.comments[exp.comments.length - 1];
       return (
         <div key={lastComment.id} className="bg-gray-50 rounded-lg p-3 border-2 border-purple-200 relative">
+
+{/* By: info - SÓ NO CORP */}
+          {appSettings.requireEmployeeLogin && (lastComment.author || lastComment.employeeId || lastComment.country) && (
+            <div className="mb-2">
+              <span className="text-xs text-gray-600 block">
+                By: {[lastComment.author, lastComment.employeeId, lastComment.country].filter(Boolean).join(', ')}
+              </span>
+              
+              {/* Ícone Document - linha separada */}
+              {lastComment.cvUrl && (
+                <button
+                  onClick={() => {
+                    setCurrentCvUrl(lastComment.cvUrl);
+                    setShowCvModal(true);
+                  }}
+                  className="text-blue-600 hover:text-blue-800 inline-flex items-center gap-1 text-xs mt-1"
+                >
+                  <span className="font-semibold">{appSettings.documentType === 'cv' ? 'CV' : 'File'}</span> {appSettings.documentType === 'cv' ? '📄' : '📎'}
+                </button>
+              )}
+            </div>
+          )}
+          
           {/* Botão delete admin */}
           {isAdmin && (() => {
             const confirmKey = `comment-${exp.id}-${lastComment.id}`;
@@ -4187,20 +4210,7 @@ onClick={() => {
             {lastComment.text}
           </p>
 
-{/* ⭐ Ícone CV ⭐ */}
-{lastComment.cvUrl && (
-  <div className="mt-2">
-    <button
-      onClick={() => {
-        setCurrentCvUrl(lastComment.cvUrl);
-        setShowCvModal(true);
-      }}
-      className="text-blue-600 hover:text-blue-800 inline-flex items-center gap-1 text-xs"
-    >
-      <span className="font-semibold">{appSettings.documentType === 'cv' ? 'CV' : 'File'}</span> {appSettings.documentType === 'cv' ? '📄' : '📎'}
-    </button>
-  </div>
-)}
+
           
         </div>
       );
