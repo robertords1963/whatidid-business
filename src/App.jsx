@@ -240,13 +240,14 @@ const loadExperiences = async (skipLoading = false) => {
           commentsByExp[c.experience_id] = [];
         }
         commentsByExp[c.experience_id].push({
-          id: c.id,
-          text: c.comment_text,
-          author: c.author,
-          country: c.country,
-          cvUrl: c.cv_url || null,  // ⭐ ADICIONAR
-          cvFilename: c.cv_filename || null  // ⭐ ADICIONAR
-        });
+      id: c.id,
+      text: c.comment_text,
+      author: c.author,
+      employeeId: c.employee_id || null,
+      country: c.country,
+      cvUrl: c.cv_url || null,
+      cvFilename: c.cv_filename || null
+    });
       });
       
       transformedData.forEach(exp => {
