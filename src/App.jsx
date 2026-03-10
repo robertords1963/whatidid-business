@@ -764,10 +764,13 @@ setTimeout(() => {
     
     const { error } = await supabase
       .from('comments')
+      const { error } = await supabase
+      .from('comments')
       .insert([{
         experience_id: experienceId,
         comment_text: newComment[experienceId],
-        author: '',
+        author: appSettings.requireEmployeeLogin ? (await getEmployeeName(employeeId)) : '',
+        employee_id: appSettings.requireEmployeeLogin ? employeeId : null,
         country: userCountryName || '',
         cv_url: cvUrl,
         cv_filename: cvFilename
