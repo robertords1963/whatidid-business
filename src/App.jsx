@@ -376,6 +376,38 @@ const handleEmployeeLogin = async () => {
       throw error;
     }
   };
+
+const getEmployeeCountry = async (employeeId) => {
+  try {
+    const { data, error } = await supabase
+      .from('employees')
+      .select('country')
+      .eq('employee_id', employeeId)
+      .single();
+    
+    if (error) throw error;
+    return data?.country || '';
+  } catch (error) {
+    console.error('Error getting employee country:', error);
+    return '';
+  }
+};
+
+const getEmployeeName = async (employeeId) => {
+  try {
+    const { data, error } = await supabase
+      .from('employees')
+      .select('name')
+      .eq('employee_id', employeeId)
+      .single();
+    
+    if (error) throw error;
+    return data?.name || '';
+  } catch (error) {
+    console.error('Error getting employee name:', error);
+    return '';
+  }
+};
   
   const setTopExperience = async (position, experienceId) => {
     try {
