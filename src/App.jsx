@@ -3721,29 +3721,29 @@ onClick={() => {
 {/* Linha 1: By à esquerda */}
 <div className="mb-3">
   {(exp.author || exp.gender || exp.age || exp.country || exp.employeeId) && (
-    <span className="text-xs text-gray-600">
-      By: {exp.author === 'key_insights' ? 'COMMON CASES' : 
-           appSettings.requireEmployeeLogin 
-             ? [exp.author, exp.employeeId].filter(Boolean).join(', ')
-             : [exp.author, exp.gender, exp.age].filter(Boolean).join(', ')
-          }
+    <div>
+      <span className="text-xs text-gray-600 block">
+        By: {exp.author === 'key_insights' ? 'COMMON CASES' : 
+             appSettings.requireEmployeeLogin 
+               ? [exp.author, exp.employeeId, exp.country].filter(Boolean).join(', ')
+               : [exp.author, exp.gender, exp.age, exp.country].filter(Boolean).join(', ')
+            }
+      </span>
       
-      {/* Ícone Document - dinâmico */}
+      {/* Ícone Document - linha separada */}
       {exp.cvUrl && exp.author !== 'key_insights' && (
         <button
           onClick={() => {
             setCurrentCvUrl(exp.cvUrl);
             setShowCvModal(true);
           }}
-          className="ml-2 text-blue-600 hover:text-blue-800 inline-flex items-center gap-1"
+          className="text-blue-600 hover:text-blue-800 inline-flex items-center gap-1 text-xs mt-1"
           title={`View ${appSettings.documentType === 'cv' ? 'CV' : 'File'} - ${exp.cvFilename || 'Document'}`}
         >
-          <span className="text-xs font-semibold">{appSettings.documentType === 'cv' ? 'CV' : 'File'}</span> {appSettings.documentType === 'cv' ? '📄' : '📎'}
+          <span className="font-semibold">{appSettings.documentType === 'cv' ? 'CV' : 'File'}</span> {appSettings.documentType === 'cv' ? '📄' : '📎'}
         </button>
       )}
-      
-      {exp.country && <span> ({exp.country})</span>}
-    </span>
+    </div>
   )}
 </div>
 {exp.industrySector && (
