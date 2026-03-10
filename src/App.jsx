@@ -4059,6 +4059,29 @@ onClick={() => {
   <div className="space-y-3">
     {exp.comments.map(comment => (
       <div key={comment.id} className="bg-gray-50 rounded-lg p-3 relative">
+
+{/* By: info - SÓ NO CORP */}
+        {appSettings.requireEmployeeLogin && (comment.author || comment.employeeId || comment.country) && (
+          <div className="mb-2">
+            <span className="text-xs text-gray-600 block">
+              By: {[comment.author, comment.employeeId, comment.country].filter(Boolean).join(', ')}
+            </span>
+            
+            {/* Ícone Document - linha separada */}
+            {comment.cvUrl && (
+              <button
+                onClick={() => {
+                  setCurrentCvUrl(comment.cvUrl);
+                  setShowCvModal(true);
+                }}
+                className="text-blue-600 hover:text-blue-800 inline-flex items-center gap-1 text-xs mt-1"
+              >
+                <span className="font-semibold">{appSettings.documentType === 'cv' ? 'CV' : 'File'}</span> {appSettings.documentType === 'cv' ? '📄' : '📎'}
+              </button>
+            )}
+          </div>
+        )}
+        
         {/* Botão delete admin */}
         {isAdmin && (() => {
           const confirmKey = `comment-${exp.id}-${comment.id}`;
@@ -4104,20 +4127,7 @@ onClick={() => {
           {comment.text}
         </p>
 
-{/* Ícone Document nos comentários - dinâmico */}
-        {comment.cvUrl && (
-          <div className="mt-2">
-            <button
-              onClick={() => {
-                setCurrentCvUrl(comment.cvUrl);
-                setShowCvModal(true);
-              }}
-              className="text-blue-600 hover:text-blue-800 inline-flex items-center gap-1 text-xs"
-            >
-              <span className="font-semibold">{appSettings.documentType === 'cv' ? 'CV' : 'File'}</span> {appSettings.documentType === 'cv' ? '📄' : '📎'}
-            </button>
-          </div>
-        )}
+
         
       </div>
     ))}
