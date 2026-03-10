@@ -690,7 +690,7 @@ setTimeout(() => {
         result_category: newExperience.resultCategory,
         industry_sector: newExperience.industrySector || '',
         related_common_case_id: relatedCommonCaseId,
-        author: newExperience.author || '',
+        author: appSettings.requireEmployeeLogin ? (await getEmployeeName(employeeId)) : (newExperience.author || ''),
         gender: newExperience.gender || '',
         age: newExperience.age || '',
         country: newExperience.country || '',
