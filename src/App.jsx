@@ -870,7 +870,7 @@ const [currentCvUrl, setCurrentCvUrl] = useState(null);
   'People & Leadership',
   'Governance & Compliance',
   'Strategy & Growth',
-  'Customer Experience & Service',
+  'Cust. Exp. & Service',
   'Other'
 ];
 
@@ -1861,6 +1861,18 @@ useEffect(() => {
   </div>
 </div>
 
+{/* Employee Info - Centralizado */}
+{isEmployeeLoggedIn && (
+  <div className="flex items-center justify-center gap-3 mt-4 mb-2">
+    <span className="text-sm text-gray-700 font-medium">{employeeId}</span>
+    <button
+      onClick={handleEmployeeLogout}
+      className="text-sm bg-gray-200 text-gray-700 px-3 py-1 rounded hover:bg-gray-300 transition-colors"
+    >
+      LOGOUT
+    </button>
+  </div>
+)}
           
 {/* Navigation Buttons */}
 <div className="flex flex-wrap gap-3 justify-center mt-5 mb-2">
