@@ -4009,7 +4009,9 @@ onClick={() => {
                         <MessageCircle size={18} />
                         Add a Comment
                       </h4>
-                      <div className="flex gap-2 items-start">
+                      
+<div className="space-y-2">
+  {/* Linha 1: Textarea */}
   <textarea
     value={newComment[exp.id] || ''}
     onChange={(e) => {
@@ -4018,58 +4020,61 @@ onClick={() => {
       }
     }}
     placeholder="Share your thoughts..."
-    className="flex-1 p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none resize-none"
+    className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none resize-none"
     rows="2"
   />
   
-  {/* Upload Document - MESMA LINHA - dinâmico */}
-  {appSettings.allowCvUpload && (
-    <div className="flex items-center">
-      {!commentCvFiles[exp.id] ? (
-        <label className="px-3 py-2 bg-gray-100 border-2 border-gray-200 rounded-lg hover:bg-gray-200 cursor-pointer flex items-center gap-1 text-sm h-fit">
-          <input
-            type="file"
-            accept={appSettings.documentType === 'cv' ? '.pdf' : '.pdf,.pptx,.xlsx,.docx,.ppt,.xls,.doc'}
-            onChange={(e) => {
-              const file = e.target.files[0];
-              if (file) {
-                if (file.size > 5000000) {
-                  alert('File too large. Max 5MB');
-                  e.target.value = '';
-                } else {
-                  setCommentCvFiles({...commentCvFiles, [exp.id]: file});
+  {/* Linha 2: Upload + Enviar */}
+  <div className="flex gap-2 items-center">
+    {/* Upload Document - dinâmico */}
+    {appSettings.allowCvUpload && (
+      <div className="flex items-center">
+        {!commentCvFiles[exp.id] ? (
+          <label className="px-3 py-2 bg-gray-100 border-2 border-gray-200 rounded-lg hover:bg-gray-200 cursor-pointer flex items-center gap-1 text-sm">
+            <input
+              type="file"
+              accept={appSettings.documentType === 'cv' ? '.pdf' : '.pdf,.pptx,.xlsx,.docx,.ppt,.xls,.doc'}
+              onChange={(e) => {
+                const file = e.target.files[0];
+                if (file) {
+                  if (file.size > 5000000) {
+                    alert('File too large. Max 5MB');
+                    e.target.value = '';
+                  } else {
+                    setCommentCvFiles({...commentCvFiles, [exp.id]: file});
+                  }
                 }
-              }
-            }}
-            className="hidden"
-          />
-          {appSettings.documentType === 'cv' ? '📎 CV' : '📎 File'}
-        </label>
-      ) : (
-        <div className="flex items-center gap-1 bg-green-50 border-2 border-green-300 rounded-lg px-2 py-1">
-          <span className="text-xs text-green-700">✓ {appSettings.documentType === 'cv' ? 'CV' : 'File'}</span>
-          <button
-            onClick={() => {
-              const newFiles = {...commentCvFiles};
-              delete newFiles[exp.id];
-              setCommentCvFiles(newFiles);
-            }}
-            className="text-red-600 hover:text-red-800 text-xs"
-          >
-            ✕
-          </button>
-        </div>
-      )}
-    </div>
-  )}
-  
-  <button
-    onClick={() => handleAddComment(exp.id)}
-    disabled={!newComment[exp.id]?.trim()}
-    className="px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2 h-fit py-2"
-  >
-    <Send size={18} />
-  </button>
+              }}
+              className="hidden"
+            />
+            {appSettings.documentType === 'cv' ? '📎 CV' : '📎 File'}
+          </label>
+        ) : (
+          <div className="flex items-center gap-1 bg-green-50 border-2 border-green-300 rounded-lg px-2 py-1">
+            <span className="text-xs text-green-700">✓ {appSettings.documentType === 'cv' ? 'CV' : 'File'}</span>
+            <button
+              onClick={() => {
+                const newFiles = {...commentCvFiles};
+                delete newFiles[exp.id];
+                setCommentCvFiles(newFiles);
+              }}
+              className="text-red-600 hover:text-red-800 text-xs"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+      </div>
+    )}
+    
+    <button
+      onClick={() => handleAddComment(exp.id)}
+      disabled={!newComment[exp.id]?.trim()}
+      className="px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2 py-2"
+    >
+      <Send size={18} />
+    </button>
+  </div>
 </div>
 
                       
