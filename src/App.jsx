@@ -765,8 +765,6 @@ setTimeout(() => {
     
     const { error } = await supabase
       .from('comments')
-      const { error } = await supabase
-      .from('comments')
       .insert([{
         experience_id: experienceId,
         comment_text: newComment[experienceId],
