@@ -4284,7 +4284,15 @@ onClick={() => {
           {comment.text}
         </p>
 
-
+{/* Delete Comment - só para o dono */}
+{comment.employeeId === employeeId && (
+  <button
+    onClick={() => handleDeleteComment(exp.id, comment.id)}
+    className="text-red-600 hover:text-red-800 text-xs mt-2 inline-flex items-center gap-1"
+  >
+    🗑️ Delete Comment
+  </button>
+)}
         
       </div>
     ))}
@@ -4395,6 +4403,15 @@ onClick={() => {
             {lastComment.text}
           </p>
 
+          {/* Delete Comment - só para o dono */}
+{lastComment.employeeId === employeeId && (
+  <button
+    onClick={() => handleDeleteComment(exp.id, lastComment.id)}
+    className="text-red-600 hover:text-red-800 text-xs mt-2 inline-flex items-center gap-1"
+  >
+    🗑️ Delete Comment
+  </button>
+)}
 
           
         </div>
