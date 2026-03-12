@@ -1768,21 +1768,7 @@ useEffect(() => {
     {appSettings.editionName === 'pro' ? 'Pro' : 'Corp'}
   </span>
 </h1>
-            <div className="flex-1 flex items-center justify-end">
-  {isEmployeeLoggedIn && (
-    <div className="flex items-center gap-3">
-      <span className="text-sm text-gray-600">
-        👤 {employeeId}
-      </span>
-      <button
-        onClick={handleEmployeeLogout}
-        className="text-sm bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-      >
-        Logout
-      </button>
-    </div>
-  )}
-</div>
+            <div className="flex-1"></div>
           </div>
           <p className="text-gray-700 font-medium mb-1">Real problems. Real solutions. Real people.</p>
           <p className="text-gray-600">Share your experience, help someone else</p>
