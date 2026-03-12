@@ -1561,56 +1561,49 @@ const prevVideo = () => {
   };
 
   const handleDeleteComment = async (expId, commentId) => {
-  const confirmKey = `comment-${expId}-${commentId}`;
-  if (confirmDelete === confirmKey) {
-    try {
-      // Salvar posição
-      const expElement = document.getElementById(`exp-${expId}`);
-      const scrollPosition = expElement ? expElement.offsetTop - 100 : window.pageYOffset;
-      
-      // Buscar o comentário para verificar owner e arquivo
-      const exp = experiences.find(e => e.id === expId);
-      const comment = exp?.comments.find(c => c.id === commentId);
-      
-      if (!comment) {
-        alert('Comment not found!');
-        return;
-      }
-      
-      // Verificar se é o dono (modo Corp)
-      if (appSettings.requireEmployeeLogin && comment.employeeId !== employeeId) {
-        alert('You can only delete your own comments!');
-        setConfirmDelete(null);
-        return;
-      }
-      
-      // Deletar arquivo do comentário (se existir)
-      if (comment.cvUrl) {
-        await deleteFileFromStorage(comment.cvUrl);
-      }
-      
-      // Deletar do banco
-      const { error } = await supabase
-        .from('comments')
-        .delete()
-        .eq('id', commentId);
-      
-      if (error) throw error;
-      
-      // Recarregar experiências
-      await loadExperiences(true);
-      setConfirmDelete(null);
-      
-      // Restaurar posição
-      setTimeout(() => {
-        window.scrollTo({ top: scrollPosition, behavior: 'instant' });
-      }, 100);
-    } catch (error) {
-      console.error('Error deleting comment:', error);
-      alert('Error deleting comment.');
+  try {
+    // Salvar posição
+    const expElement = document.getElementById(`exp-${expId}`);
+    const scrollPosition = expElement ? expElement.offsetTop - 100 : window.pageYOffset;
+    
+    // Buscar o comentário para verificar owner e arquivo
+    const exp = experiences.find(e => e.id === expId);
+    const comment = exp?.comments.find(c => c.id === commentId);
+    
+    if (!comment) {
+      alert('Comment not found!');
+      return;
     }
-  } else {
-    setConfirmDelete(confirmKey);
+    
+    // Verificar se é o dono (modo Corp)
+    if (appSettings.requireEmployeeLogin && comment.employeeId !== employeeId) {
+      alert('You can only delete your own comments!');
+      return;
+    }
+    
+    // Deletar arquivo do comentário (se existir)
+    if (comment.cvUrl) {
+      await deleteFileFromStorage(comment.cvUrl);
+    }
+    
+    // Deletar do banco
+    const { error } = await supabase
+      .from('comments')
+      .delete()
+      .eq('id', commentId);
+    
+    if (error) throw error;
+    
+    // Recarregar experiências
+    await loadExperiences(true);
+    
+    // Restaurar posição
+    setTimeout(() => {
+      window.scrollTo({ top: scrollPosition, behavior: 'instant' });
+    }, 100);
+  } catch (error) {
+    console.error('Error deleting comment:', error);
+    alert('Error deleting comment.');
   }
 };
 
