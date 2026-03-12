@@ -728,6 +728,28 @@ setTimeout(() => {
     // Salvar posição
     const scrollPosition = window.pageYOffset;
     
+    // Buscar a experiência para verificar owner e arquivos
+    const exp = experiences.find(e => e.id === id);
+    
+    // Verificar se é o dono (modo Corp)
+    if (appSettings.requireEmployeeLogin && exp.employeeId !== employeeId) {
+      alert('You can only delete your own experiences!');
+      return false;
+    }
+    
+    // Deletar arquivo da experiência (se existir)
+    if (exp.cvUrl) {
+      await deleteFileFromStorage(exp.cvUrl);
+    }
+    
+    // Deletar arquivos dos comentários (CASCADE vai deletar os comentários, mas não os arquivos)
+    exp.comments.forEach(async (comment) => {
+      if (comment.cvUrl) {
+        await deleteFileFromStorage(comment.cvUrl);
+      }
+    });
+    
+    // Deletar experiência (CASCADE deleta comentários automaticamente)
     const { error } = await supabase
       .from('experiences')
       .delete()
