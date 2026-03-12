@@ -3209,22 +3209,25 @@ onClick={() => {
     </label>
     
     {!selectedCv ? (
-      <input
-        type="file"
-        accept={appSettings.documentType === 'cv' ? '.pdf' : '.pdf,.pptx,.xlsx,.docx,.ppt,.xls,.doc'}
-        onChange={(e) => {
-          const file = e.target.files[0];
-          if (file) {
-            if (file.size > 5000000) {
-              alert('File too large. Max 5MB');
-              e.target.value = '';
-            } else {
-              setSelectedCv(file);
+      <label className="w-full px-4 py-3 bg-gray-100 border-2 border-gray-200 rounded-lg hover:bg-gray-200 cursor-pointer flex items-center justify-center gap-2 text-sm font-medium text-gray-700 transition-colors">
+        <input
+          type="file"
+          accept={appSettings.documentType === 'cv' ? '.pdf' : '.pdf,.pptx,.xlsx,.docx,.ppt,.xls,.doc'}
+          onChange={(e) => {
+            const file = e.target.files[0];
+            if (file) {
+              if (file.size > 5000000) {
+                alert('File too large. Max 5MB');
+                e.target.value = '';
+              } else {
+                setSelectedCv(file);
+              }
             }
-          }
-        }}
-        className="w-full p-2 border-2 border-gray-200 rounded-lg"
-      />
+          }}
+          className="hidden"
+        />
+        📎 {appSettings.documentType === 'cv' ? 'Attach CV' : 'Attach File'}
+      </label>
     ) : (
       <div className="flex items-center gap-2 p-2 bg-green-50 border-2 border-green-300 rounded-lg">
         <span className="text-sm text-green-700">
