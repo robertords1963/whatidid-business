@@ -737,7 +737,7 @@ setTimeout(() => {
       return false;
     }
     
-    // Deletar arquivo da experiência (se existir)
+    // Deletar arquivo da experiência (se existir) 
     if (exp.cvUrl) {
       await deleteFileFromStorage(exp.cvUrl);
     }
