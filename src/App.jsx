@@ -4432,7 +4432,7 @@ onClick={() => {
   </div>
 )}
                     
-                  </div>
+             
 
 {/* Navigation CTA */}
                   <div className="text-center mt-6 pt-6 border-t-2 border-gray-100">
