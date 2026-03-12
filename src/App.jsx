@@ -394,19 +394,22 @@ const getEmployeeCountry = async (employeeId) => {
   }
 };
 
-const getEmployeeName = async (employeeId) => {
+const deleteFileFromStorage = async (fileUrl) => {
+  if (!fileUrl) return;
+  
   try {
-    const { data, error } = await supabase
-      .from('employees')
-      .select('name')
-      .eq('employee_id', employeeId)
-      .single();
+    // Extrair o nome do arquivo da URL
+    const urlParts = fileUrl.split('/');
+    const fileName = urlParts[urlParts.length - 1];
+    
+    const { error } = await supabase.storage
+      .from('cvs')
+      .remove([fileName]);
     
     if (error) throw error;
-    return data?.name || '';
+    console.log('✅ File deleted from storage:', fileName);
   } catch (error) {
-    console.error('Error getting employee name:', error);
-    return '';
+    console.error('❌ Error deleting file from storage:', error);
   }
 };
   
