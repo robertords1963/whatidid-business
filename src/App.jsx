@@ -1850,12 +1850,12 @@ useEffect(() => {
 {/* Employee Info - Centralizado */}
 {isEmployeeLoggedIn && (
   <div className="flex items-center justify-center gap-3 mt-4 mb-2">
-    <span className="text-sm text-gray-700 font-medium">{employeeId}</span>
+    <span className="text-sm text-gray-700 font-medium">👤 {employeeId}</span>
     <button
       onClick={handleEmployeeLogout}
       className="text-sm bg-gray-200 text-gray-700 px-3 py-1 rounded hover:bg-gray-300 transition-colors"
     >
-      LOGOUT
+      Logout
     </button>
   </div>
 )}
