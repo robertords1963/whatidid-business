@@ -3855,6 +3855,21 @@ onClick={() => {
     </div>
   )}
 </div>
+
+ {/* Delete Experience - só para o dono */}
+{appSettings.requireEmployeeLogin && exp.employeeId === employeeId && exp.author !== 'key_insights' && (
+  <button
+    onClick={async () => {
+      if (window.confirm('Delete this experience? All comments will also be deleted.')) {
+        await deleteExperienceFromSupabase(exp.id);
+      }
+    }}
+    className="text-red-600 hover:text-red-800 text-xs mt-2 inline-flex items-center gap-1"
+  >
+    🗑️ Delete Experience
+  </button>
+)}                   
+                    
 {exp.industrySector && (
     <div className="mb-3">
       <span className="inline-flex items-center gap-1 text-xs bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full">
@@ -4182,17 +4197,45 @@ onClick={() => {
             </span>
             
             {/* Ícone Document - linha separada */}
-            {comment.cvUrl && (
-              <button
-                onClick={() => {
-                  setCurrentCvUrl(comment.cvUrl);
-                  setShowCvModal(true);
-                }}
-                className="text-blue-600 hover:text-blue-800 inline-flex items-center gap-1 text-xs mt-1"
-              >
-                <span className="font-semibold">{appSettings.documentType === 'cv' ? 'CV' : 'File'}</span> {appSettings.documentType === 'cv' ? '📄' : '📎'}
-              </button>
-            )}
+{comment.cvUrl && (
+  <div className="flex items-center gap-2 mt-1">
+    <button
+      onClick={() => {
+        setCurrentCvUrl(comment.cvUrl);
+        setShowCvModal(true);
+      }}
+      className="text-blue-600 hover:text-blue-800 inline-flex items-center gap-1 text-xs"
+    >
+      <span className="font-semibold">{appSettings.documentType === 'cv' ? 'CV' : 'File'}</span> {appSettings.documentType === 'cv' ? '📄' : '📎'}
+    </button>
+    
+    {/* Botão Delete File - só para o dono */}
+    {comment.employeeId === employeeId && (
+      <button
+        onClick={async () => {
+          if (window.confirm('Delete this file?')) {
+            await deleteFileFromStorage(comment.cvUrl);
+            
+            const { error } = await supabase
+              .from('comments')
+              .update({ cv_url: null, cv_filename: null })
+              .eq('id', comment.id);
+            
+            if (error) {
+              alert('Error removing file');
+            } else {
+              await loadExperiences(true);
+            }
+          }
+        }}
+        className="text-red-600 hover:text-red-800 text-xs"
+        title="Delete file"
+      >
+        ✕
+      </button>
+    )}
+  </div>
+)}
           </div>
         )}
         
@@ -4265,17 +4308,45 @@ onClick={() => {
               </span>
               
               {/* Ícone Document - linha separada */}
-              {lastComment.cvUrl && (
-                <button
-                  onClick={() => {
-                    setCurrentCvUrl(lastComment.cvUrl);
-                    setShowCvModal(true);
-                  }}
-                  className="text-blue-600 hover:text-blue-800 inline-flex items-center gap-1 text-xs mt-1"
-                >
-                  <span className="font-semibold">{appSettings.documentType === 'cv' ? 'CV' : 'File'}</span> {appSettings.documentType === 'cv' ? '📄' : '📎'}
-                </button>
-              )}
+{lastComment.cvUrl && (
+  <div className="flex items-center gap-2 mt-1">
+    <button
+      onClick={() => {
+        setCurrentCvUrl(lastComment.cvUrl);
+        setShowCvModal(true);
+      }}
+      className="text-blue-600 hover:text-blue-800 inline-flex items-center gap-1 text-xs"
+    >
+      <span className="font-semibold">{appSettings.documentType === 'cv' ? 'CV' : 'File'}</span> {appSettings.documentType === 'cv' ? '📄' : '📎'}
+    </button>
+    
+    {/* Botão Delete File - só para o dono */}
+    {lastComment.employeeId === employeeId && (
+      <button
+        onClick={async () => {
+          if (window.confirm('Delete this file?')) {
+            await deleteFileFromStorage(lastComment.cvUrl);
+            
+            const { error } = await supabase
+              .from('comments')
+              .update({ cv_url: null, cv_filename: null })
+              .eq('id', lastComment.id);
+            
+            if (error) {
+              alert('Error removing file');
+            } else {
+              await loadExperiences(true);
+            }
+          }
+        }}
+        className="text-red-600 hover:text-red-800 text-xs"
+        title="Delete file"
+      >
+        ✕
+      </button>
+    )}
+  </div>
+)}
             </div>
           )}
           
