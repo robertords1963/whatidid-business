@@ -1552,6 +1552,27 @@ const prevVideo = () => {
       const expElement = document.getElementById(`exp-${expId}`);
       const scrollPosition = expElement ? expElement.offsetTop - 100 : window.pageYOffset;
       
+      // Buscar o comentário para verificar owner e arquivo
+      const exp = experiences.find(e => e.id === expId);
+      const comment = exp?.comments.find(c => c.id === commentId);
+      
+      if (!comment) {
+        alert('Comment not found!');
+        return;
+      }
+      
+      // Verificar se é o dono (modo Corp)
+      if (appSettings.requireEmployeeLogin && comment.employeeId !== employeeId) {
+        alert('You can only delete your own comments!');
+        setConfirmDelete(null);
+        return;
+      }
+      
+      // Deletar arquivo do comentário (se existir)
+      if (comment.cvUrl) {
+        await deleteFileFromStorage(comment.cvUrl);
+      }
+      
       // Deletar do banco
       const { error } = await supabase
         .from('comments')
