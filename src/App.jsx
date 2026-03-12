@@ -3812,18 +3812,46 @@ onClick={() => {
       </span>
       
       {/* Ícone Document - linha separada */}
-      {exp.cvUrl && exp.author !== 'key_insights' && (
-        <button
-          onClick={() => {
-            setCurrentCvUrl(exp.cvUrl);
-            setShowCvModal(true);
-          }}
-          className="text-blue-600 hover:text-blue-800 inline-flex items-center gap-1 text-xs mt-1"
-          title={`View ${appSettings.documentType === 'cv' ? 'CV' : 'File'} - ${exp.cvFilename || 'Document'}`}
-        >
-          <span className="font-semibold">{appSettings.documentType === 'cv' ? 'CV' : 'File'}</span> {appSettings.documentType === 'cv' ? '📄' : '📎'}
-        </button>
-      )}
+{exp.cvUrl && exp.author !== 'key_insights' && (
+  <div className="flex items-center gap-2 mt-1">
+    <button
+      onClick={() => {
+        setCurrentCvUrl(exp.cvUrl);
+        setShowCvModal(true);
+      }}
+      className="text-blue-600 hover:text-blue-800 inline-flex items-center gap-1 text-xs"
+      title={`View ${appSettings.documentType === 'cv' ? 'CV' : 'File'} - ${exp.cvFilename || 'Document'}`}
+    >
+      <span className="font-semibold">{appSettings.documentType === 'cv' ? 'CV' : 'File'}</span> {appSettings.documentType === 'cv' ? '📄' : '📎'}
+    </button>
+    
+    {/* Botão Delete File - só para o dono */}
+    {appSettings.requireEmployeeLogin && exp.employeeId === employeeId && (
+      <button
+        onClick={async () => {
+          if (window.confirm('Delete this file?')) {
+            await deleteFileFromStorage(exp.cvUrl);
+            
+            const { error } = await supabase
+              .from('experiences')
+              .update({ cv_url: null, cv_filename: null })
+              .eq('id', exp.id);
+            
+            if (error) {
+              alert('Error removing file');
+            } else {
+              await loadExperiences(true);
+            }
+          }
+        }}
+        className="text-red-600 hover:text-red-800 text-xs"
+        title="Delete file"
+      >
+        ✕
+      </button>
+    )}
+  </div>
+)}
     </div>
   )}
 </div>
