@@ -1761,7 +1761,7 @@ useEffect(() => {
 
 {/* ⭐ TELA DE LOGIN - Bloqueia acesso se requireEmployeeLogin = true ⭐ */}
     {appSettings.requireEmployeeLogin && !isEmployeeLoggedIn ? (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 px-4 py-8 overflow-y-auto">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 px-4 py-8" ref={el => el && el.scrollIntoView({ top: 0 })}>
   <div className="text-center mb-6">
     <h1 className="text-3xl font-bold text-gray-800 flex items-center justify-center gap-2">
       <Share2 className="text-purple-600" size={28} />
