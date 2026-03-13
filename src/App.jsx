@@ -1816,7 +1816,7 @@ useEffect(() => {
           <div className="flex items-center justify-between mb-4">
             <div className="flex-1"></div>
 <h1 className="text-4xl font-bold text-gray-800 mb-2 flex items-center justify-center gap-3">
-  <Share2 className="text-purple-600" size={36} />
+  <Share2 className="text-purple-600" size={35} />
   WhatIDid{' '}
   <span className="text-2xl font-normal italic text-gray-600">
     {appSettings.editionName === 'pro' ? 'Pro' : 'Corp'}
