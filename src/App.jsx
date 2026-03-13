@@ -4482,11 +4482,9 @@ onClick={() => {
                         Share your stories
                       </button>
                     </div>
+                    
                   </div>
-
-                 
                 </div>
-              
               
               {isAdmin && editingExperience === exp.id && (
                   <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-4 mt-4">
