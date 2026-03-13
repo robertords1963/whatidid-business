@@ -4306,9 +4306,12 @@ onClick={() => {
     🗑️ Delete Comment
   </button>
 )}
+      </div>
+    ))}
+  </div>
+)}
 
-    
-    {/* ⭐ NOVO: Último comentário sempre visível quando lista está fechada */}
+{/* ⭐ NOVO: Último comentário sempre visível quando lista está fechada */}
 {showComments[exp.id] !== true && showComments[exp.id] !== false && exp.comments.length > 0 && (
   <div className="space-y-3 mt-3">
     {(() => {
