@@ -1825,7 +1825,7 @@ useEffect(() => {
             <div className="flex-1"></div>
           </div>
           <p className="text-gray-700 font-medium mb-1">Real problems. Real actions. Real outcomes.</p>
-          <p className="text-gray-600">Share your work experiences, accelerate institutional learning someone</p>
+          <p className="text-gray-600">Share your work experiences, accelerate institutional learning</p>
 
 {/* Video Carousel Section - Esteira Rolante */}
 <div className="my-5">
