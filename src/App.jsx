@@ -1824,8 +1824,12 @@ useEffect(() => {
 </h1>
             <div className="flex-1"></div>
           </div>
-          <p className="text-gray-700 font-medium mb-1">Real problems. Real actions. Real outcomes.</p>
-          <p className="text-gray-600">Share your work experiences, accelerate institutional learning</p>
+          <p className="text-gray-700 font-medium mb-1 text-sm sm:text-base">Real problems. Real actions. Real outcomes.</p>
+<p className="text-gray-600 text-sm sm:text-base">
+  <span className="block sm:inline">Share your work experiences.</span>
+  <span className="hidden sm:inline"> </span>
+  <span className="block sm:inline">Accelerate organizational learning.</span>
+</p>
 
 {/* Video Carousel Section - Esteira Rolante */}
 <div className="my-5">
