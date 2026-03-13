@@ -333,11 +333,12 @@ const handleEmployeeLogin = async () => {
       return;
     }
     
-    // Login bem-sucedido
-    setIsEmployeeLoggedIn(true);
-    localStorage.setItem('employeeLoggedIn', 'true');
-    localStorage.setItem('employeeId', employeeId);
-    setEmployeePassword(''); // Limpar senha
+// Login bem-sucedido
+  setIsEmployeeLoggedIn(true);
+  localStorage.setItem('employeeLoggedIn', 'true');
+  localStorage.setItem('employeeId', employeeId);
+  setEmployeePassword('');
+  window.scrollTo(0, 0);
   } catch (error) {
     console.error('Login error:', error);
     setLoginError('Login failed. Please try again.');
