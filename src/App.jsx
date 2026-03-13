@@ -1176,10 +1176,16 @@ const prevVideo = () => {
 
   // Scroll to top when admin box is opened
   useEffect(() => {
-    if (showAdminLogin || isAdmin) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  }, [showAdminLogin, isAdmin]);
+  if (showAdminLogin || isAdmin) {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}, [showAdminLogin, isAdmin]);
+
+useEffect(() => {
+  if (appSettings.requireEmployeeLogin && !isEmployeeLoggedIn) {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }
+}, [appSettings.requireEmployeeLogin, isEmployeeLoggedIn]);
 
   // Rotate quotes every 7 seconds
   useEffect(() => {
