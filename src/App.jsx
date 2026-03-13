@@ -4481,9 +4481,7 @@ onClick={() => {
                       >
                         Share your stories
                       </button>
-                    </div>
-                    
-                  </div>
+
                 </div>
               
               {isAdmin && editingExperience === exp.id && (
@@ -4643,6 +4641,8 @@ onClick={() => {
                     </button>
                   </div>
                 )}
+                </div>
+                </div>
               </div>
               ))}
 
