@@ -1761,7 +1761,8 @@ useEffect(() => {
 
 {/* ⭐ TELA DE LOGIN - Bloqueia acesso se requireEmployeeLogin = true ⭐ */}
     {appSettings.requireEmployeeLogin && !isEmployeeLoggedIn ? (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 px-4 pt-32 pb-8">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 px-4 pt-8 pb-8">
+  <input type="text" style={{opacity: 0, position: 'absolute', height: 0}} autoFocus />
   <div className="text-center mb-6">
     <h1 className="text-3xl font-bold text-gray-800 flex items-center justify-center gap-2">
       <Share2 className="text-purple-600" size={28} />
