@@ -134,8 +134,6 @@ export default function WhatIDid() {
   }, []);
   
   useEffect(() => {
-  window.history.scrollRestoration = 'manual';
-  window.scrollTo(0, 0);
   detectUserCountry();
   loadExperiences();
   loadTopExperiences();
