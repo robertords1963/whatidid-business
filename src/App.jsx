@@ -1753,12 +1753,18 @@ useEffect(() => {
 
 {/* ⭐ TELA DE LOGIN - Bloqueia acesso se requireEmployeeLogin = true ⭐ */}
     {appSettings.requireEmployeeLogin && !isEmployeeLoggedIn ? (
-      <div className="min-h-screen px-4 py-8 overflow-y-auto">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 px-4 py-8 overflow-y-auto">
+  <div className="text-center mb-6">
+    <h1 className="text-3xl font-bold text-gray-800 flex items-center justify-center gap-2">
+      <Share2 className="text-purple-600" size={28} />
+      WhatIDid{' '}
+      <span className="text-xl font-normal italic text-gray-600">
+        {appSettings.editionName === 'pro' ? 'Pro' : 'Corp'}
+      </span>
+    </h1>
+  </div>
   <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full mx-auto">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2 text-center">
-            WhatIDid {appSettings.editionName === 'pro' ? 'Pro' : 'Corp'}
-          </h1>
-          <p className="text-gray-600 text-center mb-6">Employee Login</p>
+        <p className="text-gray-600 text-center mb-6">Employee Login</p>
           
           <div className="space-y-4">
             <div>
