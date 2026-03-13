@@ -338,7 +338,7 @@ const handleEmployeeLogin = async () => {
   localStorage.setItem('employeeLoggedIn', 'true');
   localStorage.setItem('employeeId', employeeId);
   setEmployeePassword('');
-  setTimeout(() => window.scrollTo(0, 0), 500);
+  setTimeout(() => window.scrollTo(0, 0), 1000);
   } catch (error) {
     console.error('Login error:', error);
     setLoginError('Login failed. Please try again.');
