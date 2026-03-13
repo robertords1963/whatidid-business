@@ -134,14 +134,16 @@ export default function WhatIDid() {
   }, []);
   
   useEffect(() => {
-    detectUserCountry();
-    loadExperiences();
-    loadTopExperiences();
-    loadAppSettings();  // ⭐ ADICIONAR ESTA LINHA ⭐
-    loadQuotes();
-    loadContentPages();
-    loadPromotionalVideos();
-  }, []);
+  window.history.scrollRestoration = 'manual';
+  window.scrollTo(0, 0);
+  detectUserCountry();
+  loadExperiences();
+  loadTopExperiences();
+  loadAppSettings();
+  loadQuotes();
+  loadContentPages();
+  loadPromotionalVideos();
+}, []);
 
 // Verificar login do funcionário ao carregar
 useEffect(() => {
