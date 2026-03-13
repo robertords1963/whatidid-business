@@ -1183,7 +1183,9 @@ const prevVideo = () => {
 
 useEffect(() => {
   if (appSettings.requireEmployeeLogin && !isEmployeeLoggedIn) {
-    window.scrollTo({ top: 0, behavior: 'instant' });
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }, 300);
   }
 }, [appSettings.requireEmployeeLogin, isEmployeeLoggedIn]);
 
@@ -1783,7 +1785,8 @@ useEffect(() => {
                 onChange={(e) => setEmployeeId(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleEmployeeLogin()}
                 className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-                placeholder="Enter your Employee ID"
+placeholder="Enter your Employee ID"
+autoComplete="off"
               />
             </div>
             
