@@ -338,7 +338,7 @@ const handleEmployeeLogin = async () => {
   localStorage.setItem('employeeLoggedIn', 'true');
   localStorage.setItem('employeeId', employeeId);
   setEmployeePassword('');
-  setTimeout(() => window.scrollTo(0, 0), 1000);
+  
   } catch (error) {
     console.error('Login error:', error);
     setLoginError('Login failed. Please try again.');
@@ -1181,6 +1181,12 @@ const prevVideo = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 }, [showAdminLogin, isAdmin]);
+
+  useEffect(() => {
+  if (isEmployeeLoggedIn) {
+    window.scrollTo(0, 0);
+  }
+}, [isEmployeeLoggedIn]);
 
 useEffect(() => {
   if (appSettings.requireEmployeeLogin && !isEmployeeLoggedIn) {
