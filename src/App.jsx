@@ -1563,8 +1563,7 @@ const prevVideo = () => {
   const handleDeleteComment = async (expId, commentId) => {
   try {
     // Salvar posição
-    const expElement = document.getElementById(`exp-${expId}`);
-    const scrollPosition = expElement ? expElement.offsetTop - 100 : window.pageYOffset;
+    const scrollPosition = window.pageYOffset;
     
     // Buscar o comentário para verificar owner e arquivo
     const exp = experiences.find(e => e.id === expId);
