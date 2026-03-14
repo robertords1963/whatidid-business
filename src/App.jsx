@@ -4111,9 +4111,159 @@ onClick={() => {
                             ))}
                           </div>
                         </div>
+</div>
+                );
+              })()}
+
+              {isAdmin && editingExperience === exp.id && (
+                  <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-4 mt-4">
+                    <h4 className="font-semibold text-gray-800 mb-3">Edit Experience #{exp.id}</h4>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Problem Category</label>
+                        <select
+                          value={editingData[exp.id]?.problemCategory || exp.problemCategory}
+                          onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), problemCategory: e.target.value}})}
+                          className="w-full p-2 border-2 border-gray-300 rounded"
+                        >
+                          {problemCategories.map(cat => (
+                            <option key={cat} value={cat}>{cat}</option>
+                          ))}
+                        </select>
                       </div>
-                    );
-                  })()}
+                      
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Result Category</label>
+                        <select
+                          value={editingData[exp.id]?.resultCategory || exp.resultCategory}
+                          onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), resultCategory: e.target.value}})}
+                          className="w-full p-2 border-2 border-gray-300 rounded"
+                        >
+                          {resultCategories.map(cat => (
+                            <option key={cat.value} value={cat.value}>{cat.label}</option>
+                          ))}
+                        </select> 
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-3 mb-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Problem</label>
+                        <textarea
+                          value={editingData[exp.id]?.problem || exp.problem}
+                          onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), problem: e.target.value}})}
+                          className="w-full p-2 border-2 border-gray-300 rounded"
+                          rows="3"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Solution</label>
+                        <textarea
+                          value={editingData[exp.id]?.solution || exp.solution}
+                          onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), solution: e.target.value}})}
+                          className="w-full p-2 border-2 border-gray-300 rounded"
+                          rows="3"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Result</label>
+                        <textarea
+                          value={editingData[exp.id]?.result || exp.result}
+                          onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), result: e.target.value}})}
+                          className="w-full p-2 border-2 border-gray-300 rounded"
+                          rows="2"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Author</label>
+                        <input
+                          type="text"
+                          value={editingData[exp.id]?.author || exp.author}
+                          onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), author: e.target.value}})}
+                          className="w-full p-2 border-2 border-gray-300 rounded"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Gender</label>
+                        <select
+                          value={editingData[exp.id]?.gender || exp.gender}
+                          onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), gender: e.target.value}})}
+                          className="w-full p-2 border-2 border-gray-300 rounded"
+                        >
+                          <option value="">None</option>
+                          {genderOptions.map(g => (
+                            <option key={g} value={g}>{g}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Age</label>
+                        <select
+                          value={editingData[exp.id]?.age || exp.age}
+                          onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), age: e.target.value}})}
+                          className="w-full p-2 border-2 border-gray-300 rounded"
+                        >
+                          <option value="">None</option>
+                          {ageOptions.map(a => (
+                            <option key={a} value={a}>{a}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Country</label>
+                        <input
+                          type="text"
+                          value={editingData[exp.id]?.country || exp.country}
+                          onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), country: e.target.value}})}
+                          className="w-full p-2 border-2 border-gray-300 rounded"
+                        />
+                      </div>
+                    </div>
+                    
+                    <button
+                      onClick={async () => {
+                        const expElement = document.getElementById(`exp-${exp.id}`);
+                        const scrollPosition = expElement ? expElement.offsetTop - 100 : window.pageYOffset;
+                        
+                        const updatedExp = editingData[exp.id] || exp;
+                        const { error } = await supabase
+                          .from('experiences')
+                          .update({
+                            problem: updatedExp.problem,
+                            problem_category: updatedExp.problemCategory,
+                            solution: updatedExp.solution,
+                            result: updatedExp.result,
+                            result_category: updatedExp.resultCategory,
+                            author: updatedExp.author,
+                            gender: updatedExp.gender,
+                            age: updatedExp.age,
+                            country: updatedExp.country
+                          })
+                          .eq('id', exp.id);
+                        
+                        if (error) {
+                          alert('Error updating experience');
+                        } else {
+                          await loadExperiences(true);
+                          setEditingExperience(null);
+                          setEditingData({});
+                          setTimeout(() => {
+                            window.scrollTo({ top: scrollPosition, behavior: 'instant' });
+                          }, 100);
+                        }
+                      }}
+                      className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 font-semibold"
+                    >
+                      💾 Save Changes
+                    </button>
+                  </div>
+                )}
 
                   <div className="border-t pt-4 mt-4">
                     <div className="mb-4">
@@ -4509,9 +4659,7 @@ onClick={() => {
 
                 </div>
               
-              {isAdmin && editingExperience === exp.id && (
-                  <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-4 mt-4">
-                    <h4 className="font-semibold text-gray-800 mb-3">Edit Experience #{exp.id}</h4>
+</div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                       <div>
