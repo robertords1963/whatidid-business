@@ -1,6 +1,7 @@
 
 
 
+
 import React, { useState, useEffect, useLayoutEffect } from 'react';
 import { Share2, TrendingUp, AlertCircle, Star, MessageCircle, Send, Shield, Trash2, Search, Users, Target, Briefcase } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js'; 
@@ -4111,11 +4112,9 @@ onClick={() => {
                             ))}
                           </div>
                         </div>
-</div>
-                );
-              })()}
-
-              
+                      </div>
+                    );
+                  })()}
 
                   <div className="border-t pt-4 mt-4">
                     <div className="mb-4">
@@ -4511,7 +4510,9 @@ onClick={() => {
 
                 </div>
               
-</div>
+              {isAdmin && editingExperience === exp.id && (
+                  <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-4 mt-4">
+                    <h4 className="font-semibold text-gray-800 mb-3">Edit Experience #{exp.id}</h4>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                       <div>
@@ -5099,4 +5100,3 @@ if (selected.length === 0) {
     </>
   );
 }
-
