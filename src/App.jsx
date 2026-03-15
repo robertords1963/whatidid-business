@@ -5054,6 +5054,90 @@ if (selected.length === 0) {
       </div>
     )}
 
+  {isAdmin && editingExperience && (() => {
+  const exp = experiences.find(e => e.id === editingExperience);
+  if (!exp) return null;
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h4 className="font-semibold text-gray-800 text-lg">Edit Experience #{exp.id}</h4>
+          <button onClick={() => { setEditingExperience(null); setEditingData({}); }} className="text-gray-500 hover:text-gray-700 text-3xl leading-none">×</button>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Problem Category</label>
+            <select value={editingData[exp.id]?.problemCategory || exp.problemCategory} onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), problemCategory: e.target.value}})} className="w-full p-2 border-2 border-gray-300 rounded">
+              {problemCategories.map(cat => (<option key={cat} value={cat}>{cat}</option>))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Result Category</label>
+            <select value={editingData[exp.id]?.resultCategory || exp.resultCategory} onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), resultCategory: e.target.value}})} className="w-full p-2 border-2 border-gray-300 rounded">
+              {resultCategories.map(cat => (<option key={cat.value} value={cat.value}>{cat.label}</option>))}
+            </select>
+          </div>
+        </div>
+        <div className="space-y-3 mb-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Problem</label>
+            <textarea value={editingData[exp.id]?.problem || exp.problem} onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), problem: e.target.value}})} className="w-full p-2 border-2 border-gray-300 rounded" rows="3"/>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Solution</label>
+            <textarea value={editingData[exp.id]?.solution || exp.solution} onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), solution: e.target.value}})} className="w-full p-2 border-2 border-gray-300 rounded" rows="3"/>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Result</label>
+            <textarea value={editingData[exp.id]?.result || exp.result} onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), result: e.target.value}})} className="w-full p-2 border-2 border-gray-300 rounded" rows="2"/>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Author</label>
+            <input type="text" value={editingData[exp.id]?.author || exp.author} onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), author: e.target.value}})} className="w-full p-2 border-2 border-gray-300 rounded"/>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Gender</label>
+            <select value={editingData[exp.id]?.gender || exp.gender} onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), gender: e.target.value}})} className="w-full p-2 border-2 border-gray-300 rounded">
+              <option value="">None</option>
+              {genderOptions.map(g => (<option key={g} value={g}>{g}</option>))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Age</label>
+            <select value={editingData[exp.id]?.age || exp.age} onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), age: e.target.value}})} className="w-full p-2 border-2 border-gray-300 rounded">
+              <option value="">None</option>
+              {ageOptions.map(a => (<option key={a} value={a}>{a}</option>))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Country</label>
+            <input type="text" value={editingData[exp.id]?.country || exp.country} onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), country: e.target.value}})} className="w-full p-2 border-2 border-gray-300 rounded"/>
+          </div>
+        </div>
+        <div className="flex gap-3">
+          <button onClick={async () => {
+            const updatedExp = editingData[exp.id] || exp;
+            const { error } = await supabase.from('experiences').update({
+              problem: updatedExp.problem, problem_category: updatedExp.problemCategory,
+              solution: updatedExp.solution, result: updatedExp.result,
+              result_category: updatedExp.resultCategory, author: updatedExp.author,
+              gender: updatedExp.gender, age: updatedExp.age, country: updatedExp.country
+            }).eq('id', exp.id);
+            if (error) { alert('Error updating experience'); }
+            else { await loadExperiences(true); setEditingExperience(null); setEditingData({}); }
+          }} className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 font-semibold">
+            💾 Save Changes
+          </button>
+          <button onClick={() => { setEditingExperience(null); setEditingData({}); }} className="px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 font-semibold">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+})()}      
 
         {/* Modal de CV */}
     {showCvModal && currentCvUrl && (
