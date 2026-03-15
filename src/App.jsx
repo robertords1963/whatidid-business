@@ -4510,7 +4510,7 @@ onClick={() => {
 
                 </div>
               
-              {isAdmin && editingExperience === exp.id && (
+              {isAdmin && editingExperience === -1 && (
                   <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-4 mt-4">
                     <h4 className="font-semibold text-gray-800 mb-3">Edit Experience #{exp.id}</h4>
                     
