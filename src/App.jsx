@@ -750,7 +750,7 @@ setTimeout(() => {
     const exp = experiences.find(e => e.id === id);
     
     // Verificar se é o dono (modo Corp)
-    if (appSettings.requireEmployeeLogin && !isAdmin && exp.employeeId !== employeeId) {
+if (appSettings.requireEmployeeLogin && exp.employeeId !== employeeId) {
   alert('You can only delete your own experiences!');
   return false;
 }
@@ -1591,7 +1591,7 @@ useEffect(() => {
     }
     
     // Verificar se é o dono (modo Corp)
-if (appSettings.requireEmployeeLogin && !isAdmin && comment.employeeId !== employeeId) {
+if (appSettings.requireEmployeeLogin && comment.employeeId !== employeeId) {
   alert('You can only delete your own comments!');
   return;
 }
