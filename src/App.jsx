@@ -500,7 +500,7 @@ const deleteFileFromStorage = async (fileUrl) => {
   const matches = [];
   
   keyInsights.forEach(insight => {
-    const insightText = `${insight.problem} ${insight.solution}`.toLowerCase();
+    const insightText = insight.problem.toLowerCase();
     
     console.log('📝 INSIGHT:', insight.problem.substring(0, 50));
     
@@ -512,25 +512,22 @@ const deleteFileFromStorage = async (fileUrl) => {
       }
     });
     
-    const normalizedScore = (score / userKeywords.length) * 100;
+console.log('📊 MATCHES:', score);
     
-    console.log('📊 SCORE:', normalizedScore.toFixed(1) + '%', `(${score}/${userKeywords.length})`);
-    
-    if (normalizedScore >= 70) {
+    if (score >= 1) {
       matches.push({
         match: insight,
-        confidence: Math.round(normalizedScore)
+        confidence: score
       });
     }
   });
   
   console.log('🏆 TOTAL MATCHES ≥70%:', matches.length);
   
-  if (matches.length > 0) {
-    // Ordenar por confiança (maior primeiro)
+if (matches.length > 0) {
     matches.sort((a, b) => b.confidence - a.confidence);
     console.log('✅ MODAL SHOULD APPEAR WITH', matches.length, 'MATCHES!');
-    return matches; // Retorna ARRAY de matches
+    return matches.slice(0, 5);
   }
   
   console.log('❌ NO MATCHES FOUND');
