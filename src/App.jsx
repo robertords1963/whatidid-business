@@ -4867,9 +4867,9 @@ onClick={() => {
 {showMappingModal && suggestedMapping && (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
     <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full p-6 max-h-[80vh] overflow-y-auto">
-      <h3 className="text-xl font-bold text-gray-800 mb-4">
-        🎯 We found {suggestedMapping.length} matching Common {suggestedMapping.length === 1 ? 'Case' : 'Cases'}!
-      </h3>
+<h3 className="text-xl font-bold text-gray-800 mb-4">
+  🎯 We found {suggestedMapping.length} Common Case {suggestedMapping.length === 1 ? 'match' : 'matches'} for: {suggestedMapping[0]?.match.problemCategory}
+</h3>
       
 <p className="text-sm text-gray-600 mb-6">
   Your problem matches these common cases. Select the ONE that best describes your situation:
@@ -4892,9 +4892,7 @@ onClick={() => {
                 <p className="font-semibold text-gray-800">
                   {item.match.problem}
                 </p>
-                <span className="ml-3 text-sm font-bold text-purple-600 whitespace-nowrap">
-                  {item.confidence}% match
-                </span>
+<span></span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div 
