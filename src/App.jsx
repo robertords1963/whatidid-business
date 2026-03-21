@@ -1049,10 +1049,12 @@ const tryScroll = setInterval(() => {
 };
 
 const openVideoModal = (index) => {
+  if (index !== currentVideoIndex) {
+    setCurrentPdfPage(1);
+    setPdfTotalPages(0);
+  }
   setCurrentVideoIndex(index);
   setVideoModalOpen(true);
-  setCurrentPdfPage(1);
-  setPdfTotalPages(0);
   document.body.style.overflow = 'hidden';
   
   // Forçar fullscreen no mobile após renderizar
@@ -5026,10 +5028,10 @@ if (selected.length === 0) {
             {promotionalVideos[currentVideoIndex]?.fileType === 'presentation' ? (
               <div className="w-full bg-white flex flex-col items-center" style={{ minHeight: '60vh' }}>
                 <iframe
-                  key={`${currentVideoIndex}-${currentPdfPage}`}
-                  src={`${promotionalVideos[currentVideoIndex].url}#page=${currentPdfPage}`}
-                  className="w-full sm:rounded-lg"
-                  style={{ height: '70vh' }}
+                key={`${currentVideoIndex}-${currentPdfPage}`}
+                src={`${promotionalVideos[currentVideoIndex].url}#page=${currentPdfPage}`}
+                className="w-full sm:rounded-lg"
+                style={{ height: 'calc(100vw * 0.5625)', maxHeight: '56.25vw' }}
                   title="Presentation"
                   onLoad={(e) => {
                     // Tentar detectar total de páginas via PDF.js
@@ -5053,6 +5055,16 @@ if (selected.length === 0) {
                 />
                 {/* Page navigation */}
                 <div className="flex items-center gap-4 py-3 bg-white w-full justify-center border-t">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const container = e.target.closest('.relative');
+                      if (container?.requestFullscreen) container.requestFullscreen();
+                      else if (container?.webkitRequestFullscreen) container.webkitRequestFullscreen();
+                    }}
+                    className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-sm"
+                    title="Fullscreen"
+                  >⛶ Full</button>
                   <button
                     onClick={(e) => { e.stopPropagation(); setCurrentPdfPage(p => Math.max(1, p - 1)); }}
                     disabled={currentPdfPage <= 1}
