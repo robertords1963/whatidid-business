@@ -5076,7 +5076,7 @@ if (selected.length === 0) {
               e.stopPropagation();
               closeVideoModal();
             }}
-            className="video-modal-close-btn fixed sm:absolute top-4 left-4 z-[99999] text-black sm:text-black hover:text-gray-700 w-10 h-10 sm:w-10 sm:h-10 font-bold transition-colors flex items-center justify-center"
+            className={`video-modal-close-btn fixed sm:absolute top-4 left-4 z-[99999] text-black sm:text-black hover:text-gray-700 w-10 h-10 sm:w-10 sm:h-10 font-bold transition-colors flex items-center justify-center ${promotionalVideos[currentVideoIndex]?.fileType === 'presentation' ? 'hidden' : ''}`}
             aria-label="Close video"
             style={{ 
               touchAction: 'manipulation', 
