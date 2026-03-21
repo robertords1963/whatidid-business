@@ -1212,6 +1212,35 @@ useEffect(() => {
     return () => clearInterval(interval);
   }, [quotes.length]);
 
+// PDF.js renderer
+  useEffect(() => {
+    if (!videoModalOpen) return;
+    const item = promotionalVideos[currentVideoIndex];
+    if (!item || item.fileType !== 'presentation') return;
+
+    const renderPage = async () => {
+      if (!window.pdfjsLib) {
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+        await new Promise(resolve => { script.onload = resolve; document.head.appendChild(script); });
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      }
+      try {
+        const pdf = await window.pdfjsLib.getDocument(item.url).promise;
+        setPdfTotalPages(pdf.numPages);
+        const page = await pdf.getPage(currentPdfPage);
+        const canvas = document.getElementById('pdf-canvas');
+        if (!canvas) return;
+        const viewport = page.getViewport({ scale: 1.5 });
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+      } catch(err) { console.log('PDF render error:', err); }
+    };
+
+    renderPage();
+  }, [videoModalOpen, currentVideoIndex, currentPdfPage]);
+    
   // Detectar quando o vídeo sai de fullscreen e fechar o modal automaticamente
   useEffect(() => {
     if (!videoModalOpen) return;
@@ -5026,15 +5055,15 @@ if (selected.length === 0) {
           {/* Container do conteúdo */}
           <div className="relative w-full h-full sm:h-auto sm:rounded-lg overflow-hidden shadow-2xl flex items-center justify-center bg-black sm:bg-transparent">
             {promotionalVideos[currentVideoIndex]?.fileType === 'presentation' ? (
-              <div className="w-full bg-white flex flex-col rounded-lg overflow-hidden" style={{ maxHeight: '90vh' }}>
-                {/* Header com X e fullscreen */}
+              <div className="w-full bg-gray-900 flex flex-col rounded-lg overflow-hidden">
+                {/* Header */}
                 <div className="flex items-center justify-between px-4 py-2 bg-gray-800 flex-shrink-0">
                   <span className="text-white text-sm font-medium">📊 Presentation</span>
                   <div className="flex items-center gap-2">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        const el = document.getElementById('pdf-fullscreen-container');
+                        const el = document.getElementById('pdf-canvas-container');
                         if (document.fullscreenElement) {
                           document.exitFullscreen();
                         } else if (el?.requestFullscreen) {
@@ -5044,7 +5073,7 @@ if (selected.length === 0) {
                         }
                       }}
                       className="px-3 py-1 bg-gray-600 hover:bg-gray-500 text-white rounded text-sm"
-                    >⛶</button>
+                    >⛶ Full</button>
                     <button
                       onClick={(e) => { e.stopPropagation(); closeVideoModal(); }}
                       className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-sm font-bold"
@@ -5052,36 +5081,20 @@ if (selected.length === 0) {
                   </div>
                 </div>
 
-                {/* iframe */}
-                <div id="pdf-fullscreen-container" className="flex-1 bg-white">
-                  <iframe
-                    key={`${currentVideoIndex}-${currentPdfPage}`}
-                    src={`${promotionalVideos[currentVideoIndex].url}#page=${currentPdfPage}&toolbar=0&navpanes=0&scrollbar=0`}
-                    className="w-full"
-                    style={{ height: '65vh' }}
-                    title="Presentation"
-                    onLoad={() => {
-                      if (!window.pdfjsLib) {
-                        const script = document.createElement('script');
-                        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
-                        script.onload = async () => {
-                          window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-                          try {
-                            const pdf = await window.pdfjsLib.getDocument(promotionalVideos[currentVideoIndex].url).promise;
-                            setPdfTotalPages(pdf.numPages);
-                          } catch(err) { console.log('PDF err:', err); }
-                        };
-                        document.head.appendChild(script);
-                      } else if (pdfTotalPages === 0) {
-                        window.pdfjsLib.getDocument(promotionalVideos[currentVideoIndex].url).promise
-                          .then(pdf => setPdfTotalPages(pdf.numPages))
-                          .catch(() => {});
-                      }
-                    }}
+                {/* Canvas */}
+                <div
+                  id="pdf-canvas-container"
+                  className="flex items-center justify-center bg-gray-900 p-4"
+                  style={{ minHeight: '60vh' }}
+                >
+                  <canvas
+                    id="pdf-canvas"
+                    className="shadow-2xl"
+                    style={{ maxWidth: '100%', maxHeight: '70vh' }}
                   />
                 </div>
 
-                {/* Page navigation */}
+                {/* Navigation */}
                 <div className="flex items-center gap-4 py-2 px-4 bg-gray-800 w-full justify-center flex-shrink-0">
                   <button
                     onClick={(e) => { e.stopPropagation(); setCurrentPdfPage(p => Math.max(1, p - 1)); }}
