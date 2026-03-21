@@ -894,6 +894,9 @@ const [currentCvUrl, setCurrentCvUrl] = useState(null);
   const [newVideoDuration, setNewVideoDuration] = useState('');
   const [uploadingVideo, setUploadingVideo] = useState(false);
   const [editingVideoDuration, setEditingVideoDuration] = useState({});
+  const [newItemType, setNewItemType] = useState('video');
+  const [currentPdfPage, setCurrentPdfPage] = useState(1);
+  const [pdfTotalPages, setPdfTotalPages] = useState(0);
 
   const maxChars = {
     problem: 300,
@@ -1048,6 +1051,8 @@ const tryScroll = setInterval(() => {
 const openVideoModal = (index) => {
   setCurrentVideoIndex(index);
   setVideoModalOpen(true);
+  setCurrentPdfPage(1);
+  setPdfTotalPages(0);
   document.body.style.overflow = 'hidden';
   
   // Forçar fullscreen no mobile após renderizar
@@ -1399,7 +1404,8 @@ useEffect(() => {
         id: video.id,
         url: video.video_url,
         duration: video.duration,
-        display_order: video.display_order
+        display_order: video.display_order,
+        fileType: video.file_type || 'video'
       }));
       
       setPromotionalVideos(videos);
@@ -1435,11 +1441,11 @@ useEffect(() => {
 
   const addPromotionalVideo = async () => {
     if (!newVideoFile) {
-      alert('Please select a video file');
+      alert('Please select a file');
       return;
     }
 
-    if (!newVideoDuration) {
+    if (newItemType === 'video' && !newVideoDuration) {
       alert('Please enter video duration (e.g., 1:30)');
       return;
     }
@@ -1460,8 +1466,9 @@ useEffect(() => {
         .from('promotional_videos')
         .insert([{
           video_url: videoUrl,
-          duration: newVideoDuration,
-          display_order: maxOrder + 1
+          duration: newItemType === 'video' ? newVideoDuration : '',
+          display_order: maxOrder + 1,
+          file_type: newItemType
         }]);
 
       if (error) throw error;
@@ -1882,26 +1889,35 @@ autoComplete="off"
               onClick={() => openVideoModal(actualIndex)}
               className="relative w-16 h-11 sm:w-20 sm:h-14 rounded-md overflow-hidden cursor-pointer group shadow-md hover:shadow-lg transition-all transform hover:scale-105 flex-shrink-0"
             >
-              <video 
-                className="w-full h-full object-cover"
-                preload="metadata"
-              >
-                <source src={`${video.url}#t=0.1`} type="video/mp4" />
-              </video>
-              
+              {video.fileType === 'presentation' ? (
+                <div className="w-full h-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
+                  <span className="text-white text-lg">📊</span>
+                </div>
+              ) : (
+                <video className="w-full h-full object-cover" preload="metadata">
+                  <source src={`${video.url}#t=0.1`} type="video/mp4" />
+                </video>
+              )}
+
               <div className="absolute inset-0 bg-black bg-opacity-30 group-hover:bg-opacity-40 transition-all"></div>
-              
+
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="w-5 h-5 sm:w-6 sm:h-6 bg-white bg-opacity-90 rounded-full flex items-center justify-center group-hover:bg-opacity-100 transition-all group-hover:scale-110">
-                  <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-purple-600 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M8 5v14l11-7z"/>
-                  </svg>
+                  {video.fileType === 'presentation' ? (
+                    <span className="text-purple-600 text-[8px] font-bold">PDF</span>
+                  ) : (
+                    <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-purple-600 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z"/>
+                    </svg>
+                  )}
                 </div>
               </div>
-              
-              <div className="absolute bottom-1 right-1 bg-black bg-opacity-75 text-white text-[5.5px] sm:text-[6px] px-1 py-0.5 rounded leading-none">
-                {video.duration}
-              </div>
+
+              {video.fileType === 'video' && (
+                <div className="absolute bottom-1 right-1 bg-black bg-opacity-75 text-white text-[5.5px] sm:text-[6px] px-1 py-0.5 rounded leading-none">
+                  {video.duration}
+                </div>
+              )}
             </div>
           );
         })}
@@ -2414,34 +2430,68 @@ autoComplete="off"
               </h3>
               
               <div className="bg-white rounded p-4 mb-4">
-                <h4 className="font-medium text-gray-700 mb-3">Add New Video</h4>
+                <h4 className="font-medium text-gray-700 mb-3">Add New Item</h4>
                 <div className="space-y-3">
+                  {/* Type selector */}
+                  <div className="flex gap-4 bg-gray-50 p-3 rounded-lg">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="newItemType"
+                        value="video"
+                        checked={newItemType === 'video'}
+                        onChange={() => { setNewItemType('video'); setNewVideoFile(null); }}
+                        className="w-4 h-4"
+                      />
+                      <span className="text-sm font-medium">🎬 Video (MP4, WebM)</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="newItemType"
+                        value="presentation"
+                        checked={newItemType === 'presentation'}
+                        onChange={() => { setNewItemType('presentation'); setNewVideoFile(null); setNewVideoDuration(''); }}
+                        className="w-4 h-4"
+                      />
+                      <span className="text-sm font-medium">📊 Presentation (PDF)</span>
+                    </label>
+                  </div>
+
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Video File</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {newItemType === 'video' ? 'Video File' : 'PDF File'}
+                    </label>
                     <input
                       type="file"
-                      accept="video/mp4,video/webm"
+                      accept={newItemType === 'video' ? 'video/mp4,video/webm' : '.pdf'}
                       onChange={(e) => setNewVideoFile(e.target.files[0])}
                       className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm"
                     />
-                    <p className="text-xs text-gray-500 mt-1">Supported formats: MP4, WebM</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {newItemType === 'video' ? 'Supported: MP4, WebM' : 'Supported: PDF'}
+                    </p>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Duration (e.g., 1:30)</label>
-                    <input
-                      type="text"
-                      value={newVideoDuration}
-                      onChange={(e) => setNewVideoDuration(e.target.value)}
-                      placeholder="0:00"
-                      className="w-full p-2 border-2 border-gray-300 rounded-lg"
-                    />
-                  </div>
+
+                  {newItemType === 'video' && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Duration (e.g., 1:30)</label>
+                      <input
+                        type="text"
+                        value={newVideoDuration}
+                        onChange={(e) => setNewVideoDuration(e.target.value)}
+                        placeholder="0:00"
+                        className="w-full p-2 border-2 border-gray-300 rounded-lg"
+                      />
+                    </div>
+                  )}
+
                   <button
                     onClick={addPromotionalVideo}
                     disabled={uploadingVideo}
                     className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {uploadingVideo ? 'Uploading...' : 'Add Video'}
+                    {uploadingVideo ? 'Uploading...' : `Add ${newItemType === 'video' ? 'Video' : 'Presentation'}`}
                   </button>
                 </div>
               </div>
@@ -4971,8 +5021,54 @@ if (selected.length === 0) {
             <span className="text-4xl sm:text-3xl leading-none pointer-events-none">✕</span>
           </button>
           
-          {/* Container do vídeo - Tela cheia no mobile */}
-          <div className="relative w-full h-full sm:h-auto sm:rounded-lg overflow-hidden shadow-2xl flex items-center justify-center">
+          {/* Container do conteúdo */}
+          <div className="relative w-full h-full sm:h-auto sm:rounded-lg overflow-hidden shadow-2xl flex items-center justify-center bg-black sm:bg-transparent">
+            {promotionalVideos[currentVideoIndex]?.fileType === 'presentation' ? (
+              <div className="w-full bg-white flex flex-col items-center" style={{ minHeight: '60vh' }}>
+                <iframe
+                  key={`${currentVideoIndex}-${currentPdfPage}`}
+                  src={`${promotionalVideos[currentVideoIndex].url}#page=${currentPdfPage}`}
+                  className="w-full sm:rounded-lg"
+                  style={{ height: '70vh' }}
+                  title="Presentation"
+                  onLoad={(e) => {
+                    // Tentar detectar total de páginas via PDF.js
+                    if (!window.pdfjsLib) {
+                      const script = document.createElement('script');
+                      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+                      script.onload = async () => {
+                        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                        try {
+                          const pdf = await window.pdfjsLib.getDocument(promotionalVideos[currentVideoIndex].url).promise;
+                          setPdfTotalPages(pdf.numPages);
+                        } catch(err) { console.log('PDF load err:', err); }
+                      };
+                      document.head.appendChild(script);
+                    } else if (pdfTotalPages === 0) {
+                      window.pdfjsLib.getDocument(promotionalVideos[currentVideoIndex].url).promise
+                        .then(pdf => setPdfTotalPages(pdf.numPages))
+                        .catch(err => console.log('PDF err:', err));
+                    }
+                  }}
+                />
+                {/* Page navigation */}
+                <div className="flex items-center gap-4 py-3 bg-white w-full justify-center border-t">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setCurrentPdfPage(p => Math.max(1, p - 1)); }}
+                    disabled={currentPdfPage <= 1}
+                    className="px-3 py-1 bg-purple-600 text-white rounded text-sm disabled:opacity-40"
+                  >← Prev</button>
+                  <span className="text-sm text-gray-700 font-medium">
+                    Page {currentPdfPage}{pdfTotalPages > 0 ? ` of ${pdfTotalPages}` : ''}
+                  </span>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setCurrentPdfPage(p => pdfTotalPages > 0 ? Math.min(pdfTotalPages, p + 1) : p + 1); }}
+                    disabled={pdfTotalPages > 0 && currentPdfPage >= pdfTotalPages}
+                    className="px-3 py-1 bg-purple-600 text-white rounded text-sm disabled:opacity-40"
+                  >Next →</button>
+                </div>
+              </div>
+            ) : (
             <video 
               key={currentVideoIndex}
               controls 
@@ -5012,6 +5108,7 @@ if (selected.length === 0) {
               <source src={promotionalVideos[currentVideoIndex].url} type="video/mp4" />
               Your browser does not support the video tag.
             </video>
+            )}
           </div>
           
           <div className="flex justify-between items-center mt-0 sm:mt-4 px-4 py-3 sm:py-0 sm:px-0 bg-black sm:bg-transparent absolute sm:relative bottom-4 sm:bottom-auto left-0 right-0 sm:left-auto sm:right-auto z-10">
