@@ -1240,6 +1240,42 @@ useEffect(() => {
 
     renderPage();
   }, [videoModalOpen, currentVideoIndex, currentPdfPage]);
+
+  // Fullscreen nav overlay + keyboard navigation
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      const navEl = document.querySelector('.pdf-fullscreen-nav');
+      if (!navEl) return;
+      if (document.fullscreenElement) {
+        navEl.classList.remove('hidden');
+        navEl.classList.add('flex');
+      } else {
+        navEl.classList.add('hidden');
+        navEl.classList.remove('flex');
+      }
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+
+    const handleKeyDown = (e) => {
+      const item = promotionalVideos[currentVideoIndex];
+      if (!videoModalOpen || !item || item.fileType !== 'presentation') return;
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        setCurrentPdfPage(p => pdfTotalPages > 0 ? Math.min(pdfTotalPages, p + 1) : p + 1);
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        setCurrentPdfPage(p => Math.max(1, p - 1));
+      } else if (e.key === 'Escape') {
+        closeVideoModal();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [videoModalOpen, currentVideoIndex, pdfTotalPages]);
     
   // Detectar quando o vídeo sai de fullscreen e fechar o modal automaticamente
   useEffect(() => {
@@ -5084,7 +5120,7 @@ if (selected.length === 0) {
                 {/* Canvas */}
                 <div
                   id="pdf-canvas-container"
-                  className="flex items-center justify-center bg-gray-900 p-4"
+                  className="flex flex-col items-center justify-center bg-gray-900"
                   style={{ minHeight: '60vh' }}
                 >
                   <canvas
@@ -5092,6 +5128,26 @@ if (selected.length === 0) {
                     className="shadow-2xl"
                     style={{ maxWidth: '100%', maxHeight: '70vh' }}
                   />
+                  {/* Fullscreen-only navigation overlay */}
+                  <div className="pdf-fullscreen-nav hidden items-center gap-4 py-3 mt-2">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setCurrentPdfPage(p => Math.max(1, p - 1)); }}
+                      disabled={currentPdfPage <= 1}
+                      className="px-4 py-2 bg-purple-600 text-white rounded text-sm disabled:opacity-40 hover:bg-purple-700"
+                    >← Prev</button>
+                    <span className="text-sm text-white font-medium">
+                      Slide {currentPdfPage}{pdfTotalPages > 0 ? ` of ${pdfTotalPages}` : ''}
+                    </span>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setCurrentPdfPage(p => pdfTotalPages > 0 ? Math.min(pdfTotalPages, p + 1) : p + 1); }}
+                      disabled={pdfTotalPages > 0 && currentPdfPage >= pdfTotalPages}
+                      className="px-4 py-2 bg-purple-600 text-white rounded text-sm disabled:opacity-40 hover:bg-purple-700"
+                    >Next →</button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); document.exitFullscreen?.(); }}
+                      className="px-4 py-2 bg-red-600 text-white rounded text-sm hover:bg-red-700 ml-4"
+                    >✕ Exit</button>
+                  </div>
                 </div>
 
                 {/* Navigation */}
@@ -5154,7 +5210,7 @@ if (selected.length === 0) {
             )}
           </div>
           
-          <div className="flex justify-between items-center mt-0 sm:mt-4 px-4 py-3 sm:py-0 sm:px-0 bg-black sm:bg-transparent absolute sm:relative bottom-4 sm:bottom-auto left-0 right-0 sm:left-auto sm:right-auto z-10">
+          <div className={`flex justify-between items-center mt-0 sm:mt-4 px-4 py-3 sm:py-0 sm:px-0 bg-black sm:bg-transparent absolute sm:relative bottom-4 sm:bottom-auto left-0 right-0 sm:left-auto sm:right-auto z-10 ${promotionalVideos[currentVideoIndex]?.fileType === 'presentation' ? 'hidden' : ''}`}>
             <button
               onClick={(e) => {
                 e.stopPropagation();
