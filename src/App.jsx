@@ -1282,7 +1282,6 @@ useEffect(() => {
     if (!videoModalOpen) return;
 
     const handleFullscreenChange = () => {
-      // Verificar se saiu do fullscreen
       const isFullscreen = !!(
         document.fullscreenElement || 
         document.webkitFullscreenElement || 
@@ -1292,20 +1291,22 @@ useEffect(() => {
 
       console.log('Fullscreen change detected. Is fullscreen:', isFullscreen);
 
-      // Se não está mais em fullscreen, fecha o modal
+      // Se for apresentação, nunca fechar o modal ao sair do fullscreen
+      const currentItem = promotionalVideos[currentVideoIndex];
+      if (currentItem?.fileType === 'presentation') return;
+
       if (!isFullscreen) {
         console.log('Closing modal automatically...');
         setTimeout(() => {
           setVideoModalOpen(false);
           document.body.style.overflow = 'unset';
-          // Pausar todos os vídeos
           const videos = document.querySelectorAll('video');
           videos.forEach(video => {
             if (!video.paused) {
               video.pause();
             }
           });
-        }, 300); // Aumentado para 300ms
+        }, 300);
       }
     };
 
