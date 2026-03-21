@@ -5144,9 +5144,9 @@ if (selected.length === 0) {
                       className="px-4 py-2 bg-purple-600 text-white rounded text-sm disabled:opacity-40 hover:bg-purple-700"
                     >Next →</button>
                     <button
-                      onClick={(e) => { e.stopPropagation(); document.exitFullscreen?.(); }}
-                      className="px-4 py-2 bg-red-600 text-white rounded text-sm hover:bg-red-700 ml-4"
-                    >✕ Exit</button>
+                      onClick={(e) => { e.stopPropagation(); document.exitFullscreen?.() || document.webkitExitFullscreen?.(); }}
+                      className="px-4 py-2 bg-gray-600 text-white rounded text-sm hover:bg-gray-500 ml-4"
+                    >⊡ Exit Full</button>
                   </div>
                 </div>
 
