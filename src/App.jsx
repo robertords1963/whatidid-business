@@ -897,6 +897,7 @@ const [currentCvUrl, setCurrentCvUrl] = useState(null);
   const [newItemType, setNewItemType] = useState('video');
   const [currentPdfPage, setCurrentPdfPage] = useState(1);
   const [pdfTotalPages, setPdfTotalPages] = useState(0);
+  const [pdfThumbnails, setPdfThumbnails] = useState({});
 
   const maxChars = {
     problem: 300,
@@ -1478,6 +1479,34 @@ useEffect(() => {
       
       setPromotionalVideos(videos);
       console.log('✅ Vídeos carregados do banco:', videos.length);
+
+      // Gerar thumbnails para apresentações
+      const presentations = videos.filter(v => v.fileType === 'presentation');
+      if (presentations.length > 0) {
+        const loadPdfJs = async () => {
+          if (!window.pdfjsLib) {
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+            await new Promise(resolve => { script.onload = resolve; document.head.appendChild(script); });
+            window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+          }
+        };
+        await loadPdfJs();
+        const thumbs = {};
+        for (const pres of presentations) {
+          try {
+            const pdf = await window.pdfjsLib.getDocument(pres.url).promise;
+            const page = await pdf.getPage(1);
+            const viewport = page.getViewport({ scale: 0.3 });
+            const canvas = document.createElement('canvas');
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+            thumbs[pres.id] = canvas.toDataURL();
+          } catch(err) { console.log('Thumb error:', err); }
+        }
+        setPdfThumbnails(thumbs);
+      }
     } catch (error) {
       console.error('❌ Error loading promotional videos:', error);
       setPromotionalVideos([]);
@@ -1958,9 +1987,13 @@ autoComplete="off"
               className="relative w-16 h-11 sm:w-20 sm:h-14 rounded-md overflow-hidden cursor-pointer group shadow-md hover:shadow-lg transition-all transform hover:scale-105 flex-shrink-0"
             >
               {video.fileType === 'presentation' ? (
-                <div className="w-full h-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
-                  <span className="text-white text-lg">📊</span>
-                </div>
+                pdfThumbnails[video.id] ? (
+                  <img src={pdfThumbnails[video.id]} className="w-full h-full object-cover" alt="Slide preview" />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
+                    <span className="text-white text-lg">📊</span>
+                  </div>
+                )
               ) : (
                 <video className="w-full h-full object-cover" preload="metadata">
                   <source src={`${video.url}#t=0.1`} type="video/mp4" />
