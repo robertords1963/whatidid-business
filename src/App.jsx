@@ -5026,57 +5026,75 @@ if (selected.length === 0) {
           {/* Container do conteúdo */}
           <div className="relative w-full h-full sm:h-auto sm:rounded-lg overflow-hidden shadow-2xl flex items-center justify-center bg-black sm:bg-transparent">
             {promotionalVideos[currentVideoIndex]?.fileType === 'presentation' ? (
-              <div className="w-full bg-white flex flex-col items-center" style={{ minHeight: '60vh' }}>
-                <iframe
-                key={`${currentVideoIndex}-${currentPdfPage}`}
-                src={`${promotionalVideos[currentVideoIndex].url}#page=${currentPdfPage}`}
-                className="w-full sm:rounded-lg"
-                style={{ height: 'calc(100vw * 0.5625)', maxHeight: '56.25vw' }}
-                  title="Presentation"
-                  onLoad={(e) => {
-                    // Tentar detectar total de páginas via PDF.js
-                    if (!window.pdfjsLib) {
-                      const script = document.createElement('script');
-                      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
-                      script.onload = async () => {
-                        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-                        try {
-                          const pdf = await window.pdfjsLib.getDocument(promotionalVideos[currentVideoIndex].url).promise;
-                          setPdfTotalPages(pdf.numPages);
-                        } catch(err) { console.log('PDF load err:', err); }
-                      };
-                      document.head.appendChild(script);
-                    } else if (pdfTotalPages === 0) {
-                      window.pdfjsLib.getDocument(promotionalVideos[currentVideoIndex].url).promise
-                        .then(pdf => setPdfTotalPages(pdf.numPages))
-                        .catch(err => console.log('PDF err:', err));
-                    }
-                  }}
-                />
-                {/* Page navigation */}
-                <div className="flex items-center gap-4 py-3 bg-white w-full justify-center border-t">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      const container = e.target.closest('.relative');
-                      if (container?.requestFullscreen) container.requestFullscreen();
-                      else if (container?.webkitRequestFullscreen) container.webkitRequestFullscreen();
+              <div className="w-full bg-white flex flex-col rounded-lg overflow-hidden" style={{ maxHeight: '90vh' }}>
+                {/* Header com X e fullscreen */}
+                <div className="flex items-center justify-between px-4 py-2 bg-gray-800 flex-shrink-0">
+                  <span className="text-white text-sm font-medium">📊 Presentation</span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const el = document.getElementById('pdf-fullscreen-container');
+                        if (document.fullscreenElement) {
+                          document.exitFullscreen();
+                        } else if (el?.requestFullscreen) {
+                          el.requestFullscreen();
+                        } else if (el?.webkitRequestFullscreen) {
+                          el.webkitRequestFullscreen();
+                        }
+                      }}
+                      className="px-3 py-1 bg-gray-600 hover:bg-gray-500 text-white rounded text-sm"
+                    >⛶</button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); closeVideoModal(); }}
+                      className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-sm font-bold"
+                    >✕</button>
+                  </div>
+                </div>
+
+                {/* iframe */}
+                <div id="pdf-fullscreen-container" className="flex-1 bg-white">
+                  <iframe
+                    key={`${currentVideoIndex}-${currentPdfPage}`}
+                    src={`${promotionalVideos[currentVideoIndex].url}#page=${currentPdfPage}&toolbar=0&navpanes=0&scrollbar=0`}
+                    className="w-full"
+                    style={{ height: '65vh' }}
+                    title="Presentation"
+                    onLoad={() => {
+                      if (!window.pdfjsLib) {
+                        const script = document.createElement('script');
+                        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+                        script.onload = async () => {
+                          window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                          try {
+                            const pdf = await window.pdfjsLib.getDocument(promotionalVideos[currentVideoIndex].url).promise;
+                            setPdfTotalPages(pdf.numPages);
+                          } catch(err) { console.log('PDF err:', err); }
+                        };
+                        document.head.appendChild(script);
+                      } else if (pdfTotalPages === 0) {
+                        window.pdfjsLib.getDocument(promotionalVideos[currentVideoIndex].url).promise
+                          .then(pdf => setPdfTotalPages(pdf.numPages))
+                          .catch(() => {});
+                      }
                     }}
-                    className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-sm"
-                    title="Fullscreen"
-                  >⛶ Full</button>
+                  />
+                </div>
+
+                {/* Page navigation */}
+                <div className="flex items-center gap-4 py-2 px-4 bg-gray-800 w-full justify-center flex-shrink-0">
                   <button
                     onClick={(e) => { e.stopPropagation(); setCurrentPdfPage(p => Math.max(1, p - 1)); }}
                     disabled={currentPdfPage <= 1}
-                    className="px-3 py-1 bg-purple-600 text-white rounded text-sm disabled:opacity-40"
+                    className="px-4 py-1.5 bg-purple-600 text-white rounded text-sm disabled:opacity-40 hover:bg-purple-700"
                   >← Prev</button>
-                  <span className="text-sm text-gray-700 font-medium">
-                    Page {currentPdfPage}{pdfTotalPages > 0 ? ` of ${pdfTotalPages}` : ''}
+                  <span className="text-sm text-white font-medium">
+                    Slide {currentPdfPage}{pdfTotalPages > 0 ? ` of ${pdfTotalPages}` : ''}
                   </span>
                   <button
                     onClick={(e) => { e.stopPropagation(); setCurrentPdfPage(p => pdfTotalPages > 0 ? Math.min(pdfTotalPages, p + 1) : p + 1); }}
                     disabled={pdfTotalPages > 0 && currentPdfPage >= pdfTotalPages}
-                    className="px-3 py-1 bg-purple-600 text-white rounded text-sm disabled:opacity-40"
+                    className="px-4 py-1.5 bg-purple-600 text-white rounded text-sm disabled:opacity-40 hover:bg-purple-700"
                   >Next →</button>
                 </div>
               </div>
