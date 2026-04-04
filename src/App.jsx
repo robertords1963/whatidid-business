@@ -256,7 +256,16 @@ const loadExperiences = async (skipLoading = false) => {
       });
     }
 
-    setExperiences(transformedData);
+   const userExps = transformedData.filter(e => e.source === 'app');
+const syntheticExps = transformedData.filter(e => e.source !== 'app' && e.author !== 'key_insights');
+const keyInsights = transformedData.filter(e => e.author === 'key_insights');
+
+for (let i = syntheticExps.length - 1; i > 0; i--) {
+  const j = Math.floor(Math.random() * (i + 1));
+  [syntheticExps[i], syntheticExps[j]] = [syntheticExps[j], syntheticExps[i]];
+}
+
+setExperiences([...keyInsights, ...userExps, ...syntheticExps]);
   } catch (error) {
     console.error('Error loading experiences:', error);
     alert('Error loading data. Please refresh the page.');
