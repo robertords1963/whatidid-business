@@ -2,7 +2,7 @@
 
 
 
-import React, { useState, useEffect, useLayoutEffect } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { Share2, TrendingUp, AlertCircle, Star, MessageCircle, Send, Shield, Trash2, Search, Users, Target, Briefcase } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js'; 
 
@@ -83,6 +83,7 @@ export default function WhatIDid() {
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [loading, setLoading] = useState(true);
   const [experiences, setExperiences] = useState([]);
+  const shuffleOrderRef = useRef(null);
 
   // ⭐ ADICIONAR AQUI (junto com os outros useState) ⭐
   const [appSettings, setAppSettings] = useState({
@@ -260,12 +261,19 @@ const loadExperiences = async (skipLoading = false) => {
 const syntheticExps = transformedData.filter(e => e.source !== 'app' && e.author !== 'key_insights');
 const keyInsights = transformedData.filter(e => e.author === 'key_insights');
 
-for (let i = syntheticExps.length - 1; i > 0; i--) {
-  const j = Math.floor(Math.random() * (i + 1));
-  [syntheticExps[i], syntheticExps[j]] = [syntheticExps[j], syntheticExps[i]];
+if (!shuffleOrderRef.current) {
+  for (let i = syntheticExps.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [syntheticExps[i], syntheticExps[j]] = [syntheticExps[j], syntheticExps[i]];
+  }
+  shuffleOrderRef.current = syntheticExps.map(e => e.id);
 }
 
-setExperiences([...keyInsights, ...userExps, ...syntheticExps]);
+const orderedSynthetic = shuffleOrderRef.current
+  .map(id => syntheticExps.find(e => e.id === id))
+  .filter(Boolean);
+
+setExperiences([...keyInsights, ...userExps, ...orderedSynthetic]);
   } catch (error) {
     console.error('Error loading experiences:', error);
     alert('Error loading data. Please refresh the page.');
