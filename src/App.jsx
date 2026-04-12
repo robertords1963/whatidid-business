@@ -91,7 +91,9 @@ export default function WhatIDid() {
   requireEmployeeLogin: false,
   editionName: 'pro',
   allowCvUpload: true,
-  documentType: 'cv'  // ⭐ ADICIONAR
+  documentType: 'cv',
+  showTop3: false,
+  showMarquee: false
 });
 
   // ⭐ ADICIONAR AQUI - Estados para Employee Login ⭐
@@ -322,7 +324,9 @@ const loadAppSettings = async () => {
         requireEmployeeLogin: data.require_employee_login,
         editionName: data.edition_name,
         allowCvUpload: data.allow_cv_upload,
-        documentType: data.document_type || 'cv'  // ⭐ ADICIONAR
+        documentType: data.document_type || 'cv',
+        showTop3: data.show_top3 || false,
+        showMarquee: data.show_marquee || false
       });
     }
   } catch (error) {
@@ -2396,6 +2400,53 @@ autoComplete="off"
           </div>
         )}
       </div>
+
+      {/* 4. Show Top 3 */}
+      <div className="flex items-center gap-3">
+        <input
+          type="checkbox"
+          id="showTop3"
+          checked={appSettings.showTop3}
+          onChange={async (e) => {
+            const newSettings = {...appSettings, showTop3: e.target.checked};
+            setAppSettings(newSettings);
+            const { error } = await supabase
+              .from('app_settings')
+              .update({ show_top3: e.target.checked })
+              .eq('id', 1);
+            if (error) { alert('Error updating setting'); }
+            else { alert(`Top 3 ${e.target.checked ? 'enabled' : 'disabled'}!`); }
+          }}
+          className="w-5 h-5"
+        />
+        <label htmlFor="showTop3" className="text-sm font-medium text-gray-700 cursor-pointer">
+          Show Top 3 Experiences
+        </label>
+      </div>
+
+      {/* 5. Show Marquee */}
+      <div className="flex items-center gap-3">
+        <input
+          type="checkbox"
+          id="showMarquee"
+          checked={appSettings.showMarquee}
+          onChange={async (e) => {
+            const newSettings = {...appSettings, showMarquee: e.target.checked};
+            setAppSettings(newSettings);
+            const { error } = await supabase
+              .from('app_settings')
+              .update({ show_marquee: e.target.checked })
+              .eq('id', 1);
+            if (error) { alert('Error updating setting'); }
+            else { alert(`Marquee ${e.target.checked ? 'enabled' : 'disabled'}!`); }
+          }}
+          className="w-5 h-5"
+        />
+        <label htmlFor="showMarquee" className="text-sm font-medium text-gray-700 cursor-pointer">
+          Show Inspirational Quotes (Marquee)
+        </label>
+      </div>
+
     </div>
   </div>         
 )}
@@ -3086,7 +3137,7 @@ autoComplete="off"
 )}
         
         {/* Inspirational Quotes Marquee - Top */}
-        {(() => {
+        {appSettings.showMarquee && (() => {
           const topQuotes = quotes.filter(q => q.position === 'top');
           if (topQuotes.length === 0) return null;
           return (
@@ -3104,7 +3155,7 @@ autoComplete="off"
         })()}
 
         {/* Top 3 Experiences This Week - MOVED TO TOP */}
-        {(() => {
+        {appSettings.showTop3 && (() => {
           const top3Data = [1, 2, 3]
             .map(pos => experiences.find(exp => exp.id === topExperiences[pos]))
             .filter(Boolean);
@@ -3247,7 +3298,7 @@ onClick={() => {
         })()}
 
         {/* Inspirational Quotes Marquee - Bottom */}
-        {(() => {
+        {appSettings.showMarquee && (() => {
           const bottomQuotes = quotes.filter(q => q.position === 'bottom');
           if (bottomQuotes.length === 0) return null;
           return (
@@ -4647,6 +4698,7 @@ onClick={() => {
                       >
                         Browse
                       </button>
+                      {appSettings.showTop3 && <>
                       <span className="text-gray-400">•</span>
                       <button
                         onClick={() => {
@@ -4662,6 +4714,7 @@ onClick={() => {
                         Top3
                       </button>
                       <span className="text-gray-400">•</span>
+                      </>}
                       <button
                         onClick={() => {
                           const shareSection = document.querySelector('.bg-white.rounded-2xl.shadow-xl.p-8.mb-8');
