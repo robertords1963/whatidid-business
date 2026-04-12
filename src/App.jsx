@@ -3208,7 +3208,7 @@ onClick={() => {
                             <AlertCircle size={16} />
                             Problem
                           </h4>
-                          <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full text-right self-start inline-block">
+                          <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full self-start w-fit text-right">
                             {exp.problemCategory}
                           </span>
                         </div>
@@ -3233,7 +3233,7 @@ onClick={() => {
                             <Share2 size={16} />
                             Result
                           </h4>
-                          <span className={`text-xs px-2 py-1 rounded-full self-start inline-block ${getResultColor(exp.resultCategory)}`}>
+                          <span className={`text-xs px-2 py-1 rounded-full self-start w-fit ${getResultColor(exp.resultCategory)}`}>
                             {getResultLabel(exp.resultCategory)}
                           </span>
                         </div>
