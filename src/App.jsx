@@ -90,9 +90,7 @@ const [appSettings, setAppSettings] = useState({
   requireEmployeeLogin: false,
   editionName: 'pro',
   allowCvUpload: true,
-  documentType: 'cv',
-  showTop3: false,
-  showMarquee: false
+  documentType: 'cv'
 });
 
   // ⭐ ADICIONAR AQUI - Estados para Employee Login ⭐
@@ -322,9 +320,7 @@ setAppSettings({
   requireEmployeeLogin: data.require_employee_login,
   editionName: data.edition_name,
   allowCvUpload: data.allow_cv_upload,
-  documentType: data.document_type || 'cv',
-  showTop3: data.show_top3 || false,
-  showMarquee: data.show_marquee || false
+  documentType: data.document_type || 'cv'
 });
     }
   } catch (error) {
