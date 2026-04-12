@@ -3203,12 +3203,12 @@ onClick={() => {
                     
                     <div className="space-y-4 mt-2">
                       <div>
-                        <div className="flex items-center gap-2 mb-2 flex-wrap">
-                          <h4 className="font-semibold text-red-600 flex items-center gap-2 flex-shrink-0">
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <h4 className="font-semibold text-red-600 flex items-center gap-2 shrink-0">
                             <AlertCircle size={16} />
                             Problem
                           </h4>
-                          <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full ml-auto shrink-0">
+                          <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full text-right" style={{maxWidth:'fit-content'}}>
                             {exp.problemCategory}
                           </span>
                         </div>
@@ -3228,12 +3228,12 @@ onClick={() => {
                       </div>
 
                       <div>
-                        <div className="flex items-center gap-2 mb-2 flex-wrap">
-                          <h4 className="font-semibold text-green-600 flex items-center gap-2 flex-shrink-0">
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <h4 className="font-semibold text-green-600 flex items-center gap-2 shrink-0">
                             <Share2 size={16} />
                             Result
                           </h4>
-                          <span className={`text-xs px-3 py-1 rounded-full ml-auto shrink-0 ${getResultColor(exp.resultCategory)}`}>
+                          <span className={`text-xs px-3 py-1 rounded-full text-right ${getResultColor(exp.resultCategory)}`} style={{maxWidth:'fit-content'}}>
                             {getResultLabel(exp.resultCategory)}
                           </span>
                         </div>
