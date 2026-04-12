@@ -2,6 +2,7 @@
 
 
 
+
 import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { Share2, TrendingUp, AlertCircle, Star, MessageCircle, Send, Shield, Trash2, Search, Users, Target, Briefcase } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js'; 
@@ -10,7 +11,7 @@ const supabaseUrl = 'https://scurkpoasiulwkmmechz.supabase.co';
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNjdXJrcG9hc2l1bHdrbW1lY2h6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzExOTAyNTAsImV4cCI6MjA4Njc2NjI1MH0.M1THE2tNymvwmAQ4P6wKii_ISAyKdzGS95Ou_T-VxCw';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-console.log('🔧 WhatIDid App loaded with Supabase!');    
+console.log('🔧 WhatIDid App loaded with Supabase!');   
 
 // Add marquee animation styles
 const marqueeStyles = `
@@ -86,11 +87,11 @@ export default function WhatIDid() {
   const shuffleOrderRef = useRef(null);
 
   // ⭐ ADICIONAR AQUI (junto com os outros useState) ⭐
-const [appSettings, setAppSettings] = useState({
+  const [appSettings, setAppSettings] = useState({
   requireEmployeeLogin: false,
   editionName: 'pro',
   allowCvUpload: true,
-  documentType: 'cv'
+  documentType: 'cv'  // ⭐ ADICIONAR
 });
 
   // ⭐ ADICIONAR AQUI - Estados para Employee Login ⭐
@@ -316,12 +317,13 @@ const loadAppSettings = async () => {
     
     if (error) throw error;
     
-setAppSettings({
-  requireEmployeeLogin: data.require_employee_login,
-  editionName: data.edition_name,
-  allowCvUpload: data.allow_cv_upload,
-  documentType: data.document_type || 'cv'
-});
+    if (data) {
+      setAppSettings({
+        requireEmployeeLogin: data.require_employee_login,
+        editionName: data.edition_name,
+        allowCvUpload: data.allow_cv_upload,
+        documentType: data.document_type || 'cv'  // ⭐ ADICIONAR
+      });
     }
   } catch (error) {
     console.error('Error loading app settings:', error);
