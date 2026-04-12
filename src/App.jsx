@@ -4663,7 +4663,7 @@ onClick={() => {
                   <div className="mt-6 pt-4 border-t-2 border-gray-100 text-center">
                     <div className="flex items-center justify-center gap-3 text-sm">
                       <button
-                        onClick={() => document.getElementById('pagination-top')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                        onClick={() => document.getElementById('experiences-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
                         className="text-purple-600 hover:text-purple-800 font-medium transition-colors"
                       >
                         Browse
@@ -4676,8 +4676,8 @@ onClick={() => {
                       >
                         Top3
                       </button>
-                      <span className="text-gray-400">•</span>
                       </>}
+                      <span className="text-gray-400">•</span>
                       <button
                         onClick={() => document.getElementById('share-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
                         className="text-purple-600 hover:text-purple-800 font-medium transition-colors"
