@@ -86,11 +86,13 @@ export default function WhatIDid() {
   const shuffleOrderRef = useRef(null);
 
   // ⭐ ADICIONAR AQUI (junto com os outros useState) ⭐
-  const [appSettings, setAppSettings] = useState({
+const [appSettings, setAppSettings] = useState({
   requireEmployeeLogin: false,
   editionName: 'pro',
   allowCvUpload: true,
-  documentType: 'cv'  // ⭐ ADICIONAR
+  documentType: 'cv',
+  showTop3: false,
+  showMarquee: false
 });
 
   // ⭐ ADICIONAR AQUI - Estados para Employee Login ⭐
@@ -316,13 +318,14 @@ const loadAppSettings = async () => {
     
     if (error) throw error;
     
-    if (data) {
-      setAppSettings({
-        requireEmployeeLogin: data.require_employee_login,
-        editionName: data.edition_name,
-        allowCvUpload: data.allow_cv_upload,
-        documentType: data.document_type || 'cv'  // ⭐ ADICIONAR
-      });
+setAppSettings({
+  requireEmployeeLogin: data.require_employee_login,
+  editionName: data.edition_name,
+  allowCvUpload: data.allow_cv_upload,
+  documentType: data.document_type || 'cv',
+  showTop3: data.show_top3 || false,
+  showMarquee: data.show_marquee || false
+});
     }
   } catch (error) {
     console.error('Error loading app settings:', error);
