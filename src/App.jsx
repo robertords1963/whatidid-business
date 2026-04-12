@@ -2403,22 +2403,14 @@ autoComplete="off"
 
       {/* 4. Show Top 3 */}
       <div className="flex items-center gap-3">
-        <input
-          type="checkbox"
-          id="showTop3"
-          checked={appSettings.showTop3}
+        <input type="checkbox" id="showTop3" checked={appSettings.showTop3}
           onChange={async (e) => {
             const newSettings = {...appSettings, showTop3: e.target.checked};
             setAppSettings(newSettings);
-            const { error } = await supabase
-              .from('app_settings')
-              .update({ show_top3: e.target.checked })
-              .eq('id', 1);
-            if (error) { alert('Error updating setting'); }
-            else { alert(`Top 3 ${e.target.checked ? 'enabled' : 'disabled'}!`); }
-          }}
-          className="w-5 h-5"
-        />
+            const { error } = await supabase.from('app_settings').update({ show_top3: e.target.checked }).eq('id', 1);
+            if (error) alert('Error updating setting');
+            else alert(`Top 3 ${e.target.checked ? 'enabled' : 'disabled'}!`);
+          }} className="w-5 h-5" />
         <label htmlFor="showTop3" className="text-sm font-medium text-gray-700 cursor-pointer">
           Show Top 3 Experiences
         </label>
@@ -2426,22 +2418,14 @@ autoComplete="off"
 
       {/* 5. Show Marquee */}
       <div className="flex items-center gap-3">
-        <input
-          type="checkbox"
-          id="showMarquee"
-          checked={appSettings.showMarquee}
+        <input type="checkbox" id="showMarquee" checked={appSettings.showMarquee}
           onChange={async (e) => {
             const newSettings = {...appSettings, showMarquee: e.target.checked};
             setAppSettings(newSettings);
-            const { error } = await supabase
-              .from('app_settings')
-              .update({ show_marquee: e.target.checked })
-              .eq('id', 1);
-            if (error) { alert('Error updating setting'); }
-            else { alert(`Marquee ${e.target.checked ? 'enabled' : 'disabled'}!`); }
-          }}
-          className="w-5 h-5"
-        />
+            const { error } = await supabase.from('app_settings').update({ show_marquee: e.target.checked }).eq('id', 1);
+            if (error) alert('Error updating setting');
+            else alert(`Marquee ${e.target.checked ? 'enabled' : 'disabled'}!`);
+          }} className="w-5 h-5" />
         <label htmlFor="showMarquee" className="text-sm font-medium text-gray-700 cursor-pointer">
           Show Inspirational Quotes (Marquee)
         </label>
@@ -4682,54 +4666,6 @@ onClick={() => {
                     
              
 
-{/* Navigation CTA */}
-                  <div className="text-center mt-6 pt-6 border-t-2 border-gray-100">
-                    <div className="flex items-center justify-center gap-3 text-sm">
-                      <button
-                        onClick={() => {
-                          const filterSection = document.querySelector('.bg-white.rounded-xl.shadow-md.p-6.mb-6');
-                          if (filterSection) {
-                            const yOffset = -100;
-                            const y = filterSection.getBoundingClientRect().top + window.pageYOffset + yOffset;
-                            window.scrollTo({ top: y, behavior: 'smooth' });
-                          }
-                        }}
-                        className="text-purple-600 hover:text-purple-800 font-medium transition-colors"
-                      >
-                        Browse
-                      </button>
-                      {appSettings.showTop3 && <>
-                      <span className="text-gray-400">•</span>
-                      <button
-                        onClick={() => {
-                          const top3Section = document.querySelector('.bg-gradient-to-r.from-purple-100.to-blue-100');
-                          if (top3Section) {
-                            const yOffset = -100;
-                            const y = top3Section.getBoundingClientRect().top + window.pageYOffset + yOffset;
-                            window.scrollTo({ top: y, behavior: 'smooth' });
-                          }
-                        }}
-                        className="text-purple-600 hover:text-purple-800 font-medium transition-colors"
-                      >
-                        Top3
-                      </button>
-                      <span className="text-gray-400">•</span>
-                      </>}
-                      <button
-                        onClick={() => {
-                          const shareSection = document.querySelector('.bg-white.rounded-2xl.shadow-xl.p-8.mb-8');
-                          if (shareSection) {
-                            const yOffset = -100;
-                            const y = shareSection.getBoundingClientRect().top + window.pageYOffset + yOffset;
-                            window.scrollTo({ top: y, behavior: 'smooth' });
-                          }
-                        }}
-                        className="text-purple-600 hover:text-purple-800 font-medium transition-colors"
-                      >
-                        Share your stories
-                      </button>
-
-                </div>
               
               {isAdmin && editingExperience === -1 && (
                   <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-4 mt-4">
@@ -4892,6 +4828,35 @@ onClick={() => {
               </div>
             )}
             </div>
+
+                  {/* Navigation CTA */}
+                  <div className="mt-6 pt-4 border-t-2 border-gray-100 text-center">
+                    <div className="flex items-center justify-center gap-3 text-sm">
+                      <button
+                        onClick={() => document.getElementById('pagination-top')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                        className="text-purple-600 hover:text-purple-800 font-medium transition-colors"
+                      >
+                        Browse
+                      </button>
+                      {appSettings.showTop3 && <>
+                      <span className="text-gray-400">•</span>
+                      <button
+                        onClick={() => document.querySelector('.bg-gradient-to-r.from-purple-100.to-blue-100')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                        className="text-purple-600 hover:text-purple-800 font-medium transition-colors"
+                      >
+                        Top3
+                      </button>
+                      </>}
+                      <span className="text-gray-400">•</span>
+                      <button
+                        onClick={() => document.getElementById('share-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                        className="text-purple-600 hover:text-purple-800 font-medium transition-colors"
+                      >
+                        Share your stories
+                      </button>
+                    </div>
+                  </div>
+
           </div>
         </div>
               ))}
