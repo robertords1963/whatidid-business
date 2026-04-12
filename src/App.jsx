@@ -3203,14 +3203,14 @@ onClick={() => {
                     
                     <div className="space-y-4 mt-2">
                       <div>
-                        <div className="mb-2 overflow-hidden">
-                          <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full float-right ml-2 text-center">
-                            {exp.problemCategory}
-                          </span>
-                          <h4 className="font-semibold text-red-600 flex items-center gap-2">
-                            <AlertCircle size={16} />
+                        <div className="flex items-start gap-2 mb-2">
+                          <h4 className="font-semibold text-red-600 flex items-center gap-2 flex-1 min-w-0">
+                            <AlertCircle size={16} className="shrink-0" />
                             Problem
                           </h4>
+                          <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full shrink-0 max-w-[120px] text-right leading-tight">
+                            {exp.problemCategory}
+                          </span>
                         </div>
                         <p className="text-sm text-gray-700 line-clamp-3">{exp.problem}</p>
                       </div>
@@ -3228,14 +3228,14 @@ onClick={() => {
                       </div>
 
                       <div>
-                        <div className="mb-2 overflow-hidden">
-                          <span className={`text-xs px-3 py-1 rounded-full float-right ml-2 text-center ${getResultColor(exp.resultCategory)}`}>
-                            {getResultLabel(exp.resultCategory)}
-                          </span>
-                          <h4 className="font-semibold text-green-600 flex items-center gap-2">
-                            <Share2 size={16} />
+                        <div className="flex items-start gap-2 mb-2">
+                          <h4 className="font-semibold text-green-600 flex items-center gap-2 flex-1 min-w-0">
+                            <Share2 size={16} className="shrink-0" />
                             Result
                           </h4>
+                          <span className={`text-xs px-3 py-1 rounded-full shrink-0 max-w-[120px] text-right leading-tight ${getResultColor(exp.resultCategory)}`}>
+                            {getResultLabel(exp.resultCategory)}
+                          </span>
                         </div>
                         <p className="text-sm text-gray-700 line-clamp-3">{exp.result}</p>
                       </div>
