@@ -4729,7 +4729,8 @@ onClick={() => {
                         Share your stories
                       </button>
 
-                </div>
+                    </div>
+                  </div>
               
               {isAdmin && editingExperience === -1 && (
                   <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-4 mt-4">
