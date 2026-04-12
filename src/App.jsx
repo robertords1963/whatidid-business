@@ -3203,12 +3203,12 @@ onClick={() => {
                     
                     <div className="space-y-4 mt-2">
                       <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <h4 className="font-semibold text-red-600 flex items-center gap-2">
+                        <div className="flex items-start justify-between mb-2 gap-2">
+                          <h4 className="font-semibold text-red-600 flex items-center gap-2 flex-shrink-0">
                             <AlertCircle size={16} />
                             Problem
                           </h4>
-                          <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full">
+                          <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full text-right self-start inline-block">
                             {exp.problemCategory}
                           </span>
                         </div>
@@ -3229,11 +3229,11 @@ onClick={() => {
 
                       <div>
                         <div className="flex items-center justify-between mb-2">
-                          <h4 className="font-semibold text-green-600 flex items-center gap-2">
+                          <h4 className="font-semibold text-green-600 flex items-center gap-2 flex-shrink-0">
                             <Share2 size={16} />
                             Result
                           </h4>
-                          <span className={`text-xs px-3 py-1 rounded-full ${getResultColor(exp.resultCategory)}`}>
+                          <span className={`text-xs px-2 py-1 rounded-full self-start inline-block ${getResultColor(exp.resultCategory)}`}>
                             {getResultLabel(exp.resultCategory)}
                           </span>
                         </div>
