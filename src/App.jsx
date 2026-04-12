@@ -3203,12 +3203,12 @@ onClick={() => {
                     
                     <div className="space-y-4 mt-2">
                       <div>
-                        <div className="flex items-start gap-2 mb-2">
-                          <h4 className="font-semibold text-red-600 flex items-center gap-2 flex-1 min-w-0">
-                            <AlertCircle size={16} className="shrink-0" />
+                        <div className="flex flex-wrap items-center gap-2 mb-2">
+                          <h4 className="font-semibold text-red-600 flex items-center gap-2">
+                            <AlertCircle size={16} />
                             Problem
                           </h4>
-                          <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full shrink-0 max-w-[120px] text-right leading-tight">
+                          <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full shrink-0 ml-auto">
                             {exp.problemCategory}
                           </span>
                         </div>
@@ -3228,12 +3228,12 @@ onClick={() => {
                       </div>
 
                       <div>
-                        <div className="flex items-start gap-2 mb-2">
-                          <h4 className="font-semibold text-green-600 flex items-center gap-2 flex-1 min-w-0">
-                            <Share2 size={16} className="shrink-0" />
+                        <div className="flex flex-wrap items-center gap-2 mb-2">
+                          <h4 className="font-semibold text-green-600 flex items-center gap-2">
+                            <Share2 size={16} />
                             Result
                           </h4>
-                          <span className={`text-xs px-3 py-1 rounded-full shrink-0 max-w-[120px] text-right leading-tight ${getResultColor(exp.resultCategory)}`}>
+                          <span className={`text-xs px-3 py-1 rounded-full shrink-0 ml-auto ${getResultColor(exp.resultCategory)}`}>
                             {getResultLabel(exp.resultCategory)}
                           </span>
                         </div>
