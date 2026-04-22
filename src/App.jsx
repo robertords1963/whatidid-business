@@ -917,6 +917,8 @@ const [currentCvUrl, setCurrentCvUrl] = useState(null);
   const [uploadingVideo, setUploadingVideo] = useState(false);
   const [editingVideoDuration, setEditingVideoDuration] = useState({});
   const [newItemType, setNewItemType] = useState('video');
+  const [newLinkUrl, setNewLinkUrl] = useState('');
+  const [newLinkLabel, setNewLinkLabel] = useState('');
   const [currentPdfPage, setCurrentPdfPage] = useState(1);
   const [pdfTotalPages, setPdfTotalPages] = useState(0);
   const [pdfThumbnails, setPdfThumbnails] = useState({});
@@ -1496,7 +1498,9 @@ useEffect(() => {
         url: video.video_url,
         duration: video.duration,
         display_order: video.display_order,
-        fileType: video.file_type || 'video'
+        fileType: video.file_type || 'video',
+        linkUrl: video.link_url || null,
+        linkLabel: video.link_label || null
       }));
       
       setPromotionalVideos(videos);
@@ -1559,6 +1563,36 @@ useEffect(() => {
   };
 
   const addPromotionalVideo = async () => {
+    if (newItemType === 'link') {
+      if (!newLinkUrl.trim()) {
+        alert('Please enter a URL');
+        return;
+      }
+      try {
+        const maxOrder = promotionalVideos.length > 0
+          ? Math.max(...promotionalVideos.map(v => v.display_order || 0))
+          : 0;
+        const { error } = await supabase
+          .from('promotional_videos')
+          .insert([{
+            video_url: '',
+            duration: '',
+            display_order: maxOrder + 1,
+            file_type: 'link',
+            link_url: newLinkUrl.trim(),
+            link_label: newLinkLabel.trim() || 'Visit Link'
+          }]);
+        if (error) throw error;
+        await loadPromotionalVideos();
+        setNewLinkUrl('');
+        setNewLinkLabel('');
+        alert('Link added successfully!');
+      } catch (error) {
+        alert('Error adding link: ' + error.message);
+      }
+      return;
+    }
+
     if (!newVideoFile) {
       alert('Please select a file');
       return;
@@ -2005,10 +2039,20 @@ autoComplete="off"
           return (
             <div 
               key={video.id}
-              onClick={() => openVideoModal(actualIndex)}
+              onClick={() => {
+                if (video.fileType === 'link') {
+                  window.open(video.linkUrl, '_blank');
+                } else {
+                  openVideoModal(actualIndex);
+                }
+              }}
               className="relative w-16 h-11 sm:w-20 sm:h-14 rounded-md overflow-hidden cursor-pointer group shadow-md hover:shadow-lg transition-all transform hover:scale-105 flex-shrink-0"
             >
-              {video.fileType === 'presentation' ? (
+              {video.fileType === 'link' ? (
+                <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                  <span className="text-white text-lg">🔗</span>
+                </div>
+              ) : video.fileType === 'presentation' ? (
                 pdfThumbnails[video.id] ? (
                   <img src={pdfThumbnails[video.id]} className="w-full h-full object-cover" alt="Slide preview" />
                 ) : (
@@ -2026,7 +2070,9 @@ autoComplete="off"
 
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="w-5 h-5 sm:w-6 sm:h-6 bg-white bg-opacity-90 rounded-full flex items-center justify-center group-hover:bg-opacity-100 transition-all group-hover:scale-110">
-                  {video.fileType === 'presentation' ? (
+                  {video.fileType === 'link' ? (
+                    <span className="text-purple-600 text-[8px] font-bold">↗</span>
+                  ) : video.fileType === 'presentation' ? (
                     <span className="text-purple-600 text-[8px] font-bold">PDF</span>
                   ) : (
                     <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-purple-600 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
@@ -2039,6 +2085,11 @@ autoComplete="off"
               {video.fileType === 'video' && (
                 <div className="absolute bottom-1 right-1 bg-black bg-opacity-75 text-white text-[5.5px] sm:text-[6px] px-1 py-0.5 rounded leading-none">
                   {video.duration}
+                </div>
+              )}
+              {video.fileType === 'link' && (
+                <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-60 text-white text-[5px] sm:text-[6px] px-1 py-0.5 text-center leading-tight truncate">
+                  {video.linkLabel || 'Link'}
                 </div>
               )}
             </div>
@@ -2577,7 +2628,7 @@ autoComplete="off"
                 <h4 className="font-medium text-gray-700 mb-3">Add New Item</h4>
                 <div className="space-y-3">
                   {/* Type selector */}
-                  <div className="flex gap-4 bg-gray-50 p-3 rounded-lg">
+                  <div className="flex gap-4 bg-gray-50 p-3 rounded-lg flex-wrap">
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
                         type="radio"
@@ -2600,22 +2651,58 @@ autoComplete="off"
                       />
                       <span className="text-sm font-medium">📊 Presentation (PDF)</span>
                     </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="newItemType"
+                        value="link"
+                        checked={newItemType === 'link'}
+                        onChange={() => { setNewItemType('link'); setNewVideoFile(null); setNewVideoDuration(''); }}
+                        className="w-4 h-4"
+                      />
+                      <span className="text-sm font-medium">🔗 Link (URL)</span>
+                    </label>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {newItemType === 'video' ? 'Video File' : 'PDF File'}
-                    </label>
-                    <input
-                      type="file"
-                      accept={newItemType === 'video' ? 'video/mp4,video/webm' : '.pdf'}
-                      onChange={(e) => setNewVideoFile(e.target.files[0])}
-                      className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      {newItemType === 'video' ? 'Supported: MP4, WebM' : 'Supported: PDF'}
-                    </p>
-                  </div>
+                  {newItemType === 'link' ? (
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">URL</label>
+                        <input
+                          type="url"
+                          value={newLinkUrl}
+                          onChange={(e) => setNewLinkUrl(e.target.value)}
+                          placeholder="https://intro.corp.whatidid.app"
+                          className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Label (optional)</label>
+                        <input
+                          type="text"
+                          value={newLinkLabel}
+                          onChange={(e) => setNewLinkLabel(e.target.value)}
+                          placeholder="Intro"
+                          className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm"
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        {newItemType === 'video' ? 'Video File' : 'PDF File'}
+                      </label>
+                      <input
+                        type="file"
+                        accept={newItemType === 'video' ? 'video/mp4,video/webm' : '.pdf'}
+                        onChange={(e) => setNewVideoFile(e.target.files[0])}
+                        className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        {newItemType === 'video' ? 'Supported: MP4, WebM' : 'Supported: PDF'}
+                      </p>
+                    </div>
+                  )}
 
                   {newItemType === 'video' && (
                     <div>
@@ -2632,10 +2719,10 @@ autoComplete="off"
 
                   <button
                     onClick={addPromotionalVideo}
-                    disabled={uploadingVideo}
+                    disabled={uploadingVideo && newItemType !== 'link'}
                     className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {uploadingVideo ? 'Uploading...' : `Add ${newItemType === 'video' ? 'Video' : 'Presentation'}`}
+                    {uploadingVideo ? 'Uploading...' : `Add ${newItemType === 'video' ? 'Video' : newItemType === 'presentation' ? 'Presentation' : 'Link'}`}
                   </button>
                 </div>
               </div>
