@@ -2049,9 +2049,15 @@ autoComplete="off"
               className="relative w-16 h-11 sm:w-20 sm:h-14 rounded-md overflow-hidden cursor-pointer group shadow-md hover:shadow-lg transition-all transform hover:scale-105 flex-shrink-0"
             >
               {video.fileType === 'link' ? (
-                <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
-                  <span className="text-white text-lg">🔗</span>
-                </div>
+                <img
+                  src={`https://image.thum.io/get/width/320/crop/450/${video.linkUrl}`}
+                  className="w-full h-full object-cover object-top"
+                  alt="Link preview"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'flex';
+                  }}
+                />
               ) : video.fileType === 'presentation' ? (
                 pdfThumbnails[video.id] ? (
                   <img src={pdfThumbnails[video.id]} className="w-full h-full object-cover" alt="Slide preview" />
