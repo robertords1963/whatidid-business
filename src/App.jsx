@@ -2050,13 +2050,9 @@ autoComplete="off"
             >
               {video.fileType === 'link' ? (
                 <img
-                  src={`https://image.thum.io/get/width/320/crop/450/${video.linkUrl}`}
+                  src={video.thumbnail || "https://scurkpoasiulwkmmechz.supabase.co/storage/v1/object/public/promotional-videos/Screenshot%202026-04-22%20at%209.56.05%20PM.png"}
                   className="w-full h-full object-cover object-top"
                   alt="Link preview"
-                  onError={(e) => {
-                    e.target.style.display = 'none';
-                    e.target.nextSibling.style.display = 'flex';
-                  }}
                 />
               ) : video.fileType === 'presentation' ? (
                 pdfThumbnails[video.id] ? (
