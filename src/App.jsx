@@ -2973,6 +2973,28 @@ autoComplete="off"
               </>
             ) : (
               <>
+                <div className="flex flex-col gap-0.5">
+                  <button
+                    onClick={async () => {
+                      if (index === 0) return;
+                      const { error1 } = await supabase.from('problem_categories').update({ display_order: index }).eq('name', cat);
+                      const { error2 } = await supabase.from('problem_categories').update({ display_order: index + 1 }).eq('name', problemCategories[index - 1]);
+                      await loadProblemCategories();
+                    }}
+                    disabled={index === 0}
+                    className="px-1 py-0.5 bg-gray-200 rounded text-xs hover:bg-gray-300 disabled:opacity-30 disabled:cursor-not-allowed leading-none"
+                  >↑</button>
+                  <button
+                    onClick={async () => {
+                      if (index === problemCategories.length - 1) return;
+                      const { error1 } = await supabase.from('problem_categories').update({ display_order: index + 2 }).eq('name', cat);
+                      const { error2 } = await supabase.from('problem_categories').update({ display_order: index + 1 }).eq('name', problemCategories[index + 1]);
+                      await loadProblemCategories();
+                    }}
+                    disabled={index === problemCategories.length - 1}
+                    className="px-1 py-0.5 bg-gray-200 rounded text-xs hover:bg-gray-300 disabled:opacity-30 disabled:cursor-not-allowed leading-none"
+                  >↓</button>
+                </div>
                 <span className="flex-1 text-sm text-gray-700">{cat}</span>
                 <button onClick={() => setEditingCategory(index)} className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700">Edit</button>
                 <button
