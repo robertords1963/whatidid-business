@@ -146,6 +146,7 @@ export default function WhatIDid() {
   loadQuotes();
   loadContentPages();
   loadPromotionalVideos();
+  loadProblemCategories();
 }, []);
 
 // Verificar login do funcionário ao carregar
@@ -331,6 +332,22 @@ const loadAppSettings = async () => {
     }
   } catch (error) {
     console.error('Error loading app settings:', error);
+  }
+};
+
+const loadProblemCategories = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('problem_categories')
+      .select('*')
+      .eq('active', true)
+      .order('display_order', { ascending: true });
+    if (error) throw error;
+    if (data && data.length > 0) {
+      setProblemCategories(data.map(c => c.name));
+    }
+  } catch (error) {
+    console.error('Error loading problem categories:', error);
   }
 };
 
@@ -930,7 +947,7 @@ const [currentCvUrl, setCurrentCvUrl] = useState(null);
     comment: 500
   };
 
-  const problemCategories = [
+  const [problemCategories, setProblemCategories] = useState([
   'Project Execution',
   'Process & Operations',
   'Technology & Systems',
@@ -940,7 +957,9 @@ const [currentCvUrl, setCurrentCvUrl] = useState(null);
   'Strategy & Growth',
   'Cust. Exp. & Service',
   'Other'
-];
+]);
+  const [editingCategory, setEditingCategory] = useState(null);
+  const [newCategoryName, setNewCategoryName] = useState('');
 
 
 const industrySectors = [
@@ -2891,6 +2910,88 @@ autoComplete="off"
           )}
         </div>
 
+{isAdmin && (
+  <div className="mt-4 bg-teal-50 border-2 border-teal-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
+    <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+      🗂️ Manage Problem Categories
+    </h3>
+    <div className="bg-white rounded p-4 mb-4">
+      <h4 className="font-medium text-gray-700 mb-3">Add New Category</h4>
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={newCategoryName}
+          onChange={(e) => setNewCategoryName(e.target.value)}
+          placeholder="Category name..."
+          className="flex-1 p-2 border-2 border-gray-300 rounded-lg text-sm"
+          onKeyPress={(e) => e.key === 'Enter' && newCategoryName.trim() && (async () => {
+            const maxOrder = problemCategories.length;
+            const { error } = await supabase.from('problem_categories').insert([{ name: newCategoryName.trim(), display_order: maxOrder + 1, active: true }]);
+            if (!error) { setNewCategoryName(''); await loadProblemCategories(); }
+            else alert('Error adding category');
+          })()}
+        />
+        <button
+          onClick={async () => {
+            if (!newCategoryName.trim()) return;
+            const maxOrder = problemCategories.length;
+            const { error } = await supabase.from('problem_categories').insert([{ name: newCategoryName.trim(), display_order: maxOrder + 1, active: true }]);
+            if (!error) { setNewCategoryName(''); await loadProblemCategories(); }
+            else alert('Error adding category');
+          }}
+          className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm hover:bg-teal-700"
+        >
+          Add
+        </button>
+      </div>
+    </div>
+    <div className="bg-white rounded p-4">
+      <h4 className="font-medium text-gray-700 mb-3">Current Categories ({problemCategories.length})</h4>
+      <div className="space-y-2 max-h-80 overflow-y-auto">
+        {problemCategories.map((cat, index) => (
+          <div key={index} className="flex items-center gap-2 p-2 border border-gray-200 rounded-lg">
+            {editingCategory === index ? (
+              <>
+                <input
+                  type="text"
+                  defaultValue={cat}
+                  id={`edit-cat-${index}`}
+                  className="flex-1 p-1 border border-gray-300 rounded text-sm"
+                  autoFocus
+                />
+                <button
+                  onClick={async () => {
+                    const newName = document.getElementById(`edit-cat-${index}`).value.trim();
+                    if (!newName) return;
+                    const { error } = await supabase.from('problem_categories').update({ name: newName }).eq('name', cat);
+                    if (!error) { setEditingCategory(null); await loadProblemCategories(); }
+                    else alert('Error updating category');
+                  }}
+                  className="px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700"
+                >Save</button>
+                <button onClick={() => setEditingCategory(null)} className="px-2 py-1 bg-gray-400 text-white rounded text-xs hover:bg-gray-500">Cancel</button>
+              </>
+            ) : (
+              <>
+                <span className="flex-1 text-sm text-gray-700">{cat}</span>
+                <button onClick={() => setEditingCategory(index)} className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700">Edit</button>
+                <button
+                  onClick={async () => {
+                    if (!window.confirm(`Delete "${cat}"? Existing experiences with this category will keep it.`)) return;
+                    const { error } = await supabase.from('problem_categories').update({ active: false }).eq('name', cat);
+                    if (!error) await loadProblemCategories();
+                    else alert('Error deleting category');
+                  }}
+                  className="px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700"
+                >Delete</button>
+              </>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+)}
 
 {isAdmin && (
   <div className="mt-4 bg-orange-50 border-2 border-orange-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
