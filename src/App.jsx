@@ -102,6 +102,23 @@ export default function WhatIDid() {
   const [employeePassword, setEmployeePassword] = useState('');
   const [loginError, setLoginError] = useState('');
   // ⭐ FIM ⭐
+  
+  // Employee Management states
+  const [employees, setEmployees] = useState([]);
+  const [employeeSearch, setEmployeeSearch] = useState('');
+  const [newEmployee, setNewEmployee] = useState({ employee_id: '', name: '', country: '', email: '' });
+  const [editingEmployee, setEditingEmployee] = useState(null);
+  const [editingEmployeeData, setEditingEmployeeData] = useState({});
+  const [showFirstAccess, setShowFirstAccess] = useState(false);
+  const [firstAccessId, setFirstAccessId] = useState('');
+  const [firstAccessPassword, setFirstAccessPassword] = useState('');
+  const [firstAccessConfirm, setFirstAccessConfirm] = useState('');
+  const [firstAccessError, setFirstAccessError] = useState('');
+  const [firstAccessSuccess, setFirstAccessSuccess] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotPasswordId, setForgotPasswordId] = useState('');
+  const [forgotPasswordMsg, setForgotPasswordMsg] = useState('');
+  const [forgotPasswordError, setForgotPasswordError] = useState('');
 
   const [userCountry, setUserCountry] = useState('');
   const [addingComment, setAddingComment] = useState(null);
@@ -147,6 +164,7 @@ export default function WhatIDid() {
   loadContentPages();
   loadPromotionalVideos();
   loadProblemCategories();
+  loadEmployees();
 }, []);
 
 // Verificar login do funcionário ao carregar
@@ -350,6 +368,185 @@ const loadProblemCategories = async () => {
     console.error('Error loading problem categories:', error);
   }
 };
+
+// ==================== EMPLOYEE MANAGEMENT ====================
+
+const loadEmployees = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('employees')
+      .select('*')
+      .order('employee_id', { ascending: true });
+    if (error) throw error;
+    setEmployees(data || []);
+  } catch (error) {
+    console.error('Error loading employees:', error);
+  }
+};
+
+const addEmployee = async () => {
+  if (!newEmployee.employee_id.trim() || !newEmployee.name.trim()) {
+    alert('Employee ID and Name are required');
+    return;
+  }
+  try {
+    const { error } = await supabase.from('employees').insert([{
+      employee_id: newEmployee.employee_id.trim(),
+      name: newEmployee.name.trim(),
+      country: newEmployee.country.trim(),
+      email: newEmployee.email.trim(),
+      status: 'pending',
+      active: true
+    }]);
+    if (error) throw error;
+    setNewEmployee({ employee_id: '', name: '', country: '', email: '' });
+    await loadEmployees();
+    alert('Employee added successfully!');
+  } catch (error) {
+    console.error('Error adding employee:', error);
+    alert('Error adding employee. ID may already exist.');
+  }
+};
+
+const updateEmployee = async (empId) => {
+  try {
+    const { error } = await supabase.from('employees')
+      .update({
+        name: editingEmployeeData.name,
+        country: editingEmployeeData.country,
+        email: editingEmployeeData.email
+      })
+      .eq('employee_id', empId);
+    if (error) throw error;
+    setEditingEmployee(null);
+    setEditingEmployeeData({});
+    await loadEmployees();
+  } catch (error) {
+    console.error('Error updating employee:', error);
+    alert('Error updating employee');
+  }
+};
+
+const deleteEmployee = async (empId) => {
+  if (!window.confirm(`Delete employee ${empId}? This will not delete their experiences.`)) return;
+  try {
+    const { error } = await supabase.from('employees').delete().eq('employee_id', empId);
+    if (error) throw error;
+    await loadEmployees();
+  } catch (error) {
+    console.error('Error deleting employee:', error);
+    alert('Error deleting employee');
+  }
+};
+
+const handleExcelUpload = async (file) => {
+  try {
+    const XLSX = await import('https://cdn.sheetjs.com/xlsx-0.20.0/package/xlsx.mjs');
+    const data = await file.arrayBuffer();
+    const wb = XLSX.read(data);
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(ws);
+    
+    let added = 0, errors = 0;
+    for (const row of rows) {
+      const empId = String(row['Employee ID'] || row['employee_id'] || '').trim();
+      const name = String(row['Name'] || row['name'] || '').trim();
+      const country = String(row['Country'] || row['country'] || '').trim();
+      const email = String(row['Email'] || row['email'] || '').trim();
+      if (!empId || !name) { errors++; continue; }
+      const { error } = await supabase.from('employees').insert([{
+        employee_id: empId, name, country, email, status: 'pending', active: true
+      }]);
+      if (error) { errors++; } else { added++; }
+    }
+    await loadEmployees();
+    alert(`Upload complete! Added: ${added}, Errors/Skipped: ${errors}`);
+  } catch (error) {
+    console.error('Error uploading Excel:', error);
+    alert('Error reading Excel file. Make sure columns are: Employee ID, Name, Country, Email');
+  }
+};
+
+const handleFirstAccess = async () => {
+  setFirstAccessError('');
+  if (!firstAccessId.trim() || !firstAccessPassword.trim()) {
+    setFirstAccessError('Please enter Employee ID and password');
+    return;
+  }
+  if (firstAccessPassword !== firstAccessConfirm) {
+    setFirstAccessError('Passwords do not match');
+    return;
+  }
+  if (firstAccessPassword.length < 6) {
+    setFirstAccessError('Password must be at least 6 characters');
+    return;
+  }
+  try {
+    const { data, error } = await supabase
+      .from('employees')
+      .select('*')
+      .eq('employee_id', firstAccessId.trim())
+      .eq('active', true)
+      .single();
+    if (error || !data) {
+      setFirstAccessError('Employee ID not found');
+      return;
+    }
+    if (data.password && data.status === 'active') {
+      setFirstAccessError('This Employee ID already has a password. Use Forgot Password instead.');
+      return;
+    }
+    const { error: updateError } = await supabase
+      .from('employees')
+      .update({ password: firstAccessPassword, status: 'active' })
+      .eq('employee_id', firstAccessId.trim());
+    if (updateError) throw updateError;
+    setFirstAccessSuccess(true);
+  } catch (error) {
+    console.error('First access error:', error);
+    setFirstAccessError('Error setting password. Please try again.');
+  }
+};
+
+const handleForgotPassword = async () => {
+  setForgotPasswordError('');
+  setForgotPasswordMsg('');
+  if (!forgotPasswordId.trim()) {
+    setForgotPasswordError('Please enter your Employee ID');
+    return;
+  }
+  try {
+    const { data, error } = await supabase
+      .from('employees')
+      .select('email, name')
+      .eq('employee_id', forgotPasswordId.trim())
+      .eq('active', true)
+      .single();
+    if (error || !data) {
+      setForgotPasswordError('Employee ID not found');
+      return;
+    }
+    if (!data.email) {
+      setForgotPasswordError('No email registered for this Employee ID. Please contact your Admin.');
+      return;
+    }
+    // Generate temp password
+    const tempPassword = Math.random().toString(36).slice(-8);
+    await supabase.from('employees')
+      .update({ password: tempPassword, status: 'active' })
+      .eq('employee_id', forgotPasswordId.trim());
+    
+    // Mask email for display
+    const emailParts = data.email.split('@');
+    const masked = emailParts[0].slice(0,2) + '***@' + emailParts[1];
+    setForgotPasswordMsg(`A temporary password has been sent to ${masked}. Please contact your Admin if you don't receive it within a few minutes. Temp password: ${tempPassword}`);
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    setForgotPasswordError('Error processing request. Please try again.');
+  }
+};
+
+// ==================== END EMPLOYEE MANAGEMENT ====================
 
 const handleEmployeeLogin = async () => {
   setLoginError('');
@@ -2000,8 +2197,122 @@ autoComplete="off"
             >
               Login
             </button>
+
+            <div className="flex justify-between mt-3">
+              <button
+                onClick={() => { setShowFirstAccess(true); setShowForgotPassword(false); setFirstAccessError(''); setFirstAccessSuccess(false); setFirstAccessId(''); setFirstAccessPassword(''); setFirstAccessConfirm(''); }}
+                className="text-sm text-purple-600 hover:text-purple-800 font-medium"
+              >
+                First Access / Set Password
+              </button>
+              <button
+                onClick={() => { setShowForgotPassword(true); setShowFirstAccess(false); setForgotPasswordError(''); setForgotPasswordMsg(''); setForgotPasswordId(''); }}
+                className="text-sm text-gray-500 hover:text-gray-700 font-medium"
+              >
+                Forgot Password?
+              </button>
+            </div>
           </div>
         </div>
+
+        {/* First Access Modal */}
+        {showFirstAccess && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-gray-800">First Access — Set Password</h3>
+                <button onClick={() => setShowFirstAccess(false)} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">×</button>
+              </div>
+              {firstAccessSuccess ? (
+                <div className="text-center py-4">
+                  <div className="text-4xl mb-3">✅</div>
+                  <h4 className="text-lg font-bold text-gray-800 mb-2">Password Set!</h4>
+                  <p className="text-gray-600 text-sm mb-4">You can now login with your Employee ID and new password.</p>
+                  <button
+                    onClick={() => setShowFirstAccess(false)}
+                    className="w-full bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 font-semibold"
+                  >
+                    Go to Login
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Employee ID</label>
+                    <input type="text" value={firstAccessId} onChange={(e) => setFirstAccessId(e.target.value)}
+                      className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                      placeholder="Enter your Employee ID" autoComplete="off" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+                    <input type="password" value={firstAccessPassword} onChange={(e) => setFirstAccessPassword(e.target.value)}
+                      className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                      placeholder="At least 6 characters" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+                    <input type="password" value={firstAccessConfirm} onChange={(e) => setFirstAccessConfirm(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleFirstAccess()}
+                      className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                      placeholder="Repeat your password" />
+                  </div>
+                  {firstAccessError && (
+                    <div className="bg-red-50 border-2 border-red-200 rounded-lg p-3">
+                      <p className="text-red-700 text-sm">{firstAccessError}</p>
+                    </div>
+                  )}
+                  <button onClick={handleFirstAccess}
+                    className="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 font-semibold transition-colors">
+                    Set Password
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Forgot Password Modal */}
+        {showForgotPassword && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-gray-800">Forgot Password</h3>
+                <button onClick={() => setShowForgotPassword(false)} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">×</button>
+              </div>
+              {forgotPasswordMsg ? (
+                <div className="text-center py-4">
+                  <div className="text-4xl mb-3">📧</div>
+                  <p className="text-gray-700 text-sm mb-4">{forgotPasswordMsg}</p>
+                  <button onClick={() => setShowForgotPassword(false)}
+                    className="w-full bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 font-semibold">
+                    Back to Login
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <p className="text-sm text-gray-600">Enter your Employee ID and a temporary password will be generated. Contact your Admin to receive it.</p>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Employee ID</label>
+                    <input type="text" value={forgotPasswordId} onChange={(e) => setForgotPasswordId(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleForgotPassword()}
+                      className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                      placeholder="Enter your Employee ID" autoComplete="off" />
+                  </div>
+                  {forgotPasswordError && (
+                    <div className="bg-red-50 border-2 border-red-200 rounded-lg p-3">
+                      <p className="text-red-700 text-sm">{forgotPasswordError}</p>
+                    </div>
+                  )}
+                  <button onClick={handleForgotPassword}
+                    className="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 font-semibold transition-colors">
+                    Reset Password
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
       </div>
     ) : (
       <>
@@ -2205,7 +2516,7 @@ autoComplete="off"
                   }}
                   className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors"
                 >
-                  Logout
+                  Logout ADM
                 </button>
               </div>
               <p className="text-sm text-gray-600">You have access to admin features</p>
@@ -2758,13 +3069,30 @@ autoComplete="off"
                       <div key={video.id} className="border border-gray-300 rounded p-3">
                         <div className="flex items-start gap-3">
                           {/* Thumbnail */}
-                          <div className="flex-shrink-0">
-                            <video 
-                              className="w-24 h-16 object-cover rounded border border-gray-200"
-                              preload="metadata"
-                            >
-                              <source src={`${video.url}#t=0.1`} type="video/mp4" />
-                            </video>
+                          <div className="flex-shrink-0 w-24 h-16 rounded border border-gray-200 overflow-hidden bg-gray-100 flex items-center justify-center">
+                            {video.fileType === 'link' ? (
+                              <img
+                                src="https://scurkpoasiulwkmmechz.supabase.co/storage/v1/object/public/promotional-videos/Screenshot%202026-04-22%20at%209.56.05%20PM.png"
+                                className="w-full h-full object-cover object-top"
+                                alt="Link preview"
+                              />
+                            ) : video.fileType === 'presentation' ? (
+                              pdfThumbnails[video.id] ? (
+                                <img src={pdfThumbnails[video.id]} className="w-full h-full object-cover" alt="PDF preview" />
+                              ) : (
+                                <div className="flex flex-col items-center justify-center w-full h-full bg-purple-50">
+                                  <span className="text-2xl">📊</span>
+                                  <span className="text-[9px] text-purple-600 font-medium mt-1">PDF</span>
+                                </div>
+                              )
+                            ) : (
+                              <video
+                                className="w-full h-full object-cover"
+                                preload="metadata"
+                              >
+                                <source src={`${video.url}#t=0.1`} type="video/mp4" />
+                              </video>
+                            )}
                           </div>
                           
                           {/* Info */}
@@ -2909,6 +3237,85 @@ autoComplete="off"
             </div>
           )}
         </div>
+
+{isAdmin && (
+  <div className="mt-4 bg-slate-50 border-2 border-slate-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
+    <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+      👥 Manage Employees
+    </h3>
+
+    {/* Add Employee */}
+    <div className="bg-white rounded p-4 mb-4">
+      <h4 className="font-medium text-gray-700 mb-3">Add Employee</h4>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+        <input type="text" value={newEmployee.employee_id} onChange={(e) => setNewEmployee({...newEmployee, employee_id: e.target.value})}
+          placeholder="Employee ID *" className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
+        <input type="text" value={newEmployee.name} onChange={(e) => setNewEmployee({...newEmployee, name: e.target.value})}
+          placeholder="Full Name *" className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
+        <input type="text" value={newEmployee.country} onChange={(e) => setNewEmployee({...newEmployee, country: e.target.value})}
+          placeholder="Country" className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
+        <input type="email" value={newEmployee.email} onChange={(e) => setNewEmployee({...newEmployee, email: e.target.value})}
+          placeholder="Corporate Email" className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
+      </div>
+      <div className="flex gap-2 flex-wrap">
+        <button onClick={addEmployee} className="px-4 py-2 bg-slate-600 text-white rounded-lg text-sm hover:bg-slate-700">
+          + Add Employee
+        </button>
+        <label className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 cursor-pointer">
+          📊 Upload Excel
+          <input type="file" accept=".xlsx,.xls" className="hidden" onChange={(e) => { if(e.target.files[0]) handleExcelUpload(e.target.files[0]); e.target.value=''; }} />
+        </label>
+        <span className="text-xs text-gray-500 self-center">Excel columns: Employee ID, Name, Country, Email</span>
+      </div>
+    </div>
+
+    {/* Search + List */}
+    <div className="bg-white rounded p-4">
+      <div className="flex items-center gap-3 mb-3">
+        <h4 className="font-medium text-gray-700">Employees ({employees.length})</h4>
+        <input type="text" value={employeeSearch} onChange={(e) => setEmployeeSearch(e.target.value)}
+          placeholder="Search by ID, name or email..." className="flex-1 p-2 border-2 border-gray-200 rounded-lg text-sm" />
+      </div>
+      <div className="space-y-2 max-h-96 overflow-y-auto">
+        {employees.filter(emp => {
+          const q = employeeSearch.toLowerCase();
+          return !q || emp.employee_id?.toLowerCase().includes(q) || emp.name?.toLowerCase().includes(q) || emp.email?.toLowerCase().includes(q);
+        }).map(emp => (
+          <div key={emp.employee_id} className="flex items-center gap-2 p-2 border border-gray-200 rounded-lg flex-wrap">
+            {editingEmployee === emp.employee_id ? (
+              <>
+                <span className="text-xs font-bold text-gray-500 w-20 shrink-0">{emp.employee_id}</span>
+                <input type="text" defaultValue={emp.name} onChange={(e) => setEditingEmployeeData({...editingEmployeeData, name: e.target.value})}
+                  className="flex-1 min-w-24 p-1 border border-gray-300 rounded text-sm" placeholder="Name" />
+                <input type="text" defaultValue={emp.country} onChange={(e) => setEditingEmployeeData({...editingEmployeeData, country: e.target.value})}
+                  className="flex-1 min-w-20 p-1 border border-gray-300 rounded text-sm" placeholder="Country" />
+                <input type="email" defaultValue={emp.email} onChange={(e) => setEditingEmployeeData({...editingEmployeeData, email: e.target.value})}
+                  className="flex-1 min-w-32 p-1 border border-gray-300 rounded text-sm" placeholder="Email" />
+                <button onClick={() => updateEmployee(emp.employee_id)} className="px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700">Save</button>
+                <button onClick={() => { setEditingEmployee(null); setEditingEmployeeData({}); }} className="px-2 py-1 bg-gray-400 text-white rounded text-xs">Cancel</button>
+              </>
+            ) : (
+              <>
+                <span className="text-xs font-bold text-gray-500 w-20 shrink-0">{emp.employee_id}</span>
+                <span className="text-sm text-gray-700 flex-1 min-w-24">{emp.name}</span>
+                <span className="text-xs text-gray-500 min-w-16">{emp.country}</span>
+                <span className="text-xs text-gray-500 flex-1 min-w-32 truncate">{emp.email}</span>
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${emp.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                  {emp.status === 'active' ? '✓ Active' : '⏳ Pending'}
+                </span>
+                <button onClick={() => { setEditingEmployee(emp.employee_id); setEditingEmployeeData({ name: emp.name, country: emp.country, email: emp.email }); }}
+                  className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700">Edit</button>
+                <button onClick={() => deleteEmployee(emp.employee_id)}
+                  className="px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700">Delete</button>
+              </>
+            )}
+          </div>
+        ))}
+        {employees.length === 0 && <p className="text-sm text-gray-500 text-center py-4">No employees yet.</p>}
+      </div>
+    </div>
+  </div>
+)}
 
 {isAdmin && (
   <div className="mt-4 bg-teal-50 border-2 border-teal-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
