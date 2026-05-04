@@ -537,7 +537,7 @@ const handleForgotPassword = async () => {
     // Generate temp password
     const tempPassword = Math.random().toString(36).slice(-8);
     await supabase.from('employees')
-      .update({ password: tempPassword, status: 'active' })
+      .update({ password: tempPassword, status: 'active', force_password_change: true })
       .eq('employee_id', forgotPasswordId.trim());
 
     // Load EmailJS and send email
@@ -605,8 +605,8 @@ const handleEmployeeLogin = async () => {
   localStorage.setItem('employeeId', employeeId);
   setEmployeePassword('');
   
-  // If status is pending, prompt to change password
-  if (data.status === 'pending') {
+  // If force_password_change is set, prompt to change password
+  if (data.force_password_change || data.status === 'pending') {
     setShowChangePassword(true);
   }
   
@@ -1463,7 +1463,7 @@ const prevVideo = () => {
   try {
     const { error } = await supabase
       .from('employees')
-      .update({ password: changePasswordNew, status: 'active' })
+      .update({ password: changePasswordNew, status: 'active', force_password_change: false })
       .eq('employee_id', employeeId);
     if (error) throw error;
     setShowChangePassword(false);
