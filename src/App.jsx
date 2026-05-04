@@ -535,14 +535,39 @@ const handleForgotPassword = async () => {
     await supabase.from('employees')
       .update({ password: tempPassword, status: 'active' })
       .eq('employee_id', forgotPasswordId.trim());
-    
+
+    // Load EmailJS and send email
+    if (!window.emailjs) {
+      await new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js';
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+      });
+      window.emailjs.init('qvhCb3G8AEyQmrUCF');
+    }
+
+    await window.emailjs.send('service_ad7ltxl', 'template_ty07scl', {
+      to_email: data.email,
+      employee_name: data.name || forgotPasswordId.trim(),
+      temp_password: tempPassword,
+      message: `Hi ${data.name || forgotPasswordId.trim()},
+
+Your temporary password for WhatIDid is: ${tempPassword}
+
+Please login with this password.
+
+WhatIDid Team`
+    });
+
     // Mask email for display
     const emailParts = data.email.split('@');
     const masked = emailParts[0].slice(0,2) + '***@' + emailParts[1];
-    setForgotPasswordMsg(`A temporary password has been sent to ${masked}. Please contact your Admin if you don't receive it within a few minutes. Temp password: ${tempPassword}`);
+    setForgotPasswordMsg(`A temporary password has been sent to ${masked}. Please check your inbox.`);
   } catch (error) {
     console.error('Forgot password error:', error);
-    setForgotPasswordError('Error processing request. Please try again.');
+    setForgotPasswordError('Error sending email. Please contact your Admin.');
   }
 };
 
