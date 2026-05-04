@@ -554,15 +554,9 @@ const handleForgotPassword = async () => {
 
     await window.emailjs.send('service_ad7ltxl', 'template_ty07scl', {
       to_email: data.email,
-      employee_name: data.name || forgotPasswordId.trim(),
-      temp_password: tempPassword,
-      message: `Hi ${data.name || forgotPasswordId.trim()},
-
-Your temporary password for WhatIDid is: ${tempPassword}
-
-Please login with this password.
-
-WhatIDid Team`
+      name: data.name || forgotPasswordId.trim(),
+      email: data.email,
+      message: `Hi ${data.name || forgotPasswordId.trim()},\n\nYour temporary password for WhatIDid is: ${tempPassword}\n\nPlease login with this password. You will be asked to set a new password after logging in.\n\nWhatIDid Team`
     });
 
     // Mask email for display
