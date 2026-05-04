@@ -119,6 +119,10 @@ export default function WhatIDid() {
   const [forgotPasswordId, setForgotPasswordId] = useState('');
   const [forgotPasswordMsg, setForgotPasswordMsg] = useState('');
   const [forgotPasswordError, setForgotPasswordError] = useState('');
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const [changePasswordNew, setChangePasswordNew] = useState('');
+  const [changePasswordConfirm, setChangePasswordConfirm] = useState('');
+  const [changePasswordError, setChangePasswordError] = useState('');
 
   const [userCountry, setUserCountry] = useState('');
   const [addingComment, setAddingComment] = useState(null);
@@ -600,6 +604,11 @@ const handleEmployeeLogin = async () => {
   localStorage.setItem('employeeLoggedIn', 'true');
   localStorage.setItem('employeeId', employeeId);
   setEmployeePassword('');
+  
+  // If status is pending, prompt to change password
+  if (data.status === 'pending') {
+    setShowChangePassword(true);
+  }
   
   } catch (error) {
     console.error('Login error:', error);
@@ -1435,6 +1444,36 @@ const prevVideo = () => {
       }
     }
   }, 300);
+};
+
+  const handleChangePassword = async () => {
+  setChangePasswordError('');
+  if (!changePasswordNew.trim()) {
+    setChangePasswordError('Please enter a new password');
+    return;
+  }
+  if (changePasswordNew.length < 6) {
+    setChangePasswordError('Password must be at least 6 characters');
+    return;
+  }
+  if (changePasswordNew !== changePasswordConfirm) {
+    setChangePasswordError('Passwords do not match');
+    return;
+  }
+  try {
+    const { error } = await supabase
+      .from('employees')
+      .update({ password: changePasswordNew, status: 'active' })
+      .eq('employee_id', employeeId);
+    if (error) throw error;
+    setShowChangePassword(false);
+    setChangePasswordNew('');
+    setChangePasswordConfirm('');
+    alert('Password updated successfully!');
+  } catch (error) {
+    console.error('Change password error:', error);
+    setChangePasswordError('Error updating password. Please try again.');
+  }
 };
 
   const handleAdminLogin = () => {
@@ -6032,7 +6071,60 @@ if (selected.length === 0) {
   );
 })()}      
 
-        {/* Modal de CV */}
+        {/* Change Password Modal */}
+    {showChangePassword && (
+      <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full">
+          <div className="text-center mb-5">
+            <div className="text-4xl mb-3">🔐</div>
+            <h3 className="text-xl font-bold text-gray-800">Set Your New Password</h3>
+            <p className="text-sm text-gray-500 mt-1">You logged in with a temporary password. Please set a permanent one.</p>
+          </div>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+              <input
+                type="password"
+                value={changePasswordNew}
+                onChange={(e) => setChangePasswordNew(e.target.value)}
+                className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                placeholder="At least 6 characters"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+              <input
+                type="password"
+                value={changePasswordConfirm}
+                onChange={(e) => setChangePasswordConfirm(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleChangePassword()}
+                className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                placeholder="Repeat your password"
+              />
+            </div>
+            {changePasswordError && (
+              <div className="bg-red-50 border-2 border-red-200 rounded-lg p-3">
+                <p className="text-red-700 text-sm">{changePasswordError}</p>
+              </div>
+            )}
+            <button
+              onClick={handleChangePassword}
+              className="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 font-semibold transition-colors"
+            >
+              Save New Password
+            </button>
+            <button
+              onClick={() => setShowChangePassword(false)}
+              className="w-full text-gray-500 hover:text-gray-700 text-sm py-1"
+            >
+              Skip for now
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {/* Modal de CV */}
     {showCvModal && currentCvUrl && (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
         <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] flex flex-col">
