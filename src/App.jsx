@@ -2874,8 +2874,70 @@ autoComplete="off"
         <label htmlFor="showMarquee" className="text-sm font-medium text-gray-700 cursor-pointer">Show Inspirational Quotes (Marquee)</label>
       </div>
 
+      {/* 🏢 Company Branding */}
+      <div className="border-t pt-4 mt-2">
+        <label className="block text-sm font-semibold text-gray-700 mb-3">🏢 Company Branding</label>
+
+        <div className="mb-4">
+          <label className="block text-xs font-medium text-gray-600 mb-1">Company Name</label>
+          <p className="text-xs text-gray-400 mb-2">Displayed below "WhatIDid Corp" in the header</p>
+          <div className="flex gap-2">
+            <input type="text" value={companyName} onChange={(e) => setCompanyName(e.target.value)}
+              placeholder="e.g. XYZ Financial Services"
+              className="flex-1 p-2 border-2 border-gray-300 rounded-lg text-sm" maxLength={60} />
+            <button onClick={async () => {
+              const { error } = await supabase.from('app_settings').update({ company_name: companyName }).eq('id', 1);
+              if (error) alert('Error: ' + error.message);
+              else alert('Company name saved!');
+            }} className="px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700">Save</button>
+            {companyName && (
+              <button onClick={async () => {
+                setCompanyName('');
+                await supabase.from('app_settings').update({ company_name: null }).eq('id', 1);
+              }} className="px-3 py-2 bg-gray-400 text-white rounded-lg text-sm hover:bg-gray-500">Clear</button>
+            )}
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-xs font-medium text-gray-600 mb-1">Company Logo</label>
+          <p className="text-xs text-gray-400 mb-2">Top-right on desktop, below header on mobile (PNG, JPG, SVG — max 2MB)</p>
+          {companyLogoUrl && (
+            <div className="mb-3 flex items-center gap-3 p-2 bg-gray-50 rounded-lg border border-gray-200">
+              <img src={companyLogoUrl} alt="logo" className="h-10 object-contain border border-gray-200 rounded p-1 bg-white" />
+              <span className="text-xs text-gray-500 flex-1">Logo active</span>
+              <button onClick={async () => {
+                const { error } = await supabase.from('app_settings').update({ company_logo_url: null }).eq('id', 1);
+                if (!error) { setCompanyLogoUrl(''); alert('Logo removed!'); }
+              }} className="text-xs text-red-600 hover:text-red-800 font-medium">✕ Remove</button>
+            </div>
+          )}
+          <label className="px-3 py-2 bg-gray-100 border-2 border-gray-200 rounded-lg hover:bg-gray-200 cursor-pointer inline-flex items-center gap-1 text-sm">
+            <input type="file" accept="image/png,image/jpeg,image/svg+xml,image/gif,image/webp" className="hidden"
+              onChange={async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                if (file.size > 2000000) { alert('Max 2MB'); return; }
+                try {
+                  const ext = file.name.split('.').pop();
+                  const path = `logo-${Date.now()}.${ext}`;
+                  const { error: upErr } = await supabase.storage.from('cvs').upload(path, file);
+                  if (upErr) throw upErr;
+                  const { data: { publicUrl } } = supabase.storage.from('cvs').getPublicUrl(path);
+                  const { error: dbErr } = await supabase.from('app_settings').update({ company_logo_url: publicUrl }).eq('id', 1);
+                  if (dbErr) throw dbErr;
+                  setCompanyLogoUrl(publicUrl);
+                  alert('Logo uploaded!');
+                } catch(err) { alert('Error: ' + err.message); }
+                e.target.value = '';
+              }} />
+            📷 Upload Logo
+          </label>
+        </div>
+      </div>
+
     </div>
-  </div>         
+  </div>
 )}
           
 
