@@ -91,6 +91,9 @@ export default function WhatIDid() {
   showMarquee: false
 });
 
+const [companyName, setCompanyName] = useState('');
+const [companyLogoUrl, setCompanyLogoUrl] = useState('');
+  
   // ⭐ ADICIONAR AQUI - Estados para Employee Login ⭐
   const [isEmployeeLoggedIn, setIsEmployeeLoggedIn] = useState(false);
   const [employeeId, setEmployeeId] = useState('');
@@ -338,15 +341,17 @@ const loadAppSettings = async () => {
     if (error) throw error;
     
     if (data) {
-      setAppSettings({
-        requireEmployeeLogin: data.require_employee_login,
-        editionName: data.edition_name,
-        allowCvUpload: data.allow_cv_upload,
-        documentType: data.document_type || 'cv',
-        showTop3: data.show_top3 || false,
-        showMarquee: data.show_marquee || false
-      });
-    }
+  setAppSettings({
+    requireEmployeeLogin: data.require_employee_login,
+    editionName: data.edition_name,
+    allowCvUpload: data.allow_cv_upload,
+    documentType: data.document_type || 'cv',
+    showTop3: data.show_top3 || false,
+    showMarquee: data.show_marquee || false
+  });
+  setCompanyName(data.company_name || '');
+  setCompanyLogoUrl(data.company_logo_url || '');
+}
   } catch (error) {
     console.error('Error loading app settings:', error);
   }
