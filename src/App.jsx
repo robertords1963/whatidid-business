@@ -2380,18 +2380,30 @@ autoComplete="off"
       <style>{marqueeStyles}</style>
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 p-6">
       <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-8">   
+        <div className="text-center mb-8"> 
+          
           <div className="flex items-center justify-between mb-4">
   <div className="flex-1"></div>
-  <h1 className="text-4xl font-bold text-gray-800 mb-2 flex items-center justify-center gap-3">
-    <Share2 className="text-purple-600" size={36} />
-    WhatIDid{' '}
-    <span className="text-2xl font-normal italic text-gray-600">
-      {appSettings.editionName === 'pro' ? 'Pro' : 'Corp'}
-    </span>
-  </h1>
-  <div className="flex-1"></div>
-</div>       
+  <div className="flex flex-col items-center">
+    <h1 className="text-4xl font-bold text-gray-800 mb-2 flex items-center justify-center gap-3">
+      <Share2 className="text-purple-600" size={36} />
+      WhatIDid{' '}
+      <span className="text-2xl font-normal italic text-gray-600">
+        {appSettings.editionName === 'pro' ? 'Pro' : 'Corp'}
+      </span>
+    </h1>
+    {companyName && (
+      <p className="text-sm font-semibold text-gray-500 tracking-wide mt-1">{companyName}</p>
+    )}
+  </div>
+  <div className="flex-1 flex justify-end items-start pt-1">
+    {companyLogoUrl && (
+      <img src={companyLogoUrl} alt="Company logo"
+        className="h-10 sm:h-12 object-contain max-w-[130px] sm:max-w-[180px]" />
+    )}
+  </div>
+</div>
+          
           <p className="text-gray-700 font-medium mb-1 text-sm sm:text-base">Real problems. Real actions. Real results.</p>
 <p className="text-gray-600 text-sm sm:text-base">
   <span className="block sm:inline">Share your work experiences.</span>
