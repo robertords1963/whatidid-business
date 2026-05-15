@@ -2393,13 +2393,13 @@ autoComplete="off"
       </span>
     </h1>
     {companyName && (
-      <p className="text-sm font-semibold text-gray-500 tracking-wide mt-1">{companyName}</p>
+      <p className="text-base font-semibold text-gray-500 tracking-wide mt-1">{companyName}</p>
     )}
   </div>
   <div className="flex-1 flex justify-end items-start pt-1">
     {companyLogoUrl && (
       <img src={companyLogoUrl} alt="Company logo"
-        className="h-10 sm:h-12 object-contain max-w-[130px] sm:max-w-[180px]" />
+        className="h-14 sm:h-16 object-contain max-w-[160px] sm:max-w-[220px]" />
     )}
   </div>
 </div>
