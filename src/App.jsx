@@ -5761,7 +5761,7 @@ onClick={() => {
                 About
               </button>
               <span className="text-gray-300">|</span>
-              
+              <a
                 href="https://portal.whatidid.app"
                 target="_blank"
                 rel="noopener noreferrer"
