@@ -5761,6 +5761,15 @@ onClick={() => {
                 About
               </button>
               <span className="text-gray-300">|</span>
+              
+                href="https://portal.whatidid.app"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-600 hover:text-purple-600 font-medium transition-colors"
+              >
+                Portal
+              </a>
+              <span className="text-gray-300">|</span>
               <button
                 onClick={() => {
                   if (isAdmin) {
