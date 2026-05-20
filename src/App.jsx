@@ -2898,7 +2898,7 @@ autoComplete="off"
         <div className="mb-4">
           <label className="block text-xs font-medium text-gray-600 mb-1">Company Name</label>
           <p className="text-xs text-gray-400 mb-2">Displayed below "WhatIDid Corp" in the header</p>
-          <div className="flex gap-2">
+          <div className="flex gap-2 mb-2">
             <input type="text" value={companyName} onChange={(e) => setCompanyName(e.target.value)}
               placeholder="e.g. XYZ Financial Services"
               className="flex-1 p-2 border-2 border-gray-300 rounded-lg text-sm" maxLength={60} />
@@ -2913,6 +2913,21 @@ autoComplete="off"
                 await supabase.from('app_settings').update({ company_name: null }).eq('id', 1);
               }} className="px-3 py-2 bg-gray-400 text-white rounded-lg text-sm hover:bg-gray-500">Clear</button>
             )}
+          </div>
+          <div className="flex gap-3 bg-gray-50 p-2 rounded-lg">
+            <span className="text-xs text-gray-500 self-center">Size:</span>
+            {['small', 'medium', 'large'].map(size => (
+              <label key={size} className="flex items-center gap-1 cursor-pointer">
+                <input type="radio" name="companyNameSize" value={size}
+                  checked={companyNameSize === size}
+                  onChange={async () => {
+                    setCompanyNameSize(size);
+                    await supabase.from('app_settings').update({ company_name_size: size }).eq('id', 1);
+                  }}
+                  className="w-3 h-3" />
+                <span className="text-xs capitalize">{size}</span>
+              </label>
+            ))}
           </div>
         </div>
 
