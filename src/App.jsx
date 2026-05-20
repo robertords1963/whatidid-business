@@ -398,6 +398,13 @@ const loadPractices = async () => {
       .order('display_order', { ascending: true });
     if (error) throw error;
     setPractices(data || []);
+
+    // Practices visíveis no UI (show_in_ui = true), excluindo General se for a única
+    const uiPractices = (data || []).filter(p => p.show_in_ui);
+    const onlyGeneral = uiPractices.length === 1 && uiPractices[0].name === 'General';
+    if (!onlyGeneral) {
+      // já está no state practices, a lógica do UI usa essa regra diretamente
+    }
     if (data && data.length > 0) {
       setSelectedPracticeId(data[0].id);
       loadAdminCategories(data[0].id);
@@ -3612,6 +3619,25 @@ autoComplete="off"
             <option key={p.id} value={p.id}>{p.name}</option>
           ))}
         </select>
+        {/* Show in UI checkbox */}
+        {selectedPracticeId && practices.find(p => p.id === selectedPracticeId)?.name !== 'General' && (
+          <label className="flex items-center gap-2 cursor-pointer whitespace-nowrap">
+            <input
+              type="checkbox"
+              checked={practices.find(p => p.id === selectedPracticeId)?.show_in_ui || false}
+              onChange={async (e) => {
+                const { error } = await supabase
+                  .from('practices')
+                  .update({ show_in_ui: e.target.checked })
+                  .eq('id', selectedPracticeId);
+                if (error) { alert('Error updating practice: ' + error.message); return; }
+                await loadPractices();
+              }}
+              className="w-4 h-4"
+            />
+            <span className="text-sm text-gray-700">Show in UI</span>
+          </label>
+        )}
         <button
           onClick={async () => {
             const name = window.prompt('New Practice name:');
