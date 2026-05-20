@@ -2415,9 +2415,9 @@ autoComplete="off"
 </div>
 {companyLogoUrl && (
   <div className="flex justify-center sm:hidden mb-3">
-    <img src={companyLogoUrl} alt="Company logo" className={`object-contain ${
-      companyLogoSize === 'small' ? 'h-6 max-w-[90px]' :
-      companyLogoSize === 'large' ? 'h-12 max-w-[160px]' : 'h-8 max-w-[120px]'
+<img src={companyLogoUrl} alt="Company logo" className={`object-contain ${
+      companyLogoSize === 'small' ? 'h-10 max-w-[120px]' :
+      companyLogoSize === 'large' ? 'h-20 max-w-[220px]' : 'h-14 max-w-[160px]'
     }`} />
   </div>
 )}          
