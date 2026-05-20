@@ -4823,6 +4823,30 @@ onClick={() => {
             {/* CONTEÚDO DA TAB KEY INSIGHTS */}
 {filterMode === 'key_insights' && (
   <div>
+    {/* Practice filter - mesma lógica dos outros lugares */}
+    {practices.length > 1 || (practices.length === 1 && practices[0].name !== 'General') ? (
+      <div className="mb-3">
+        <label className="block text-sm font-medium text-gray-700 mb-2">Practice:</label>
+        <select
+          value={filterPracticeId || ''}
+          onChange={(e) => {
+            const id = e.target.value ? parseInt(e.target.value) : null;
+            setFilterPracticeId(id);
+            setKeyInsightCategory('');
+            setShowKeyInsights(false);
+            loadProblemCategories(id);
+          }}
+          className={`w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none ${practices.length === 1 ? 'bg-gray-50 cursor-not-allowed' : ''}`}
+          disabled={practices.length === 1}
+        >
+          <option value="">All Practices</option>
+          {practices.map(p => (
+            <option key={p.id} value={p.id}>{p.name}</option>
+          ))}
+        </select>
+      </div>
+    ) : null}
+
     <label className="block text-sm font-medium text-gray-700 mb-3">Category:</label>
     <select
       value={keyInsightCategory}
