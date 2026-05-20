@@ -2398,9 +2398,9 @@ autoComplete="off"
   </div>
   <div className="flex-1 flex justify-end items-start pt-1">
     {companyLogoUrl && (
-      <img src={companyLogoUrl} alt="Company logo"
-        className="h-14 sm:h-16 object-contain max-w-[160px] sm:max-w-[220px]" />
-    )}
+  <img src={companyLogoUrl} alt="Company logo"
+    className="hidden sm:block h-14 sm:h-16 object-contain max-w-[160px] sm:max-w-[220px]" />
+)}
   </div>
 </div>
           
