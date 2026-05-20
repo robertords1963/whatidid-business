@@ -95,6 +95,9 @@ const [companyName, setCompanyName] = useState('');
 const [companyLogoUrl, setCompanyLogoUrl] = useState('');
 const [companyNameSize, setCompanyNameSize] = useState('medium');
 const [companyLogoSize, setCompanyLogoSize] = useState('medium');
+const [practices, setPractices] = useState([]);
+const [selectedPracticeId, setSelectedPracticeId] = useState(null);
+const [filterPracticeId, setFilterPracticeId] = useState(null);
   
   // ⭐ ADICIONAR AQUI - Estados para Employee Login ⭐
   const [isEmployeeLoggedIn, setIsEmployeeLoggedIn] = useState(false);
@@ -169,6 +172,7 @@ const [companyLogoSize, setCompanyLogoSize] = useState('medium');
   loadPromotionalVideos();
   loadProblemCategories();
   loadEmployees();
+  loadPractices();
 }, []);
 
 // Verificar login do funcionário ao carregar
@@ -377,6 +381,24 @@ const loadProblemCategories = async () => {
   }
 };
 
+const loadPractices = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('practices')
+      .select('*')
+      .eq('active', true)
+      .order('display_order', { ascending: true });
+    if (error) throw error;
+    setPractices(data || []);
+    // Selecionar a primeira practice por default
+    if (data && data.length > 0) {
+      setSelectedPracticeId(data[0].id);
+    }
+  } catch (error) {
+    console.error('Error loading practices:', error);
+  }
+};
+  
 // ==================== EMPLOYEE MANAGEMENT ====================
 
 const loadEmployees = async () => {
