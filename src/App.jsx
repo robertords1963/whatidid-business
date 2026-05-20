@@ -2397,11 +2397,15 @@ autoComplete="off"
       </span>
     </h1>
     {companyName && (
-      <p className={`font-semibold text-gray-500 tracking-wide mt-1 ${
-        companyNameSize === 'small' ? 'text-xs' :
-        companyNameSize === 'large' ? 'text-xl' : 'text-base'
-      }`}>{companyName}</p>
-    )}
+  <div className={`flex items-center justify-center gap-3 mt-1 ${
+    companyNameSize === 'small' ? 'text-xs' :
+    companyNameSize === 'large' ? 'text-xl' : 'text-base'
+  }`}>
+    <div className="h-px w-8 bg-gray-400 opacity-50"></div>
+    <p className="font-semibold text-gray-500 tracking-wide">{companyName}</p>
+    <div className="h-px w-8 bg-gray-400 opacity-50"></div>
+  </div>
+)}
   </div>
   <div className="flex-1 flex justify-end items-start pt-1">
     {companyLogoUrl && (
