@@ -2401,9 +2401,9 @@ autoComplete="off"
     companyNameSize === 'small' ? 'text-xs' :
     companyNameSize === 'large' ? 'text-xl' : 'text-base'
   }`}>
-    <div className="h-px w-8 bg-gray-400 opacity-50"></div>
+    <div className="h-px w-8 bg-gray-600 opacity-80"></div>
     <p className="font-semibold text-gray-500 tracking-wide">{companyName}</p>
-    <div className="h-px w-8 bg-gray-400 opacity-50"></div>
+    <div className="h-px w-8 bg-gray-600 opacity-80"></div>
   </div>
 )}
   </div>
