@@ -1009,7 +1009,8 @@ setTimeout(() => {
         gender: newExperience.gender || '',
         age: newExperience.age || '',
         country: newExperience.country || '',
-        employee_id: appSettings.requireEmployeeLogin ? employeeId : null,  // ⭐ ADICIONAR
+        employee_id: appSettings.requireEmployeeLogin ? employeeId : null,
+        practice_id: selectedPracticeId || null,
         avg_rating: 0,
         total_ratings: 0,
         source: 'app',
@@ -2139,17 +2140,15 @@ if (appSettings.requireEmployeeLogin && !isAdmin && comment.employeeId !== emplo
 
 const filteredExperiences = experiences.filter(exp => {
   // NOVO: Filtro por Common Case mapeado
-if (mappedFilter) {
+  if (mappedFilter) {
     return (exp.source === 'uploaded' || exp.source === 'app') && exp.relatedCommonCaseId === mappedFilter;
   }
 
   // Se está na tab Key Insights
   if (filterMode === 'key_insights') {
-    // Se selecionou categoria específica, filtrar por ela
     if (showKeyInsights && keyInsightCategory) {
       return exp.author === 'key_insights' && exp.problemCategory === keyInsightCategory;
     }
-    // Se não selecionou categoria (All), mostrar todos os Key Insights
     return exp.author === 'key_insights';
   }
   
@@ -2157,7 +2156,10 @@ if (mappedFilter) {
   if (exp.author === 'key_insights') {
     return false;
   }
-  
+
+  // Filtro por Practice
+  const matchesPractice = !filterPracticeId || exp.practice_id === filterPracticeId;
+
   // Filtros normais (sem Key Insights)
   const matchesProblemCategory = !filters.problemCategory || exp.problemCategory === filters.problemCategory;
   const searchTerms = filters.searchText.toLowerCase().trim().split(/\s+/);
@@ -2181,7 +2183,7 @@ const wasInteractedInSession = ratedInSession.has(exp.id);
 if (wasInteractedInSession) return true;
 
 
-return matchesProblemCategory && matchesSearchText && matchesResultCategory && matchesRating && matchesGender && matchesAge && matchesCountry && matchesIndustrySector;
+return matchesPractice && matchesProblemCategory && matchesSearchText && matchesResultCategory && matchesRating && matchesGender && matchesAge && matchesCountry && matchesIndustrySector;
 });
   // Reset to page 1 when filters change
 // Reset to page 1 when filters change (exceto quando navegando para Key Insight)
