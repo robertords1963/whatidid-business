@@ -3662,8 +3662,8 @@ autoComplete="off"
           className="flex-1 p-2 border-2 border-gray-300 rounded-lg text-sm"
           onKeyPress={(e) => e.key === 'Enter' && newCategoryName.trim() && (async () => {
             const maxOrder = problemCategories.length;
-            const { error } = await supabase.from('problem_categories').insert([{ name: newCategoryName.trim(), display_order: maxOrder + 1, active: true }]);
-            if (!error) { setNewCategoryName(''); await loadProblemCategories(); }
+            const { error } = await supabase.from('problem_categories').insert([{ name: newCategoryName.trim(), display_order: maxOrder + 1, active: true, practice_id: selectedPracticeId }]);
+            if (!error) { setNewCategoryName(''); await loadAdminCategories(selectedPracticeId); }
             else alert('Error adding category');
           })()}
         />
@@ -3671,8 +3671,8 @@ autoComplete="off"
           onClick={async () => {
             if (!newCategoryName.trim()) return;
             const maxOrder = problemCategories.length;
-            const { error } = await supabase.from('problem_categories').insert([{ name: newCategoryName.trim(), display_order: maxOrder + 1, active: true }]);
-            if (!error) { setNewCategoryName(''); await loadProblemCategories(); }
+            const { error } = await supabase.from('problem_categories').insert([{ name: newCategoryName.trim(), display_order: maxOrder + 1, active: true, practice_id: selectedPracticeId }]);
+            if (!error) { setNewCategoryName(''); await loadAdminCategories(selectedPracticeId); }
             else alert('Error adding category');
           }}
           className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm hover:bg-teal-700"
