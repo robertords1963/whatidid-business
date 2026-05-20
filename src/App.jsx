@@ -98,6 +98,7 @@ const [companyLogoSize, setCompanyLogoSize] = useState('medium');
 const [practices, setPractices] = useState([]);
 const [selectedPracticeId, setSelectedPracticeId] = useState(null);
 const [filterPracticeId, setFilterPracticeId] = useState(null);
+const [adminCategories, setAdminCategories] = useState([]);
   
   // ⭐ ADICIONAR AQUI - Estados para Employee Login ⭐
   const [isEmployeeLoggedIn, setIsEmployeeLoggedIn] = useState(false);
@@ -397,12 +398,30 @@ const loadPractices = async () => {
       .order('display_order', { ascending: true });
     if (error) throw error;
     setPractices(data || []);
-    // Selecionar a primeira practice por default
     if (data && data.length > 0) {
       setSelectedPracticeId(data[0].id);
+      loadAdminCategories(data[0].id);
     }
   } catch (error) {
     console.error('Error loading practices:', error);
+  }
+};
+
+const loadAdminCategories = async (practiceId) => {
+  try {
+    let query = supabase
+      .from('problem_categories')
+      .select('*')
+      .eq('active', true)
+      .order('display_order', { ascending: true });
+    if (practiceId) {
+      query = query.eq('practice_id', practiceId);
+    }
+    const { data, error } = await query;
+    if (error) throw error;
+    setAdminCategories(data || []);
+  } catch (error) {
+    console.error('Error loading admin categories:', error);
   }
 };
   
@@ -3585,7 +3604,7 @@ autoComplete="off"
           onChange={(e) => {
             const id = parseInt(e.target.value);
             setSelectedPracticeId(id);
-            loadProblemCategories(id);
+            loadAdminCategories(id);
           }}
           className="flex-1 p-2 border-2 border-gray-300 rounded-lg text-sm"
         >
@@ -3664,14 +3683,14 @@ autoComplete="off"
     </div>
     <div className="bg-white rounded p-4">
       <h4 className="font-medium text-gray-700 mb-3">Current Categories ({problemCategories.length})</h4>
-      <div className="space-y-2 max-h-80 overflow-y-auto">
-        {problemCategories.map((cat, index) => (
+<div className="space-y-2 max-h-80 overflow-y-auto">
+        {adminCategories.map((cat, index) => (
           <div key={index} className="flex items-center gap-2 p-2 border border-gray-200 rounded-lg">
             {editingCategory === index ? (
               <>
                 <input
                   type="text"
-                  defaultValue={cat}
+                  defaultValue={cat.name}
                   id={`edit-cat-${index}`}
                   className="flex-1 p-1 border border-gray-300 rounded text-sm"
                   autoFocus
@@ -3693,8 +3712,8 @@ autoComplete="off"
                 <button
                     onClick={async () => {
                       if (index === 0) return;
-                      await supabase.from('problem_categories').update({ display_order: index }).eq('name', cat);
-                      await supabase.from('problem_categories').update({ display_order: index + 1 }).eq('name', problemCategories[index - 1]);
+                      await supabase.from('problem_categories').update({ display_order: index }).eq('name', cat.name);
+                      await supabase.from('problem_categories').update({ display_order: index + 1 }).eq('name', adminCategories[index - 1].name);
                       await loadProblemCategories();
                     }}
                     disabled={index === 0}
@@ -3703,19 +3722,19 @@ autoComplete="off"
                   <button
                     onClick={async () => {
                       if (index === problemCategories.length - 1) return;
-                      await supabase.from('problem_categories').update({ display_order: index + 2 }).eq('name', cat);
-                      await supabase.from('problem_categories').update({ display_order: index + 1 }).eq('name', problemCategories[index + 1]);
+                      await supabase.from('problem_categories').update({ display_order: index + 2 }).eq('name', cat.name);
+                      await supabase.from('problem_categories').update({ display_order: index + 1 }).eq('name', adminCategories[index + 1].name);
                       await loadProblemCategories();
                     }}
                     disabled={index === problemCategories.length - 1}
                     className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 disabled:opacity-30 disabled:cursor-not-allowed"
                   >↓ Down</button>
-                <span className="flex-1 text-sm text-gray-700">{cat}</span>
+                <span className="flex-1 text-sm text-gray-700">{cat.name}</span>
                 <button onClick={() => setEditingCategory(index)} className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700">Edit</button>
                 <button
                   onClick={async () => {
-                    if (!window.confirm(`Delete "${cat}"? Existing experiences with this category will keep it.`)) return;
-                    const { error } = await supabase.from('problem_categories').update({ active: false }).eq('name', cat);
+                    if (!window.confirm(`Delete "${cat.name}"? Existing experiences with this category will keep it.`)) return;
+                    const { error } = await supabase.from('problem_categories').update({ active: false }).eq('name', cat.name);
                     if (!error) await loadProblemCategories();
                     else alert('Error deleting category');
                   }}
