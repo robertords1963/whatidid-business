@@ -99,6 +99,7 @@ const [practices, setPractices] = useState([]);
 const [selectedPracticeId, setSelectedPracticeId] = useState(null);
 const [filterPracticeId, setFilterPracticeId] = useState(null);
 const [adminCategories, setAdminCategories] = useState([]);
+const [uiPractices, setUiPractices] = useState([]);
   
   // ⭐ ADICIONAR AQUI - Estados para Employee Login ⭐
   const [isEmployeeLoggedIn, setIsEmployeeLoggedIn] = useState(false);
@@ -397,7 +398,10 @@ const loadPractices = async () => {
       .eq('active', true)
       .order('display_order', { ascending: true });
     if (error) throw error;
+    // Para o Admin: todas as practices ativas
+    // Para o UI: só as com show_in_ui = true
     setPractices(data || []);
+    setUiPractices((data || []).filter(p => p.show_in_ui));
 
     // Practices visíveis no UI (show_in_ui = true), excluindo General se for a única
     const uiPractices = (data || []).filter(p => p.show_in_ui);
@@ -4271,25 +4275,25 @@ onClick={() => {
               </div>
               
               {/* Practice dropdown - só aparece se 2+ practices ativas, ou se 1 prática com nome diferente de General */}
-              {practices.length > 1 || (practices.length === 1 && practices[0].name !== 'General') ? (
-                <div className="mb-2">
-                  <select
-                    value={selectedPracticeId || ''}
-                    onChange={(e) => {
-                      const id = parseInt(e.target.value);
-                      setSelectedPracticeId(id);
-                      setCurrentEntry({...currentEntry, problemCategory: ''});
-                      loadProblemCategories(id);
-                    }}
-                    className={`w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none ${practices.length === 1 ? 'bg-gray-50 cursor-not-allowed' : ''}`}
-                    disabled={practices.length === 1}
-                  >
-                    {practices.map(p => (
-                      <option key={p.id} value={p.id}>{p.name}</option>
-                    ))}
-                  </select>
-                </div>
-              ) : null}
+              {uiPractices.length > 1 || (uiPractices.length === 1 && uiPractices[0].name !== 'General') ? (
+  <div className="mb-2">
+    <select
+      value={selectedPracticeId || ''}
+      onChange={(e) => {
+        const id = parseInt(e.target.value);
+        setSelectedPracticeId(id);
+        setCurrentEntry({...currentEntry, problemCategory: ''});
+        loadProblemCategories(id);
+      }}
+      className={`w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none ${uiPractices.length === 1 ? 'bg-gray-50 cursor-not-allowed' : ''}`}
+      disabled={uiPractices.length === 1}
+    >
+      {uiPractices.map(p => (
+        <option key={p.id} value={p.id}>{p.name}</option>
+      ))}
+    </select>
+  </div>
+) : null}
 
               <select
                 value={currentEntry.problemCategory}
@@ -4693,27 +4697,27 @@ onClick={() => {
                 {/* Filtros principais */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                   {/* Practice filter - só aparece se 2+ practices ativas, ou se 1 com nome diferente de General */}
-                  {practices.length > 1 || (practices.length === 1 && practices[0].name !== 'General') ? (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-2">Practice</label>
-                      <select
-                        value={filterPracticeId || ''}
-                        onChange={(e) => {
-                          const id = e.target.value ? parseInt(e.target.value) : null;
-                          setFilterPracticeId(id);
-                          setFilters({...filters, problemCategory: ''});
-                          loadProblemCategories(id);
-                        }}
-                        className={`w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none ${practices.length === 1 ? 'bg-gray-50 cursor-not-allowed' : ''}`}
-                        disabled={practices.length === 1}
-                      >
-                        <option value="">All Practices</option>
-                        {practices.map(p => (
-                          <option key={p.id} value={p.id}>{p.name}</option>
-                        ))}
-                      </select>
-                    </div>
-                  ) : null}
+                  {uiPractices.length > 1 || (uiPractices.length === 1 && uiPractices[0].name !== 'General') ? (
+  <div>
+    <label className="block text-sm font-medium text-gray-600 mb-2">Practice</label>
+    <select
+      value={filterPracticeId || ''}
+      onChange={(e) => {
+        const id = e.target.value ? parseInt(e.target.value) : null;
+        setFilterPracticeId(id);
+        setFilters({...filters, problemCategory: ''});
+        loadProblemCategories(id);
+      }}
+      className={`w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none ${uiPractices.length === 1 ? 'bg-gray-50 cursor-not-allowed' : ''}`}
+      disabled={uiPractices.length === 1}
+    >
+      <option value="">All Practices</option>
+      {uiPractices.map(p => (
+        <option key={p.id} value={p.id}>{p.name}</option>
+      ))}
+    </select>
+  </div>
+) : null}
 
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-2">Category</label>
@@ -4869,28 +4873,28 @@ onClick={() => {
 {filterMode === 'key_insights' && (
   <div>
     {/* Practice filter - mesma lógica dos outros lugares */}
-    {practices.length > 1 || (practices.length === 1 && practices[0].name !== 'General') ? (
-      <div className="mb-3">
-        <label className="block text-sm font-medium text-gray-700 mb-2">Practice:</label>
-        <select
-          value={filterPracticeId || ''}
-          onChange={(e) => {
-            const id = e.target.value ? parseInt(e.target.value) : null;
-            setFilterPracticeId(id);
-            setKeyInsightCategory('');
-            setShowKeyInsights(false);
-            loadProblemCategories(id);
-          }}
-          className={`w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none ${practices.length === 1 ? 'bg-gray-50 cursor-not-allowed' : ''}`}
-          disabled={practices.length === 1}
-        >
-          <option value="">All Practices</option>
-          {practices.map(p => (
-            <option key={p.id} value={p.id}>{p.name}</option>
-          ))}
-        </select>
-      </div>
-    ) : null}
+    {uiPractices.length > 1 || (uiPractices.length === 1 && uiPractices[0].name !== 'General') ? (
+  <div className="mb-3">
+    <label className="block text-sm font-medium text-gray-700 mb-2">Practice:</label>
+    <select
+      value={filterPracticeId || ''}
+      onChange={(e) => {
+        const id = e.target.value ? parseInt(e.target.value) : null;
+        setFilterPracticeId(id);
+        setKeyInsightCategory('');
+        setShowKeyInsights(false);
+        loadProblemCategories(id);
+      }}
+      className={`w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none ${uiPractices.length === 1 ? 'bg-gray-50 cursor-not-allowed' : ''}`}
+      disabled={uiPractices.length === 1}
+    >
+      <option value="">All Practices</option>
+      {uiPractices.map(p => (
+        <option key={p.id} value={p.id}>{p.name}</option>
+      ))}
+    </select>
+  </div>
+) : null}
 
     <label className="block text-sm font-medium text-gray-700 mb-3">Category:</label>
     <select
