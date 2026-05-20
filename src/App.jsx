@@ -3490,6 +3490,43 @@ autoComplete="off"
                 </span>
                 <button onClick={() => { setEditingEmployee(emp.employee_id); setEditingEmployeeData({ name: emp.name, country: emp.country, email: emp.email }); }}
                   className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700">Edit</button>
+                <button onClick={async () => {
+                  if (!window.confirm(`Delete all experiences and comments by ${emp.employee_id}? This cannot be undone.`)) return;
+                  try {
+                    // Deletar comments do employee
+                    const { error: commentsError } = await supabase
+                      .from('comments')
+                      .delete()
+                      .eq('employee_id', emp.employee_id);
+                    if (commentsError) throw commentsError;
+
+                    // Buscar experiences do employee para deletar arquivos
+                    const { data: exps } = await supabase
+                      .from('experiences')
+                      .select('id, cv_url')
+                      .eq('employee_id', emp.employee_id);
+
+                    // Deletar arquivos do storage
+                    if (exps) {
+                      for (const exp of exps) {
+                        if (exp.cv_url) await deleteFileFromStorage(exp.cv_url);
+                      }
+                    }
+
+                    // Deletar experiences do employee
+                    const { error: expsError } = await supabase
+                      .from('experiences')
+                      .delete()
+                      .eq('employee_id', emp.employee_id);
+                    if (expsError) throw expsError;
+
+                    await loadExperiences(true);
+                    alert(`All data cleared for ${emp.employee_id}!`);
+                  } catch (error) {
+                    console.error('Error clearing data:', error);
+                    alert('Error clearing data: ' + error.message);
+                  }
+                }} className="px-2 py-1 bg-orange-600 text-white rounded text-xs hover:bg-orange-700">Clear Data</button>
                 <button onClick={() => deleteEmployee(emp.employee_id)}
                   className="px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700">Delete</button>
               </>
