@@ -365,13 +365,19 @@ const loadAppSettings = async () => {
   }
 };
 
-const loadProblemCategories = async () => {
+const loadProblemCategories = async (practiceId = null) => {
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from('problem_categories')
       .select('*')
       .eq('active', true)
       .order('display_order', { ascending: true });
+
+    if (practiceId) {
+      query = query.eq('practice_id', practiceId);
+    }
+
+    const { data, error } = await query;
     if (error) throw error;
     if (data && data.length > 0) {
       setProblemCategories(data.map(c => c.name));
@@ -4159,6 +4165,27 @@ onClick={() => {
                 <h3 className="text-lg font-semibold text-gray-800">Problem</h3>
               </div>
               
+              {/* Practice dropdown - só aparece se 2+ practices ativas, ou se 1 prática com nome diferente de General */}
+              {practices.length > 1 || (practices.length === 1 && practices[0].name !== 'General') ? (
+                <div className="mb-2">
+                  <select
+                    value={selectedPracticeId || ''}
+                    onChange={(e) => {
+                      const id = parseInt(e.target.value);
+                      setSelectedPracticeId(id);
+                      setCurrentEntry({...currentEntry, problemCategory: ''});
+                      loadProblemCategories(id);
+                    }}
+                    className={`w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none ${practices.length === 1 ? 'bg-gray-50 cursor-not-allowed' : ''}`}
+                    disabled={practices.length === 1}
+                  >
+                    {practices.map(p => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+                </div>
+              ) : null}
+
               <select
                 value={currentEntry.problemCategory}
                 onChange={(e) => setCurrentEntry({...currentEntry, problemCategory: e.target.value})}
