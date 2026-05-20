@@ -2403,7 +2403,11 @@ autoComplete="off"
 )}
   </div>
 </div>
-          
+{companyLogoUrl && (
+  <div className="flex justify-center sm:hidden mb-3">
+    <img src={companyLogoUrl} alt="Company logo" className="h-8 object-contain max-w-[120px]" />
+  </div>
+)}          
           <p className="text-gray-700 font-medium mb-1 text-sm sm:text-base">Real problems. Real actions. Real results.</p>
 <p className="text-gray-600 text-sm sm:text-base">
   <span className="block sm:inline">Share your work experiences.</span>
