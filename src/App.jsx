@@ -256,7 +256,8 @@ const loadExperiences = async (skipLoading = false) => {
       source: exp.source || 'upload',
       cvUrl: exp.cv_url || null,  // ⭐ ADICIONAR
       cvFilename: exp.cv_filename || null,  // ⭐ ADICIONAR
-      employeeId: exp.employee_id || null,  // ⭐ ADICIONAR
+      employeeId: exp.employee_id || null,
+      practiceId: exp.practice_id || null,
       comments: []
     }));
     
@@ -2158,7 +2159,7 @@ const filteredExperiences = experiences.filter(exp => {
   }
 
   // Filtro por Practice
-  const matchesPractice = !filterPracticeId || exp.practice_id === filterPracticeId;
+  const matchesPractice = !filterPracticeId || exp.practiceId === filterPracticeId;
 
   // Filtros normais (sem Key Insights)
   const matchesProblemCategory = !filters.problemCategory || exp.problemCategory === filters.problemCategory;
