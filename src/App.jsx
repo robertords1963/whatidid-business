@@ -93,6 +93,8 @@ export default function WhatIDid() {
 
 const [companyName, setCompanyName] = useState('');
 const [companyLogoUrl, setCompanyLogoUrl] = useState('');
+const [companyNameSize, setCompanyNameSize] = useState('medium');
+const [companyLogoSize, setCompanyLogoSize] = useState('medium');
   
   // ⭐ ADICIONAR AQUI - Estados para Employee Login ⭐
   const [isEmployeeLoggedIn, setIsEmployeeLoggedIn] = useState(false);
@@ -351,6 +353,8 @@ const loadAppSettings = async () => {
   });
   setCompanyName(data.company_name || '');
   setCompanyLogoUrl(data.company_logo_url || '');
+  setCompanyNameSize(data.company_name_size || 'medium');
+  setCompanyLogoSize(data.company_logo_size || 'medium');
 }
   } catch (error) {
     console.error('Error loading app settings:', error);
@@ -2393,19 +2397,28 @@ autoComplete="off"
       </span>
     </h1>
     {companyName && (
-      <p className="text-base font-semibold text-gray-500 tracking-wide mt-1">{companyName}</p>
+      <p className={`font-semibold text-gray-500 tracking-wide mt-1 ${
+        companyNameSize === 'small' ? 'text-xs' :
+        companyNameSize === 'large' ? 'text-xl' : 'text-base'
+      }`}>{companyName}</p>
     )}
   </div>
   <div className="flex-1 flex justify-end items-start pt-1">
     {companyLogoUrl && (
   <img src={companyLogoUrl} alt="Company logo"
-    className="hidden sm:block h-14 sm:h-16 object-contain max-w-[160px] sm:max-w-[220px]" />
+    className={`hidden sm:block object-contain ${
+      companyLogoSize === 'small' ? 'h-8 max-w-[100px]' :
+      companyLogoSize === 'large' ? 'h-20 max-w-[280px]' : 'h-14 max-w-[220px]'
+    }`} />
 )}
   </div>
 </div>
 {companyLogoUrl && (
   <div className="flex justify-center sm:hidden mb-3">
-    <img src={companyLogoUrl} alt="Company logo" className="h-8 object-contain max-w-[120px]" />
+    <img src={companyLogoUrl} alt="Company logo" className={`object-contain ${
+      companyLogoSize === 'small' ? 'h-6 max-w-[90px]' :
+      companyLogoSize === 'large' ? 'h-12 max-w-[160px]' : 'h-8 max-w-[120px]'
+    }`} />
   </div>
 )}          
           <p className="text-gray-700 font-medium mb-1 text-sm sm:text-base">Real problems. Real actions. Real results.</p>
