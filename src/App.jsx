@@ -3572,6 +3572,63 @@ autoComplete="off"
     <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
       🗂️ Manage Problem Categories
     </h3>
+
+    {/* Practice selector + New Practice */}
+    <div className="bg-white rounded p-4 mb-4">
+      <div className="flex items-center gap-3 mb-4">
+        <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Practice:</label>
+        <select
+          value={selectedPracticeId || ''}
+          onChange={(e) => {
+            const id = parseInt(e.target.value);
+            setSelectedPracticeId(id);
+            loadProblemCategories(id);
+          }}
+          className="flex-1 p-2 border-2 border-gray-300 rounded-lg text-sm"
+        >
+          {practices.map(p => (
+            <option key={p.id} value={p.id}>{p.name}</option>
+          ))}
+        </select>
+        <button
+          onClick={async () => {
+            const name = window.prompt('New Practice name:');
+            if (!name?.trim()) return;
+            const maxOrder = practices.length > 0 ? Math.max(...practices.map(p => p.display_order || 0)) : 0;
+            const { data, error } = await supabase
+              .from('practices')
+              .insert([{ name: name.trim(), show_in_ui: true, display_order: maxOrder + 1, active: true }])
+              .select();
+            if (error) { alert('Error creating practice: ' + error.message); return; }
+            await loadPractices();
+            if (data && data[0]) {
+              setSelectedPracticeId(data[0].id);
+              loadProblemCategories(data[0].id);
+            }
+            alert(`Practice "${name.trim()}" created!`);
+          }}
+          className="px-3 py-2 bg-teal-600 text-white rounded-lg text-sm hover:bg-teal-700 whitespace-nowrap"
+        >+ New Practice</button>
+        {selectedPracticeId && practices.find(p => p.id === selectedPracticeId)?.name !== 'General' && (
+          <button
+            onClick={async () => {
+              const practice = practices.find(p => p.id === selectedPracticeId);
+              if (!window.confirm(`Delete practice "${practice?.name}"? Categories will not be deleted.`)) return;
+              const { error } = await supabase
+                .from('practices')
+                .update({ active: false })
+                .eq('id', selectedPracticeId);
+              if (error) { alert('Error deleting practice'); return; }
+              await loadPractices();
+              setSelectedPracticeId(practices[0]?.id || null);
+              loadProblemCategories(practices[0]?.id || null);
+            }}
+            className="px-3 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 whitespace-nowrap"
+          >Delete Practice</button>
+        )}
+      </div>
+    </div>
+
     <div className="bg-white rounded p-4 mb-4">
       <h4 className="font-medium text-gray-700 mb-3">Add New Category</h4>
       <div className="flex gap-2">
@@ -4587,6 +4644,29 @@ onClick={() => {
               <>
                 {/* Filtros principais */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                  {/* Practice filter - só aparece se 2+ practices ativas, ou se 1 com nome diferente de General */}
+                  {practices.length > 1 || (practices.length === 1 && practices[0].name !== 'General') ? (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600 mb-2">Practice</label>
+                      <select
+                        value={filterPracticeId || ''}
+                        onChange={(e) => {
+                          const id = e.target.value ? parseInt(e.target.value) : null;
+                          setFilterPracticeId(id);
+                          setFilters({...filters, problemCategory: ''});
+                          loadProblemCategories(id);
+                        }}
+                        className={`w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none ${practices.length === 1 ? 'bg-gray-50 cursor-not-allowed' : ''}`}
+                        disabled={practices.length === 1}
+                      >
+                        <option value="">All Practices</option>
+                        {practices.map(p => (
+                          <option key={p.id} value={p.id}>{p.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  ) : null}
+
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-2">Category</label>
                     <select
