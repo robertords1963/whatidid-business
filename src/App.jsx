@@ -2962,9 +2962,26 @@ autoComplete="off"
                   alert('Logo uploaded!');
                 } catch(err) { alert('Error: ' + err.message); }
                 e.target.value = '';
+              
               }} />
             📷 Upload Logo
           </label>
+          <p className="text-xs text-gray-400 mt-1">💡 Recommended: PNG or SVG with transparent background, min 200px wide.</p>
+          <div className="flex gap-3 bg-gray-50 p-2 rounded-lg mt-2">
+            <span className="text-xs text-gray-500 self-center">Size:</span>
+            {['small', 'medium', 'large'].map(size => (
+              <label key={size} className="flex items-center gap-1 cursor-pointer">
+                <input type="radio" name="companyLogoSize" value={size}
+                  checked={companyLogoSize === size}
+                  onChange={async () => {
+                    setCompanyLogoSize(size);
+                    await supabase.from('app_settings').update({ company_logo_size: size }).eq('id', 1);
+                  }}
+                  className="w-3 h-3" />
+                <span className="text-xs capitalize">{size}</span>
+              </label>
+            ))}
+          </div>
         </div>
       </div>
 
