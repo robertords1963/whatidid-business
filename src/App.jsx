@@ -307,7 +307,8 @@ const keyInsights = transformedData.filter(e => e.author === 'key_insights');
   const currentGroupId = empData?.group_id || null;
 
   let userExps;
-  if (isAdmin) {
+  const adminMode = localStorage.getItem('isAdmin') === 'true';
+  if (adminMode) {
     // Admin vê tudo
     userExps = transformedData.filter(e => e.source === 'app');
   } else if (currentGroupId) {
@@ -1614,6 +1615,7 @@ const prevVideo = () => {
   const handleAdminLogin = () => {
     if (adminPassword === 'admin123') {
       setIsAdmin(true);
+      localStorage.setItem('isAdmin', 'true');
       setShowAdminLogin(false);
     } else {
       alert('Incorrect password');
@@ -2739,7 +2741,8 @@ autoComplete="off"
                 </div>
                 <button
                   onClick={() => { 
-                    setIsAdmin(false); 
+                    setIsAdmin(false);
+                    localStorage.removeItem('isAdmin');
                     setAdminKeywords(''); 
                     setShowAdminLogin(false);
                   }}
