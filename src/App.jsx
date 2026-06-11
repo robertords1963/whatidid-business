@@ -727,6 +727,12 @@ const handleEmployeeLogin = async () => {
       setLoginError('Invalid Employee ID or Password');
       return;
     }
+
+    // Se é demo ID, só pode logar se estiver em um grupo
+    if (data.is_demo && !data.group_id) {
+      setLoginError('This demo account is not currently active. Please contact your Admin.');
+      return;
+    }
     
 // Login bem-sucedido
   setIsEmployeeLoggedIn(true);
