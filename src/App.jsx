@@ -100,6 +100,8 @@ const [selectedPracticeId, setSelectedPracticeId] = useState(null);
 const [filterPracticeId, setFilterPracticeId] = useState(null);
 const [adminCategories, setAdminCategories] = useState([]);
 const [uiPractices, setUiPractices] = useState([]);
+const [demoGroups, setDemoGroups] = useState([]);
+const [currentEmployeeGroup, setCurrentEmployeeGroup] = useState(null);
   
   // ⭐ ADICIONAR AQUI - Estados para Employee Login ⭐
   const [isEmployeeLoggedIn, setIsEmployeeLoggedIn] = useState(false);
@@ -175,6 +177,7 @@ const [uiPractices, setUiPractices] = useState([]);
   loadProblemCategories();
   loadEmployees();
   loadPractices();
+  loadDemoGroups();
 }, []);
 
 // Verificar login do funcionário ao carregar
@@ -390,6 +393,36 @@ const loadProblemCategories = async (practiceId = null) => {
   }
 };
 
+const loadDemoGroups = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('demo_groups')
+      .select(`
+        *,
+        employees (employee_id, name, is_demo, group_id)
+      `)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    setDemoGroups(data || []);
+  } catch (error) {
+    console.error('Error loading demo groups:', error);
+  }
+};
+
+const loadCurrentEmployeeGroup = async (empId) => {
+  try {
+    const { data, error } = await supabase
+      .from('employees')
+      .select('group_id, is_demo')
+      .eq('employee_id', empId)
+      .single();
+    if (error) throw error;
+    setCurrentEmployeeGroup(data?.group_id || null);
+  } catch (error) {
+    console.error('Error loading employee group:', error);
+  }
+};
+ 
 const loadPractices = async () => {
   try {
     const { data, error } = await supabase
@@ -661,6 +694,7 @@ const handleEmployeeLogin = async () => {
   localStorage.setItem('employeeLoggedIn', 'true');
   localStorage.setItem('employeeId', employeeId);
   setEmployeePassword('');
+  await loadCurrentEmployeeGroup(employeeId);
   
   // If force_password_change is set, prompt to change password
   if (data.force_password_change || data.status === 'pending') {
