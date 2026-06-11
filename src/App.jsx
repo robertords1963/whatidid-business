@@ -212,7 +212,7 @@ useEffect(() => {
     }
   };
   
-const loadExperiences = async (skipLoading = false) => {
+const loadExperiences = async (skipLoading = false, loggedEmpId = null) => {
   try {
     if (!skipLoading) {
       setLoading(true);
@@ -297,11 +297,11 @@ const keyInsights = transformedData.filter(e => e.author === 'key_insights');
   const syntheticExps = transformedData.filter(e => e.source !== 'app' && e.author !== 'key_insights');
 
   // Lógica de visibilidade por grupo
-  const loggedEmpId = localStorage.getItem('employeeId');
+  const resolvedEmpId = loggedEmpId || localStorage.getItem('employeeId');
   const { data: empData } = await supabase
     .from('employees')
     .select('group_id, is_demo')
-    .eq('employee_id', loggedEmpId || '')
+    .eq('employee_id', resolvedEmpId || '')
     .single();
 
   const currentGroupId = empData?.group_id || null;
@@ -730,6 +730,7 @@ const handleEmployeeLogin = async () => {
   localStorage.setItem('employeeId', employeeId);
   setEmployeePassword('');
   await loadCurrentEmployeeGroup(employeeId);
+  await loadExperiences(false, employeeId);
   
   // If force_password_change is set, prompt to change password
   if (data.force_password_change || data.status === 'pending') {
@@ -747,6 +748,13 @@ const handleEmployeeLogin = async () => {
   setEmployeeId('');
   localStorage.removeItem('employeeLoggedIn');
   localStorage.removeItem('employeeId');
+  // Reset filters
+  setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '', industrySector: '' });
+  setFilterMode('individual');
+  setFilterPracticeId(null);
+  setCurrentPage(1);
+  setMappedFilter(null);
+  loadExperiences(false, null);
 };
 
   
