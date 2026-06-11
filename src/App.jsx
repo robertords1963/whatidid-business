@@ -417,6 +417,9 @@ const loadProblemCategories = async (practiceId = null) => {
 
     if (practiceId) {
       query = query.eq('practice_id', practiceId);
+    } else {
+      // Se nenhuma practice selecionada, carrega só as da General (practice_id=1)
+      query = query.eq('practice_id', 1);
     }
 
     const { data, error } = await query;
