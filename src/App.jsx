@@ -293,9 +293,44 @@ const loadExperiences = async (skipLoading = false) => {
       });
     }
 
-   const userExps = transformedData.filter(e => e.source === 'app');
-const syntheticExps = transformedData.filter(e => e.source !== 'app' && e.author !== 'key_insights');
 const keyInsights = transformedData.filter(e => e.author === 'key_insights');
+  const syntheticExps = transformedData.filter(e => e.source !== 'app' && e.author !== 'key_insights');
+
+  // Lógica de visibilidade por grupo
+  const loggedEmpId = localStorage.getItem('employeeId');
+  const { data: empData } = await supabase
+    .from('employees')
+    .select('group_id, is_demo')
+    .eq('employee_id', loggedEmpId || '')
+    .single();
+
+  const currentGroupId = empData?.group_id || null;
+
+  let userExps;
+  if (isAdmin) {
+    // Admin vê tudo
+    userExps = transformedData.filter(e => e.source === 'app');
+  } else if (currentGroupId) {
+    // Usuário com grupo: vê só próprias + mesmo grupo
+    const { data: groupMembers } = await supabase
+      .from('employees')
+      .select('employee_id')
+      .eq('group_id', currentGroupId);
+    const groupIds = (groupMembers || []).map(m => m.employee_id);
+    userExps = transformedData.filter(e =>
+      e.source === 'app' && groupIds.includes(e.employeeId)
+    );
+  } else {
+    // Usuário sem grupo: vê tudo exceto experiences de IDs em algum grupo
+    const { data: groupedEmps } = await supabase
+      .from('employees')
+      .select('employee_id')
+      .not('group_id', 'is', null);
+    const groupedIds = (groupedEmps || []).map(m => m.employee_id);
+    userExps = transformedData.filter(e =>
+      e.source === 'app' && !groupedIds.includes(e.employeeId)
+    );
+  }
 
 if (!shuffleOrderRef.current) {
   for (let i = syntheticExps.length - 1; i > 0; i--) {
@@ -3518,6 +3553,154 @@ autoComplete="off"
           )}
         </div>
 
+{isAdmin && (
+  <div className="mt-4 bg-pink-50 border-2 border-pink-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
+    <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+      🎯 Manage Demo Groups
+    </h3>
+
+    {/* Create New Group */}
+    <div className="bg-white rounded p-4 mb-4">
+      <h4 className="font-medium text-gray-700 mb-3">Create New Group</h4>
+      <div className="flex gap-2 mb-3">
+        <input
+          type="text"
+          id="new-group-name"
+          placeholder="Group name (e.g. Demo XYZ Bank)"
+          className="flex-1 p-2 border-2 border-gray-300 rounded-lg text-sm"
+        />
+        <button
+          onClick={async () => {
+            const name = document.getElementById('new-group-name').value.trim();
+            if (!name) { alert('Please enter a group name'); return; }
+            const { data, error } = await supabase
+              .from('demo_groups')
+              .insert([{ name }])
+              .select();
+            if (error) { alert('Error creating group: ' + error.message); return; }
+            document.getElementById('new-group-name').value = '';
+            await loadDemoGroups();
+            alert(`Group "${name}" created!`);
+          }}
+          className="px-4 py-2 bg-pink-600 text-white rounded-lg text-sm hover:bg-pink-700"
+        >+ Create Group</button>
+      </div>
+    </div>
+
+    {/* Available Demo IDs */}
+    <div className="bg-white rounded p-4 mb-4">
+      <h4 className="font-medium text-gray-700 mb-3">
+        Available Demo IDs ({employees.filter(e => e.is_demo && !e.group_id).length})
+      </h4>
+      <div className="flex flex-wrap gap-2">
+        {employees.filter(e => e.is_demo && !e.group_id).map(emp => (
+          <span key={emp.employee_id} className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+            {emp.employee_id}
+          </span>
+        ))}
+        {employees.filter(e => e.is_demo && !e.group_id).length === 0 && (
+          <p className="text-sm text-gray-500">No available IDs — all in use</p>
+        )}
+      </div>
+    </div>
+
+    {/* Existing Groups */}
+    <div className="bg-white rounded p-4">
+      <h4 className="font-medium text-gray-700 mb-3">Active Groups ({demoGroups.length})</h4>
+      {demoGroups.length === 0 ? (
+        <p className="text-sm text-gray-500">No groups yet</p>
+      ) : (
+        <div className="space-y-4">
+          {demoGroups.map(group => (
+            <div key={group.id} className="border border-gray-200 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h5 className="font-semibold text-gray-800">{group.name}</h5>
+                <button
+                  onClick={async () => {
+                    if (!window.confirm(`Delete group "${group.name}"? All experiences and comments from its members will be deleted.`)) return;
+                    try {
+                      // Get group members
+                      const { data: members } = await supabase
+                        .from('employees')
+                        .select('employee_id, group_id')
+                        .eq('group_id', group.id);
+                      
+                      for (const member of members || []) {
+                        // Delete comments
+                        await supabase.from('comments').delete().eq('employee_id', member.employee_id);
+                        // Delete experiences files
+                        const { data: exps } = await supabase.from('experiences').select('id, cv_url').eq('employee_id', member.employee_id);
+                        for (const exp of exps || []) {
+                          if (exp.cv_url) await deleteFileFromStorage(exp.cv_url);
+                        }
+                        // Delete experiences
+                        await supabase.from('experiences').delete().eq('employee_id', member.employee_id);
+                        // Release ID from group
+                        await supabase.from('employees').update({ group_id: null }).eq('employee_id', member.employee_id);
+                      }
+                      // Delete group
+                      await supabase.from('demo_groups').delete().eq('id', group.id);
+                      await loadDemoGroups();
+                      await loadEmployees();
+                      await loadExperiences(true);
+                      alert(`Group "${group.name}" deleted and data cleared!`);
+                    } catch (error) {
+                      alert('Error deleting group: ' + error.message);
+                    }
+                  }}
+                  className="px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700"
+                >🗑️ Delete Group</button>
+              </div>
+
+              {/* Members */}
+              <div className="mb-3">
+                <p className="text-xs font-medium text-gray-600 mb-2">Members:</p>
+                <div className="flex flex-wrap gap-2">
+                  {(group.employees || []).map(emp => (
+                    <span key={emp.employee_id} className="px-3 py-1 bg-pink-100 text-pink-800 rounded-full text-xs font-medium">
+                      {emp.employee_id}
+                    </span>
+                  ))}
+                  {(group.employees || []).length === 0 && (
+                    <span className="text-xs text-gray-400">No members yet</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Add member */}
+              <div className="flex gap-2">
+                <select
+                  id={`add-member-${group.id}`}
+                  className="flex-1 p-2 border-2 border-gray-200 rounded-lg text-sm"
+                >
+                  <option value="">Add available ID...</option>
+                  {employees.filter(e => e.is_demo && !e.group_id).map(emp => (
+                    <option key={emp.employee_id} value={emp.employee_id}>{emp.employee_id}</option>
+                  ))}
+                </select>
+                <button
+                  onClick={async () => {
+                    const empId = document.getElementById(`add-member-${group.id}`).value;
+                    if (!empId) { alert('Please select an ID'); return; }
+                    const { error } = await supabase
+                      .from('employees')
+                      .update({ group_id: group.id })
+                      .eq('employee_id', empId);
+                    if (error) { alert('Error adding member: ' + error.message); return; }
+                    await loadDemoGroups();
+                    await loadEmployees();
+                  }}
+                  className="px-3 py-2 bg-pink-600 text-white rounded-lg text-sm hover:bg-pink-700"
+                >Add</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  </div>
+)}
+       
 {isAdmin && (
   <div className="mt-4 bg-slate-50 border-2 border-slate-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
