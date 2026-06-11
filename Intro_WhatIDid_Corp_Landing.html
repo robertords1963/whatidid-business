@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WhatIDid Corp — Organizational Learning Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--pu:#9333EA;--bl:#2563EB;--bd:#1E2E5C;--ye:#D97706;--gr:#16A34A;--re:#DC2626;--tx:#1E293B;--mu:#64748B;}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:"DM Sans",sans-serif;color:var(--tx);background:#0a0a1a;overflow-x:hidden;}
+h1,h2,h3,h4{font-family:"Sora",sans-serif;}
+a{text-decoration:none;}
+img{max-width:100%;}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.25rem;background:rgba(10,10,26,.92);backdrop-filter:blur(12px);border-bottom:1px solid rgba(147,51,234,.2);}
+.logo{display:flex;align-items:center;gap:.5rem;}
+.logo svg{width:24px;height:24px;flex-shrink:0;}
+.logo-text{font-family:"Sora",sans-serif;font-weight:700;font-size:1rem;color:#fff;}
+.logo-sub{font-weight:300;color:#c4b5fd;}
+.nav-links{display:none;list-style:none;gap:1.5rem;}
+.nav-links a{color:#c4b5fd;font-size:.88rem;font-weight:500;}
+.nav-links a:hover{color:#fff;}
+.nav-btn{background:var(--pu);color:#fff;padding:.5rem .9rem;border-radius:8px;font-weight:600;font-size:.82rem;}
+
+/* HERO */
+.hero{min-height:100vh;background:linear-gradient(135deg,#4B1A8A,#2563EB);display:flex;flex-direction:column;justify-content:center;padding:7rem 1.25rem 5rem;position:relative;overflow:hidden;}
+.hero::after{content:"";position:absolute;top:-10%;right:-10%;width:300px;height:300px;background:radial-gradient(circle,rgba(147,51,234,.4),transparent 70%);border-radius:50%;pointer-events:none;}
+.badge{display:inline-flex;align-items:center;gap:.4rem;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#e9d5ff;padding:.35rem .9rem;border-radius:100px;font-size:.78rem;font-weight:500;margin-bottom:1.25rem;}
+.hero h1{font-size:2.1rem;font-weight:800;color:#fff;line-height:1.1;margin-bottom:1.25rem;}
+.hero h1 span{color:#fcd34d;}
+.hero p{font-size:.97rem;color:#c4b5fd;line-height:1.7;margin-bottom:2rem;max-width:500px;}
+.btns{display:flex;flex-direction:column;gap:.75rem;max-width:260px;}
+.btn-y{background:var(--ye);color:#fff;padding:.85rem 1.5rem;border-radius:10px;font-weight:700;font-size:.95rem;text-align:center;}
+.btn-w{background:rgba(255,255,255,.12);color:#fff;padding:.85rem 1.5rem;border-radius:10px;font-weight:600;font-size:.95rem;text-align:center;border:1px solid rgba(255,255,255,.3);}
+.tagline{margin-top:3rem;padding-top:1.5rem;border-top:1px solid rgba(255,255,255,.15);font-weight:700;color:rgba(255,255,255,.7);font-size:.88rem;}
+
+/* GENERIC SECTION */
+.sec{padding:4rem 1.25rem;}
+.lbl{display:inline-block;background:rgba(147,51,234,.12);color:var(--pu);padding:.3rem .85rem;border-radius:100px;font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:.75rem;}
+.lbl.inv{background:rgba(255,255,255,.15);color:#e9d5fd;}
+.lbl.dark{background:rgba(255,255,255,.1);color:#93c5fd;}
+h2.ttl{font-size:1.65rem;font-weight:800;line-height:1.2;margin-bottom:.75rem;}
+h2.ttl.wh{color:#fff;}
+p.sub{font-size:.95rem;color:var(--mu);line-height:1.7;margin-bottom:2rem;}
+p.sub.wh{color:#c4b5fd;}
+p.sub.bl{color:#93c5fd;}
+
+/* PROBLEM */
+.prob{background:#fff;}
+.grid-2{display:grid;grid-template-columns:1fr;gap:1rem;}
+.card{padding:1.5rem 1.5rem 1.5rem 1.75rem;border-radius:14px;border:1px solid #e9d5ff;background:#fff;position:relative;overflow:hidden;}
+.card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;border-radius:0;}
+.card.pu::before{background:var(--pu);}
+.card.bl::before{background:var(--bl);}
+.card.ye::before{background:var(--ye);}
+.card.nv{background:var(--bd);border-color:var(--bd);padding-left:1.5rem;}
+.card.nv::before{display:none;}
+.card h4{font-size:.95rem;font-weight:700;margin-bottom:.6rem;}
+.card.nv h4{color:var(--ye);}
+.card p,.card li{font-size:.9rem;color:var(--mu);line-height:1.6;}
+.card.nv li{color:#c4b5fd;}
+.card ul{list-style:none;}
+.card li{display:flex;gap:.4rem;margin-bottom:.2rem;}
+.card li::before{content:"•";color:var(--ye);flex-shrink:0;}
+.warn{grid-column:1/-1;background:#fff7ed;border:2px solid var(--ye);border-radius:12px;padding:1rem 1.5rem;text-align:center;font-weight:700;color:var(--ye);font-size:.92rem;font-style:italic;}
+
+/* SOLUTION */
+.sol{background:linear-gradient(135deg,#4B1A8A,#1D4ED8);}
+.formula{background:rgba(147,51,234,.3);border:2px solid rgba(255,255,255,.2);border-radius:14px;padding:1.25rem 1.5rem;text-align:center;color:#fcd34d;font-size:.97rem;font-weight:700;margin:0 auto 2rem auto;line-height:1.7;font-family:"Sora",sans-serif;display:block;width:100%;}
+.grid-3{display:grid;grid-template-columns:1fr;gap:1rem;}
+.scard{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:14px;padding:1.5rem;}
+.scard .ic{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin-bottom:.75rem;}
+.scard h3{color:#fff;font-size:1rem;font-weight:700;margin-bottom:.4rem;}
+.scard p{color:#c4b5fd;font-size:.9rem;line-height:1.6;}
+
+/* FLOW */
+.flow{background:#f8f5ff;}
+.steps{display:flex;flex-direction:column;max-width:760px;width:100%;}
+.step{display:flex;align-items:flex-start;gap:1rem;padding:1.25rem 0;border-bottom:1px solid #e9d5ff;}
+.step:last-child{border-bottom:none;}
+.num{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:"Sora",sans-serif;font-weight:800;font-size:1rem;color:#fff;flex-shrink:0;}
+.step h4{font-size:.95rem;font-weight:700;margin-bottom:.2rem;}
+.step p{font-size:.87rem;color:var(--mu);line-height:1.5;}
+.arr{color:var(--ye);font-size:1.2rem;padding:.25rem 0;text-align:center;width:100%;display:block;}
+
+/* FEATURES */
+.feat{background:#fff;}
+.fgrid{display:grid;grid-template-columns:1fr;gap:1rem;}
+.fb{display:flex;gap:1rem;align-items:flex-start;padding:1.25rem;border-radius:14px;border:1px solid #f0e8ff;}
+.fi{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;}
+.fb h4{font-size:.93rem;font-weight:700;margin-bottom:.3rem;}
+.fb p{font-size:.85rem;color:var(--mu);line-height:1.55;}
+
+/* INSIGHTS */
+.ins{background:var(--bd);}
+.igrid{display:grid;grid-template-columns:1fr;gap:1rem;}
+.ic2{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:14px;padding:1.5rem;}
+.ic2 h4{color:#fff;font-size:.95rem;font-weight:700;margin-bottom:.4rem;}
+.ic2 p{color:#93c5fd;font-size:.87rem;line-height:1.6;}
+.ibadge{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;font-size:.78rem;font-weight:700;margin-bottom:.75rem;}
+
+/* RETENTION */
+.ret{background:linear-gradient(135deg,#4B1A8A,#1D4ED8);}
+.rwarn{background:var(--re);border-radius:12px;padding:1rem 2rem;color:#fff;font-weight:700;font-size:.95rem;text-align:center;font-style:italic;display:inline-block;max-width:700px;}
+.circles{display:flex;gap:1.5rem;flex-wrap:wrap;}
+.cir-wrap{display:flex;flex-direction:column;align-items:center;gap:.6rem;}
+.cir{width:80px;height:80px;border-radius:50%;background:var(--ye);display:flex;align-items:center;justify-content:center;font-size:1.7rem;}
+.cir-wrap span{color:#fff;font-weight:700;font-size:.93rem;}
+
+/* DEPLOY */
+.dep{background:#fff;}
+.dgrid{display:grid;grid-template-columns:1fr;gap:1.25rem;}
+.dc{border-radius:18px;padding:2rem;display:flex;flex-direction:column;gap:.9rem;}
+.dc.cl{background:linear-gradient(135deg,#7C3AED,#4F46E5);}
+.dc.nt{background:linear-gradient(135deg,#1D4ED8,#1E2E5C);}
+.dc .di{font-size:2rem;}
+.dc h3{color:#fff;font-size:1.2rem;font-weight:800;}
+.dc p{color:rgba(255,255,255,.75);font-size:.9rem;line-height:1.6;}
+.dtag{display:inline-block;background:rgba(255,255,255,.2);color:#fff;padding:.25rem .65rem;border-radius:100px;font-size:.75rem;font-weight:600;width:fit-content;}
+
+/* PRICING */
+.pri{background:#f8f5ff;}
+.pt-wrap{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:14px;box-shadow:0 4px 24px rgba(147,51,234,.1);}
+.pt{width:100%;min-width:340px;border-collapse:collapse;}
+.pt th{padding:.8rem;text-align:left;font-size:.75rem;font-weight:700;font-family:"Sora",sans-serif;}
+.pt th:first-child{background:#4B1A8A;color:#fff;}
+.pt th.st{background:#059669;color:#fff;}
+.pt th.pr{background:#1D4ED8;color:#fff;}
+.pt th.li{background:#4B1A8A;color:#fff;}
+.pt td{padding:.6rem .5rem;font-size:.82rem;border-bottom:1px solid #f0e8ff;}
+.pt tr:nth-child(odd) td{background:#fff;}
+.pt tr:nth-child(even) td{background:#f8f5ff;}
+.pt td+td{font-weight:700;color:var(--pu);text-align:center;}
+.pt td:last-child{color:var(--bl);}
+.pt tr.pilot td{background:rgba(107,33,168,.06);}
+.pnote{margin-top:.75rem;font-size:.8rem;color:var(--mu);font-style:italic;}
+
+/* IMPL */
+.impl{background:#fff;}
+.igr{display:grid;grid-template-columns:1fr;gap:1.25rem;}
+.im{border-radius:18px;padding:1.75rem;border:2px solid transparent;}
+.im.i1{border-color:var(--pu);}
+.im.i2{border-color:var(--bl);}
+.im.i3{border-color:var(--gr);}
+.in{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1rem;color:#fff;font-family:"Sora",sans-serif;margin-bottom:.9rem;text-align:center;line-height:1;}
+.im h3{font-size:1rem;font-weight:700;margin-bottom:.3rem;}
+.dur{font-size:.8rem;font-style:italic;margin-bottom:.9rem;}
+.im ul{list-style:none;}
+.im li{font-size:.87rem;color:var(--mu);padding:.25rem 0;display:flex;gap:.4rem;}
+.im.i1 li::before{content:"→";color:var(--pu);}
+.im.i2 li::before{content:"→";color:var(--bl);}
+.im.i3 li::before{content:"→";color:var(--gr);}
+
+/* CTA */
+.cta{background:linear-gradient(135deg,#4B1A8A,#1D4ED8);text-align:center;padding:5rem 1.25rem;}
+.cta h2{color:#fff;font-size:1.7rem;margin-bottom:.9rem;line-height:1.2;}
+.cta p{color:#c4b5fd;font-size:1rem;margin-bottom:2rem;}
+.cta .btn-y{display:inline-block;}
+
+/* FOOTER */
+footer{background:#0a0a1a;padding:2rem 1.25rem;display:flex;flex-direction:column;align-items:center;gap:.75rem;border-top:1px solid rgba(147,51,234,.2);text-align:center;}
+.brand{display:flex;align-items:center;gap:.5rem;}
+.brand span{font-family:"Sora",sans-serif;font-weight:700;color:#fff;font-size:.97rem;}
+footer p{color:#475569;font-size:.82rem;}
+
+/* REVEAL */
+.rv{opacity:1;transform:none;transition:opacity .5s ease,transform .5s ease;}
+.rv.on{opacity:1;transform:translateY(0);}
+/* Fallback: show everything if JS hasn't run after 1s */
+@media(max-width:1024px){.rv{opacity:1;transform:none;transition:none;}}
+
+/* TABLET */
+@media(min-width:640px){
+  nav{padding:.9rem 2rem;}
+  .sec{padding:5rem 2rem;}
+  .hero{padding:7rem 2rem 5rem;}
+  .cta{padding:6rem 2rem;}
+  footer{padding:2rem;}
+  .hero h1{font-size:3rem;}
+  .btns{flex-direction:row;max-width:none;}
+  .btn-y,.btn-w{display:inline-block;}
+  .grid-2{grid-template-columns:1fr 1fr;}
+  .grid-3{grid-template-columns:repeat(3,1fr);}
+  .fgrid{grid-template-columns:1fr 1fr;}
+  .igrid{grid-template-columns:repeat(3,1fr);}
+  .dgrid{grid-template-columns:1fr 1fr;}
+  .igr{grid-template-columns:repeat(3,1fr);}
+  .formula{font-size:1.05rem;}
+  h2.ttl{font-size:2rem;}
+}
+
+/* DESKTOP */
+@media(min-width:1024px){
+  nav{padding:1rem 4rem;}
+  .sec{padding:6rem 4rem;}
+  .hero{padding:8rem 4rem 6rem;}
+  .cta{padding:8rem 4rem;}
+  footer{flex-direction:row;justify-content:space-between;text-align:left;padding:2.5rem 4rem;}
+  .nav-links{display:flex;}
+  .nav-btn{padding:.6rem 1.4rem;font-size:.9rem;}
+  .hero h1{font-size:4.5rem;}
+  .formula{font-size:1.15rem;padding:1.5rem 2.5rem;}
+  h2.ttl{font-size:2.4rem;}
+  .cta h2{font-size:2.8rem;}
+  /* Enhanced card styles for desktop */
+  .card{box-shadow:0 4px 20px rgba(147,51,234,.08);transition:box-shadow .2s,transform .2s;}
+  .card:hover{box-shadow:0 8px 32px rgba(147,51,234,.15);transform:translateY(-2px);}
+  .scard{transition:background .2s,transform .2s;}
+  .scard:hover{background:rgba(255,255,255,.18);transform:translateY(-3px);}
+  .fb{transition:box-shadow .2s,border-color .2s;}
+  .fb:hover{box-shadow:0 8px 30px rgba(147,51,234,.1);border-color:#c4b5fd;}
+  .ic2{transition:background .2s;}
+  .ic2:hover{background:rgba(255,255,255,.14);}
+  .dc{transition:transform .2s;}
+  .dc:hover{transform:translateY(-4px);}
+  .im{transition:transform .2s;}
+  .im:hover{transform:translateY(-3px);}
+  /* Better hero */
+  .hero::before{content:"";position:absolute;bottom:-15%;left:-5%;width:400px;height:400px;background:radial-gradient(circle,rgba(37,99,235,.3),transparent 70%);border-radius:50%;pointer-events:none;}
+  .btn-y{box-shadow:0 8px 24px rgba(217,119,6,.4);transition:all .2s;}
+  .btn-y:hover{background:#b45309;transform:translateY(-2px);}
+  .btn-w{transition:all .2s;}
+  .btn-w:hover{background:rgba(255,255,255,.22);}
+}
+
+.stair{background:linear-gradient(160deg,#0a0a1a 0%,#1E2E5C 60%,#4B1A8A 100%);padding:5rem 1.25rem;position:relative;overflow:hidden;}
+.stair-inner{max-width:900px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:2.5rem;}
+.stair-text{text-align:center;}
+.stair-title{font-family:"Sora",sans-serif;font-size:2rem;font-weight:800;color:#fff;line-height:1.2;margin:.75rem 0;}
+.stair-sub{color:#c4b5fd;font-size:1rem;line-height:1.7;}
+.stair-svg-wrap{width:100%;max-width:520px;}
+.stair-svg{width:100%;height:auto;}
+.stair-bottom{text-align:center;display:flex;flex-direction:column;align-items:center;gap:2rem;}
+.stair-lose{color:rgba(255,255,255,.6);font-size:.97rem;line-height:1.7;font-style:italic;}
+.stair-cta{display:flex;flex-direction:column;align-items:center;gap:.5rem;}
+.stair-brand{font-family:"Sora",sans-serif;font-size:2.5rem;font-weight:800;background:linear-gradient(135deg,#FCD34D,#D97706);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.stair-punch{color:#fff;font-size:1.15rem;font-weight:600;letter-spacing:.02em;}
+
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal-box{background:#fff;border-radius:18px;padding:2rem;max-width:480px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.25);position:relative;}
+.modal-box h3{font-family:'Sora',sans-serif;font-size:1.4rem;font-weight:700;color:#1E2E5C;margin-bottom:.5rem;}
+.modal-box p{color:#555;font-size:.9rem;margin-bottom:1.5rem;}
+.modal-box label{display:block;font-size:.85rem;font-weight:600;color:#333;margin-bottom:.3rem;}
+.modal-box input,.modal-box textarea{width:100%;padding:.7rem 1rem;border:2px solid #e2e8f0;border-radius:8px;font-size:.95rem;margin-bottom:1rem;box-sizing:border-box;font-family:inherit;}
+.modal-box input:focus,.modal-box textarea:focus{outline:none;border-color:#6B21A8;}
+.modal-box textarea{resize:none;height:90px;}
+.modal-close{position:absolute;top:1rem;right:1.2rem;font-size:1.5rem;cursor:pointer;color:#888;background:none;border:none;}
+.modal-submit{width:100%;padding:.85rem;background:linear-gradient(135deg,#6B21A8,#4F46E5);color:#fff;border:none;border-radius:10px;font-size:1rem;font-weight:700;cursor:pointer;font-family:inherit;}
+.modal-submit:hover{opacity:.9;}
+.modal-success{text-align:center;padding:1rem 0;}
+.modal-success .check{font-size:3rem;margin-bottom:.5rem;}
+.modal-success h4{color:#1E2E5C;font-size:1.2rem;font-weight:700;margin-bottom:.5rem;}
+.modal-success p{color:#555;font-size:.9rem;}
+
+.device-line{font-size:.9rem;color:rgba(255,255,255,.7);margin-top:.5rem;letter-spacing:.05em;}
+.video-promo{background:#0f172a;padding:5rem 1.25rem;}
+.vp-inner{max-width:860px;margin:0 auto;text-align:center;}
+.vp-title{font-family:"Sora",sans-serif;font-size:2rem;font-weight:800;color:#fff;margin:.75rem 0;}
+.vp-sub{color:#94a3b8;font-size:1rem;margin-bottom:2rem;}
+.vp-player{border-radius:16px;overflow:hidden;box-shadow:0 25px 60px rgba(0,0,0,.5);}
+.vp-video{width:100%;display:block;background:#000;max-height:360px;object-fit:contain;}
+.vp-player{max-width:640px;margin:0 auto;border-radius:16px;overflow:hidden;box-shadow:0 25px 60px rgba(0,0,0,.5);}
+@media(min-width:640px){.vp-title{font-size:2.5rem;}.video-promo{padding:6rem 2rem;}}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="#" class="logo">
+    <svg viewBox="0 0 36 36" fill="none">
+      <circle cx="6" cy="18" r="5" fill="#9333EA"/>
+      <circle cx="30" cy="6" r="5" fill="#9333EA"/>
+      <circle cx="30" cy="30" r="5" fill="#9333EA"/>
+      <line x1="11" y1="15" x2="25" y2="9" stroke="#9333EA" stroke-width="2.5"/>
+      <line x1="11" y1="21" x2="25" y2="27" stroke="#9333EA" stroke-width="2.5"/>
+    </svg>
+    <span class="logo-text">WhatIDid <span class="logo-sub">Corp</span></span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#problem">The Problem</a></li>
+    <li><a href="#solution">Solution</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="https://portal.whatidid.app" target="_blank">Portal</a></li>
+  </ul>
+  <a href="#cta" class="nav-btn">Request Demo</a>
+</nav>
+
+<section class="hero" id="home">
+  <div class="badge">🏢 Enterprise Organizational Learning</div>
+  <h1>Turn Every Work<br>Experience into<br><span>Collective Intelligence</span></h1>
+  <p>Capture, structure, and share work experiences across your organization. Stop repeating mistakes. Start accelerating learning.</p>
+  <div class="btns">
+    <button onclick="openDemoModal()" class="btn-y" style="border:none;cursor:pointer;font-family:inherit;">Request a Demo</button>
+    <a href="#solution" class="btn-w">See How It Works</a>
+  </div>
+  <div class="tagline">Real problems. Real actions. Real results.</div>
+</section>
+
+<section class="sec video-promo" id="see-it">
+  <div class="vp-inner rv">
+    <span class="lbl">See It In Action</span>
+    <h2 class="vp-title">Watch WhatIDid in Action</h2>
+    <p class="vp-sub">See how teams capture, share and learn from real work experiences.</p>
+    <div class="vp-player">
+      <video controls preload="metadata" class="vp-video">
+        <source src="https://scurkpoasiulwkmmechz.supabase.co/storage/v1/object/public/promotional-videos/video-1776905485495.mp4" type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
+    </div>
+  </div>
+</section>
+
+<section class="sec prob" id="problem">
+  <span class="lbl rv">The Problem</span>
+  <h2 class="ttl rv">There's a gap between what individuals learn and what organizations embed.</h2>
+  <p class="sub rv">Countless day-to-day problems are dealt with — but not always systematically learned from.</p>
+  <div class="grid-2">
+    <div class="card bl rv"><div style="font-family:'Sora',sans-serif;font-weight:800;font-size:1rem;color:#2563EB;margin-bottom:.3rem">01</div><h4>Employees encounter problems that may recur across individuals, related to:</h4><ul><li>Project management</li><li>Operations</li><li>Customer service</li><li>Internal processes</li></ul></div>
+    <div class="card ye rv"><div style="font-family:'Sora',sans-serif;font-weight:800;font-size:1rem;color:#D97706;margin-bottom:.3rem">02</div><h4>Knowledge often remains siloed, including in employees' minds</h4><p>Most of it does not spread consistently across the organization.</p></div>
+    <div class="card nv rv"><div style="font-family:'Sora',sans-serif;font-weight:800;font-size:1rem;color:#FCD34D;margin-bottom:.3rem">03</div><h4>As a result:</h4><ul><li>Teams may at times repeat mistakes</li><li>Time may be spent rediscovering solutions to recurring problems</li><li>Valuable knowledge remains fragmented</li></ul><p style="margin-top:.75rem;font-size:.85rem;color:#FCD34D;font-style:italic;font-weight:600">And when employees eventually leave — the knowledge leaves with them.</p></div>
+    <div class="card pu rv" style="border-color:#E9D5FF;">
+      <div style="font-family:'Sora',sans-serif;font-weight:800;font-size:1rem;color:#9333EA;margin-bottom:.3rem">04</div>
+      <h4 style="color:#9333EA;margin-bottom:.9rem">Why this happens</h4>
+      <!-- How stored -->
+      <p style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9333EA;margin-bottom:.4rem">How experiences are stored</p>
+      <div style="display:flex;flex-wrap:wrap;gap:.35rem;margin-bottom:.85rem">
+        <span style="background:#FEE2E2;color:#DC2626;padding:.25rem .6rem;border-radius:100px;font-size:.75rem;font-weight:600;border:1px solid #FECACA">① Not recorded</span>
+        <span style="background:#EFF6FF;color:#1D4ED8;padding:.25rem .6rem;border-radius:100px;font-size:.75rem;font-weight:600;border:1px solid #BFDBFE">② Decentralized</span>
+        <span style="background:#EFF6FF;color:#1D4ED8;padding:.25rem .6rem;border-radius:100px;font-size:.75rem;font-weight:600;border:1px solid #BFDBFE">③ Free text</span>
+        <span style="background:#EFF6FF;color:#1D4ED8;padding:.25rem .6rem;border-radius:100px;font-size:.75rem;font-weight:600;border:1px solid #BFDBFE">④ Unstructured</span>
+      </div>
+      <p style="font-size:.8rem;color:#94A3B8;margin-bottom:.85rem;line-height:1.5">Not broken down into <strong style="color:#64748B">problem</strong>, <strong style="color:#64748B">actions</strong>, and <strong style="color:#64748B">results</strong> (<strong style="color:#94A3B8">what worked</strong> and <strong style="color:#94A3B8">what didn't</strong>).</p>
+      <!-- Divider -->
+      <div style="border-top:1px dashed #E2E8F0;margin-bottom:.75rem"></div>
+      <!-- As a result -->
+      <p style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#DC2626;margin-bottom:.4rem">This makes them…</p>
+      <div style="display:flex;flex-direction:column;gap:.35rem">
+          <div style="display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:#475569"><span style="width:7px;height:7px;border-radius:50%;background:#DC2626;flex-shrink:0;display:inline-block"></span>Difficult to search</div>
+          <div style="display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:#475569"><span style="width:7px;height:7px;border-radius:50%;background:#DC2626;flex-shrink:0;display:inline-block"></span>Difficult to turn into insights</div>
+          <div style="display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:#991B1B;font-weight:700"><span style="width:7px;height:7px;border-radius:50%;background:#DC2626;flex-shrink:0;display:inline-block"></span><span style="font-style:italic">Ineffective for organizational learning</span></div>
+      </div>
+    </div>
+  </div>
+
+    <div class="warn rv" style="grid-column:1/-1;background:#D97706;border-radius:12px;padding:1.1rem 1.5rem;text-align:center;font-weight:700;color:#ffffff !important;font-size:.95rem;font-style:italic;margin-top:2rem;display:block;">Organizations often lack an effective process to turn work experiences into learning — one that drives discipline and culture.</div>
+</section>
+
+<section class="sec sol" id="solution">
+  <span class="lbl inv rv">The Solution</span>
+  <h2 class="ttl wh rv">WhatIDid — A platform designed to capture and structure work experiences</h2>
+  <p class="sub wh rv">Using a simple, universal format that any employee can follow.</p>
+  <div class="formula rv">Work Experience =<br>Problem → Action → Result<br>(Worked, No Change, Got Worse)</div>
+  <div class="grid-3">
+    <div class="scard rv"><div class="ic" style="background:rgba(147,51,234,.3)">🔴</div><h3>Problem</h3><p>Describe the operational problem or challenge faced in a clear, structured way.</p></div>
+    <div class="scard rv"><div class="ic" style="background:rgba(37,99,235,.3)">⚡</div><h3>Action</h3><p>What was done to address the problem — the specific steps and decisions taken.</p></div>
+    <div class="scard rv"><div class="ic" style="background:rgba(22,163,74,.3)">✅</div><h3>Result</h3><p>What happened — whether it worked, made no change, or made things worse.</p></div>
+  </div>
+</section>
+
+<section class="sec flow" id="flow">
+  <span class="lbl rv">The Learning Loop</span>
+  <h2 class="ttl rv">A continuous organizational learning cycle</h2>
+  <p class="sub rv">Every experience captured feeds back into the organization, creating compounding knowledge over time.</p>
+  <div class="steps rv">
+    <div class="step"><div class="num" style="background:#9333EA">1</div><div><h4>Experiences Captured</h4><p>Employees log real work experiences using the Problem → Action → Result format.</p></div></div>
+    <div class="arr">↓</div>
+    <div class="step"><div class="num" style="background:#7E22CE">2</div><div><h4>Shared Across the Organization</h4><p>Experiences are immediately visible to colleagues, departments, and leadership.</p></div></div>
+    <div class="arr">↓</div>
+    <div class="step"><div class="num" style="background:#2563EB">3</div><div><h4>Enriched Through Peer Feedback</h4><p>Colleagues add comments, ratings, and perspectives — enriching each experience.</p></div></div>
+    <div class="arr">↓</div>
+    <div class="step"><div class="num" style="background:#D97706">4</div><div><h4>Insights to Boost Problem-Solving</h4><p>Patterns emerge from the data, surfacing what works and what doesn't.</p></div></div>
+    <div class="arr">↓</div>
+    <div class="step"><div class="num" style="background:#16A34A">5</div><div><h4>Improved Performance</h4><p>Teams solve problems faster, avoid past mistakes, and make better decisions.</p></div></div>
+    <div class="arr">↺ Repeat</div>
+  </div>
+</section>
+
+<section class="sec feat" id="features">
+  <span class="lbl rv">Platform Features</span>
+  <h2 class="ttl rv">Everything your organization needs to learn at scale</h2>
+  <p class="sub rv">WhatIDid is designed for how organizations actually work — across teams, departments, and geographies.</p>
+  <div class="fgrid">
+    <div class="fb rv"><div class="fi" style="background:#ede9fe">💻</div><div><h4>Desktop & Mobile</h4><p>Access WhatIDid from any device — desktop, tablet, or smartphone. No app download required.</p></div></div>
+    <div class="fb rv"><div class="fi" style="background:#f5f3ff">🔍</div><div><h4>Smart Search & Filtering</h4><p>Find relevant experiences by category, result type, or keyword.</p></div></div>
+    <div class="fb rv"><div class="fi" style="background:#f0fff4">🎯</div><div><h4>Key Insights (Common Cases)</h4><p>Curated patterns that emerge from recurring experiences — surfacing what works across the organization.</p></div></div>
+    <div class="fb rv"><div class="fi" style="background:#fff7ed">⭐</div><div><h4>Rating & Engagement</h4><p>Peer ratings surface the most valuable experiences. Top experiences highlighted for everyone.</p></div></div>
+    <div class="fb rv"><div class="fi" style="background:#eff6ff">💬</div><div><h4>Comments & Discussion</h4><p>Colleagues add context and updates — making knowledge richer over time.</p></div></div>
+    <div class="fb rv"><div class="fi" style="background:#f5f3ff">🔒</div><div><h4>Employee Login & Access Control</h4><p>Secure authentication ensures only your team accesses your organizational knowledge.</p></div></div>
+    <div class="fb rv"><div class="fi" style="background:#f0fff4">📎</div><div><h4>Document Uploads</h4><p>Attach reports, presentations, or files to any experience or comment.</p></div></div>
+    <div class="fb rv"><div class="fi" style="background:#fff7ed">📊</div><div><h4>Reports & Analytics</h4><p>Understand problem distribution, recurring issues, trends over time, and what works.</p></div></div>
+    <div class="fb rv"><div class="fi" style="background:#eff6ff">🏆</div><div><h4>Top Experiences Showcase</h4><p>Curate the week's most valuable experiences — driving participation and excellence.</p></div></div>
+  </div>
+</section>
+
+<section class="sec ins">
+  <span class="lbl dark rv">For Leadership</span>
+  <h2 class="ttl wh rv">A real-time strategic feedback loop</h2>
+  <p class="sub bl rv">Daily experiences captured across the organization help leadership make faster, better-informed decisions.</p>
+  <div class="igrid">
+    <div class="ic2 rv"><span class="ibadge" style="background:rgba(147,51,234,.3);color:#c4b5fd">01</span><h4>Understand Emerging Problems</h4><p>Real-time visibility into what operational challenges are occurring across every team.</p></div>
+    <div class="ic2 rv"><span class="ibadge" style="background:rgba(37,99,235,.3);color:#93c5fd">02</span><h4>Prioritize Improvement Efforts</h4><p>Data-driven insight into which recurring issues deserve attention and resources.</p></div>
+    <div class="ic2 rv"><span class="ibadge" style="background:rgba(22,163,74,.3);color:#86efac">03</span><h4>Adjust Strategies in Real Time</h4><p>Align strategic decisions with real operational challenges — not assumptions.</p></div>
+  </div>
+</section>
+
+<section class="sec ret">
+  <span class="lbl inv rv">Knowledge Retention</span>
+  <h2 class="ttl wh rv">Stop losing knowledge when people leave</h2>
+  <p class="sub wh rv">One of the biggest risks organizations face is institutional knowledge walking out the door.</p>
+  <div style="margin-bottom:2rem;" class="rv"><span class="rwarn">"Knowledge walking out the door when employees leave."</span></div>
+  <p style="color:#c4b5fd;margin-bottom:1.5rem;font-size:.97rem" class="rv">WhatIDid ensures that valuable experiences are:</p>
+  <div class="circles rv">
+    <div class="cir-wrap"><div class="cir">📝</div><span>Recorded</span></div>
+    <div class="cir-wrap"><div class="cir">🔗</div><span>Shared</span></div>
+    <div class="cir-wrap"><div class="cir">🏛️</div><span>Preserved</span></div>
+  </div>
+</section>
+
+<section class="sec dep">
+  <span class="lbl rv">Deployment Options</span>
+  <h2 class="ttl rv">Flexible deployment to match your organization's needs</h2>
+  <p class="sub rv">Organizations can implement WhatIDid in two ways.</p>
+  <div class="dgrid rv">
+    <div class="dc cl"><div class="di">☁️</div><h3>Cloud-Based Platform</h3><span class="dtag">Recommended</span><p>Available on Google Cloud, AWS, or Azure. Fastest deployment. Always up-to-date. No infrastructure required.</p></div>
+    <div class="dc nt"><div class="di">🏢</div><h3>Internal Deployment</h3><span class="dtag">Enterprise</span><p>Via company IT infrastructure. Full data control. Ideal for regulated industries with strict data residency requirements.</p></div>
+  </div>
+</section>
+
+<section class="sec pri" id="pricing">
+  <span class="lbl rv">Pricing</span>
+  <h2 class="ttl rv">Scalable pricing that grows with your organization</h2>
+  <p class="sub rv">Starting with a low-risk pilot. Scaling as you grow.</p>
+  <div class="pt-wrap rv">
+    <table class="pt">
+      <thead>
+        <tr>
+          <th rowspan="2" style="width:18%;vertical-align:middle;text-align:center;background:#4B1A8A;color:white">Users</th>
+          <th colspan="2" style="text-align:center;background:#1E2E5C;color:#FCD34D;font-family:'Sora',sans-serif;font-size:.75rem;font-weight:700;border-bottom:1px solid rgba(255,255,255,.25);padding:.7rem .5rem">Implementation Fee</th>
+          <th rowspan="2" style="vertical-align:middle;text-align:center;background:#4B1A8A;color:white;font-family:'Sora',sans-serif;font-size:.72rem;font-weight:700;padding:.6rem .5rem">Annual<br>License<br><small style="font-weight:400;font-size:.68rem;color:#C4B5FD">/ user / yr</small></th>
+        </tr>
+        <tr>
+          <th style="background:#059669;color:white;font-family:'Sora',sans-serif;font-size:.7rem;font-weight:700;padding:.4rem .5rem;text-align:center">Starter</th>
+          <th style="background:#1D4ED8;color:white;font-family:'Sora',sans-serif;font-size:.7rem;font-weight:700;padding:.4rem .5rem;text-align:center">Professional</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="pilot"><td><strong>Up to 50</strong></td><td>$K</td><td>$$K</td><td>$</td></tr>
+        <tr><td>50 – 200</td><td>$K</td><td>$$$K</td><td>$$$</td></tr>
+        <tr><td>200 – 1,000</td><td>$$K</td><td>$$$$K</td><td>$$</td></tr>
+        <tr><td>1,000 – 5,000</td><td>$$$K</td><td>$$$$$K</td><td>$50</td></tr>
+        <tr><td>5,000+</td><td>Custom</td><td>Custom</td><td>Custom</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="pnote rv">** Starter: standard setup, default cloud, 1 training session. Professional: dedicated cloud (Google/AWS/Azure), data migration, multiple training sessions.</p>
+  <p class="pnote rv">** Implementation fee includes cloud setup if required.</p>
+  <p class="pnote rv">** Implementation fee includes cloud setup if required.</p>
+</section>
+
+<section class="sec impl">
+  <span class="lbl rv">Implementation</span>
+  <h2 class="ttl rv">Up and running in weeks, not months</h2>
+  <p class="sub rv">A simple, structured rollout in three stages.</p>
+  <div class="igr">
+    <div class="im i1 rv"><div class="in" style="background:#9333EA;margin:0 auto .9rem auto">1</div><h3 style="text-align:center">Setup & Alignment</h3><div class="dur" style="color:#9333EA;text-align:center">2–4 weeks</div><ul><li>Finalize agreement</li><li>Define pilot scope</li><li>Identify sponsor and implementation lead</li><li>Configure platform and categories</li></ul></div>
+    <div class="im i2 rv"><div class="in" style="background:#2563EB;margin:0 auto .9rem auto">2</div><h3 style="text-align:center">Pilot & Early Adoption</h3><div class="dur" style="color:#2563EB;text-align:center">4–6 weeks</div><ul><li>Train initial teams</li><li>Capture work experiences</li><li>Drive early engagement and usage</li></ul></div>
+    <div class="im i3 rv"><div class="in" style="background:#16A34A;margin:0 auto .9rem auto">3</div><h3 style="text-align:center">Expansion & Scale</h3><div class="dur" style="color:#16A34A;text-align:center">Starts in 8–12 weeks · ongoing</div><ul><li>Roll out across teams</li><li>Generate and leverage Key Insights</li><li>Enable data-driven strategic action</li><li>Embed into daily workflows</li></ul></div>
+  </div>
+  <p style="margin-top:1.5rem;font-style:italic;color:var(--mu);font-size:.87rem" class="rv">Sponsored by COO/CHRO; led by Operations, L&D, or Transformation teams.</p>
+</section>
+
+
+<!-- STAIRCASE FINAL PAGE -->
+<section class="sec stair" id="staircase">
+  <div class="stair-inner">
+    <div class="stair-text rv">
+      <span class="lbl inv">The Big Picture</span>
+      <h2 class="stair-title">Think of intelligence<br>as a staircase.</h2>
+      <p class="stair-sub">Each step, a piece of knowledge.<br>Intelligence requires knowledge — accumulated over time.</p>
+    </div>
+    <div class="stair-svg-wrap rv">
+      <svg viewBox="0 0 440 220" xmlns="http://www.w3.org/2000/svg" class="stair-svg">
+        <defs>
+          <linearGradient id="s1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#7C3AED"/><stop offset="100%" style="stop-color:#5B21B6"/></linearGradient>
+          <linearGradient id="s2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#7C3AED"/><stop offset="100%" style="stop-color:#4F46E5"/></linearGradient>
+          <linearGradient id="s3" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#6366F1"/><stop offset="100%" style="stop-color:#2563EB"/></linearGradient>
+          <linearGradient id="s4" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#3B82F6"/><stop offset="100%" style="stop-color:#1D4ED8"/></linearGradient>
+          <linearGradient id="s5" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#D97706"/><stop offset="100%" style="stop-color:#FCD34D"/></linearGradient>
+        </defs>
+        <rect x="340" y="10" width="76" height="36" rx="5" fill="url(#s5)"/>
+        <text x="378" y="32" text-anchor="middle" fill="rgba(30,46,92,0.25)" font-size="9" font-family="Sora,sans-serif" font-weight="700" letter-spacing="1">WhatIDid</text>
+        <rect x="260" y="50" width="76" height="36" rx="5" fill="url(#s4)"/>
+        <text x="298" y="72" text-anchor="middle" fill="rgba(255,255,255,0.12)" font-size="9" font-family="Sora,sans-serif" font-weight="700" letter-spacing="1">WhatIDid</text>
+        <rect x="340" y="50" width="76" height="36" rx="5" fill="url(#s4)"/>
+        <text x="378" y="72" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="9" font-family="Sora,sans-serif" font-weight="700" letter-spacing="1">WhatIDid</text>
+        <rect x="180" y="90" width="76" height="36" rx="5" fill="url(#s3)"/>
+        <text x="218" y="112" text-anchor="middle" fill="rgba(255,255,255,0.12)" font-size="9" font-family="Sora,sans-serif" font-weight="700" letter-spacing="1">WhatIDid</text>
+        <rect x="260" y="90" width="76" height="36" rx="5" fill="url(#s3)"/>
+        <text x="298" y="112" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="9" font-family="Sora,sans-serif" font-weight="700" letter-spacing="1">WhatIDid</text>
+        <rect x="340" y="90" width="76" height="36" rx="5" fill="url(#s3)"/>
+        <text x="378" y="112" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="9" font-family="Sora,sans-serif" font-weight="700" letter-spacing="1">WhatIDid</text>
+        <rect x="100" y="130" width="76" height="36" rx="5" fill="url(#s2)"/>
+        <text x="138" y="152" text-anchor="middle" fill="rgba(255,255,255,0.12)" font-size="9" font-family="Sora,sans-serif" font-weight="700" letter-spacing="1">WhatIDid</text>
+        <rect x="180" y="130" width="76" height="36" rx="5" fill="url(#s2)"/>
+        <text x="218" y="152" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="9" font-family="Sora,sans-serif" font-weight="700" letter-spacing="1">WhatIDid</text>
+        <rect x="260" y="130" width="76" height="36" rx="5" fill="url(#s2)"/>
+        <text x="298" y="152" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="9" font-family="Sora,sans-serif" font-weight="700" letter-spacing="1">WhatIDid</text>
+        <rect x="340" y="130" width="76" height="36" rx="5" fill="url(#s2)"/>
+        <text x="378" y="152" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="9" font-family="Sora,sans-serif" font-weight="700" letter-spacing="1">WhatIDid</text>
+        <rect x="20" y="170" width="76" height="36" rx="5" fill="url(#s1)"/>
+        <text x="58" y="192" text-anchor="middle" fill="rgba(255,255,255,0.12)" font-size="9" font-family="Sora,sans-serif" font-weight="700" letter-spacing="1">WhatIDid</text>
+        <rect x="100" y="170" width="76" height="36" rx="5" fill="url(#s1)"/>
+        <text x="138" y="192" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="9" font-family="Sora,sans-serif" font-weight="700" letter-spacing="1">WhatIDid</text>
+        <rect x="180" y="170" width="76" height="36" rx="5" fill="url(#s1)"/>
+        <text x="218" y="192" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="9" font-family="Sora,sans-serif" font-weight="700" letter-spacing="1">WhatIDid</text>
+        <rect x="260" y="170" width="76" height="36" rx="5" fill="url(#s1)"/>
+        <text x="298" y="192" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="9" font-family="Sora,sans-serif" font-weight="700" letter-spacing="1">WhatIDid</text>
+        <rect x="340" y="170" width="76" height="36" rx="5" fill="url(#s1)"/>
+        <text x="378" y="192" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="9" font-family="Sora,sans-serif" font-weight="700" letter-spacing="1">WhatIDid</text>
+      </svg>
+    </div>
+    <div class="stair-bottom rv">
+      <p class="stair-lose">Lose a step — and you can't reach the next.</p>
+      <div class="stair-cta">
+        <div class="stair-brand">WhatIDid</div>
+        <p class="stair-punch">Where knowledge never gets lost.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cta" id="cta">
+  <h2 class="rv">Imagine an organization where every solved problem strengthens collective intelligence.</h2>
+  <p class="rv">Where knowledge never gets lost.</p>
+  <button onclick="openDemoModal()" class="btn-y rv" style="border:none;cursor:pointer;font-family:inherit;">Request a Demo</button>
+</section>
+
+<footer>
+  <div class="brand">
+    <svg width="22" height="22" viewBox="0 0 36 36" fill="none">
+      <circle cx="6" cy="18" r="5" fill="#9333EA"/>
+      <circle cx="30" cy="6" r="5" fill="#9333EA"/>
+      <circle cx="30" cy="30" r="5" fill="#9333EA"/>
+      <line x1="11" y1="15" x2="25" y2="9" stroke="#9333EA" stroke-width="2.5"/>
+      <line x1="11" y1="21" x2="25" y2="27" stroke="#9333EA" stroke-width="2.5"/>
+    </svg>
+    <span>WhatIDid Corp</span>
+  </div>
+  <p>© 2026 WhatIDid — All rights reserved</p>
+  <p>Real problems. Real actions. Real results.</p>
+</footer>
+
+<script>
+// On desktop only: animate reveals
+if(window.innerWidth >= 1024) {
+  document.querySelectorAll(".rv").forEach(el => {
+    el.style.opacity = "0";
+    el.style.transform = "translateY(20px)";
+    el.style.transition = "opacity .5s ease, transform .5s ease";
+  });
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach((e,i) => {
+      if(e.isIntersecting){
+        setTimeout(()=>{
+          e.target.style.opacity="1";
+          e.target.style.transform="translateY(0)";
+        }, i*60);
+        obs.unobserve(e.target);
+      }
+    });
+  },{threshold:.08,rootMargin:"0px 0px -40px 0px"});
+  document.querySelectorAll(".rv").forEach(el=>obs.observe(el));
+}
+</script>
+
+<div class="modal-overlay" id="demoModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeDemoModal()">×</button>
+    <h3>Request a Demo</h3>
+    <p>Fill in your details and we'll get back to you within 24 hours.</p>
+    <div id="modalForm">
+      <form id="demoForm" action="https://formspree.io/f/xeevdaeo" method="POST" onsubmit="submitDemoForm(event)">
+        <label>Full Name *</label>
+        <input type="text" name="name" required placeholder="Your name" />
+        <label>Work Email *</label>
+        <input type="email" name="email" required placeholder="you@company.com" />
+        <label>Company *</label>
+        <input type="text" name="company" required placeholder="Company name" />
+        <label>Message (optional)</label>
+        <textarea name="message" placeholder="Tell us about your needs..."></textarea>
+        <button type="submit" class="modal-submit">Send Request</button>
+      </form>
+    </div>
+    <div id="modalSuccess" class="modal-success" style="display:none;">
+      <div class="check">✅</div>
+      <h4>Request Sent!</h4>
+      <p>We'll be in touch within 24 hours.</p>
+    </div>
+  </div>
+</div>
+<script>
+function openDemoModal(){ document.getElementById('demoModal').classList.add('open'); }
+function closeDemoModal(){ document.getElementById('demoModal').classList.remove('open'); document.getElementById('modalForm').style.display='block'; document.getElementById('modalSuccess').style.display='none'; }
+document.getElementById('demoModal').addEventListener('click', function(e){ if(e.target===this) closeDemoModal(); });
+async function submitDemoForm(e){
+  e.preventDefault();
+  var form=document.getElementById('demoForm');
+  var btn=form.querySelector('button[type=submit]');
+  btn.textContent='Sending...'; btn.disabled=true;
+  try {
+    var res=await fetch(form.action,{method:'POST',body:new FormData(form),headers:{'Accept':'application/json'}});
+    if(res.ok){ document.getElementById('modalForm').style.display='none'; document.getElementById('modalSuccess').style.display='block'; }
+    else { btn.textContent='Send Request'; btn.disabled=false; alert('Something went wrong. Please try again.'); }
+  } catch(err){ btn.textContent='Send Request'; btn.disabled=false; alert('Something went wrong. Please try again.'); }
+}
+</script>
+</body>
+</html>

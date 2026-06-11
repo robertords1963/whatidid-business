@@ -1,0 +1,21 @@
+<svg width="100%" viewBox="155 48 270 110" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title>XYZ Financial Services Logo</title>
+  <desc>Diamond shield with X mark and company name</desc>
+  <defs>
+    <style>
+      .logo-text { font-family: system-ui, sans-serif; fill: #1a2744; }
+    </style>
+  </defs>
+
+  <g transform="translate(210, 100)">
+    <polygon points="0,-52 45,-18 45,18 0,52 -45,18 -45,-18" fill="#1a2744" opacity="0.08"/>
+    <polygon points="0,-44 38,-14 38,14 0,44 -38,14 -38,-14" fill="none" stroke="#1a3a8f" stroke-width="2"/>
+    <polygon points="0,-32 28,-10 28,10 0,32 -28,10 -28,-10" fill="#1a3a8f"/>
+    <line x1="-14" y1="-14" x2="14" y2="14" stroke="white" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="14" y1="-14" x2="-14" y2="14" stroke="white" stroke-width="3.5" stroke-linecap="round"/>
+  </g>
+
+  <text x="272" y="97" class="logo-text" font-size="42" font-weight="700" letter-spacing="-1">XYZ</text>
+  <text x="272" y="122" class="logo-text" font-size="18" font-weight="400">Financial Services</text>
+  <line x1="272" y1="131" x2="424" y2="131" stroke="#1a3a8f" stroke-width="1.5" opacity="0.4"/>
+</svg>
