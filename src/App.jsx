@@ -5094,9 +5094,9 @@ onClick={() => {
 <div className="text-sm font-bold text-purple-600 mb-2">
   {filteredExperiences.length} {filteredExperiences.length === 1 ? 'experience found' : 'experiences found'} - Listed below
 </div>
-                  {(filters.problemCategory || filters.searchText || filters.resultCategory || filters.rating || filters.gender || filters.age || filters.country) && (
+                  {(filters.problemCategory || filters.searchText || filters.resultCategory || filters.rating || filters.gender || filters.age || filters.country || filters.industrySector || filterPracticeId) && (
                     <button
-                      onClick={() => setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '', industrySector: '' })}
+                      onClick={() => { setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '', industrySector: '' }); setFilterPracticeId(null); }}
                       className="text-sm text-purple-600 hover:text-purple-800 font-medium"
                     >
                       Clear filters
