@@ -6992,7 +6992,7 @@ if (selected.length === 0) {
             </select>
           </div>
         </div>
-        <div className="space-y-3 mb-4">
+        <div className="space-y-3 mb-4"> 
           <div>
             <label className="block text-sm font-medium mb-1">Problem</label>
             <textarea value={editingData[exp.id]?.problem || exp.problem} onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), problem: e.target.value}})} className="w-full p-2 border-2 border-gray-300 rounded" rows="3"/>
