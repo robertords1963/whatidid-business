@@ -4716,8 +4716,8 @@ onClick={() => {
                           tabIndex={0}
                           onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
                           onKeyDown={(e) => e.key === 'Enter' && setShowCategoryDropdown(!showCategoryDropdown)}
-                          className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none text-left flex items-center justify-between bg-gray-100 cursor-default"
-                          style={{ fontFamily: 'inherit', fontSize: 'inherit', color: currentEntry.problemCategory ? 'inherit' : '#6b7280' }}
+                          className="w-full p-2 border-2 border-gray-200 rounded-lg text-left flex items-center justify-between cursor-default"
+                          style={{ fontFamily: 'inherit', fontSize: 'inherit', backgroundColor: '#f3f4f6', color: currentEntry.problemCategory ? 'inherit' : '#6b7280', outline: 'none' }}
                         >
                           <span>{currentEntry.problemCategory || 'Select category'}</span>
                           <span className="text-gray-500" style={{ fontSize: '10px' }}>▼</span>
