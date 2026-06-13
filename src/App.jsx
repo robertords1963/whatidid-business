@@ -102,6 +102,14 @@ const [adminCategories, setAdminCategories] = useState([]);
 const [uiPractices, setUiPractices] = useState([]);
 const [demoGroups, setDemoGroups] = useState([]);
 const [currentEmployeeGroup, setCurrentEmployeeGroup] = useState(null);
+
+// ⭐ CATEGORY DESCRIPTIONS + TAGS
+const [categoryData, setCategoryData] = useState({}); // { [catName]: { description, tags: [] } }
+const [selectedTags, setSelectedTags] = useState([]);  // tags selecionadas no Share form
+const [showCategoryDrawer, setShowCategoryDrawer] = useState(false); // drawer mobile
+const [hoveredCategory, setHoveredCategory] = useState(null); // hover desktop
+const [showCategoryDropdown, setShowCategoryDropdown] = useState(false); // custom dropdown aberto
+const [filterTags, setFilterTags] = useState([]); // tags ativas no filtro See What Others Did
   
   // ⭐ ADICIONAR AQUI - Estados para Employee Login ⭐
   const [isEmployeeLoggedIn, setIsEmployeeLoggedIn] = useState(false);
@@ -263,6 +271,7 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null) => {
       cvFilename: exp.cv_filename || null,  // ⭐ ADICIONAR
       employeeId: exp.employee_id || null,
       practiceId: exp.practice_id || null,
+      tags: exp.tags || [],
       comments: []
     }));
     
@@ -418,7 +427,10 @@ const loadProblemCategories = async (practiceId = null) => {
     if (practiceId) {
       query = query.eq('practice_id', practiceId);
     } else {
+<<<<<<< HEAD
       // Se nenhuma practice selecionada, carrega só as da General (practice_id=1)
+=======
+>>>>>>> a8efb67 (Add category descriptions, tags, import/export)
       query = query.eq('practice_id', 1);
     }
 
@@ -426,6 +438,15 @@ const loadProblemCategories = async (practiceId = null) => {
     if (error) throw error;
     if (data && data.length > 0) {
       setProblemCategories(data.map(c => c.name));
+      // ⭐ Salvar description + tags por categoria
+      const catMap = {};
+      data.forEach(c => {
+        catMap[c.name] = {
+          description: c.description || '',
+          tags: c.tags || []
+        };
+      });
+      setCategoryData(catMap);
     }
   } catch (error) {
     console.error('Error loading problem categories:', error);
@@ -762,6 +783,10 @@ const handleEmployeeLogin = async () => {
   setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '', industrySector: '' });
   setFilterMode('individual');
   setFilterPracticeId(null);
+<<<<<<< HEAD
+=======
+  setFilterTags([]);
+>>>>>>> a8efb67 (Add category descriptions, tags, import/export)
   setCurrentPage(1);
   setMappedFilter(null);
   loadExperiences(false, null);
@@ -967,7 +992,7 @@ if (matches.length > 0) {
     setFilterMode('individual');
     setShowKeyInsights(false);
     setKeyInsightCategory('');
-    
+    setSelectedTags([]);
     setCurrentPage(1);
     
     setTimeout(() => {
@@ -1129,6 +1154,7 @@ setTimeout(() => {
         country: newExperience.country || '',
         employee_id: appSettings.requireEmployeeLogin ? employeeId : null,
         practice_id: selectedPracticeId || null,
+        tags: selectedTags.length > 0 ? selectedTags : [],
         avg_rating: 0,
         total_ratings: 0,
         source: 'app',
@@ -1651,6 +1677,19 @@ useEffect(() => {
     }, 300);
   }
 }, [appSettings.requireEmployeeLogin, isEmployeeLoggedIn]);
+
+  // Fechar dropdown de categoria ao clicar fora
+  useEffect(() => {
+    if (!showCategoryDropdown) return;
+    const handleClick = (e) => {
+      if (!e.target.closest('.category-dropdown-container')) {
+        setShowCategoryDropdown(false);
+        setHoveredCategory(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [showCategoryDropdown]);
 
   // Rotate quotes every 7 seconds
   useEffect(() => {
@@ -2296,13 +2335,15 @@ const filteredExperiences = experiences.filter(exp => {
   const matchesGender = !filters.gender || exp.gender === filters.gender;
   const matchesAge = !filters.age || exp.age === filters.age;
   const matchesCountry = !filters.country || exp.country === filters.country;
-  const matchesIndustrySector = !filters.industrySector || exp.industrySector === filters.industrySector; // ⭐ ADICIONAR
+  const matchesIndustrySector = !filters.industrySector || exp.industrySector === filters.industrySector;
+  // Filtro por tags
+  const matchesTags = filterTags.length === 0 || filterTags.every(tag => (exp.tags || []).includes(tag));
   // Sempre mostrar experiências avaliadas/comentadas na sessão, mesmo que não atendam o filtro
 const wasInteractedInSession = ratedInSession.has(exp.id);
 if (wasInteractedInSession) return true;
 
 
-return matchesPractice && matchesProblemCategory && matchesSearchText && matchesResultCategory && matchesRating && matchesGender && matchesAge && matchesCountry && matchesIndustrySector;
+return matchesPractice && matchesProblemCategory && matchesSearchText && matchesResultCategory && matchesRating && matchesGender && matchesAge && matchesCountry && matchesIndustrySector && matchesTags;
 });
   // Reset to page 1 when filters change
 // Reset to page 1 when filters change (exceto quando navegando para Key Insight)
@@ -3745,9 +3786,30 @@ autoComplete="off"
           + Add Employee
         </button>
         <label className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 cursor-pointer">
-          📊 Upload Excel
+          📊 Import Excel
           <input type="file" accept=".xlsx,.xls" className="hidden" onChange={(e) => { if(e.target.files[0]) handleExcelUpload(e.target.files[0]); e.target.value=''; }} />
         </label>
+        <button
+          onClick={async () => {
+            try {
+              const XLSX = await import('https://cdn.sheetjs.com/xlsx-0.20.0/package/xlsx.mjs');
+              const rows = employees.map(emp => ({
+                'Employee ID': emp.employee_id,
+                'Name': emp.name || '',
+                'Country': emp.country || '',
+                'Email': emp.email || '',
+                'Status': emp.status || 'pending'
+              }));
+              const ws = XLSX.utils.json_to_sheet(rows);
+              const wb = XLSX.utils.book_new();
+              XLSX.utils.book_append_sheet(wb, ws, 'Employees');
+              XLSX.writeFile(wb, `employees_${new Date().toISOString().slice(0,10)}.xlsx`);
+            } catch(err) { alert('Error exporting: ' + err.message); }
+          }}
+          className="px-4 py-2 bg-gray-600 text-white rounded-lg text-sm hover:bg-gray-700"
+        >
+          📤 Export Excel
+        </button>
         <span className="text-xs text-gray-500 self-center">Excel columns: Employee ID, Name, Country, Email</span>
       </div>
     </div>
@@ -3920,7 +3982,7 @@ autoComplete="off"
 
     <div className="bg-white rounded p-4 mb-4">
       <h4 className="font-medium text-gray-700 mb-3">Add New Category</h4>
-      <div className="flex gap-2">
+      <div className="flex gap-2 mb-3">
         <input
           type="text"
           value={newCategoryName}
@@ -3928,24 +3990,96 @@ autoComplete="off"
           placeholder="Category name..."
           className="flex-1 p-2 border-2 border-gray-300 rounded-lg text-sm"
           onKeyPress={(e) => e.key === 'Enter' && newCategoryName.trim() && (async () => {
-            const maxOrder = problemCategories.length;
+            const maxOrder = adminCategories.length;
             const { error } = await supabase.from('problem_categories').insert([{ name: newCategoryName.trim(), display_order: maxOrder + 1, active: true, practice_id: selectedPracticeId }]);
-            if (!error) { setNewCategoryName(''); await loadAdminCategories(selectedPracticeId); }
+            if (!error) { setNewCategoryName(''); await loadAdminCategories(selectedPracticeId); await loadProblemCategories(selectedPracticeId); }
             else alert('Error adding category');
           })()}
         />
         <button
           onClick={async () => {
             if (!newCategoryName.trim()) return;
-            const maxOrder = problemCategories.length;
+            const maxOrder = adminCategories.length;
             const { error } = await supabase.from('problem_categories').insert([{ name: newCategoryName.trim(), display_order: maxOrder + 1, active: true, practice_id: selectedPracticeId }]);
-            if (!error) { setNewCategoryName(''); await loadAdminCategories(selectedPracticeId); }
+            if (!error) { setNewCategoryName(''); await loadAdminCategories(selectedPracticeId); await loadProblemCategories(selectedPracticeId); }
             else alert('Error adding category');
           }}
           className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm hover:bg-teal-700"
-        >
-          Add
-        </button>
+        >Add</button>
+      </div>
+
+      {/* Import / Export Excel */}
+      <div className="border-t pt-3 mt-1 flex gap-2 flex-wrap">
+        {/* Export */}
+        <button
+          onClick={async () => {
+            try {
+              const XLSX = await import('https://cdn.sheetjs.com/xlsx-0.20.0/package/xlsx.mjs');
+              const practiceName = practices.find(p => p.id === selectedPracticeId)?.name || 'Practice';
+              const rows = adminCategories.map(cat => ({
+                Practice: practiceName,
+                Category: cat.name,
+                Description: cat.description || '',
+                Tags: (cat.tags || []).join(', ')
+              }));
+              const ws = XLSX.utils.json_to_sheet(rows);
+              const wb = XLSX.utils.book_new();
+              XLSX.utils.book_append_sheet(wb, ws, 'Categories');
+              XLSX.writeFile(wb, `categories_${practiceName.replace(/\s+/g,'_')}.xlsx`);
+            } catch(err) { alert('Error exporting: ' + err.message); }
+          }}
+          className="px-3 py-1.5 bg-gray-600 text-white rounded-lg text-xs hover:bg-gray-700 flex items-center gap-1"
+        >📤 Export Excel</button>
+
+        {/* Import */}
+        <label className="px-3 py-1.5 bg-green-600 text-white rounded-lg text-xs hover:bg-green-700 cursor-pointer flex items-center gap-1">
+          📥 Import Excel
+          <input
+            type="file"
+            accept=".xlsx,.xls"
+            className="hidden"
+            onChange={async (e) => {
+              const file = e.target.files[0];
+              if (!file) return;
+              try {
+                const XLSX = await import('https://cdn.sheetjs.com/xlsx-0.20.0/package/xlsx.mjs');
+                const data = await file.arrayBuffer();
+                const wb = XLSX.read(data);
+                const ws = wb.Sheets[wb.SheetNames[0]];
+                const rows = XLSX.utils.sheet_to_json(ws);
+                let updated = 0, added = 0, errors = 0;
+                for (const row of rows) {
+                  const catName = String(row['Category'] || '').trim();
+                  const desc = String(row['Description'] || '').trim();
+                  const tagsRaw = String(row['Tags'] || '').trim();
+                  const tags = tagsRaw ? tagsRaw.split(',').map(t => t.trim()).filter(Boolean) : [];
+                  if (!catName) { errors++; continue; }
+                  // Check if category exists
+                  const existing = adminCategories.find(c => c.name.toLowerCase() === catName.toLowerCase());
+                  if (existing) {
+                    const { error } = await supabase.from('problem_categories').update({
+                      description: desc || null,
+                      tags: tags
+                    }).eq('id', existing.id);
+                    if (error) { errors++; } else { updated++; }
+                  } else {
+                    const maxOrder = adminCategories.length + added;
+                    const { error } = await supabase.from('problem_categories').insert([{
+                      name: catName, description: desc || null, tags: tags,
+                      display_order: maxOrder + 1, active: true, practice_id: selectedPracticeId
+                    }]);
+                    if (error) { errors++; } else { added++; }
+                  }
+                }
+                await loadAdminCategories(selectedPracticeId);
+                await loadProblemCategories(selectedPracticeId);
+                alert(`Import complete!\nUpdated: ${updated}, Added: ${added}, Errors: ${errors}`);
+              } catch(err) { alert('Error importing: ' + err.message); }
+              e.target.value = '';
+            }}
+          />
+        </label>
+        <span className="text-xs text-gray-400 self-center">Excel columns: Practice, Category, Description, Tags</span>
       </div>
     </div>
     <div className="bg-white rounded p-4">
@@ -3954,26 +4088,52 @@ autoComplete="off"
         {adminCategories.map((cat, index) => (
           <div key={index} className="flex items-center gap-2 p-2 border border-gray-200 rounded-lg">
             {editingCategory === index ? (
-              <>
+              <div className="flex-1 space-y-2">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    defaultValue={cat.name}
+                    id={`edit-cat-name-${index}`}
+                    placeholder="Category name"
+                    className="flex-1 p-1 border border-gray-300 rounded text-sm"
+                    autoFocus
+                  />
+                </div>
+                <textarea
+                  defaultValue={cat.description || ''}
+                  id={`edit-cat-desc-${index}`}
+                  placeholder="Description (shown to users as hint)..."
+                  className="w-full p-1.5 border border-gray-300 rounded text-xs resize-none"
+                  rows="2"
+                />
                 <input
                   type="text"
-                  defaultValue={cat.name}
-                  id={`edit-cat-${index}`}
-                  className="flex-1 p-1 border border-gray-300 rounded text-sm"
-                  autoFocus
+                  defaultValue={(cat.tags || []).join(', ')}
+                  id={`edit-cat-tags-${index}`}
+                  placeholder="Tags separated by comma: Underwriting, Scorecard, Fraud"
+                  className="w-full p-1.5 border border-gray-300 rounded text-xs"
                 />
-                <button
-                  onClick={async () => {
-                    const newName = document.getElementById(`edit-cat-${index}`).value.trim();
-                    if (!newName) return;
-                    const { error } = await supabase.from('problem_categories').update({ name: newName }).eq('name', cat);
-                    if (!error) { setEditingCategory(null); await loadProblemCategories(); }
-                    else alert('Error updating category');
-                  }}
-                  className="px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700"
-                >Save</button>
-                <button onClick={() => setEditingCategory(null)} className="px-2 py-1 bg-gray-400 text-white rounded text-xs hover:bg-gray-500">Cancel</button>
-              </>
+                <div className="flex gap-2">
+                  <button
+                    onClick={async () => {
+                      const newName = document.getElementById(`edit-cat-name-${index}`).value.trim();
+                      const newDesc = document.getElementById(`edit-cat-desc-${index}`).value.trim();
+                      const newTagsRaw = document.getElementById(`edit-cat-tags-${index}`).value;
+                      const newTags = newTagsRaw.split(',').map(t => t.trim()).filter(Boolean);
+                      if (!newName) return;
+                      const { error } = await supabase.from('problem_categories').update({
+                        name: newName,
+                        description: newDesc || null,
+                        tags: newTags.length > 0 ? newTags : []
+                      }).eq('id', cat.id);
+                      if (!error) { setEditingCategory(null); await loadAdminCategories(selectedPracticeId); await loadProblemCategories(selectedPracticeId); }
+                      else alert('Error updating category: ' + error.message);
+                    }}
+                    className="px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700"
+                  >Save</button>
+                  <button onClick={() => setEditingCategory(null)} className="px-2 py-1 bg-gray-400 text-white rounded text-xs hover:bg-gray-500">Cancel</button>
+                </div>
+              </div>
             ) : (
               <>
                 <button
@@ -3981,31 +4141,43 @@ autoComplete="off"
                       if (index === 0) return;
                       await supabase.from('problem_categories').update({ display_order: index }).eq('name', cat.name);
                       await supabase.from('problem_categories').update({ display_order: index + 1 }).eq('name', adminCategories[index - 1].name);
-                      await loadProblemCategories();
+                      await loadAdminCategories(selectedPracticeId);
                     }}
                     disabled={index === 0}
                     className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 disabled:opacity-30 disabled:cursor-not-allowed"
                   >↑ Up</button>
                   <button
                     onClick={async () => {
-                      if (index === problemCategories.length - 1) return;
+                      if (index === adminCategories.length - 1) return;
                       await supabase.from('problem_categories').update({ display_order: index + 2 }).eq('name', cat.name);
                       await supabase.from('problem_categories').update({ display_order: index + 1 }).eq('name', adminCategories[index + 1].name);
-                      await loadProblemCategories();
+                      await loadAdminCategories(selectedPracticeId);
                     }}
-                    disabled={index === problemCategories.length - 1}
+                    disabled={index === adminCategories.length - 1}
                     className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 disabled:opacity-30 disabled:cursor-not-allowed"
                   >↓ Down</button>
-                <span className="flex-1 text-sm text-gray-700">{cat.name}</span>
-                <button onClick={() => setEditingCategory(index)} className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700">Edit</button>
+                <div className="flex-1 min-w-0">
+                  <span className="text-sm text-gray-700 font-medium">{cat.name}</span>
+                  {cat.description && (
+                    <p className="text-xs text-gray-400 truncate mt-0.5">{cat.description}</p>
+                  )}
+                  {cat.tags && cat.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {cat.tags.map(tag => (
+                        <span key={tag} className="text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full">{tag}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <button onClick={() => setEditingCategory(index)} className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 flex-shrink-0">Edit</button>
                 <button
                   onClick={async () => {
                     if (!window.confirm(`Delete "${cat.name}"? Existing experiences with this category will keep it.`)) return;
-                    const { error } = await supabase.from('problem_categories').update({ active: false }).eq('name', cat.name);
-                    if (!error) await loadProblemCategories();
+                    const { error } = await supabase.from('problem_categories').update({ active: false }).eq('id', cat.id);
+                    if (!error) { await loadAdminCategories(selectedPracticeId); await loadProblemCategories(selectedPracticeId); }
                     else alert('Error deleting category');
                   }}
-                  className="px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700"
+                  className="px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 flex-shrink-0"
                 >Delete</button>
               </>
             )}
@@ -4532,17 +4704,110 @@ onClick={() => {
   </div>
 ) : null}
 
-              <select
-                value={currentEntry.problemCategory}
-                onChange={(e) => setCurrentEntry({...currentEntry, problemCategory: e.target.value})}
-                className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-                required
-              >
-                <option value="">Select category</option>
-                {problemCategories.map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
-              </select>
+              {/* ⭐ CUSTOM CATEGORY DROPDOWN */}
+              {(() => {
+                const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+                const selectedCatData = currentEntry.problemCategory ? categoryData[currentEntry.problemCategory] : null;
+                const hasTags = selectedCatData?.tags?.length > 0;
+
+                return (
+                  <div className="relative">
+                    {/* Trigger row: dropdown + ⓘ button (mobile only) */}
+                    <div className="flex items-center gap-2">
+                      {/* Custom dropdown trigger */}
+                      <div
+                        className="flex-1 relative category-dropdown-container"
+                        onMouseLeave={() => setHoveredCategory(null)}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+                          className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none text-left flex items-center justify-between bg-white text-sm"
+                        >
+                          <span className={currentEntry.problemCategory ? 'text-gray-800' : 'text-gray-400'}>
+                            {currentEntry.problemCategory || 'Select category'}
+                          </span>
+                          <span className="text-gray-400 text-xs">▼</span>
+                        </button>
+
+                        {/* Dropdown list */}
+                        {showCategoryDropdown && (
+                          <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border-2 border-gray-200 rounded-lg shadow-xl overflow-hidden">
+                            {problemCategories.map(cat => {
+                              const catDesc = categoryData[cat];
+                              return (
+                                <div
+                                  key={cat}
+                                  className="relative"
+                                  onMouseEnter={() => setHoveredCategory(cat)}
+                                  onMouseLeave={() => setHoveredCategory(null)}
+                                >
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setCurrentEntry({...currentEntry, problemCategory: cat});
+                                      setSelectedTags([]);
+                                      setShowCategoryDropdown(false);
+                                      setHoveredCategory(null);
+                                    }}
+                                    className={`w-full text-left px-3 py-2.5 text-sm flex items-center justify-between hover:bg-purple-50 transition-colors ${currentEntry.problemCategory === cat ? 'bg-purple-50 font-medium text-purple-700' : 'text-gray-700'}`}
+                                  >
+                                    <span>{cat}</span>
+                                    {catDesc?.description && (
+                                      <span className="text-gray-300 text-xs ml-2 hidden sm:block">ⓘ</span>
+                                    )}
+                                  </button>
+
+                                  {/* Desktop: description tooltip on hover */}
+                                  {hoveredCategory === cat && catDesc?.description && (
+                                    <div className="hidden sm:block absolute left-full top-0 ml-2 z-50 w-64 bg-gray-800 text-white text-xs rounded-lg p-3 shadow-xl pointer-events-none">
+                                      <p className="font-medium mb-1">{cat}</p>
+                                      <p className="text-gray-300 leading-relaxed">{catDesc.description}</p>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* ⓘ button — mobile only */}
+                      <button
+                        type="button"
+                        onClick={() => setShowCategoryDrawer(true)}
+                        className="sm:hidden flex-shrink-0 w-8 h-8 rounded-full border-2 border-gray-300 text-gray-500 hover:border-purple-400 hover:text-purple-600 flex items-center justify-center text-sm font-medium transition-colors"
+                        title="View category descriptions"
+                      >
+                        ⓘ
+                      </button>
+                    </div>
+
+                    {/* Tags checkboxes — appear after category selected */}
+                    {hasTags && (
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {selectedCatData.tags.map(tag => (
+                          <label key={tag} className="flex items-center gap-1.5 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={selectedTags.includes(tag)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedTags([...selectedTags, tag]);
+                                } else {
+                                  setSelectedTags(selectedTags.filter(t => t !== tag));
+                                }
+                              }}
+                              className="w-3.5 h-3.5 text-purple-600 rounded"
+                            />
+                            <span className="text-xs text-gray-600">{tag}</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
 
 {/* Industry Sector - só no Pro */}
 {!appSettings.requireEmployeeLogin && (
@@ -4960,12 +5225,40 @@ onClick={() => {
                     <label className="block text-sm font-medium text-gray-600 mb-2">Category</label>
                     <select
                       value={filters.problemCategory}
-                      onChange={(e) => setFilters({...filters, problemCategory: e.target.value})}
+                      onChange={(e) => {
+                        setFilters({...filters, problemCategory: e.target.value});
+                        setFilterTags([]); // reset tags ao trocar categoria
+                      }}
                       className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
                     >
                       <option value="">All</option>
                       {problemCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
                     </select>
+                    {/* Tag chips — aparecem quando categoria selecionada tem tags */}
+                    {filters.problemCategory && categoryData[filters.problemCategory]?.tags?.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {categoryData[filters.problemCategory].tags.map(tag => (
+                          <button
+                            key={tag}
+                            type="button"
+                            onClick={() => {
+                              if (filterTags.includes(tag)) {
+                                setFilterTags(filterTags.filter(t => t !== tag));
+                              } else {
+                                setFilterTags([...filterTags, tag]);
+                              }
+                            }}
+                            className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
+                              filterTags.includes(tag)
+                                ? 'bg-purple-600 text-white border-purple-600'
+                                : 'bg-white text-gray-600 border-gray-300 hover:border-purple-400'
+                            }`}
+                          >
+                            {tag}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   {/* Industry Sector Filter - só no Pro */}
@@ -5094,9 +5387,15 @@ onClick={() => {
 <div className="text-sm font-bold text-purple-600 mb-2">
   {filteredExperiences.length} {filteredExperiences.length === 1 ? 'experience found' : 'experiences found'} - Listed below
 </div>
+<<<<<<< HEAD
                   {(filters.problemCategory || filters.searchText || filters.resultCategory || filters.rating || filters.gender || filters.age || filters.country || filters.industrySector || filterPracticeId) && (
                     <button
                       onClick={() => { setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '', industrySector: '' }); setFilterPracticeId(null); }}
+=======
+                  {(filters.problemCategory || filters.searchText || filters.resultCategory || filters.rating || filters.gender || filters.age || filters.country || filters.industrySector || filterPracticeId || filterTags.length > 0) && (
+                    <button
+                      onClick={() => { setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '', industrySector: '' }); setFilterPracticeId(null); setFilterTags([]); }}
+>>>>>>> a8efb67 (Add category descriptions, tags, import/export)
                       className="text-sm text-purple-600 hover:text-purple-800 font-medium"
                     >
                       Clear filters
@@ -5485,6 +5784,14 @@ onClick={() => {
                   </div>
 {/* Badges bi-direcionais - Movidos para baixo */}
                   <div className="mb-4 flex flex-wrap gap-2 justify-end">
+                    {/* Tags badges */}
+                    {exp.tags && exp.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mr-auto">
+                        {exp.tags.map(tag => (
+                          <span key={tag} className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">{tag}</span>
+                        ))}
+                      </div>
+                    )}
                     {exp.relatedCommonCaseId && (exp.source === 'uploaded' || exp.source === 'app') && (
   <button
     onClick={() => {
@@ -6773,6 +7080,47 @@ if (selected.length === 0) {
       </div>
     )}
     
+{/* ⭐ MOBILE CATEGORY DRAWER */}
+{showCategoryDrawer && (
+  <div className="fixed inset-0 z-50 flex flex-col justify-end sm:hidden">
+    {/* Backdrop */}
+    <div
+      className="absolute inset-0 bg-black bg-opacity-40"
+      onClick={() => setShowCategoryDrawer(false)}
+    />
+    {/* Drawer */}
+    <div className="relative bg-white rounded-t-2xl shadow-2xl max-h-[75vh] flex flex-col">
+      {/* Handle */}
+      <div className="flex justify-center pt-3 pb-1">
+        <div className="w-10 h-1 bg-gray-300 rounded-full" />
+      </div>
+      <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
+        <h3 className="font-semibold text-gray-800 text-base">Category Guide</h3>
+        <button
+          onClick={() => setShowCategoryDrawer(false)}
+          className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+        >×</button>
+      </div>
+      <div className="overflow-y-auto px-5 py-4 space-y-4">
+        {problemCategories.map(cat => {
+          const catDesc = categoryData[cat];
+          if (!catDesc?.description) return (
+            <div key={cat}>
+              <p className="font-medium text-gray-800 text-sm">{cat}</p>
+            </div>
+          );
+          return (
+            <div key={cat} className="pb-3 border-b border-gray-100 last:border-0">
+              <p className="font-semibold text-gray-800 text-sm mb-1">{cat}</p>
+              <p className="text-gray-500 text-xs leading-relaxed">{catDesc.description}</p>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  </div>
+)}
+
     </>
     )}
     </>
