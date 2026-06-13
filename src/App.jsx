@@ -69,6 +69,9 @@ const marqueeStyles = `
     animation: highlight-flash 2s ease-in-out;
     border: 2px solid #9333ea !important;
   }
+  .category-dropdown-trigger {
+    background-color: #f3f4f6 !important;
+  }
 `;
 
 export default function WhatIDid() {
@@ -4704,20 +4707,19 @@ onClick={() => {
               {(() => {
                 const selectedCatData = currentEntry.problemCategory ? categoryData[currentEntry.problemCategory] : null;
                 const hasTags = selectedCatData?.tags?.length > 0;
+                const hasAnyDesc = problemCategories.some(cat => categoryData[cat]?.description);
 
                 return (
                   <div className="relative">
-                    {/* Native select + ⓘ button */}
                     <div className="flex items-center gap-2">
-                      {/* Custom dropdown — visual idêntico ao select nativo */}
                       <div className="flex-1 relative category-dropdown-container">
                         <div
                           role="button"
                           tabIndex={0}
                           onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
                           onKeyDown={(e) => e.key === 'Enter' && setShowCategoryDropdown(!showCategoryDropdown)}
-                          className="w-full p-2 border-2 border-gray-200 rounded-lg text-left flex items-center justify-between cursor-default"
-                          style={{ fontFamily: 'inherit', fontSize: 'inherit', backgroundColor: '#f3f4f6', color: currentEntry.problemCategory ? 'inherit' : '#6b7280', outline: 'none' }}
+                          className="category-dropdown-trigger w-full p-2 border-2 border-gray-200 rounded-lg text-left flex items-center justify-between cursor-default"
+                          style={{ fontFamily: 'inherit', fontSize: 'inherit', color: currentEntry.problemCategory ? 'inherit' : '#6b7280' }}
                         >
                           <span>{currentEntry.problemCategory || 'Select category'}</span>
                           <span className="text-gray-500" style={{ fontSize: '10px' }}>▼</span>
@@ -4764,16 +4766,18 @@ onClick={() => {
                         )}
                       </div>
 
-                      {/* ⓘ mobile — abre drawer */}
-                      <button
-                        type="button"
-                        onClick={() => setShowCategoryDrawer(true)}
-                        className="sm:hidden flex-shrink-0 w-8 h-8 rounded-full border-2 border-gray-300 text-gray-500 hover:border-purple-400 hover:text-purple-600 flex items-center justify-center font-medium transition-colors"
-                        style={{ fontSize: '14px' }}
-                      >ⓘ</button>
+                      {/* ⓘ mobile */}
+                      {hasAnyDesc && (
+                        <button
+                          type="button"
+                          onClick={() => setShowCategoryDrawer(true)}
+                          className="sm:hidden flex-shrink-0 w-8 h-8 rounded-full border-2 border-gray-300 text-gray-500 hover:border-purple-400 hover:text-purple-600 flex items-center justify-center font-medium transition-colors"
+                          style={{ fontSize: '14px' }}
+                        >ⓘ</button>
+                      )}
                     </div>
 
-                    {/* Tags checkboxes — appear after category selected */}
+                    {/* Tags checkboxes */}
                     {hasTags && (
                       <div className="mt-2 flex flex-wrap gap-2">
                         {selectedCatData.tags.map(tag => (
