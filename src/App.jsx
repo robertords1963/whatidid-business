@@ -4726,7 +4726,7 @@ onClick={() => {
                         </div>
 
                         {showCategoryDropdown && (
-                          <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border-2 border-gray-200 rounded-lg shadow-xl" style={{ overflow: 'visible' }}>
+                          <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-gray-100 border-2 border-gray-200 rounded-lg shadow-xl" style={{ overflow: 'visible' }}>
                             {problemCategories.map(cat => {
                               const desc = categoryData[cat]?.description;
                               return (
