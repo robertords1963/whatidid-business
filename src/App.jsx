@@ -4711,12 +4711,17 @@ onClick={() => {
                     <div className="flex items-center gap-2">
                       {/* Custom dropdown — visual idêntico ao select nativo */}
                       <div className="flex-1 relative category-dropdown-container">
-                        <button
-                          type="button"
+                        <div
+                          role="button"
+                          tabIndex={0}
                           onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
-                          className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none text-left flex items-center justify-between !bg-gray-100"
+                          onKeyDown={(e) => e.key === 'Enter' && setShowCategoryDropdown(!showCategoryDropdown)}
+                          className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none text-left flex items-center justify-between bg-gray-100 cursor-default"
                           style={{ fontFamily: 'inherit', fontSize: 'inherit', color: currentEntry.problemCategory ? 'inherit' : '#6b7280' }}
                         >
+                          <span>{currentEntry.problemCategory || 'Select category'}</span>
+                          <span className="text-gray-500" style={{ fontSize: '10px' }}>▼</span>
+                        </div>
                           <span>{currentEntry.problemCategory || 'Select category'}</span>
                           <span className="text-gray-500" style={{ fontSize: '10px' }}>▼</span>
                         </button>
