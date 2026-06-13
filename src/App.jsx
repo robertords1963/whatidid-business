@@ -427,10 +427,6 @@ const loadProblemCategories = async (practiceId = null) => {
     if (practiceId) {
       query = query.eq('practice_id', practiceId);
     } else {
-<<<<<<< HEAD
-      // Se nenhuma practice selecionada, carrega só as da General (practice_id=1)
-=======
->>>>>>> a8efb67 (Add category descriptions, tags, import/export)
       query = query.eq('practice_id', 1);
     }
 
@@ -783,10 +779,7 @@ const handleEmployeeLogin = async () => {
   setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '', industrySector: '' });
   setFilterMode('individual');
   setFilterPracticeId(null);
-<<<<<<< HEAD
-=======
   setFilterTags([]);
->>>>>>> a8efb67 (Add category descriptions, tags, import/export)
   setCurrentPage(1);
   setMappedFilter(null);
   loadExperiences(false, null);
@@ -5387,15 +5380,9 @@ onClick={() => {
 <div className="text-sm font-bold text-purple-600 mb-2">
   {filteredExperiences.length} {filteredExperiences.length === 1 ? 'experience found' : 'experiences found'} - Listed below
 </div>
-<<<<<<< HEAD
-                  {(filters.problemCategory || filters.searchText || filters.resultCategory || filters.rating || filters.gender || filters.age || filters.country || filters.industrySector || filterPracticeId) && (
-                    <button
-                      onClick={() => { setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '', industrySector: '' }); setFilterPracticeId(null); }}
-=======
                   {(filters.problemCategory || filters.searchText || filters.resultCategory || filters.rating || filters.gender || filters.age || filters.country || filters.industrySector || filterPracticeId || filterTags.length > 0) && (
                     <button
                       onClick={() => { setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '', industrySector: '' }); setFilterPracticeId(null); setFilterTags([]); }}
->>>>>>> a8efb67 (Add category descriptions, tags, import/export)
                       className="text-sm text-purple-600 hover:text-purple-800 font-medium"
                     >
                       Clear filters
