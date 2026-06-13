@@ -110,6 +110,7 @@ const [showCategoryDrawer, setShowCategoryDrawer] = useState(false); // drawer m
 const [hoveredCategory, setHoveredCategory] = useState(null); // hover desktop
 const [showCategoryDropdown, setShowCategoryDropdown] = useState(false); // custom dropdown aberto
 const [filterTags, setFilterTags] = useState([]); // tags ativas no filtro See What Others Did
+const [editingTags, setEditingTags] = useState(null); // id da experience com tags em edição
   
   // ⭐ ADICIONAR AQUI - Estados para Employee Login ⭐
   const [isEmployeeLoggedIn, setIsEmployeeLoggedIn] = useState(false);
@@ -2329,8 +2330,8 @@ const filteredExperiences = experiences.filter(exp => {
   const matchesAge = !filters.age || exp.age === filters.age;
   const matchesCountry = !filters.country || exp.country === filters.country;
   const matchesIndustrySector = !filters.industrySector || exp.industrySector === filters.industrySector;
-  // Filtro por tags
-  const matchesTags = filterTags.length === 0 || filterTags.every(tag => (exp.tags || []).includes(tag));
+  // Filtro por tags (OR — basta ter qualquer uma das tags selecionadas)
+  const matchesTags = filterTags.length === 0 || filterTags.some(tag => (exp.tags || []).includes(tag));
   // Sempre mostrar experiências avaliadas/comentadas na sessão, mesmo que não atendam o filtro
 const wasInteractedInSession = ratedInSession.has(exp.id);
 if (wasInteractedInSession) return true;
@@ -4096,7 +4097,8 @@ autoComplete="off"
                   defaultValue={cat.description || ''}
                   id={`edit-cat-desc-${index}`}
                   placeholder="Description (shown to users as hint)..."
-                  className="w-full p-1.5 border border-gray-300 rounded text-xs resize-none"
+                  className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm resize-none"
+                  style={{ fontFamily: 'inherit' }}
                   rows="2"
                 />
                 <input
@@ -4104,7 +4106,8 @@ autoComplete="off"
                   defaultValue={(cat.tags || []).join(', ')}
                   id={`edit-cat-tags-${index}`}
                   placeholder="Tags separated by comma: Underwriting, Scorecard, Fraud"
-                  className="w-full p-1.5 border border-gray-300 rounded text-xs"
+                  className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm"
+                  style={{ fontFamily: 'inherit' }}
                 />
                 <div className="flex gap-2">
                   <button
@@ -4699,23 +4702,19 @@ onClick={() => {
 
               {/* ⭐ CUSTOM CATEGORY DROPDOWN */}
               {(() => {
-                const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
                 const selectedCatData = currentEntry.problemCategory ? categoryData[currentEntry.problemCategory] : null;
                 const hasTags = selectedCatData?.tags?.length > 0;
 
                 return (
                   <div className="relative">
-                    {/* Trigger row: dropdown + ⓘ button (mobile only) */}
                     <div className="flex items-center gap-2">
                       {/* Custom dropdown trigger */}
-                      <div
-                        className="flex-1 relative category-dropdown-container"
-                        onMouseLeave={() => setHoveredCategory(null)}
-                      >
+                      <div className="flex-1 relative category-dropdown-container">
                         <button
                           type="button"
                           onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
-                          className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none text-left flex items-center justify-between bg-white text-sm"
+                          className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none text-left flex items-center justify-between bg-gray-50"
+                          style={{ fontFamily: 'inherit', fontSize: '1rem' }}
                         >
                           <span className={currentEntry.problemCategory ? 'text-gray-800' : 'text-gray-400'}>
                             {currentEntry.problemCategory || 'Select category'}
@@ -4725,7 +4724,7 @@ onClick={() => {
 
                         {/* Dropdown list */}
                         {showCategoryDropdown && (
-                          <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border-2 border-gray-200 rounded-lg shadow-xl overflow-hidden">
+                          <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border-2 border-gray-200 rounded-lg shadow-xl overflow-visible">
                             {problemCategories.map(cat => {
                               const catDesc = categoryData[cat];
                               return (
@@ -4743,19 +4742,20 @@ onClick={() => {
                                       setShowCategoryDropdown(false);
                                       setHoveredCategory(null);
                                     }}
-                                    className={`w-full text-left px-3 py-2.5 text-sm flex items-center justify-between hover:bg-purple-50 transition-colors ${currentEntry.problemCategory === cat ? 'bg-purple-50 font-medium text-purple-700' : 'text-gray-700'}`}
+                                    className={`w-full text-left px-3 py-2.5 flex items-center justify-between hover:bg-purple-50 transition-colors ${currentEntry.problemCategory === cat ? 'bg-purple-50 font-medium text-purple-700' : 'text-gray-700'}`}
+                                    style={{ fontFamily: 'inherit', fontSize: '1rem' }}
                                   >
                                     <span>{cat}</span>
                                     {catDesc?.description && (
-                                      <span className="text-gray-300 text-xs ml-2 hidden sm:block">ⓘ</span>
+                                      <span className="text-gray-400 text-xs ml-2 hidden sm:block">ⓘ</span>
                                     )}
                                   </button>
 
                                   {/* Desktop: description tooltip on hover */}
                                   {hoveredCategory === cat && catDesc?.description && (
-                                    <div className="hidden sm:block absolute left-full top-0 ml-2 z-50 w-64 bg-gray-800 text-white text-xs rounded-lg p-3 shadow-xl pointer-events-none">
-                                      <p className="font-medium mb-1">{cat}</p>
-                                      <p className="text-gray-300 leading-relaxed">{catDesc.description}</p>
+                                    <div className="hidden sm:block absolute left-full top-0 ml-3 z-[999] w-64 bg-gray-800 text-white rounded-lg p-3 shadow-2xl pointer-events-none" style={{ fontSize: '12px', lineHeight: '1.5' }}>
+                                      <p className="font-semibold mb-1" style={{ fontSize: '12px' }}>{cat}</p>
+                                      <p className="text-gray-300">{catDesc.description}</p>
                                     </div>
                                   )}
                                 </div>
@@ -4769,7 +4769,8 @@ onClick={() => {
                       <button
                         type="button"
                         onClick={() => setShowCategoryDrawer(true)}
-                        className="sm:hidden flex-shrink-0 w-8 h-8 rounded-full border-2 border-gray-300 text-gray-500 hover:border-purple-400 hover:text-purple-600 flex items-center justify-center text-sm font-medium transition-colors"
+                        className="sm:hidden flex-shrink-0 w-8 h-8 rounded-full border-2 border-gray-300 text-gray-500 hover:border-purple-400 hover:text-purple-600 flex items-center justify-center font-medium transition-colors"
+                        style={{ fontSize: '14px' }}
                         title="View category descriptions"
                       >
                         ⓘ
@@ -5228,30 +5229,40 @@ onClick={() => {
                       {problemCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
                     </select>
                     {/* Tag chips — aparecem quando categoria selecionada tem tags */}
-                    {filters.problemCategory && categoryData[filters.problemCategory]?.tags?.length > 0 && (
-                      <div className="mt-2 flex flex-wrap gap-1.5">
-                        {categoryData[filters.problemCategory].tags.map(tag => (
-                          <button
-                            key={tag}
-                            type="button"
-                            onClick={() => {
-                              if (filterTags.includes(tag)) {
-                                setFilterTags(filterTags.filter(t => t !== tag));
-                              } else {
-                                setFilterTags([...filterTags, tag]);
-                              }
-                            }}
-                            className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
-                              filterTags.includes(tag)
-                                ? 'bg-purple-600 text-white border-purple-600'
-                                : 'bg-white text-gray-600 border-gray-300 hover:border-purple-400'
-                            }`}
-                          >
-                            {tag}
-                          </button>
-                        ))}
-                      </div>
-                    )}
+                    {filters.problemCategory && categoryData[filters.problemCategory]?.tags?.length > 0 && (() => {
+                      // Só mostrar tags que já foram usadas em experiences dessa categoria
+                      const usedTags = [...new Set(
+                        experiences
+                          .filter(e => e.problemCategory === filters.problemCategory && e.tags?.length > 0)
+                          .flatMap(e => e.tags)
+                      )];
+                      const availableTags = categoryData[filters.problemCategory].tags.filter(t => usedTags.includes(t));
+                      if (availableTags.length === 0) return null;
+                      return (
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {availableTags.map(tag => (
+                            <button
+                              key={tag}
+                              type="button"
+                              onClick={() => {
+                                if (filterTags.includes(tag)) {
+                                  setFilterTags(filterTags.filter(t => t !== tag));
+                                } else {
+                                  setFilterTags([...filterTags, tag]);
+                                }
+                              }}
+                              className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
+                                filterTags.includes(tag)
+                                  ? 'bg-purple-600 text-white border-purple-600'
+                                  : 'bg-white text-gray-600 border-gray-300 hover:border-purple-400'
+                              }`}
+                            >
+                              {tag}
+                            </button>
+                          ))}
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   {/* Industry Sector Filter - só no Pro */}
@@ -5771,12 +5782,81 @@ onClick={() => {
                   </div>
 {/* Badges bi-direcionais - Movidos para baixo */}
                   <div className="mb-4 flex flex-wrap gap-2 justify-end">
-                    {/* Tags badges */}
+                    {/* Tags badges — só para experiences do próprio usuário */}
                     {exp.tags && exp.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mr-auto">
-                        {exp.tags.map(tag => (
-                          <span key={tag} className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">{tag}</span>
+                      <div className="flex flex-wrap items-center gap-1 mr-auto">
+                        {editingTags === exp.id ? (
+                          // Modo edição: checkboxes de todas as tags da categoria
+                          <div className="flex flex-wrap gap-1.5 items-center">
+                            {(categoryData[exp.problemCategory]?.tags || exp.tags).map(tag => (
+                              <label key={tag} className="flex items-center gap-1 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  defaultChecked={exp.tags.includes(tag)}
+                                  id={`edit-tag-${exp.id}-${tag}`}
+                                  className="w-3 h-3 text-purple-600 rounded"
+                                />
+                                <span className="text-xs text-gray-600">{tag}</span>
+                              </label>
+                            ))}
+                            <button
+                              onClick={async () => {
+                                const allTags = categoryData[exp.problemCategory]?.tags || exp.tags;
+                                const newTags = allTags.filter(tag =>
+                                  document.getElementById(`edit-tag-${exp.id}-${tag}`)?.checked
+                                );
+                                const { error } = await supabase.from('experiences').update({ tags: newTags }).eq('id', exp.id);
+                                if (!error) { setEditingTags(null); await loadExperiences(true); }
+                                else alert('Error saving tags');
+                              }}
+                              className="px-2 py-0.5 bg-purple-600 text-white rounded text-xs hover:bg-purple-700"
+                            >Save</button>
+                            <button onClick={() => setEditingTags(null)} className="px-2 py-0.5 bg-gray-400 text-white rounded text-xs">✕</button>
+                          </div>
+                        ) : (
+                          // Modo visualização: badges + botão Edit (só para o dono)
+                          <>
+                            {exp.tags.map(tag => (
+                              <span key={tag} className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">{tag}</span>
+                            ))}
+                            {appSettings.requireEmployeeLogin && exp.employeeId === employeeId && exp.source === 'app' && (
+                              <button
+                                onClick={() => setEditingTags(exp.id)}
+                                className="text-xs text-gray-400 hover:text-purple-600 px-1"
+                                title="Edit tags"
+                              >✎</button>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    )}
+                    {/* Se não tem tags mas é do usuário e a categoria tem tags disponíveis */}
+                    {(!exp.tags || exp.tags.length === 0) && appSettings.requireEmployeeLogin && exp.employeeId === employeeId && exp.source === 'app' && categoryData[exp.problemCategory]?.tags?.length > 0 && editingTags !== exp.id && (
+                      <button
+                        onClick={() => setEditingTags(exp.id)}
+                        className="text-xs text-gray-400 hover:text-purple-600 mr-auto"
+                        title="Add tags"
+                      >+ tags</button>
+                    )}
+                    {editingTags === exp.id && (!exp.tags || exp.tags.length === 0) && (
+                      <div className="flex flex-wrap gap-1.5 items-center mr-auto">
+                        {(categoryData[exp.problemCategory]?.tags || []).map(tag => (
+                          <label key={tag} className="flex items-center gap-1 cursor-pointer">
+                            <input type="checkbox" id={`edit-tag-${exp.id}-${tag}`} className="w-3 h-3 text-purple-600 rounded" />
+                            <span className="text-xs text-gray-600">{tag}</span>
+                          </label>
                         ))}
+                        <button
+                          onClick={async () => {
+                            const allTags = categoryData[exp.problemCategory]?.tags || [];
+                            const newTags = allTags.filter(tag => document.getElementById(`edit-tag-${exp.id}-${tag}`)?.checked);
+                            const { error } = await supabase.from('experiences').update({ tags: newTags }).eq('id', exp.id);
+                            if (!error) { setEditingTags(null); await loadExperiences(true); }
+                            else alert('Error saving tags');
+                          }}
+                          className="px-2 py-0.5 bg-purple-600 text-white rounded text-xs hover:bg-purple-700"
+                        >Save</button>
+                        <button onClick={() => setEditingTags(null)} className="px-2 py-0.5 bg-gray-400 text-white rounded text-xs">✕</button>
                       </div>
                     )}
                     {exp.relatedCommonCaseId && (exp.source === 'uploaded' || exp.source === 'app') && (
