@@ -4722,9 +4722,6 @@ onClick={() => {
                           <span>{currentEntry.problemCategory || 'Select category'}</span>
                           <span className="text-gray-500" style={{ fontSize: '10px' }}>▼</span>
                         </div>
-                          <span>{currentEntry.problemCategory || 'Select category'}</span>
-                          <span className="text-gray-500" style={{ fontSize: '10px' }}>▼</span>
-                        </button>
 
                         {showCategoryDropdown && (
                           <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border-2 border-gray-200 rounded-lg shadow-xl" style={{ overflow: 'visible' }}>
@@ -6992,7 +6989,7 @@ if (selected.length === 0) {
             </select>
           </div>
         </div>
-        <div className="space-y-3 mb-4"> 
+        <div className="space-y-3 mb-4">
           <div>
             <label className="block text-sm font-medium mb-1">Problem</label>
             <textarea value={editingData[exp.id]?.problem || exp.problem} onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), problem: e.target.value}})} className="w-full p-2 border-2 border-gray-300 rounded" rows="3"/>
