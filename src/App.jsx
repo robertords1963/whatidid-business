@@ -4690,7 +4690,7 @@ onClick={() => {
         setCurrentEntry({...currentEntry, problemCategory: ''});
         loadProblemCategories(id);
       }}
-      className={`w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none ${uiPractices.length === 1 ? 'bg-gray-50 cursor-not-allowed' : ''}`}
+      className={`w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none bg-gray-100 ${uiPractices.length === 1 ? 'cursor-not-allowed' : ''}`}
       disabled={uiPractices.length === 1}
     >
       {uiPractices.map(p => (
@@ -4714,11 +4714,11 @@ onClick={() => {
                         <button
                           type="button"
                           onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
-                          className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none text-left flex items-center justify-between"
-                          style={{ fontFamily: 'inherit', fontSize: 'inherit', backgroundColor: 'field', color: currentEntry.problemCategory ? 'inherit' : '#9ca3af' }}
+                          className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none text-left flex items-center justify-between bg-gray-100"
+                          style={{ fontFamily: 'inherit', fontSize: 'inherit', color: currentEntry.problemCategory ? 'inherit' : '#6b7280' }}
                         >
                           <span>{currentEntry.problemCategory || 'Select category'}</span>
-                          <span className="text-gray-400" style={{ fontSize: '10px' }}>▼</span>
+                          <span className="text-gray-500" style={{ fontSize: '10px' }}>▼</span>
                         </button>
 
                         {showCategoryDropdown && (
@@ -5198,7 +5198,7 @@ onClick={() => {
         setFilters({...filters, problemCategory: ''});
         loadProblemCategories(id);
       }}
-      className={`w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none ${uiPractices.length === 1 ? 'bg-gray-50 cursor-not-allowed' : ''}`}
+      className={`w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none bg-gray-100 ${uiPractices.length === 1 ? 'cursor-not-allowed' : ''}`}
       disabled={uiPractices.length === 1}
     >
       <option value="">All Practices</option>
@@ -5413,7 +5413,7 @@ onClick={() => {
         setShowKeyInsights(false);
         loadProblemCategories(id);
       }}
-      className={`w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none ${uiPractices.length === 1 ? 'bg-gray-50 cursor-not-allowed' : ''}`}
+      className={`w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none bg-gray-100 ${uiPractices.length === 1 ? 'cursor-not-allowed' : ''}`}
       disabled={uiPractices.length === 1}
     >
       <option value="">All Practices</option>
