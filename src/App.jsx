@@ -4700,81 +4700,63 @@ onClick={() => {
   </div>
 ) : null}
 
-              {/* ⭐ CUSTOM CATEGORY DROPDOWN */}
+              {/* ⭐ CATEGORY SELECT + DESCRIPTION */}
               {(() => {
                 const selectedCatData = currentEntry.problemCategory ? categoryData[currentEntry.problemCategory] : null;
                 const hasTags = selectedCatData?.tags?.length > 0;
 
                 return (
                   <div className="relative">
+                    {/* Native select + ⓘ button */}
                     <div className="flex items-center gap-2">
-                      {/* Custom dropdown trigger */}
-                      <div className="flex-1 relative category-dropdown-container">
+                      <select
+                        value={currentEntry.problemCategory}
+                        onChange={(e) => {
+                          setCurrentEntry({...currentEntry, problemCategory: e.target.value});
+                          setSelectedTags([]);
+                        }}
+                        className="flex-1 p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                        required
+                      >
+                        <option value="">Select category</option>
+                        {problemCategories.map(cat => (
+                          <option key={cat} value={cat}>{cat}</option>
+                        ))}
+                      </select>
+
+                      {/* ⓘ button — shown when category has description */}
+                      {currentEntry.problemCategory && selectedCatData?.description && (
+                        <div className="relative flex-shrink-0">
+                          <button
+                            type="button"
+                            onMouseEnter={() => setHoveredCategory(currentEntry.problemCategory)}
+                            onMouseLeave={() => setHoveredCategory(null)}
+                            onClick={() => setShowCategoryDrawer(true)}
+                            className="w-8 h-8 rounded-full border-2 border-gray-300 text-gray-500 hover:border-purple-400 hover:text-purple-600 flex items-center justify-center font-medium transition-colors"
+                            style={{ fontSize: '14px' }}
+                          >
+                            ⓘ
+                          </button>
+                          {/* Desktop tooltip */}
+                          {hoveredCategory === currentEntry.problemCategory && (
+                            <div className="hidden sm:block absolute left-full top-0 ml-3 z-[999] w-64 bg-gray-800 text-white rounded-lg p-3 shadow-2xl pointer-events-none" style={{ fontSize: '12px', lineHeight: '1.5' }}>
+                              <p className="text-gray-300">{selectedCatData.description}</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* ⓘ button — mobile only, when no category selected yet */}
+                      {(!currentEntry.problemCategory || !selectedCatData?.description) && (
                         <button
                           type="button"
-                          onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
-                          className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none text-left flex items-center justify-between bg-gray-50"
-                          style={{ fontFamily: 'inherit', fontSize: '1rem' }}
+                          onClick={() => setShowCategoryDrawer(true)}
+                          className="sm:hidden flex-shrink-0 w-8 h-8 rounded-full border-2 border-gray-300 text-gray-500 hover:border-purple-400 hover:text-purple-600 flex items-center justify-center font-medium transition-colors"
+                          style={{ fontSize: '14px' }}
                         >
-                          <span className={currentEntry.problemCategory ? 'text-gray-800' : 'text-gray-400'}>
-                            {currentEntry.problemCategory || 'Select category'}
-                          </span>
-                          <span className="text-gray-400 text-xs">▼</span>
+                          ⓘ
                         </button>
-
-                        {/* Dropdown list */}
-                        {showCategoryDropdown && (
-                          <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border-2 border-gray-200 rounded-lg shadow-xl overflow-visible">
-                            {problemCategories.map(cat => {
-                              const catDesc = categoryData[cat];
-                              return (
-                                <div
-                                  key={cat}
-                                  className="relative"
-                                  onMouseEnter={() => setHoveredCategory(cat)}
-                                  onMouseLeave={() => setHoveredCategory(null)}
-                                >
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setCurrentEntry({...currentEntry, problemCategory: cat});
-                                      setSelectedTags([]);
-                                      setShowCategoryDropdown(false);
-                                      setHoveredCategory(null);
-                                    }}
-                                    className={`w-full text-left px-3 py-2.5 flex items-center justify-between hover:bg-purple-50 transition-colors ${currentEntry.problemCategory === cat ? 'bg-purple-50 font-medium text-purple-700' : 'text-gray-700'}`}
-                                    style={{ fontFamily: 'inherit', fontSize: '1rem' }}
-                                  >
-                                    <span>{cat}</span>
-                                    {catDesc?.description && (
-                                      <span className="text-gray-400 text-xs ml-2 hidden sm:block">ⓘ</span>
-                                    )}
-                                  </button>
-
-                                  {/* Desktop: description tooltip on hover */}
-                                  {hoveredCategory === cat && catDesc?.description && (
-                                    <div className="hidden sm:block absolute left-full top-0 ml-3 z-[999] w-64 bg-gray-800 text-white rounded-lg p-3 shadow-2xl pointer-events-none" style={{ fontSize: '12px', lineHeight: '1.5' }}>
-                                      <p className="font-semibold mb-1" style={{ fontSize: '12px' }}>{cat}</p>
-                                      <p className="text-gray-300">{catDesc.description}</p>
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* ⓘ button — mobile only */}
-                      <button
-                        type="button"
-                        onClick={() => setShowCategoryDrawer(true)}
-                        className="sm:hidden flex-shrink-0 w-8 h-8 rounded-full border-2 border-gray-300 text-gray-500 hover:border-purple-400 hover:text-purple-600 flex items-center justify-center font-medium transition-colors"
-                        style={{ fontSize: '14px' }}
-                        title="View category descriptions"
-                      >
-                        ⓘ
-                      </button>
+                      )}
                     </div>
 
                     {/* Tags checkboxes — appear after category selected */}
@@ -5819,7 +5801,7 @@ onClick={() => {
                             {exp.tags.map(tag => (
                               <span key={tag} className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">{tag}</span>
                             ))}
-                            {appSettings.requireEmployeeLogin && exp.employeeId === employeeId && exp.source === 'app' && (
+                            {(appSettings.requireEmployeeLogin ? exp.employeeId === employeeId : true) && exp.source === 'app' && (
                               <button
                                 onClick={() => setEditingTags(exp.id)}
                                 className="text-xs text-gray-400 hover:text-purple-600 px-1"
@@ -5831,7 +5813,7 @@ onClick={() => {
                       </div>
                     )}
                     {/* Se não tem tags mas é do usuário e a categoria tem tags disponíveis */}
-                    {(!exp.tags || exp.tags.length === 0) && appSettings.requireEmployeeLogin && exp.employeeId === employeeId && exp.source === 'app' && categoryData[exp.problemCategory]?.tags?.length > 0 && editingTags !== exp.id && (
+                    {(!exp.tags || exp.tags.length === 0) && (appSettings.requireEmployeeLogin ? exp.employeeId === employeeId : true) && exp.source === 'app' && categoryData[exp.problemCategory]?.tags?.length > 0 && editingTags !== exp.id && (
                       <button
                         onClick={() => setEditingTags(exp.id)}
                         className="text-xs text-gray-400 hover:text-purple-600 mr-auto"
