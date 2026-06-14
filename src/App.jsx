@@ -4044,33 +4044,52 @@ autoComplete="off"
                 const wb = XLSX.read(data);
                 const ws = wb.Sheets[wb.SheetNames[0]];
                 const rows = XLSX.utils.sheet_to_json(ws);
-                let updated = 0, added = 0, errors = 0;
-                for (const row of rows) {
-                  const catName = String(row['Category'] || '').trim();
-                  const desc = String(row['Description'] || '').trim();
-                  const tagsRaw = String(row['Tags'] || '').trim();
-                  const tags = tagsRaw ? tagsRaw.split(',').map(t => t.trim()).filter(Boolean) : [];
-                  if (!catName) { errors++; continue; }
-                  // Check if category exists
-                  const existing = adminCategories.find(c => c.name.toLowerCase() === catName.toLowerCase());
-                  if (existing) {
-                    const { error } = await supabase.from('problem_categories').update({
-                      description: desc || null,
-                      tags: tags
-                    }).eq('id', existing.id);
-                    if (error) { errors++; } else { updated++; }
-                  } else {
-                    const maxOrder = adminCategories.length + added;
-                    const { error } = await supabase.from('problem_categories').insert([{
-                      name: catName, description: desc || null, tags: tags,
-                      display_order: maxOrder + 1, active: true, practice_id: selectedPracticeId
-                    }]);
-                    if (error) { errors++; } else { added++; }
-                  }
-                }
-                await loadAdminCategories(selectedPracticeId);
-                await loadProblemCategories(selectedPracticeId);
-                alert(`Import complete!\nUpdated: ${updated}, Added: ${added}, Errors: ${errors}`);
+let updated = 0, added = 0, errors = 0;
+
+// Buscar todas as categories do banco
+const { data: allCats } = await supabase.from('problem_categories').select('*').eq('active', true);
+
+for (const row of rows) {
+  const practiceName = String(row['Practice'] || '').trim();
+  const catName = String(row['Category'] || '').trim();
+  const desc = String(row['Description'] || '').trim();
+  const tagsRaw = String(row['Tags'] || '').trim();
+  const tags = tagsRaw ? tagsRaw.split(',').map(t => t.trim()).filter(Boolean) : [];
+  if (!catName) { errors++; continue; }
+
+  // Encontrar practice_id pelo nome
+  let practiceId = selectedPracticeId;
+  if (practiceName) {
+    const matchedPractice = practices.find(p => p.name.toLowerCase() === practiceName.toLowerCase());
+    if (matchedPractice) {
+      practiceId = matchedPractice.id;
+    } else {
+      errors++;
+      continue;
+    }
+  }
+
+  // Verificar se categoria já existe nessa practice
+  const existing = (allCats || []).find(c =>
+    c.name.toLowerCase() === catName.toLowerCase() &&
+    c.practice_id === practiceId
+  );
+
+  if (existing) {
+    const { error } = await supabase.from('problem_categories').update({
+      description: desc || null,
+      tags: tags
+    }).eq('id', existing.id);
+    if (error) { errors++; } else { updated++; }
+  } else {
+    const maxOrder = (allCats || []).filter(c => c.practice_id === practiceId).length + added;
+    const { error } = await supabase.from('problem_categories').insert([{
+      name: catName, description: desc || null, tags: tags,
+      display_order: maxOrder + 1, active: true, practice_id: practiceId
+    }]);
+    if (error) { errors++; } else { added++; }
+  }
+}
               } catch(err) { alert('Error importing: ' + err.message); }
               e.target.value = '';
             }}
