@@ -6668,13 +6668,13 @@ onClick={() => {
           </div>
         </div>
 
-            {/* ⭐ FOLLOW-ON CARDS — abaixo do card pai, formato completo */}
+            {/* ⭐ FOLLOW-ON CARDS — abaixo do card pai, sem gap */}
             {exp.author !== 'key_insights' && expFollowOns.length > 0 && expandedFollowOns[exp.id] && (
-                <div className="space-y-0">
+                <div className="space-y-0 -mt-4">
                   {expFollowOns.map(fo => (
                     <div key={fo.id}>
-                      {/* Conector centralizado — espesso e longo */}
-                      <div className="flex justify-center" style={{ height: '64px' }}>
+                      {/* Conector centralizado — preenche exatamente o gap entre cards */}
+                      <div className="flex justify-center" style={{ height: '16px', marginTop: '-0px' }}>
                         <div className="w-1 bg-blue-300 h-full rounded-full" />
                       </div>
                       {/* Card Follow-On — mx-6 simétrico */}
@@ -6781,7 +6781,19 @@ onClick={() => {
                             )}
                           </div>
 
-                          {/* Comments */}
+                          {/* ↓ Indicador de Follow-Ons do fo */}
+                          {(() => {
+                            const foChildren = experiences.filter(e => e.parentExperienceId === fo.id);
+                            if (foChildren.length === 0) return null;
+                            return (
+                              <button
+                                onClick={() => setExpandedFollowOns({...expandedFollowOns, [fo.id]: !expandedFollowOns[fo.id]})}
+                                className="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1 mb-3"
+                              >
+                                {expandedFollowOns[fo.id] ? '▲' : '▼'} ↓ {foChildren.length} Follow-On {foChildren.length === 1 ? 'Experience' : 'Experiences'}
+                              </button>
+                            );
+                          })()}
                           <div className="border-t pt-4 mt-4">
                             <div className="mb-4">
                               <h4 className="font-semibold text-gray-700 mb-3 flex items-center gap-2"><MessageCircle size={18}/>Add a Comment</h4>
@@ -6832,6 +6844,74 @@ onClick={() => {
                           </div>
                         </div>
                       </div>
+                      {/* ⭐ Follow-Ons de Follow-On (recursivo — mesmo padrão) */}
+                      {(() => {
+                        const foChildren = experiences.filter(e => e.parentExperienceId === fo.id);
+                        if (!expandedFollowOns[fo.id] || foChildren.length === 0) return null;
+                        return (
+                          <div className="space-y-0">
+                            {foChildren.map(fo2 => (
+                              <div key={fo2.id}>
+                                <div className="flex justify-center" style={{ height: '16px' }}>
+                                  <div className="w-1 bg-blue-300 h-full rounded-full" />
+                                </div>
+                                <div className="mx-6">
+                                  <div id={`exp-${fo2.id}`} className="bg-white rounded-2xl shadow-lg p-6 border-l-4 border-blue-300">
+                                    <div className="mb-3 text-center">
+                                      <span className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">🔗 Follow-On Experience</span>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
+                                      <div className="space-y-2">
+                                        <div className="flex items-center justify-between">
+                                          <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>Problem</h4>
+                                          <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full">
+                                            {(() => { const p = practices.find(p => p.id === fo2.practiceId)?.name; return p && p !== 'General' ? `${p} / ${fo2.problemCategory}` : fo2.problemCategory; })()}
+                                          </span>
+                                        </div>
+                                        <p className="text-sm text-gray-700">{fo2.problem}</p>
+                                      </div>
+                                      <div className="space-y-2">
+                                        <h4 className="font-semibold text-blue-600 flex items-center gap-2"><TrendingUp size={16}/>Action</h4>
+                                        <p className="text-sm text-gray-700">{fo2.solution}</p>
+                                      </div>
+                                      <div className="space-y-2">
+                                        <div className="flex items-center justify-between">
+                                          <h4 className="font-semibold text-green-600 flex items-center gap-2"><Share2 size={16}/>Result</h4>
+                                          <span className={`text-xs px-3 py-1 rounded-full ${getResultColor(fo2.resultCategory)}`}>{getResultLabel(fo2.resultCategory)}</span>
+                                        </div>
+                                        <p className="text-sm text-gray-700">{fo2.result}</p>
+                                      </div>
+                                    </div>
+                                    <div className="border-t pt-4 mt-4">
+                                      <h4 className="font-semibold text-gray-700 mb-3 flex items-center gap-2"><MessageCircle size={18}/>Add a Comment</h4>
+                                      <div className="space-y-2">
+                                        <textarea value={newComment[fo2.id] || ''}
+                                          onChange={(e) => { if (e.target.value.length <= maxChars.comment) setNewComment({...newComment, [fo2.id]: e.target.value}); }}
+                                          placeholder="Share your thoughts..."
+                                          className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none resize-none" rows="2" />
+                                        <button onClick={() => handleAddComment(fo2.id)} disabled={!newComment[fo2.id]?.trim()}
+                                          className="px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-300 flex items-center gap-2 py-2">
+                                          <Send size={18}/>
+                                        </button>
+                                      </div>
+                                      {!experiences.some(e => e.parentExperienceId === fo2.id) && (
+                                        <button onClick={() => {
+                                          setFollowOnParentId(fo2.id);
+                                          if (fo2.practiceId) { setSelectedPracticeId(fo2.practiceId); loadProblemCategories(fo2.practiceId); }
+                                          setCurrentEntry(prev => ({ ...prev, problemCategory: fo2.problemCategory || '' }));
+                                          document.getElementById('share-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                        }} className="mt-3 text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">
+                                          🔗 Add a Follow-On Experience
+                                        </button>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      })()}
                     </div>
                   ))}
                 </div>
