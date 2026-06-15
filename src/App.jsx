@@ -6668,16 +6668,16 @@ onClick={() => {
                 <div className="space-y-0">
                   {expFollowOns.map(fo => (
                     <div key={fo.id}>
-                      {/* Conector visual centralizado */}
-                      <div className="flex justify-center" style={{ height: '24px' }}>
-                        <div className="w-px bg-blue-300 h-full" />
+                      {/* Fix 2 — Conector mais espesso e longo, centralizado */}
+                      <div className="flex justify-center" style={{ height: '40px' }}>
+                        <div className="w-1 bg-blue-300 h-full rounded-full" />
                       </div>
-                      {/* Card Follow-On — mesmo formato, levemente mais estreito */}
+                      {/* Card Follow-On — mx-6 simétrico */}
                       <div className="mx-6">
                         <div id={`exp-${fo.id}`} className="bg-white rounded-2xl shadow-lg p-6 border-l-4 border-blue-300">
-                          {/* Badge follow-on */}
-                          <div className="mb-3">
-                            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">🔗 Follow-On Experience</span>
+                          {/* Fix 3 — Badge centralizado */}
+                          <div className="mb-3 text-center">
+                            <span className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">🔗 Follow-On Experience</span>
                           </div>
                           {/* ===== MESMO CONTEÚDO DO CARD NORMAL (com fo no lugar de exp) ===== */}
                           <div className="mb-4">
@@ -6742,7 +6742,13 @@ onClick={() => {
                             <div className="space-y-2">
                               <div className="flex items-center justify-between">
                                 <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>Problem</h4>
-                                <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full">{fo.problemCategory}</span>
+                                {/* Fix 4 — Practice / Category */}
+                                <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full">
+                                  {(() => {
+                                    const pname = practices.find(p => p.id === fo.practiceId)?.name;
+                                    return pname && pname !== 'General' ? `${pname} / ${fo.problemCategory}` : fo.problemCategory;
+                                  })()}
+                                </span>
                               </div>
                               <p className="text-sm text-gray-700">{highlightText(fo.problem, filters.searchText ? filters.searchText.toLowerCase().trim().split(/\s+/) : [])}</p>
                             </div>
@@ -6768,14 +6774,6 @@ onClick={() => {
                                 ))}
                               </div>
                             )}
-                          </div>
-
-                          {/* Follow-On button */}
-                          <div className="mb-3">
-                            <button
-                              onClick={() => { setFollowOnParentId(fo.id); document.getElementById('share-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
-                              className="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
-                            >🔗 Add a Follow-On Experience</button>
                           </div>
 
                           {/* Comments */}
@@ -6813,6 +6811,18 @@ onClick={() => {
                                   </div>
                                 )}
                               </div>
+                            )}
+                            {/* Fix 1 — 🔗 abaixo dos comments. Fix 5 — prefill practice+category */}
+                            {!experiences.some(e => e.parentExperienceId === fo.id) && (
+                              <button
+                                onClick={() => {
+                                  setFollowOnParentId(fo.id);
+                                  if (fo.practiceId) { setSelectedPracticeId(fo.practiceId); loadProblemCategories(fo.practiceId); }
+                                  setCurrentEntry(prev => ({ ...prev, problemCategory: fo.problemCategory || '' }));
+                                  document.getElementById('share-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                }}
+                                className="mt-3 text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
+                              >🔗 Add a Follow-On Experience</button>
                             )}
                           </div>
                         </div>
