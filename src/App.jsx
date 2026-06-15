@@ -2402,7 +2402,6 @@ return matchesPractice && matchesProblemCategory && matchesSearchText && matches
   // Reset to page 1 when filters change
 // Reset to page 1 when filters change (exceto quando navegando para Key Insight)
 useEffect(() => {
-  // Não resetar se estiver no modo Key Insights sem filtros ativos
   const hasActiveFilters = filters.problemCategory || filters.searchText || 
                           filters.resultCategory || filters.rating || 
                           filters.gender || filters.age || filters.country || 
@@ -2410,6 +2409,9 @@ useEffect(() => {
   
   if (hasActiveFilters) {
     setCurrentPage(1);
+    // Fechar todos os threads ao filtrar
+    setExpandedFollowOns({});
+    setExpandedUpstream({});
   }
 }, [filters]);
 
@@ -6631,62 +6633,80 @@ onClick={() => {
                         return children.reduce((acc, child) => acc + 1 + countAllDescendants(child.id), 0);
                       };
                       const totalThreadCount = countAllDescendants(exp.id);
-                      const upstreamExp = exp.parentExperienceId ? experiences.find(e => e.id === exp.parentExperienceId) : null;
+                      // Construir cadeia completa de ancestrais (do mais antigo ao mais recente)
+                      const buildAncestorChain = (id) => {
+                        const chain = [];
+                        let current = experiences.find(e => e.id === id);
+                        while (current?.parentExperienceId) {
+                          const parent = experiences.find(e => e.id === current.parentExperienceId);
+                          if (parent) chain.unshift(parent);
+                          current = parent;
+                        }
+                        return chain;
+                      };
+                      const ancestorChain = exp.parentExperienceId ? buildAncestorChain(exp.id) : [];
 
                       return (
                         <div className="mb-3 space-y-2">
                           {/* Upstream */}
-                          {upstreamExp && (
+                          {ancestorChain.length > 0 && (
                             <div>
                               <button
                                 onClick={() => setExpandedUpstream({...expandedUpstream, [exp.id]: !expandedUpstream[exp.id]})}
                                 className="text-xs text-purple-600 hover:text-purple-800 font-medium flex items-center gap-1"
                               >
-                                {expandedUpstream[exp.id] ? '▲' : '▼'} ↑ Upstream Experience
+                                {expandedUpstream[exp.id] ? '▲' : '▼'} ↑ {ancestorChain.length} Upstream {ancestorChain.length === 1 ? 'Experience' : 'Experiences'}
                               </button>
                               {expandedUpstream[exp.id] && (
-                                <div className="mt-2">
-                                  {/* Conector */}
-                                  <div className="flex justify-center" style={{ height: '20px' }}>
-                                    <div className="w-px bg-purple-300 h-full" />
-                                  </div>
-                                  {/* Card upstream — mesmo formato completo */}
-                                  <div className="mx-6">
-                                    <div className="bg-white rounded-2xl shadow-lg p-6 border-l-4 border-purple-300">
-                                      <div className="mb-3">
-                                        <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-medium">↑ Upstream Experience</span>
-                                      </div>
-                                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
-                                        <div className="space-y-2">
-                                          <div className="flex items-center justify-between">
-                                            <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>Problem</h4>
-                                            <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full">{upstreamExp.problemCategory}</span>
+                                <div className="mt-2 space-y-0">
+                                  {ancestorChain.map((ancestor, idx) => {
+                                    const isRoot = !ancestor.parentExperienceId;
+                                    const pname = practices.find(p => p.id === ancestor.practiceId)?.name;
+                                    const catLabel = pname && pname !== 'General' ? `${pname} / ${ancestor.problemCategory}` : ancestor.problemCategory;
+                                    return (
+                                      <div key={ancestor.id}>
+                                        {/* Card ancestral — tamanho normal, borda roxa */}
+                                        <div className={idx === 0 ? '' : 'mx-6'}>
+                                          <div className={`bg-white rounded-2xl shadow-lg p-6 ${isRoot ? 'border-l-4 border-purple-400' : 'border-l-4 border-purple-300'}`}>
+                                            <div className="mb-3 text-center">
+                                              <span className="text-xs bg-purple-100 text-purple-700 px-3 py-1 rounded-full font-medium">
+                                                {isRoot ? '↑ Original Experience' : '↑ Upstream Experience'}
+                                              </span>
+                                            </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
+                                              <div className="space-y-2">
+                                                <div className="flex items-center justify-between">
+                                                  <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>Problem</h4>
+                                                  <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full">{catLabel}</span>
+                                                </div>
+                                                <p className="text-sm text-gray-700">{ancestor.problem}</p>
+                                              </div>
+                                              <div className="space-y-2">
+                                                <h4 className="font-semibold text-blue-600 flex items-center gap-2"><TrendingUp size={16}/>Action</h4>
+                                                <p className="text-sm text-gray-700">{ancestor.solution}</p>
+                                              </div>
+                                              <div className="space-y-2">
+                                                <div className="flex items-center justify-between">
+                                                  <h4 className="font-semibold text-green-600 flex items-center gap-2"><Share2 size={16}/>Result</h4>
+                                                  <span className={`text-xs px-3 py-1 rounded-full ${getResultColor(ancestor.resultCategory)}`}>{getResultLabel(ancestor.resultCategory)}</span>
+                                                </div>
+                                                <p className="text-sm text-gray-700">{ancestor.result}</p>
+                                              </div>
+                                            </div>
+                                            {(ancestor.author || ancestor.employeeId) && (
+                                              <p className="text-xs text-gray-500 border-t pt-2">
+                                                By: {[ancestor.author, ancestor.employeeId, ancestor.country].filter(Boolean).join(', ')}
+                                              </p>
+                                            )}
                                           </div>
-                                          <p className="text-sm text-gray-700">{upstreamExp.problem}</p>
                                         </div>
-                                        <div className="space-y-2">
-                                          <h4 className="font-semibold text-blue-600 flex items-center gap-2"><TrendingUp size={16}/>Action</h4>
-                                          <p className="text-sm text-gray-700">{upstreamExp.solution}</p>
-                                        </div>
-                                        <div className="space-y-2">
-                                          <div className="flex items-center justify-between">
-                                            <h4 className="font-semibold text-green-600 flex items-center gap-2"><Share2 size={16}/>Result</h4>
-                                            <span className={`text-xs px-3 py-1 rounded-full ${getResultColor(upstreamExp.resultCategory)}`}>{getResultLabel(upstreamExp.resultCategory)}</span>
-                                          </div>
-                                          <p className="text-sm text-gray-700">{upstreamExp.result}</p>
+                                        {/* Conector para o próximo */}
+                                        <div style={{ display: 'flex', justifyContent: 'center', height: '32px' }}>
+                                          <div style={{ width: '4px', height: '100%', backgroundColor: '#c4b5fd', borderRadius: '2px' }} />
                                         </div>
                                       </div>
-                                      {(upstreamExp.author || upstreamExp.employeeId) && (
-                                        <p className="text-xs text-gray-500 border-t pt-2">
-                                          By: {[upstreamExp.author, upstreamExp.employeeId, upstreamExp.country].filter(Boolean).join(', ')}
-                                        </p>
-                                      )}
-                                    </div>
-                                  </div>
-                                  {/* Conector de baixo */}
-                                  <div className="flex justify-center" style={{ height: '20px' }}>
-                                    <div className="w-px bg-purple-300 h-full" />
-                                  </div>
+                                    );
+                                  })}
                                 </div>
                               )}
                             </div>
