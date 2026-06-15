@@ -114,6 +114,11 @@ const [hoveredCategory, setHoveredCategory] = useState(null); // hover desktop
 const [showCategoryDropdown, setShowCategoryDropdown] = useState(false); // custom dropdown aberto
 const [filterTags, setFilterTags] = useState([]); // tags ativas no filtro See What Others Did
 const [editingTags, setEditingTags] = useState(null); // id da experience com tags em edição
+
+// ⭐ FOLLOW-ON EXPERIENCE
+const [followOnParentId, setFollowOnParentId] = useState(null); // id da exp que originou o follow-on
+const [expandedUpstream, setExpandedUpstream] = useState({}); // { [expId]: true/false }
+const [expandedFollowOns, setExpandedFollowOns] = useState({}); // { [expId]: true/false }
   
   // ⭐ ADICIONAR AQUI - Estados para Employee Login ⭐
   const [isEmployeeLoggedIn, setIsEmployeeLoggedIn] = useState(false);
@@ -276,6 +281,7 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null) => {
       employeeId: exp.employee_id || null,
       practiceId: exp.practice_id || null,
       tags: exp.tags || [],
+      parentExperienceId: exp.parent_experience_id || null,
       comments: []
     }));
     
@@ -990,6 +996,7 @@ if (matches.length > 0) {
     setShowKeyInsights(false);
     setKeyInsightCategory('');
     setSelectedTags([]);
+    setFollowOnParentId(null);
     setCurrentPage(1);
     
     setTimeout(() => {
@@ -1151,6 +1158,7 @@ setTimeout(() => {
         country: newExperience.country || '',
         employee_id: appSettings.requireEmployeeLogin ? employeeId : null,
         practice_id: selectedPracticeId || null,
+        parent_experience_id: followOnParentId || null,
         tags: selectedTags.length > 0 ? selectedTags : [],
         avg_rating: 0,
         total_ratings: 0,
@@ -1202,6 +1210,14 @@ if (appSettings.requireEmployeeLogin && !isAdmin && exp.employeeId !== employeeI
       }
     });
     
+    // ⭐ Reencadear Follow-Ons antes de deletar
+    const firstChild = experiences.find(e => e.parentExperienceId === id);
+    if (firstChild) {
+      await supabase.from('experiences')
+        .update({ parent_experience_id: exp.parentExperienceId || null })
+        .eq('id', firstChild.id);
+    }
+
     // Deletar experiência (CASCADE deleta comentários automaticamente)
     const { error } = await supabase
       .from('experiences')
@@ -2335,6 +2351,12 @@ const filteredExperiences = experiences.filter(exp => {
   const matchesIndustrySector = !filters.industrySector || exp.industrySector === filters.industrySector;
   // Filtro por tags (OR — basta ter qualquer uma das tags selecionadas)
   const matchesTags = filterTags.length === 0 || filterTags.some(tag => (exp.tags || []).includes(tag));
+  // ⭐ Excluir Follow-Ons do feed principal (aparecem dentro do thread da original)
+  // Se há busca ativa, mostrar follow-ons também para que o search as encontre
+  if (exp.parentExperienceId && !filters.searchText) {
+    return false;
+  }
+
   // Sempre mostrar experiências avaliadas/comentadas na sessão, mesmo que não atendam o filtro
 const wasInteractedInSession = ratedInSession.has(exp.id);
 if (wasInteractedInSession) return true;
@@ -4694,6 +4716,20 @@ onClick={() => {
 
 <div id="share-section" className="bg-white rounded-2xl shadow-xl p-8 mb-8">
   <h2 className="text-2xl font-bold text-gray-800 mb-6">Share Your Experiences</h2>
+
+  {/* ⭐ FOLLOW-ON BANNER */}
+  {followOnParentId && (() => {
+    const parentExp = experiences.find(e => e.id === followOnParentId);
+    return parentExp ? (
+      <div className="mb-5 p-3 bg-blue-50 border-2 border-blue-200 rounded-lg flex items-start justify-between gap-3">
+        <div className="flex-1">
+          <p className="text-xs font-semibold text-blue-700 mb-1">🔗 Follow-On to:</p>
+          <p className="text-xs text-blue-600 italic line-clamp-2">{parentExp.problem.substring(0, 150)}{parentExp.problem.length > 150 ? '...' : ''}</p>
+        </div>
+        <button onClick={() => setFollowOnParentId(null)} className="text-blue-400 hover:text-blue-600 text-xl leading-none flex-shrink-0">×</button>
+      </div>
+    ) : null;
+  })()}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div className="space-y-3">
               <div className="flex items-center gap-2 mb-2">
@@ -5592,9 +5628,8 @@ onClick={() => {
             </div>
           ) : (
             <div className="space-y-4" id="first-experience">
-            {/* REST OF THE EXPERIENCES RENDERING CODE - CONTINUES IN NEXT MESSAGE DUE TO LENGTH */}
 
-{/* ⭐ NOVO: Banner quando filtrando por Common Case */}
+{/* ⭐ FOLLOW-ON BANNER quando filtrando */}
             {mappedFilter && (
               <div className="bg-purple-50 border-2 border-purple-300 rounded-lg p-4 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-start gap-3 flex-1">
@@ -5617,9 +5652,6 @@ onClick={() => {
               </div>
             )}
 
-{/* DEBUG: Verificar o que está sendo renderizado */}
-{console.log('🎨 Renderizando página', currentPage, '- Total cards:', currentExperiences.length, '- IDs:', currentExperiences.map(e => e.id))}
-              
             {currentExperiences.map(exp => (
               <div key={exp.id}>
                 <div id={`exp-${exp.id}`} className="bg-white rounded-2xl shadow-lg p-6">
@@ -6334,7 +6366,109 @@ onClick={() => {
             )}
 
 {/* Navigation CTA */}
-                  <div className="mt-6 pt-4 border-t-2 border-gray-100 text-center">
+                  <div className="mt-4 pt-3 border-t border-gray-100">
+                    {/* ⭐ FOLLOW-ON THREAD INDICATORS */}
+                    {exp.author !== 'key_insights' && (() => {
+                      const followOns = experiences.filter(e => e.parentExperienceId === exp.id);
+                      const upstreamExp = exp.parentExperienceId ? experiences.find(e => e.id === exp.parentExperienceId) : null;
+
+                      return (
+                        <div className="mb-3 space-y-2">
+                          {/* Upstream */}
+                          {upstreamExp && (
+                            <div>
+                              <button
+                                onClick={() => setExpandedUpstream({...expandedUpstream, [exp.id]: !expandedUpstream[exp.id]})}
+                                className="text-xs text-purple-600 hover:text-purple-800 font-medium flex items-center gap-1"
+                              >
+                                {expandedUpstream[exp.id] ? '▲' : '▼'} ↑ Upstream Experience
+                              </button>
+                              {expandedUpstream[exp.id] && (
+                                <div className="mt-2 ml-3 border-l-2 border-purple-200 pl-3">
+                                  <div className="bg-purple-50 rounded-lg p-3">
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-2">
+                                      <div>
+                                        <p className="text-[10px] font-semibold text-red-600 mb-0.5">Problem</p>
+                                        <p className="text-xs text-gray-700 line-clamp-3">{upstreamExp.problem}</p>
+                                      </div>
+                                      <div>
+                                        <p className="text-[10px] font-semibold text-blue-600 mb-0.5">Action</p>
+                                        <p className="text-xs text-gray-700 line-clamp-3">{upstreamExp.solution}</p>
+                                      </div>
+                                      <div>
+                                        <p className="text-[10px] font-semibold text-green-600 mb-0.5">Result</p>
+                                        <p className="text-xs text-gray-700 line-clamp-3">{upstreamExp.result}</p>
+                                      </div>
+                                    </div>
+                                    <span className="text-[10px] text-gray-400">{upstreamExp.author || upstreamExp.employeeId || 'Anonymous'}</span>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Follow-Ons */}
+                          {followOns.length > 0 && (
+                            <div>
+                              <button
+                                onClick={() => setExpandedFollowOns({...expandedFollowOns, [exp.id]: !expandedFollowOns[exp.id]})}
+                                className="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
+                              >
+                                {expandedFollowOns[exp.id] ? '▲' : '▼'} ↓ {followOns.length} Follow-On {followOns.length === 1 ? 'Experience' : 'Experiences'}
+                              </button>
+                              {expandedFollowOns[exp.id] && (
+                                <div className="mt-2 ml-3 border-l-2 border-blue-200 pl-3 space-y-3">
+                                  {followOns.map(fo => (
+                                    <div key={fo.id} id={`exp-${fo.id}`} className="bg-blue-50 rounded-lg p-3">
+                                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-2">
+                                        <div>
+                                          <p className="text-[10px] font-semibold text-red-600 mb-0.5">Problem</p>
+                                          <p className="text-xs text-gray-700">{fo.problem}</p>
+                                        </div>
+                                        <div>
+                                          <p className="text-[10px] font-semibold text-blue-600 mb-0.5">Action</p>
+                                          <p className="text-xs text-gray-700">{fo.solution}</p>
+                                        </div>
+                                        <div>
+                                          <p className="text-[10px] font-semibold text-green-600 mb-0.5">Result</p>
+                                          <p className="text-xs text-gray-700">{fo.result}</p>
+                                        </div>
+                                      </div>
+                                      <div className="flex items-center justify-between">
+                                        <span className="text-[10px] text-gray-400">{fo.author || fo.employeeId || 'Anonymous'}</span>
+                                        <button
+                                          onClick={() => {
+                                            setFollowOnParentId(fo.id);
+                                            document.getElementById('share-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                          }}
+                                          className="text-[10px] text-blue-600 hover:text-blue-800 font-medium"
+                                        >🔗 Add Follow-On</button>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
+
+                    {/* ⭐ FOLLOW-ON BUTTON */}
+                    {exp.author !== 'key_insights' && (
+                      <button
+                        onClick={() => {
+                          setFollowOnParentId(exp.id);
+                          document.getElementById('share-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }}
+                        className="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1 mb-3"
+                      >
+                        🔗 Add a Follow-On Experience
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="pt-2 border-t-2 border-gray-100 text-center">
                     <div className="flex items-center justify-center gap-3 text-sm">
                       <button
                         onClick={() => document.getElementById('experiences-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
