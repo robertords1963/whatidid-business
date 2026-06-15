@@ -1170,6 +1170,17 @@ setTimeout(() => {
     
     if (error) throw error;
     
+    // Fix 4 — Auto-expandir o thread do parent após salvar
+    if (followOnParentId) {
+      // Encontrar a raiz do thread para expandir
+      const findRoot = (id) => {
+        const parent = experiences.find(e => e.id === id);
+        return parent?.parentExperienceId ? findRoot(parent.parentExperienceId) : id;
+      };
+      const rootId = findRoot(followOnParentId);
+      setExpandedFollowOns(prev => ({ ...prev, [rootId]: true, [followOnParentId]: true }));
+    }
+    
     // Limpar CV selecionado após sucesso
     setSelectedCv(null);
     
@@ -6402,6 +6413,12 @@ onClick={() => {
                     {/* ⭐ FOLLOW-ON THREAD INDICATORS */}
                     {exp.author !== 'key_insights' && (() => {
                       const followOns = experiences.filter(e => e.parentExperienceId === exp.id);
+                      // Contar todos os descendentes do thread
+                      const countAllDescendants = (parentId) => {
+                        const children = experiences.filter(e => e.parentExperienceId === parentId);
+                        return children.reduce((acc, child) => acc + 1 + countAllDescendants(child.id), 0);
+                      };
+                      const totalThreadCount = countAllDescendants(exp.id);
                       const upstreamExp = exp.parentExperienceId ? experiences.find(e => e.id === exp.parentExperienceId) : null;
 
                       return (
@@ -6470,7 +6487,7 @@ onClick={() => {
                                 onClick={() => setExpandedFollowOns({...expandedFollowOns, [exp.id]: !expandedFollowOns[exp.id]})}
                                 className="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
                               >
-                                {expandedFollowOns[exp.id] ? '▲' : '▼'} ↓ {followOns.length} Follow-On {followOns.length === 1 ? 'Experience' : 'Experiences'}
+                                {expandedFollowOns[exp.id] ? '▲' : '▼'} ↓ {totalThreadCount} Follow-On {totalThreadCount === 1 ? 'Experience' : 'Experiences'}
                               </button>
                             </div>
                           )}
@@ -6781,19 +6798,7 @@ onClick={() => {
                             )}
                           </div>
 
-                          {/* ↓ Indicador de Follow-Ons do fo */}
-                          {(() => {
-                            const foChildren = experiences.filter(e => e.parentExperienceId === fo.id);
-                            if (foChildren.length === 0) return null;
-                            return (
-                              <button
-                                onClick={() => setExpandedFollowOns({...expandedFollowOns, [fo.id]: !expandedFollowOns[fo.id]})}
-                                className="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1 mb-3"
-                              >
-                                {expandedFollowOns[fo.id] ? '▲' : '▼'} ↓ {foChildren.length} Follow-On {foChildren.length === 1 ? 'Experience' : 'Experiences'}
-                              </button>
-                            );
-                          })()}
+                          {/* Comments */}
                           <div className="border-t pt-4 mt-4">
                             <div className="mb-4">
                               <h4 className="font-semibold text-gray-700 mb-3 flex items-center gap-2"><MessageCircle size={18}/>Add a Comment</h4>
@@ -6802,7 +6807,30 @@ onClick={() => {
                                   onChange={(e) => { if (e.target.value.length <= maxChars.comment) setNewComment({...newComment, [fo.id]: e.target.value}); }}
                                   placeholder="Share your thoughts..."
                                   className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none resize-none" rows="2" />
+                                {/* Fix 3 — file attachment + send */}
                                 <div className="flex gap-2 items-center">
+                                  {appSettings.allowCvUpload && (
+                                    !commentCvFiles[fo.id] ? (
+                                      <label className="px-3 py-2 bg-gray-100 border-2 border-gray-200 rounded-lg hover:bg-gray-200 cursor-pointer flex items-center gap-1 text-sm">
+                                        <input type="file"
+                                          accept={appSettings.documentType === 'cv' ? '.pdf' : '.pdf,.pptx,.xlsx,.docx,.ppt,.xls,.doc'}
+                                          onChange={(e) => {
+                                            const file = e.target.files[0];
+                                            if (file) {
+                                              if (file.size > 5000000) { alert('File too large. Max 5MB'); e.target.value = ''; }
+                                              else setCommentCvFiles({...commentCvFiles, [fo.id]: file});
+                                            }
+                                          }}
+                                          className="hidden" />
+                                        {appSettings.documentType === 'cv' ? '📎 CV' : '📎 File'}
+                                      </label>
+                                    ) : (
+                                      <div className="flex items-center gap-1 bg-green-50 border-2 border-green-300 rounded-lg px-2 py-1">
+                                        <span className="text-xs text-green-700">✓ {appSettings.documentType === 'cv' ? 'CV' : 'File'}</span>
+                                        <button onClick={() => { const f = {...commentCvFiles}; delete f[fo.id]; setCommentCvFiles(f); }} className="text-red-600 hover:text-red-800 text-xs">✕</button>
+                                      </div>
+                                    )
+                                  )}
                                   <button onClick={() => handleAddComment(fo.id)} disabled={!newComment[fo.id]?.trim()}
                                     className="px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2 py-2">
                                     <Send size={18}/>
@@ -6829,7 +6857,20 @@ onClick={() => {
                                 )}
                               </div>
                             )}
-                            {/* Fix 1 — 🔗 abaixo dos comments. Fix 5 — prefill practice+category */}
+                            {/* Fix 1 — indicador ↓ Follow-Ons ABAIXO dos comments */}
+                            {(() => {
+                              const foChildren = experiences.filter(e => e.parentExperienceId === fo.id);
+                              if (foChildren.length === 0) return null;
+                              return (
+                                <button
+                                  onClick={() => setExpandedFollowOns({...expandedFollowOns, [fo.id]: !expandedFollowOns[fo.id]})}
+                                  className="mt-3 text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
+                                >
+                                  {expandedFollowOns[fo.id] ? '▲' : '▼'} ↓ {foChildren.length} Follow-On {foChildren.length === 1 ? 'Experience' : 'Experiences'}
+                                </button>
+                              );
+                            })()}
+                            {/* 🔗 Add Follow-On — inibido se já tem filho */}
                             {!experiences.some(e => e.parentExperienceId === fo.id) && (
                               <button
                                 onClick={() => {
@@ -6844,7 +6885,7 @@ onClick={() => {
                           </div>
                         </div>
                       </div>
-                      {/* ⭐ Follow-Ons de Follow-On (recursivo — mesmo padrão) */}
+                      {/* ⭐ Follow-Ons de Follow-On — mesmo formato completo que fo */}
                       {(() => {
                         const foChildren = experiences.filter(e => e.parentExperienceId === fo.id);
                         if (!expandedFollowOns[fo.id] || foChildren.length === 0) return null;
@@ -6852,57 +6893,82 @@ onClick={() => {
                           <div className="space-y-0">
                             {foChildren.map(fo2 => (
                               <div key={fo2.id}>
-                                <div className="flex justify-center" style={{ height: '16px' }}>
-                                  <div className="w-1 bg-blue-300 h-full rounded-full" />
+                                <div style={{ display: 'flex', justifyContent: 'center', height: '24px' }}>
+                                  <div style={{ width: '4px', height: '100%', backgroundColor: '#93c5fd', borderRadius: '2px' }} />
                                 </div>
                                 <div className="mx-6">
                                   <div id={`exp-${fo2.id}`} className="bg-white rounded-2xl shadow-lg p-6 border-l-4 border-blue-300">
                                     <div className="mb-3 text-center">
                                       <span className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">🔗 Follow-On Experience</span>
                                     </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
+                                    {(fo2.author || fo2.employeeId) && (
+                                      <div className="mb-3"><span className="text-xs text-gray-600">By: {appSettings.requireEmployeeLogin ? [fo2.author, fo2.employeeId, fo2.country].filter(Boolean).join(', ') : [fo2.author, fo2.gender, fo2.age, fo2.country].filter(Boolean).join(', ')}</span></div>
+                                    )}
+                                    <div className="flex justify-end mb-4">
+                                      <div className="flex flex-col items-end gap-3">
+                                        <div className="flex items-center gap-2 bg-yellow-50 px-3 py-2 rounded-lg">
+                                          <div className="flex gap-1">{[1,2,3,4,5].map(star => <Star key={star} size={18} className={star <= Math.round(fo2.avgRating) ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'} />)}</div>
+                                          <span className="text-sm font-semibold text-gray-700">{fo2.avgRating.toFixed(1)} <span className="text-xs text-gray-500">({fo2.totalRatings} {fo2.totalRatings === 1 ? 'rating' : 'ratings'})</span></span>
+                                        </div>
+                                        <div className="flex flex-col items-end">
+                                          <div className="text-xs text-gray-600 mb-1">Your rating:</div>
+                                          <div className="flex gap-1">{[1,2,3,4,5].map(star => (
+                                            <button key={star} onClick={() => handleUserRating(fo2.id, star)} onMouseEnter={() => setHoverRating({...hoverRating, [fo2.id]: star})} onMouseLeave={() => setHoverRating({...hoverRating, [fo2.id]: 0})} className="transition-transform hover:scale-110">
+                                              <Star size={20} className={star <= (hoverRating[fo2.id] || userRatings[fo2.id] || 0) ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'} />
+                                            </button>
+                                          ))}</div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                                       <div className="space-y-2">
                                         <div className="flex items-center justify-between">
                                           <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>Problem</h4>
-                                          <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full">
-                                            {(() => { const p = practices.find(p => p.id === fo2.practiceId)?.name; return p && p !== 'General' ? `${p} / ${fo2.problemCategory}` : fo2.problemCategory; })()}
-                                          </span>
+                                          <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full">{(() => { const p = practices.find(p => p.id === fo2.practiceId)?.name; return p && p !== 'General' ? `${p} / ${fo2.problemCategory}` : fo2.problemCategory; })()}</span>
                                         </div>
-                                        <p className="text-sm text-gray-700">{fo2.problem}</p>
+                                        <p className="text-sm text-gray-700">{highlightText(fo2.problem, filters.searchText ? filters.searchText.toLowerCase().trim().split(/\s+/) : [])}</p>
                                       </div>
                                       <div className="space-y-2">
                                         <h4 className="font-semibold text-blue-600 flex items-center gap-2"><TrendingUp size={16}/>Action</h4>
-                                        <p className="text-sm text-gray-700">{fo2.solution}</p>
+                                        <p className="text-sm text-gray-700">{highlightText(fo2.solution, filters.searchText ? filters.searchText.toLowerCase().trim().split(/\s+/) : [])}</p>
                                       </div>
                                       <div className="space-y-2">
                                         <div className="flex items-center justify-between">
                                           <h4 className="font-semibold text-green-600 flex items-center gap-2"><Share2 size={16}/>Result</h4>
                                           <span className={`text-xs px-3 py-1 rounded-full ${getResultColor(fo2.resultCategory)}`}>{getResultLabel(fo2.resultCategory)}</span>
                                         </div>
-                                        <p className="text-sm text-gray-700">{fo2.result}</p>
+                                        <p className="text-sm text-gray-700">{highlightText(fo2.result, filters.searchText ? filters.searchText.toLowerCase().trim().split(/\s+/) : [])}</p>
                                       </div>
                                     </div>
+                                    {fo2.tags && fo2.tags.length > 0 && <div className="mb-4 flex flex-wrap gap-1">{fo2.tags.map(tag => <span key={tag} className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">{tag}</span>)}</div>}
                                     <div className="border-t pt-4 mt-4">
                                       <h4 className="font-semibold text-gray-700 mb-3 flex items-center gap-2"><MessageCircle size={18}/>Add a Comment</h4>
                                       <div className="space-y-2">
-                                        <textarea value={newComment[fo2.id] || ''}
-                                          onChange={(e) => { if (e.target.value.length <= maxChars.comment) setNewComment({...newComment, [fo2.id]: e.target.value}); }}
-                                          placeholder="Share your thoughts..."
-                                          className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none resize-none" rows="2" />
-                                        <button onClick={() => handleAddComment(fo2.id)} disabled={!newComment[fo2.id]?.trim()}
-                                          className="px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-300 flex items-center gap-2 py-2">
-                                          <Send size={18}/>
-                                        </button>
+                                        <textarea value={newComment[fo2.id] || ''} onChange={(e) => { if (e.target.value.length <= maxChars.comment) setNewComment({...newComment, [fo2.id]: e.target.value}); }} placeholder="Share your thoughts..." className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none resize-none" rows="2" />
+                                        <div className="flex gap-2 items-center">
+                                          {appSettings.allowCvUpload && (!commentCvFiles[fo2.id] ? (
+                                            <label className="px-3 py-2 bg-gray-100 border-2 border-gray-200 rounded-lg hover:bg-gray-200 cursor-pointer flex items-center gap-1 text-sm">
+                                              <input type="file" accept={appSettings.documentType === 'cv' ? '.pdf' : '.pdf,.pptx,.xlsx,.docx'} onChange={(e) => { const file = e.target.files[0]; if (file && file.size <= 5000000) setCommentCvFiles({...commentCvFiles, [fo2.id]: file}); }} className="hidden" />
+                                              {appSettings.documentType === 'cv' ? '📎 CV' : '📎 File'}
+                                            </label>
+                                          ) : (
+                                            <div className="flex items-center gap-1 bg-green-50 border-2 border-green-300 rounded-lg px-2 py-1">
+                                              <span className="text-xs text-green-700">✓</span>
+                                              <button onClick={() => { const f = {...commentCvFiles}; delete f[fo2.id]; setCommentCvFiles(f); }} className="text-red-600 text-xs">✕</button>
+                                            </div>
+                                          ))}
+                                          <button onClick={() => handleAddComment(fo2.id)} disabled={!newComment[fo2.id]?.trim()} className="px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-300 flex items-center gap-2 py-2"><Send size={18}/></button>
+                                        </div>
                                       </div>
+                                      <div className="text-xs text-gray-500 text-right mt-1">{(newComment[fo2.id] || '').length}/{maxChars.comment}</div>
+                                      {fo2.comments.length > 0 && (
+                                        <div className="mt-3">
+                                          <button onClick={() => setShowComments({...showComments, [fo2.id]: !showComments[fo2.id]})} className="text-sm text-purple-600 hover:text-purple-800 font-medium mb-3 flex items-center gap-2"><MessageCircle size={16}/>{showComments[fo2.id] ? 'Hide all comments' : `Show all ${fo2.comments.length} ${fo2.comments.length === 1 ? 'comment' : 'comments'}`}</button>
+                                          {showComments[fo2.id] && <div className="space-y-3">{fo2.comments.map(c => <div key={c.id} className="bg-gray-50 rounded-lg p-3"><p className="text-sm text-gray-700">{c.text}</p></div>)}</div>}
+                                        </div>
+                                      )}
                                       {!experiences.some(e => e.parentExperienceId === fo2.id) && (
-                                        <button onClick={() => {
-                                          setFollowOnParentId(fo2.id);
-                                          if (fo2.practiceId) { setSelectedPracticeId(fo2.practiceId); loadProblemCategories(fo2.practiceId); }
-                                          setCurrentEntry(prev => ({ ...prev, problemCategory: fo2.problemCategory || '' }));
-                                          document.getElementById('share-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                                        }} className="mt-3 text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">
-                                          🔗 Add a Follow-On Experience
-                                        </button>
+                                        <button onClick={() => { setFollowOnParentId(fo2.id); if (fo2.practiceId) { setSelectedPracticeId(fo2.practiceId); loadProblemCategories(fo2.practiceId); } setCurrentEntry(prev => ({ ...prev, problemCategory: fo2.problemCategory || '' })); document.getElementById('share-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }} className="mt-3 text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">🔗 Add a Follow-On Experience</button>
                                       )}
                                     </div>
                                   </div>
