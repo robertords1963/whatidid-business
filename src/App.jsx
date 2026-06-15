@@ -2467,7 +2467,7 @@ useEffect(() => {
               )}
               {appSettings.requireEmployeeLogin && fo.employeeId === employeeId && (
                 <button onClick={async () => { if (window.confirm('Delete this experience?')) await deleteExperienceFromSupabase(fo.id); }}
-                  className="text-red-600 hover:text-red-800 text-xs mt-2 inline-flex items-center gap-1">
+                  className="text-red-600 hover:text-red-800 text-xs mt-3 inline-flex items-center gap-1">
                   🗑️ Delete Experience
                 </button>
               )}
@@ -2579,7 +2579,20 @@ useEffect(() => {
               )}
               {/* ↓ Follow-Ons counter — abaixo dos comments */}
               {totalChildCount > 0 && (
-                <button onClick={() => setExpandedFollowOns(e => ({...e, [fo.id]: !e[fo.id]}))}
+                <button onClick={() => {
+                  const isExpanding = !expandedFollowOns[fo.id];
+                  // Coletar todos os descendentes para abrir/fechar de uma vez
+                  const getAllDescendantIds = (id) => {
+                    const kids = experiences.filter(e => e.parentExperienceId === id);
+                    return kids.reduce((acc, k) => [...acc, k.id, ...getAllDescendantIds(k.id)], []);
+                  };
+                  const allIds = [fo.id, ...getAllDescendantIds(fo.id)];
+                  setExpandedFollowOns(prev => {
+                    const next = { ...prev };
+                    allIds.forEach(id => { next[id] = isExpanding; });
+                    return next;
+                  });
+                }}
                   className="mt-3 text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">
                   {expandedFollowOns[fo.id] ? '▲' : '▼'} ↓ {totalChildCount} Follow-On {totalChildCount === 1 ? 'Experience' : 'Experiences'}
                 </button>
@@ -6683,7 +6696,19 @@ onClick={() => {
                           {followOns.length > 0 && (
                             <div>
                               <button
-                                onClick={() => setExpandedFollowOns({...expandedFollowOns, [exp.id]: !expandedFollowOns[exp.id]})}
+                                onClick={() => {
+                                  const isExpanding = !expandedFollowOns[exp.id];
+                                  const getAllDescendantIds = (id) => {
+                                    const kids = experiences.filter(e => e.parentExperienceId === id);
+                                    return kids.reduce((acc, k) => [...acc, k.id, ...getAllDescendantIds(k.id)], []);
+                                  };
+                                  const allIds = [exp.id, ...getAllDescendantIds(exp.id)];
+                                  setExpandedFollowOns(prev => {
+                                    const next = { ...prev };
+                                    allIds.forEach(id => { next[id] = isExpanding; });
+                                    return next;
+                                  });
+                                }}
                                 className="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
                               >
                                 {expandedFollowOns[exp.id] ? '▲' : '▼'} ↓ {totalThreadCount} Follow-On {totalThreadCount === 1 ? 'Experience' : 'Experiences'}
@@ -6886,7 +6911,7 @@ onClick={() => {
 
             {/* ⭐ FOLLOW-ON CARDS — renderizados recursivamente */}
             {exp.author !== 'key_insights' && expFollowOns.length > 0 && expandedFollowOns[exp.id] && (
-              <div className="space-y-0" style={{ marginTop: '8px' }}>
+              <div className="space-y-0" style={{ marginTop: '0px' }}>
                 {expFollowOns.map(fo => renderFollowOnCard(fo))}
               </div>
             )}
