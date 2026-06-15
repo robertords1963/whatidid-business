@@ -5791,7 +5791,12 @@ onClick={() => {
                           <AlertCircle size={16} />
                           Problem
                         </h4>
-                        <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full">{exp.problemCategory}</span>
+                        <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full">
+                          {(() => {
+                            const pname = practices.find(p => p.id === exp.practiceId)?.name;
+                            return pname && pname !== 'General' ? `${pname} / ${exp.problemCategory}` : exp.problemCategory;
+                          })()}
+                        </span>
                       </div>
                       <p className="text-sm text-gray-700">
   {highlightText(exp.problem, filters.searchText ? filters.searchText.toLowerCase().trim().split(/\s+/) : [])}
@@ -6668,8 +6673,8 @@ onClick={() => {
                 <div className="space-y-0">
                   {expFollowOns.map(fo => (
                     <div key={fo.id}>
-                      {/* Fix 2 — Conector mais espesso e longo, centralizado */}
-                      <div className="flex justify-center" style={{ height: '40px' }}>
+                      {/* Conector centralizado — espesso e longo */}
+                      <div className="flex justify-center" style={{ height: '64px' }}>
                         <div className="w-1 bg-blue-300 h-full rounded-full" />
                       </div>
                       {/* Card Follow-On — mx-6 simétrico */}
