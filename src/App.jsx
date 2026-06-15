@@ -4099,7 +4099,7 @@ for (const row of rows) {
       </div>
     </div>
     <div className="bg-white rounded p-4">
-      <h4 className="font-medium text-gray-700 mb-3">Current Categories ({problemCategories.length})</h4>
+      <h4 className="font-medium text-gray-700 mb-3">Current Categories ({adminCategories.length})</h4>
 <div className="space-y-2 max-h-80 overflow-y-auto">
         {adminCategories.map((cat, index) => (
           <div key={index} className="flex items-center gap-2 p-2 border border-gray-200 rounded-lg">
