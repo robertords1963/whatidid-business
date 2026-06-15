@@ -6416,38 +6416,6 @@ onClick={() => {
                               >
                                 {expandedFollowOns[exp.id] ? '▲' : '▼'} ↓ {followOns.length} Follow-On {followOns.length === 1 ? 'Experience' : 'Experiences'}
                               </button>
-                              {expandedFollowOns[exp.id] && (
-                                <div className="mt-2 ml-3 border-l-2 border-blue-200 pl-3 space-y-3">
-                                  {followOns.map(fo => (
-                                    <div key={fo.id} id={`exp-${fo.id}`} className="bg-blue-50 rounded-lg p-3">
-                                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-2">
-                                        <div>
-                                          <p className="text-[10px] font-semibold text-red-600 mb-0.5">Problem</p>
-                                          <p className="text-xs text-gray-700">{fo.problem}</p>
-                                        </div>
-                                        <div>
-                                          <p className="text-[10px] font-semibold text-blue-600 mb-0.5">Action</p>
-                                          <p className="text-xs text-gray-700">{fo.solution}</p>
-                                        </div>
-                                        <div>
-                                          <p className="text-[10px] font-semibold text-green-600 mb-0.5">Result</p>
-                                          <p className="text-xs text-gray-700">{fo.result}</p>
-                                        </div>
-                                      </div>
-                                      <div className="flex items-center justify-between">
-                                        <span className="text-[10px] text-gray-400">{fo.author || fo.employeeId || 'Anonymous'}</span>
-                                        <button
-                                          onClick={() => {
-                                            setFollowOnParentId(fo.id);
-                                            document.getElementById('share-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                                          }}
-                                          className="text-[10px] text-blue-600 hover:text-blue-800 font-medium"
-                                        >🔗 Add Follow-On</button>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
                             </div>
                           )}
                         </div>
@@ -6655,6 +6623,88 @@ onClick={() => {
             </div>
           </div>
         </div>
+
+            {/* ⭐ FOLLOW-ON CARDS — abaixo do card pai, formato completo */}
+            {exp.author !== 'key_insights' && (() => {
+              const followOns = experiences.filter(e => e.parentExperienceId === exp.id);
+              if (!expandedFollowOns[exp.id] || followOns.length === 0) return null;
+              return (
+                <div className="ml-6 space-y-0">
+                  {followOns.map(fo => (
+                    <div key={fo.id}>
+                      {/* Conector */}
+                      <div className="ml-5 flex items-center" style={{ height: '20px' }}>
+                        <div className="w-px h-full bg-blue-300" />
+                        <div className="w-5 h-px bg-blue-300" />
+                        <span className="text-blue-400 text-xs ml-0.5">↳</span>
+                      </div>
+                      {/* Card follow-on — mesmo formato, levemente menor */}
+                      <div id={`exp-${fo.id}`} className="ml-6 bg-white rounded-2xl shadow-md p-5 border-l-4 border-blue-300">
+                        {/* Header */}
+                        <div className="mb-3 flex items-center justify-between flex-wrap gap-2">
+                          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">🔗 Follow-On Experience</span>
+                          {(fo.author || fo.employeeId) && (
+                            <span className="text-xs text-gray-500">By: {[fo.author, fo.employeeId, fo.country].filter(Boolean).join(', ')}</span>
+                          )}
+                        </div>
+
+                        {/* Grid P/A/R — idêntico ao card principal */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-4">
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <h4 className="font-semibold text-red-600 flex items-center gap-1 text-sm">
+                                <AlertCircle size={14}/> Problem
+                              </h4>
+                              <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full">{fo.problemCategory}</span>
+                            </div>
+                            <p className="text-sm text-gray-700">{fo.problem}</p>
+                          </div>
+                          <div className="space-y-2">
+                            <h4 className="font-semibold text-blue-600 flex items-center gap-1 text-sm">
+                              <TrendingUp size={14}/> Action
+                            </h4>
+                            <p className="text-sm text-gray-700">{fo.solution}</p>
+                          </div>
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <h4 className="font-semibold text-green-600 flex items-center gap-1 text-sm">
+                                <Share2 size={14}/> Result
+                              </h4>
+                              <span className={`text-xs px-2 py-0.5 rounded-full ${getResultColor(fo.resultCategory)}`}>
+                                {getResultLabel(fo.resultCategory)}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-700">{fo.result}</p>
+                          </div>
+                        </div>
+
+                        {/* Footer: rating + follow-on button */}
+                        <div className="flex items-center justify-between pt-3 border-t border-gray-100 flex-wrap gap-2">
+                          <div className="flex items-center gap-2">
+                            <div className="flex gap-0.5">
+                              {[1,2,3,4,5].map(star => (
+                                <Star key={star} size={14}
+                                  className={star <= Math.round(fo.avgRating) ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}
+                                />
+                              ))}
+                            </div>
+                            <span className="text-xs text-gray-500">{fo.avgRating.toFixed(1)} ({fo.totalRatings} {fo.totalRatings === 1 ? 'rating' : 'ratings'})</span>
+                          </div>
+                          <button
+                            onClick={() => {
+                              setFollowOnParentId(fo.id);
+                              document.getElementById('share-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }}
+                            className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                          >🔗 Add a Follow-On Experience</button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
+
               ))}
 
 
