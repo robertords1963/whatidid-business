@@ -6629,74 +6629,156 @@ onClick={() => {
 
             {/* ⭐ FOLLOW-ON CARDS — abaixo do card pai, formato completo */}
             {exp.author !== 'key_insights' && expFollowOns.length > 0 && expandedFollowOns[exp.id] && (
-                <div className="ml-6 space-y-0">
+                <div className="space-y-0">
                   {expFollowOns.map(fo => (
                     <div key={fo.id}>
-                      {/* Conector */}
-                      <div className="ml-5 flex items-center" style={{ height: '20px' }}>
-                        <div className="w-px h-full bg-blue-300" />
-                        <div className="w-5 h-px bg-blue-300" />
-                        <span className="text-blue-400 text-xs ml-0.5">↳</span>
+                      {/* Conector visual centralizado */}
+                      <div className="flex justify-center" style={{ height: '24px' }}>
+                        <div className="w-px bg-blue-300 h-full" />
                       </div>
-                      {/* Card follow-on — mesmo formato, levemente menor */}
-                      <div id={`exp-${fo.id}`} className="ml-6 bg-white rounded-2xl shadow-md p-5 border-l-4 border-blue-300">
-                        {/* Header */}
-                        <div className="mb-3 flex items-center justify-between flex-wrap gap-2">
-                          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">🔗 Follow-On Experience</span>
-                          {(fo.author || fo.employeeId) && (
-                            <span className="text-xs text-gray-500">By: {[fo.author, fo.employeeId, fo.country].filter(Boolean).join(', ')}</span>
-                          )}
-                        </div>
+                      {/* Card Follow-On — mesmo formato, levemente mais estreito */}
+                      <div className="mx-6">
+                        <div id={`exp-${fo.id}`} className="bg-white rounded-2xl shadow-lg p-6 border-l-4 border-blue-300">
+                          {/* Badge follow-on */}
+                          <div className="mb-3">
+                            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">🔗 Follow-On Experience</span>
+                          </div>
+                          {/* ===== MESMO CONTEÚDO DO CARD NORMAL (com fo no lugar de exp) ===== */}
+                          <div className="mb-4">
+                            <div className="mb-3">
+                              {(fo.author || fo.gender || fo.age || fo.country || fo.employeeId) && (
+                                <div>
+                                  <span className="text-xs text-gray-600 block">
+                                    By: {appSettings.requireEmployeeLogin
+                                      ? [fo.author, fo.employeeId, fo.country].filter(Boolean).join(', ')
+                                      : [fo.author, fo.gender, fo.age, fo.country].filter(Boolean).join(', ')}
+                                  </span>
+                                  {fo.cvUrl && (
+                                    <div className="flex items-center gap-2 mt-1">
+                                      <button onClick={() => { setCurrentCvUrl(fo.cvUrl); setShowCvModal(true); }}
+                                        className="text-blue-600 hover:text-blue-800 inline-flex items-center gap-1 text-xs">
+                                        <span className="font-semibold">{appSettings.documentType === 'cv' ? 'CV' : 'File'}</span>
+                                        {appSettings.documentType === 'cv' ? '📄' : '📎'}
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                            {appSettings.requireEmployeeLogin && fo.employeeId === employeeId && fo.author !== 'key_insights' && (
+                              <button onClick={async () => { if (window.confirm('Delete this experience?')) await deleteExperienceFromSupabase(fo.id); }}
+                                className="text-red-600 hover:text-red-800 text-xs mt-2 inline-flex items-center gap-1">
+                                🗑️ Delete Experience
+                              </button>
+                            )}
+                            <div className="flex justify-end">
+                              <div className="flex flex-col items-end gap-3">
+                                <div className="flex items-center gap-2 bg-yellow-50 px-3 py-2 rounded-lg">
+                                  <div className="flex gap-1">
+                                    {[1,2,3,4,5].map(star => (
+                                      <Star key={star} size={18}
+                                        className={star <= Math.round(fo.avgRating) ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'} />
+                                    ))}
+                                  </div>
+                                  <div className="text-sm font-semibold text-gray-700">
+                                    {fo.avgRating.toFixed(1)}
+                                    <span className="text-xs text-gray-500 ml-1">({fo.totalRatings} {fo.totalRatings === 1 ? 'rating' : 'ratings'})</span>
+                                  </div>
+                                </div>
+                                <div className="flex flex-col items-end">
+                                  <div className="text-xs text-gray-600 mb-1">Your rating:</div>
+                                  <div className="flex gap-1">
+                                    {[1,2,3,4,5].map(star => (
+                                      <button key={star} onClick={() => handleUserRating(fo.id, star)}
+                                        onMouseEnter={() => setHoverRating({...hoverRating, [fo.id]: star})}
+                                        onMouseLeave={() => setHoverRating({...hoverRating, [fo.id]: 0})}
+                                        className="transition-transform hover:scale-110">
+                                        <Star size={20} className={star <= (hoverRating[fo.id] || userRatings[fo.id] || 0) ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'} />
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
 
-                        {/* Grid P/A/R — idêntico ao card principal */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-4">
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                              <h4 className="font-semibold text-red-600 flex items-center gap-1 text-sm">
-                                <AlertCircle size={14}/> Problem
-                              </h4>
-                              <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full">{fo.problemCategory}</span>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>Problem</h4>
+                                <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full">{fo.problemCategory}</span>
+                              </div>
+                              <p className="text-sm text-gray-700">{highlightText(fo.problem, filters.searchText ? filters.searchText.toLowerCase().trim().split(/\s+/) : [])}</p>
                             </div>
-                            <p className="text-sm text-gray-700">{fo.problem}</p>
-                          </div>
-                          <div className="space-y-2">
-                            <h4 className="font-semibold text-blue-600 flex items-center gap-1 text-sm">
-                              <TrendingUp size={14}/> Action
-                            </h4>
-                            <p className="text-sm text-gray-700">{fo.solution}</p>
-                          </div>
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                              <h4 className="font-semibold text-green-600 flex items-center gap-1 text-sm">
-                                <Share2 size={14}/> Result
-                              </h4>
-                              <span className={`text-xs px-2 py-0.5 rounded-full ${getResultColor(fo.resultCategory)}`}>
-                                {getResultLabel(fo.resultCategory)}
-                              </span>
+                            <div className="space-y-2">
+                              <h4 className="font-semibold text-blue-600 flex items-center gap-2"><TrendingUp size={16}/>Action</h4>
+                              <p className="text-sm text-gray-700">{highlightText(fo.solution, filters.searchText ? filters.searchText.toLowerCase().trim().split(/\s+/) : [])}</p>
                             </div>
-                            <p className="text-sm text-gray-700">{fo.result}</p>
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <h4 className="font-semibold text-green-600 flex items-center gap-2"><Share2 size={16}/>Result</h4>
+                                <span className={`text-xs px-3 py-1 rounded-full ${getResultColor(fo.resultCategory)}`}>{getResultLabel(fo.resultCategory)}</span>
+                              </div>
+                              <p className="text-sm text-gray-700">{highlightText(fo.result, filters.searchText ? filters.searchText.toLowerCase().trim().split(/\s+/) : [])}</p>
+                            </div>
                           </div>
-                        </div>
 
-                        {/* Footer: rating + follow-on button */}
-                        <div className="flex items-center justify-between pt-3 border-t border-gray-100 flex-wrap gap-2">
-                          <div className="flex items-center gap-2">
-                            <div className="flex gap-0.5">
-                              {[1,2,3,4,5].map(star => (
-                                <Star key={star} size={14}
-                                  className={star <= Math.round(fo.avgRating) ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}
-                                />
-                              ))}
-                            </div>
-                            <span className="text-xs text-gray-500">{fo.avgRating.toFixed(1)} ({fo.totalRatings} {fo.totalRatings === 1 ? 'rating' : 'ratings'})</span>
+                          {/* Tags */}
+                          <div className="mb-4 flex flex-wrap gap-2">
+                            {fo.tags && fo.tags.length > 0 && (
+                              <div className="flex flex-wrap items-center gap-1 mr-auto">
+                                {fo.tags.map(tag => (
+                                  <span key={tag} className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">{tag}</span>
+                                ))}
+                              </div>
+                            )}
                           </div>
-                          <button
-                            onClick={() => {
-                              setFollowOnParentId(fo.id);
-                              document.getElementById('share-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                            }}
-                            className="text-xs text-blue-600 hover:text-blue-800 font-medium"
-                          >🔗 Add a Follow-On Experience</button>
+
+                          {/* Follow-On button */}
+                          <div className="mb-3">
+                            <button
+                              onClick={() => { setFollowOnParentId(fo.id); document.getElementById('share-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
+                              className="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
+                            >🔗 Add a Follow-On Experience</button>
+                          </div>
+
+                          {/* Comments */}
+                          <div className="border-t pt-4 mt-4">
+                            <div className="mb-4">
+                              <h4 className="font-semibold text-gray-700 mb-3 flex items-center gap-2"><MessageCircle size={18}/>Add a Comment</h4>
+                              <div className="space-y-2">
+                                <textarea value={newComment[fo.id] || ''}
+                                  onChange={(e) => { if (e.target.value.length <= maxChars.comment) setNewComment({...newComment, [fo.id]: e.target.value}); }}
+                                  placeholder="Share your thoughts..."
+                                  className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none resize-none" rows="2" />
+                                <div className="flex gap-2 items-center">
+                                  <button onClick={() => handleAddComment(fo.id)} disabled={!newComment[fo.id]?.trim()}
+                                    className="px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2 py-2">
+                                    <Send size={18}/>
+                                  </button>
+                                </div>
+                              </div>
+                              <div className="text-xs text-gray-500 text-right mt-1">{(newComment[fo.id] || '').length}/{maxChars.comment}</div>
+                            </div>
+                            {fo.comments.length > 0 && (
+                              <div>
+                                <button onClick={() => setShowComments({...showComments, [fo.id]: !showComments[fo.id]})}
+                                  className="text-sm text-purple-600 hover:text-purple-800 font-medium mb-3 flex items-center gap-2">
+                                  <MessageCircle size={16}/>
+                                  {showComments[fo.id] ? 'Hide all comments' : `Show all ${fo.comments.length} ${fo.comments.length === 1 ? 'comment' : 'comments'}`}
+                                </button>
+                                {showComments[fo.id] && (
+                                  <div className="space-y-3">
+                                    {fo.comments.map(comment => (
+                                      <div key={comment.id} className="bg-gray-50 rounded-lg p-3">
+                                        <p className="text-sm text-gray-700">{comment.text}</p>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
