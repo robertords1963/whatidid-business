@@ -5652,8 +5652,11 @@ onClick={() => {
               </div>
             )}
 
-            {currentExperiences.map(exp => (
-              <div key={exp.id}>
+            {currentExperiences.map(exp => {
+              const expFollowOns = experiences.filter(e => e.parentExperienceId === exp.id);
+              return (
+              <React.Fragment key={exp.id}>
+                <div>
                 <div id={`exp-${exp.id}`} className="bg-white rounded-2xl shadow-lg p-6">
                   <div className="mb-4">
 {/* Linha 1: By à esquerda */}
@@ -6625,12 +6628,9 @@ onClick={() => {
         </div>
 
             {/* ⭐ FOLLOW-ON CARDS — abaixo do card pai, formato completo */}
-            {exp.author !== 'key_insights' && (() => {
-              const followOns = experiences.filter(e => e.parentExperienceId === exp.id);
-              if (!expandedFollowOns[exp.id] || followOns.length === 0) return null;
-              return (
+            {exp.author !== 'key_insights' && expFollowOns.length > 0 && expandedFollowOns[exp.id] && (
                 <div className="ml-6 space-y-0">
-                  {followOns.map(fo => (
+                  {expFollowOns.map(fo => (
                     <div key={fo.id}>
                       {/* Conector */}
                       <div className="ml-5 flex items-center" style={{ height: '20px' }}>
@@ -6702,10 +6702,11 @@ onClick={() => {
                     </div>
                   ))}
                 </div>
-              );
-            })()}
+            )}
 
-              ))}
+              </React.Fragment>
+              );
+            })}
 
 
 
