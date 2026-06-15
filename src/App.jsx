@@ -1169,22 +1169,46 @@ setTimeout(() => {
       .select();
     
     if (error) throw error;
-    
-    // Fix 4 — Auto-expandir o thread do parent após salvar
+
+    // Capturar o ID do novo card inserido
+    const newExpId = data?.[0]?.id;
+
+    // Auto-expandir todo o thread até o novo card
     if (followOnParentId) {
-      // Encontrar a raiz do thread para expandir
-      const findRoot = (id) => {
-        const parent = experiences.find(e => e.id === id);
-        return parent?.parentExperienceId ? findRoot(parent.parentExperienceId) : id;
+      const findAllAncestors = (id) => {
+        const ancestors = [];
+        let current = experiences.find(e => e.id === id);
+        while (current) {
+          ancestors.push(current.id);
+          current = experiences.find(e => e.id === current.parentExperienceId);
+        }
+        return ancestors;
       };
-      const rootId = findRoot(followOnParentId);
-      setExpandedFollowOns(prev => ({ ...prev, [rootId]: true, [followOnParentId]: true }));
+      const ancestorIds = findAllAncestors(followOnParentId);
+      setExpandedFollowOns(prev => {
+        const next = { ...prev };
+        ancestorIds.forEach(id => { next[id] = true; });
+        next[followOnParentId] = true;
+        return next;
+      });
     }
-    
+
     // Limpar CV selecionado após sucesso
     setSelectedCv(null);
-    
+
     await loadExperiences(true);
+
+    // Fix 2 — Scroll para o novo card após carregar
+    if (newExpId) {
+      setTimeout(() => {
+        const el = document.getElementById(`exp-${newExpId}`);
+        if (el) {
+          const y = el.getBoundingClientRect().top + window.pageYOffset - 100;
+          window.scrollTo({ top: y, behavior: 'smooth' });
+        }
+      }, 600);
+    }
+
     return true;
   } catch (error) {
     console.error('Error adding experience:', error);
@@ -2408,6 +2432,11 @@ useEffect(() => {
   // ⭐ FUNÇÃO RECURSIVA — renderiza Follow-On cards em qualquer profundidade
   const renderFollowOnCard = (fo) => {
     const foChildren = experiences.filter(e => e.parentExperienceId === fo.id);
+    const countAllDescendants = (id) => {
+      const kids = experiences.filter(e => e.parentExperienceId === id);
+      return kids.reduce((acc, k) => acc + 1 + countAllDescendants(k.id), 0);
+    };
+    const totalChildCount = countAllDescendants(fo.id);
     const practiceName = practices.find(p => p.id === fo.practiceId)?.name;
     const categoryLabel = practiceName && practiceName !== 'General'
       ? `${practiceName} / ${fo.problemCategory}`
@@ -2417,7 +2446,7 @@ useEffect(() => {
     return (
       <div key={fo.id}>
         {/* Conector vertical */}
-        <div style={{ display: 'flex', justifyContent: 'center', height: '24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', height: '32px' }}>
           <div style={{ width: '4px', height: '100%', backgroundColor: '#93c5fd', borderRadius: '2px' }} />
         </div>
         {/* Card */}
@@ -2438,7 +2467,7 @@ useEffect(() => {
               )}
               {appSettings.requireEmployeeLogin && fo.employeeId === employeeId && (
                 <button onClick={async () => { if (window.confirm('Delete this experience?')) await deleteExperienceFromSupabase(fo.id); }}
-                  className="text-red-600 hover:text-red-800 text-xs mt-1 inline-flex items-center gap-1">
+                  className="text-red-600 hover:text-red-800 text-xs mt-2 inline-flex items-center gap-1">
                   🗑️ Delete Experience
                 </button>
               )}
@@ -2549,10 +2578,10 @@ useEffect(() => {
                 </div>
               )}
               {/* ↓ Follow-Ons counter — abaixo dos comments */}
-              {foChildren.length > 0 && (
+              {totalChildCount > 0 && (
                 <button onClick={() => setExpandedFollowOns(e => ({...e, [fo.id]: !e[fo.id]}))}
                   className="mt-3 text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">
-                  {expandedFollowOns[fo.id] ? '▲' : '▼'} ↓ {foChildren.length} Follow-On {foChildren.length === 1 ? 'Experience' : 'Experiences'}
+                  {expandedFollowOns[fo.id] ? '▲' : '▼'} ↓ {totalChildCount} Follow-On {totalChildCount === 1 ? 'Experience' : 'Experiences'}
                 </button>
               )}
               {/* 🔗 Add Follow-On — inibido se já tem filho */}
@@ -6857,7 +6886,7 @@ onClick={() => {
 
             {/* ⭐ FOLLOW-ON CARDS — renderizados recursivamente */}
             {exp.author !== 'key_insights' && expFollowOns.length > 0 && expandedFollowOns[exp.id] && (
-              <div className="space-y-0" style={{ marginTop: '-8px' }}>
+              <div className="space-y-0" style={{ marginTop: '8px' }}>
                 {expFollowOns.map(fo => renderFollowOnCard(fo))}
               </div>
             )}
