@@ -6368,6 +6368,30 @@ onClick={() => {
               </div>
             )}
 
+{/* ⭐ FOLLOW-ON BUTTON — abaixo dos comments, inibido se já tem follow-on */}
+{exp.author !== 'key_insights' && (() => {
+  const hasFollowOn = experiences.some(e => e.parentExperienceId === exp.id);
+  if (hasFollowOn) return null;
+  return (
+    <button
+      onClick={() => {
+        setFollowOnParentId(exp.id);
+        // Pré-preencher practice e category do parent
+        if (exp.practiceId) setSelectedPracticeId(exp.practiceId);
+        setCurrentEntry(prev => ({
+          ...prev,
+          problemCategory: exp.problemCategory || ''
+        }));
+        if (exp.practiceId) loadProblemCategories(exp.practiceId);
+        document.getElementById('share-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }}
+      className="mt-3 text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
+    >
+      🔗 Add a Follow-On Experience
+    </button>
+  );
+})()}
+
 {/* Navigation CTA */}
                   <div className="mt-4 pt-3 border-t border-gray-100">
                     {/* ⭐ FOLLOW-ON THREAD INDICATORS */}
@@ -6387,23 +6411,47 @@ onClick={() => {
                                 {expandedUpstream[exp.id] ? '▲' : '▼'} ↑ Upstream Experience
                               </button>
                               {expandedUpstream[exp.id] && (
-                                <div className="mt-2 ml-3 border-l-2 border-purple-200 pl-3">
-                                  <div className="bg-purple-50 rounded-lg p-3">
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-2">
-                                      <div>
-                                        <p className="text-[10px] font-semibold text-red-600 mb-0.5">Problem</p>
-                                        <p className="text-xs text-gray-700 line-clamp-3">{upstreamExp.problem}</p>
+                                <div className="mt-2">
+                                  {/* Conector */}
+                                  <div className="flex justify-center" style={{ height: '20px' }}>
+                                    <div className="w-px bg-purple-300 h-full" />
+                                  </div>
+                                  {/* Card upstream — mesmo formato completo */}
+                                  <div className="mx-6">
+                                    <div className="bg-white rounded-2xl shadow-lg p-6 border-l-4 border-purple-300">
+                                      <div className="mb-3">
+                                        <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-medium">↑ Upstream Experience</span>
                                       </div>
-                                      <div>
-                                        <p className="text-[10px] font-semibold text-blue-600 mb-0.5">Action</p>
-                                        <p className="text-xs text-gray-700 line-clamp-3">{upstreamExp.solution}</p>
+                                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
+                                        <div className="space-y-2">
+                                          <div className="flex items-center justify-between">
+                                            <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>Problem</h4>
+                                            <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full">{upstreamExp.problemCategory}</span>
+                                          </div>
+                                          <p className="text-sm text-gray-700">{upstreamExp.problem}</p>
+                                        </div>
+                                        <div className="space-y-2">
+                                          <h4 className="font-semibold text-blue-600 flex items-center gap-2"><TrendingUp size={16}/>Action</h4>
+                                          <p className="text-sm text-gray-700">{upstreamExp.solution}</p>
+                                        </div>
+                                        <div className="space-y-2">
+                                          <div className="flex items-center justify-between">
+                                            <h4 className="font-semibold text-green-600 flex items-center gap-2"><Share2 size={16}/>Result</h4>
+                                            <span className={`text-xs px-3 py-1 rounded-full ${getResultColor(upstreamExp.resultCategory)}`}>{getResultLabel(upstreamExp.resultCategory)}</span>
+                                          </div>
+                                          <p className="text-sm text-gray-700">{upstreamExp.result}</p>
+                                        </div>
                                       </div>
-                                      <div>
-                                        <p className="text-[10px] font-semibold text-green-600 mb-0.5">Result</p>
-                                        <p className="text-xs text-gray-700 line-clamp-3">{upstreamExp.result}</p>
-                                      </div>
+                                      {(upstreamExp.author || upstreamExp.employeeId) && (
+                                        <p className="text-xs text-gray-500 border-t pt-2">
+                                          By: {[upstreamExp.author, upstreamExp.employeeId, upstreamExp.country].filter(Boolean).join(', ')}
+                                        </p>
+                                      )}
                                     </div>
-                                    <span className="text-[10px] text-gray-400">{upstreamExp.author || upstreamExp.employeeId || 'Anonymous'}</span>
+                                  </div>
+                                  {/* Conector de baixo */}
+                                  <div className="flex justify-center" style={{ height: '20px' }}>
+                                    <div className="w-px bg-purple-300 h-full" />
                                   </div>
                                 </div>
                               )}
@@ -6425,18 +6473,6 @@ onClick={() => {
                       );
                     })()}
 
-                    {/* ⭐ FOLLOW-ON BUTTON */}
-                    {exp.author !== 'key_insights' && (
-                      <button
-                        onClick={() => {
-                          setFollowOnParentId(exp.id);
-                          document.getElementById('share-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        }}
-                        className="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1 mb-3"
-                      >
-                        🔗 Add a Follow-On Experience
-                      </button>
-                    )}
                   </div>
 
                   <div className="pt-2 border-t-2 border-gray-100 text-center">
