@@ -436,14 +436,15 @@ const loadProblemCategories = async (practiceId = null) => {
 
     if (practiceId) {
       query = query.eq('practice_id', practiceId);
-    } else {
-      query = query.eq('practice_id', 1);
     }
+    // Se practiceId = null → carrega todas as categorias (sem filtro de practice)
 
     const { data, error } = await query;
     if (error) throw error;
     if (data && data.length > 0) {
-      setProblemCategories(data.map(c => c.name));
+      // Deduplicar nomes de categorias (podem existir em múltiplas practices)
+      const uniqueNames = [...new Set(data.map(c => c.name))];
+      setProblemCategories(uniqueNames);
       // ⭐ Salvar description + tags por categoria
       const catMap = {};
       data.forEach(c => {
