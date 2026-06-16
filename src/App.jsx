@@ -7251,6 +7251,12 @@ onClick={() => {
                         {isExpanded && cards.map(({ exp: card, index: cardIdx }, cardI) =>
                           renderFollowOnCard(card, matchedIds, cardIdx, null, !isTrailingGap && cardI === 0)
                         )}
+                        {/* Conector sólido após gap expandido (não-trailing) antes do próximo card */}
+                        {isExpanded && !isTrailingGap && (
+                          <div style={{ display: 'flex', justifyContent: 'center', height: '32px' }}>
+                            <div style={{ width: '4px', height: '100%', backgroundColor: '#93c5fd', borderRadius: '2px' }} />
+                          </div>
+                        )}
                       </div>
                     );
                   });
