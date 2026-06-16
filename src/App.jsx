@@ -2412,8 +2412,30 @@ useEffect(() => {
   
   if (hasActiveFilters) {
     setCurrentPage(1);
-    // Fechar todos os threads ao filtrar
-    setExpandedFollowOns({});
+    // Fechar todos os threads, auto-expandir os com 2+ matches
+    const _getRoot = (id) => {
+      let c = experiences.find(e => e.id === id);
+      while (c?.parentExperienceId) c = experiences.find(e => e.id === c.parentExperienceId);
+      return c;
+    };
+    const _getAllDescIds = (id) => {
+      const kids = experiences.filter(e => e.parentExperienceId === id);
+      return kids.reduce((acc, k) => [...acc, k.id, ..._getAllDescIds(k.id)], []);
+    };
+    const rootCounts = {};
+    filteredExperiences.forEach(exp => {
+      const r = _getRoot(exp.id);
+      if (r) rootCounts[r.id] = (rootCounts[r.id] || 0) + 1;
+    });
+    const newExpanded = {};
+    Object.entries(rootCounts).forEach(([rootId, count]) => {
+      if (count >= 2) {
+        const rid = parseInt(rootId);
+        newExpanded[rid] = true;
+        _getAllDescIds(rid).forEach(id => { newExpanded[id] = true; });
+      }
+    });
+    setExpandedFollowOns(newExpanded);
     setExpandedUpstream({});
   }
 }, [filters]);
@@ -2435,8 +2457,9 @@ useEffect(() => {
   };
 
   // ⭐ FUNÇÃO RECURSIVA — renderiza Follow-On cards em qualquer profundidade
-  const renderFollowOnCard = (fo) => {
+  const renderFollowOnCard = (fo, matchedIds = null) => {
     const foChildren = experiences.filter(e => e.parentExperienceId === fo.id);
+    const isGreyed = matchedIds !== null && !matchedIds.has(fo.id);
     const countAllDescendants = (id) => {
       const kids = experiences.filter(e => e.parentExperienceId === id);
       return kids.reduce((acc, k) => acc + 1 + countAllDescendants(k.id), 0);
@@ -2456,7 +2479,7 @@ useEffect(() => {
         </div>
         {/* Card */}
         <div className="mx-6">
-          <div id={`exp-${fo.id}`} className="bg-white rounded-2xl shadow-lg p-6 border-l-4 border-blue-300">
+          <div id={`exp-${fo.id}`} className={`bg-white rounded-2xl shadow-lg p-6 border-l-4 border-blue-300 ${isGreyed ? 'opacity-40' : ''}`}>
             {/* Badge */}
             <div className="mb-3 text-center">
               <span className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">🔗 Follow-On Experience</span>
@@ -2617,7 +2640,7 @@ useEffect(() => {
           </div>
         </div>
         {/* Filhos recursivos */}
-        {expandedFollowOns[fo.id] && foChildren.map(child => renderFollowOnCard(child))}
+        {expandedFollowOns[fo.id] && foChildren.map(child => renderFollowOnCard(child, matchedIds))}
       </div>
     );
   };
@@ -6009,20 +6032,13 @@ onClick={() => {
               };
 
               return renderItems.map((item, idx) => {
-                if (item.type === 'thread') {
-                  return (
-                    <React.Fragment key={`thread-${item.root.id}`}>
-                      {renderFullThread(item.root, item.matchedIds.has(item.root.id), true)}
-                    </React.Fragment>
-                  );
-                }
-                // type === 'normal' — render normal via the existing map logic below
-                return null; // placeholder, replaced below
+                // Raiz renderizada pelo map normal abaixo
+                return null;
               });
             })()}
 
             {currentExperiences.map(exp => {
-              // Skip cards that are part of multi-match threads (already rendered above)
+              // Se Follow-On cujo root também está no filtro → pular (aparece expandido sob a raiz)
               const getRoot = (id) => {
                 let current = experiences.find(e => e.id === id);
                 while (current?.parentExperienceId) current = experiences.find(e => e.id === current.parentExperienceId);
@@ -6030,7 +6046,10 @@ onClick={() => {
               };
               const root = getRoot(exp.id);
               const threadMatesInFilter = currentExperiences.filter(e => e.id !== exp.id && getRoot(e.id)?.id === root?.id);
-              if (threadMatesInFilter.length > 0) return null;
+              // Pular apenas Follow-Ons cujo root também está no filtro (aparecem expandidos sob a raiz)
+              if (threadMatesInFilter.length > 0 && exp.parentExperienceId) return null;
+              // matchedIds para acinzentar não-filtrados no thread
+              const matchedIds = threadMatesInFilter.length > 0 ? new Set(currentExperiences.map(e => e.id)) : null;
 
               const expFollowOns = experiences.filter(e => e.parentExperienceId === exp.id);
               // Cadeia de ancestrais para upstream
@@ -7091,7 +7110,7 @@ onClick={() => {
             {/* ⭐ FOLLOW-ON CARDS — renderizados recursivamente */}
             {exp.author !== 'key_insights' && expFollowOns.length > 0 && expandedFollowOns[exp.id] && (
               <div className="space-y-0" style={{ marginTop: '0px' }}>
-                {expFollowOns.map(fo => renderFollowOnCard(fo))}
+                {expFollowOns.map(fo => renderFollowOnCard(fo, matchedIds))}
               </div>
             )}
 
