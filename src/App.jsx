@@ -2481,7 +2481,7 @@ useEffect(() => {
           <div style={{ width: '4px', height: '100%', backgroundColor: '#93c5fd', borderRadius: '2px' }} />
         </div>
         {/* Card */}
-        <div className="mx-6">
+        <div className="sm:mx-6">
           <div id={`exp-${fo.id}`} className={`bg-white rounded-2xl shadow-lg p-6 border-l-4 border-blue-300 ${isGreyed ? 'opacity-40' : ''}`}>
             {/* Badge */}
             <div className="mb-3 text-center">
@@ -5965,7 +5965,7 @@ onClick={() => {
                   <React.Fragment key={exp.id}>
                     <div
                       id={`exp-${exp.id}`}
-                      className={`bg-white rounded-2xl shadow-lg p-6 transition-opacity ${isRootLevel ? '' : 'mx-6 border-l-4 border-blue-300'} ${!isMatched ? 'opacity-40' : ''}`}
+                      className={`bg-white rounded-2xl shadow-lg p-6 transition-opacity ${isRootLevel ? '' : 'sm:mx-6 border-l-4 border-blue-300'} ${!isMatched ? 'opacity-40' : ''}`}
                     >
                       {!isRootLevel && (
                         <div className="mb-3 text-center">
@@ -6078,7 +6078,7 @@ onClick={() => {
                       return (
                         <div key={ancestor.id}>
                           {/* Card ancestral: raiz em tamanho normal, intermediários com mx-6 */}
-                          <div className={isRoot ? '' : 'mx-6'}>
+                          <div className={isRoot ? '' : 'sm:mx-6'}>
                             <div className={`bg-white rounded-2xl shadow-lg p-6 border-l-4 ${isRoot ? 'border-purple-400' : 'border-purple-300'}`}>
                               <div className="mb-3 text-center">
                                 <span className="text-xs bg-purple-100 text-purple-700 px-3 py-1 rounded-full font-medium">
