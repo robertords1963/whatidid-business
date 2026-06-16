@@ -2460,7 +2460,7 @@ useEffect(() => {
   };
 
   // ⭐ FUNÇÃO RECURSIVA — renderiza Follow-On cards em qualquer profundidade
-  const renderFollowOnCard = (fo, matchedIds = null) => {
+  const renderFollowOnCard = (fo, matchedIds = null, threadIndex = 1) => {
     const foChildren = experiences.filter(e => e.parentExperienceId === fo.id);
     const isGreyed = matchedIds !== null && !matchedIds.has(fo.id);
     const countAllDescendants = (id) => {
@@ -2485,7 +2485,7 @@ useEffect(() => {
           <div id={`exp-${fo.id}`} className={`bg-white rounded-2xl shadow-lg p-6 border-l-4 border-blue-300 ${isGreyed ? 'opacity-40' : ''}`}>
             {/* Badge */}
             <div className="mb-3 text-center">
-              <span className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">🔗 Follow-On Experience</span>
+              <span className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">🔗 Follow-On Experience {threadIndex}</span>
             </div>
             {/* By + delete */}
             <div className="mb-3">
@@ -2643,7 +2643,7 @@ useEffect(() => {
           </div>
         </div>
         {/* Filhos recursivos */}
-        {expandedFollowOns[fo.id] && foChildren.map(child => renderFollowOnCard(child, matchedIds))}
+        {expandedFollowOns[fo.id] && foChildren.map((child, idx) => renderFollowOnCard(child, matchedIds, threadIndex + 1 + idx))}
       </div>
     );
   };
@@ -5955,7 +5955,7 @@ onClick={() => {
               });
 
               // Função recursiva para renderizar thread completo com cards acinzentados
-              const renderFullThread = (exp, isMatched, isRootLevel) => {
+              const renderFullThread = (exp, isMatched, isRootLevel, threadIndex = 1) => {
                 const children = experiences.filter(e => e.parentExperienceId === exp.id);
                 const pname = practices.find(p => p.id === exp.practiceId)?.name;
                 const catLabel = pname && pname !== 'General' ? `${pname} / ${exp.problemCategory}` : exp.problemCategory;
@@ -5969,7 +5969,7 @@ onClick={() => {
                     >
                       {!isRootLevel && (
                         <div className="mb-3 text-center">
-                          <span className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">🔗 Follow-On Experience</span>
+                          <span className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">🔗 Follow-On Experience {threadIndex}</span>
                         </div>
                       )}
                       <div className="mb-3">
@@ -6025,7 +6025,7 @@ onClick={() => {
                             <div style={{ display: 'flex', justifyContent: 'center', height: '32px' }}>
                               <div style={{ width: '4px', height: '100%', backgroundColor: '#93c5fd', borderRadius: '2px' }} />
                             </div>
-                            {renderFullThread(child, matchedIds.has(child.id), false)}
+                            {renderFullThread(child, matchedIds.has(child.id), false, threadIndex + 1)}
                           </div>
                         ))}
                       </div>
@@ -7113,7 +7113,7 @@ onClick={() => {
             {/* ⭐ FOLLOW-ON CARDS — renderizados recursivamente */}
             {exp.author !== 'key_insights' && expFollowOns.length > 0 && expandedFollowOns[exp.id] && (
               <div className="space-y-0" style={{ marginTop: '0px' }}>
-                {expFollowOns.map(fo => renderFollowOnCard(fo, matchedIds))}
+                {expFollowOns.map((fo, idx) => renderFollowOnCard(fo, matchedIds, idx + 1))}
               </div>
             )}
 
