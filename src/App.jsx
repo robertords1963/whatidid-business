@@ -5880,7 +5880,158 @@ onClick={() => {
               </div>
             )}
 
+            {(() => {
+              // ⭐ AGRUPAMENTO POR THREAD
+              // Quando 2+ cards do mesmo thread batem no filtro, mostrar o thread completo uma vez
+
+              const hasAnyFilter = filters.searchText || filters.problemCategory || filters.resultCategory ||
+                filters.rating || filters.gender || filters.age || filters.country ||
+                filters.industrySector || filterTags.length > 0 || filterPracticeId;
+
+              // Encontrar a raiz de qualquer experience
+              const getRoot = (id) => {
+                let current = experiences.find(e => e.id === id);
+                while (current?.parentExperienceId) {
+                  current = experiences.find(e => e.id === current.parentExperienceId);
+                }
+                return current;
+              };
+
+              // IDs dos cards que batem no filtro atual
+              const matchedIds = new Set(currentExperiences.map(e => e.id));
+
+              // Construir lista de itens a renderizar:
+              // - Se root aparece no feed E tem filhos também no feed → substituir por thread completo
+              // - Caso contrário → render normal
+              const seenThreadRoots = new Set();
+              const renderItems = []; // { type: 'normal', exp } | { type: 'thread', root, matchedIds }
+
+              currentExperiences.forEach(exp => {
+                const root = getRoot(exp.id);
+                if (!root) return;
+
+                // Verificar se há outros cards do mesmo thread no filtro
+                const threadMatesInFilter = currentExperiences.filter(e => {
+                  if (e.id === exp.id) return false;
+                  return getRoot(e.id)?.id === root.id;
+                });
+
+                if (threadMatesInFilter.length > 0) {
+                  // Thread com múltiplos matches — mostrar thread completo uma vez
+                  if (!seenThreadRoots.has(root.id)) {
+                    seenThreadRoots.add(root.id);
+                    renderItems.push({ type: 'thread', root, matchedIds });
+                  }
+                } else {
+                  // Card único do thread — render normal
+                  renderItems.push({ type: 'normal', exp });
+                }
+              });
+
+              // Função recursiva para renderizar thread completo com cards acinzentados
+              const renderFullThread = (exp, isMatched, isRootLevel) => {
+                const children = experiences.filter(e => e.parentExperienceId === exp.id);
+                const pname = practices.find(p => p.id === exp.practiceId)?.name;
+                const catLabel = pname && pname !== 'General' ? `${pname} / ${exp.problemCategory}` : exp.problemCategory;
+                const searchTerms = filters.searchText ? filters.searchText.toLowerCase().trim().split(/\s+/) : [];
+
+                return (
+                  <React.Fragment key={exp.id}>
+                    <div
+                      id={`exp-${exp.id}`}
+                      className={`bg-white rounded-2xl shadow-lg p-6 transition-opacity ${isRootLevel ? '' : 'mx-6 border-l-4 border-blue-300'} ${!isMatched ? 'opacity-40' : ''}`}
+                    >
+                      {!isRootLevel && (
+                        <div className="mb-3 text-center">
+                          <span className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">🔗 Follow-On Experience</span>
+                        </div>
+                      )}
+                      <div className="mb-3">
+                        {(exp.author || exp.gender || exp.age || exp.country || exp.employeeId) && (
+                          <span className="text-xs text-gray-600 block">
+                            By: {appSettings.requireEmployeeLogin
+                              ? [exp.author, exp.employeeId, exp.country].filter(Boolean).join(', ')
+                              : [exp.author, exp.gender, exp.age, exp.country].filter(Boolean).join(', ')}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex justify-end mb-4">
+                        <div className="flex items-center gap-2 bg-yellow-50 px-3 py-2 rounded-lg">
+                          <div className="flex gap-1">{[1,2,3,4,5].map(star => <Star key={star} size={18} className={star <= Math.round(exp.avgRating) ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'} />)}</div>
+                          <span className="text-sm font-semibold text-gray-700">{exp.avgRating.toFixed(1)} <span className="text-xs text-gray-500">({exp.totalRatings})</span></span>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>Problem</h4>
+                            <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full">{catLabel}</span>
+                          </div>
+                          <p className="text-sm text-gray-700">{highlightText(exp.problem, searchTerms)}</p>
+                        </div>
+                        <div className="space-y-2">
+                          <h4 className="font-semibold text-blue-600 flex items-center gap-2"><TrendingUp size={16}/>Action</h4>
+                          <p className="text-sm text-gray-700">{highlightText(exp.solution, searchTerms)}</p>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-semibold text-green-600 flex items-center gap-2"><Share2 size={16}/>Result</h4>
+                            <span className={`text-xs px-3 py-1 rounded-full ${getResultColor(exp.resultCategory)}`}>{getResultLabel(exp.resultCategory)}</span>
+                          </div>
+                          <p className="text-sm text-gray-700">{highlightText(exp.result, searchTerms)}</p>
+                        </div>
+                      </div>
+                      {exp.tags && exp.tags.length > 0 && (
+                        <div className="mb-3 flex flex-wrap gap-1">
+                          {exp.tags.map(tag => <span key={tag} className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">{tag}</span>)}
+                        </div>
+                      )}
+                      {exp.comments?.length > 0 && (
+                        <div className="border-t pt-2 mt-2">
+                          <span className="text-xs text-gray-500 flex items-center gap-1"><MessageCircle size={12}/> {exp.comments.length} {exp.comments.length === 1 ? 'comment' : 'comments'}</span>
+                        </div>
+                      )}
+                    </div>
+                    {children.length > 0 && (
+                      <div className="space-y-0" style={{ marginTop: '0px' }}>
+                        {children.map(child => (
+                          <div key={child.id}>
+                            <div style={{ display: 'flex', justifyContent: 'center', height: '32px' }}>
+                              <div style={{ width: '4px', height: '100%', backgroundColor: '#93c5fd', borderRadius: '2px' }} />
+                            </div>
+                            {renderFullThread(child, matchedIds.has(child.id), false)}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </React.Fragment>
+                );
+              };
+
+              return renderItems.map((item, idx) => {
+                if (item.type === 'thread') {
+                  return (
+                    <React.Fragment key={`thread-${item.root.id}`}>
+                      {renderFullThread(item.root, item.matchedIds.has(item.root.id), true)}
+                    </React.Fragment>
+                  );
+                }
+                // type === 'normal' — render normal via the existing map logic below
+                return null; // placeholder, replaced below
+              });
+            })()}
+
             {currentExperiences.map(exp => {
+              // Skip cards that are part of multi-match threads (already rendered above)
+              const getRoot = (id) => {
+                let current = experiences.find(e => e.id === id);
+                while (current?.parentExperienceId) current = experiences.find(e => e.id === current.parentExperienceId);
+                return current;
+              };
+              const root = getRoot(exp.id);
+              const threadMatesInFilter = currentExperiences.filter(e => e.id !== exp.id && getRoot(e.id)?.id === root?.id);
+              if (threadMatesInFilter.length > 0) return null;
+
               const expFollowOns = experiences.filter(e => e.parentExperienceId === exp.id);
               // Cadeia de ancestrais para upstream
               const expAncestorChain = (() => {
