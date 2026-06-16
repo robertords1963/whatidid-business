@@ -117,9 +117,9 @@ const [editingTags, setEditingTags] = useState(null); // id da experience com ta
 
 // ⭐ FOLLOW-ON EXPERIENCE
 const [followOnParentId, setFollowOnParentId] = useState(null); // id da exp que originou o follow-on
-const [expandedUpstream, setExpandedUpstream] = useState({}); // { [expId]: true/false }
-const [expandedFollowOns, setExpandedFollowOns] = useState({}); // { [expId]: true/false }
-const [expandedGaps, setExpandedGaps] = useState({}); // { [gapKey]: true } gapKey = `${fromId}_${toId}`
+const [expandedUpstream, setExpandedUpstream] = useState({});
+const [expandedFollowOns, setExpandedFollowOns] = useState({});
+const [expandedGaps, setExpandedGaps] = useState({}); // { [gapKey]: true }
   
   // ⭐ ADICIONAR AQUI - Estados para Employee Login ⭐
   const [isEmployeeLoggedIn, setIsEmployeeLoggedIn] = useState(false);
@@ -2446,25 +2446,13 @@ useEffect(() => {
   
   if (hasActiveFilters) {
     setCurrentPage(1);
+    // Expandir apenas a raiz de cada thread que tem follow-on no filtro
     const _getRoot = (id) => {
       let c = experiences.find(e => e.id === id);
       while (c?.parentExperienceId) c = experiences.find(e => e.id === c.parentExperienceId);
       return c;
     };
-    // Retorna o caminho da raiz até um nó (lista de IDs do parent ao nó)
-    const _getPathFromRoot = (id) => {
-      const path = [];
-      let c = experiences.find(e => e.id === id);
-      while (c) {
-        path.unshift(c.id);
-        c = c.parentExperienceId ? experiences.find(e => e.id === c.parentExperienceId) : null;
-      }
-      return path;
-    };
-
     const newExpanded = {};
-    // Expandir apenas a raiz de cada thread com Follow-On matched
-    // O gap rendering cuidará de mostrar o matched card diretamente via conector pontilhado
     filteredExperiences.forEach(exp => {
       if (!exp.parentExperienceId) return;
       const root = _getRoot(exp.id);
@@ -2493,47 +2481,51 @@ useEffect(() => {
   };
 
   // ⭐ FUNÇÃO RECURSIVA — renderiza Follow-On cards em qualquer profundidade
-  // ⭐ Helper: calcula gap info para um conjunto de filhos
-  const getGapInfo = (parentId, children, matchedIds) => {
-    if (!matchedIds || children.length === 0) return null;
-
-    // Find if any descendant (direct or indirect) is matched
-    const hasMatchedDesc = (id) => {
-      if (matchedIds.has(id)) return true;
-      return experiences.filter(e => e.parentExperienceId === id).some(k => hasMatchedDesc(k.id));
+  // ⭐ buildThreadRenderList: percorre o thread em DFS e retorna lista plana de itens a renderizar
+  // [{type:'card', exp, index}, {type:'gap', cards, gapKey}]
+  // index = posição absoluta no thread (1-based)
+  // gaps = grupos de cards não-matched entre/após matched
+  const buildThreadRenderList = (rootId, matchedIds) => {
+    if (!matchedIds) return null;
+    // DFS em ordem de criação
+    const allNodes = [];
+    const traverse = (id) => {
+      const exp = experiences.find(e => e.id === id);
+      if (!exp) return;
+      if (exp.id !== rootId) allNodes.push(exp);
+      experiences.filter(e => e.parentExperienceId === id)
+        .sort((a, b) => a.id - b.id)
+        .forEach(child => traverse(child.id));
     };
+    traverse(rootId);
 
-    // Separate children into: gap (not matched, but path leads to match) vs direct match
-    const directlyMatched = children.filter(c => matchedIds.has(c.id));
-    const pathToMatch = children.filter(c => !matchedIds.has(c.id) && hasMatchedDesc(c.id));
-    const neitherMatched = children.filter(c => !matchedIds.has(c.id) && !hasMatchedDesc(c.id));
+    const items = [];
+    let gapBuffer = [];
+    let absoluteIndex = 0;
 
-    // Gap children = those that come before the first directly matched child
-    // In a linear thread, directlyMatched may be empty — the match is deeper
-    // In that case, show ALL non-matched children as gap, and recurse into pathToMatch
-    if (directlyMatched.length === 0 && pathToMatch.length === 0) return null;
-
-    // Unmatched children that appear before the first match path
-    const firstMatchPathIdx = children.findIndex(c => matchedIds.has(c.id) || (!matchedIds.has(c.id) && hasMatchedDesc(c.id)));
-    const gapChildren = children.slice(0, firstMatchPathIdx).filter(c => !matchedIds.has(c.id));
-
-    // If only pathToMatch (linear thread): ALL non-matched are gap, pathToMatch[0] is "relevant"
-    const allNonMatchedBeforeFirst = children.slice(0, firstMatchPathIdx);
-    if (allNonMatchedBeforeFirst.length === 0 && pathToMatch.length > 0 && directlyMatched.length === 0) {
-      // Linear: fo1 is the path, not matched — fo1 itself is the gap
-      const allGap = pathToMatch; // all path children are gap (not directly matched)
-      const gapKey = `${parentId}_deep_${allGap[0]?.id}`;
-      return { gapChildren: allGap, gapKey, firstRelevantIdx: children.length, isDeepGap: true };
+    allNodes.forEach(exp => {
+      absoluteIndex++;
+      if (matchedIds.has(exp.id)) {
+        if (gapBuffer.length > 0) {
+          const gapKey = `gap_${rootId}_before_${exp.id}`;
+          items.push({ type: 'gap', cards: [...gapBuffer], gapKey });
+          gapBuffer = [];
+        }
+        items.push({ type: 'card', exp, index: absoluteIndex });
+      } else {
+        gapBuffer.push({ exp, index: absoluteIndex });
+      }
+    });
+    // Gap no final (não-matched após o último matched)
+    if (gapBuffer.length > 0 && items.some(i => i.type === 'card')) {
+      const lastCard = [...items].reverse().find(i => i.type === 'card');
+      const gapKey = `gap_${rootId}_after_${lastCard.exp.id}`;
+      items.push({ type: 'gap', cards: [...gapBuffer], gapKey });
     }
-
-    if (gapChildren.length === 0 && allNonMatchedBeforeFirst.length === 0) return null;
-
-    const firstRelevant = children[firstMatchPathIdx];
-    if (!firstRelevant) return null;
-    const gapKey = `${parentId}_${firstRelevant.id}`;
-    return { gapChildren: allNonMatchedBeforeFirst, gapKey, firstRelevantIdx: firstMatchPathIdx };
+    return items;
   };
-  const renderFollowOnCard = (fo, matchedIds = null, threadIndex = 1) => {
+
+  const renderFollowOnCard = (fo, matchedIds = null, threadIndex = 1, nextGapInfo = null) => {
     const foChildren = experiences.filter(e => e.parentExperienceId === fo.id);
     const isGreyed = matchedIds !== null && !matchedIds.has(fo.id);
     const countAllDescendants = (id) => {
@@ -2682,7 +2674,7 @@ useEffect(() => {
                 </div>
               )}
               {/* ↓ Follow-Ons counter — abaixo dos comments */}
-              {totalChildCount > 0 && (
+              {totalChildCount > 0 && !matchedIds && (
                 <button onClick={() => {
                   const isExpanding = !expandedFollowOns[fo.id];
                   // Coletar todos os descendentes para abrir/fechar de uma vez
@@ -2698,26 +2690,20 @@ useEffect(() => {
                   });
                 }}
                   className="mt-3 text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">
-                  {expandedFollowOns[fo.id] ? '\u25b2' : '\u25bc'} \u2193 {totalChildCount} Follow-On {totalChildCount === 1 ? 'Experience' : 'Experiences'}
+                  {expandedFollowOns[fo.id] ? '▲' : '▼'} ↓ {totalChildCount} Follow-On {totalChildCount === 1 ? 'Experience' : 'Experiences'}
                 </button>
               )}
-              {/* Gap button inside card — shown when children have unfiltered gap */}
-              {(() => {
-                if (!matchedIds || foChildren.length === 0) return null;
-                const gapInfo = getGapInfo(fo.id, foChildren, matchedIds);
-                if (!gapInfo) return null;
-                const { gapChildren, gapKey } = gapInfo;
-                return (
-                  <button
-                    onClick={() => setExpandedGaps(g => ({ ...g, [gapKey]: !g[gapKey] }))}
-                    className="mt-2 text-xs text-blue-500 hover:text-blue-700 font-medium flex items-center gap-1"
-                  >
-                    {expandedGaps[gapKey] ? '\u25b2' : '\u25bc'} \u2193 {gapChildren.length} Follow-On Unfiltered {gapChildren.length === 1 ? 'Experience' : 'Experiences'}
-                  </button>
-                );
-              })()}
-              {/* Add Follow-On — only when no children */}
-              {foChildren.length === 0 && (
+              {/* Gap button — aparece no rodapé do último card matched antes de um gap */}
+              {nextGapInfo && (
+                <button
+                  onClick={() => setExpandedGaps(g => ({ ...g, [nextGapInfo.gapKey]: !g[nextGapInfo.gapKey] }))}
+                  className="mt-2 text-xs text-blue-500 hover:text-blue-700 font-medium flex items-center gap-1"
+                >
+                  {expandedGaps[nextGapInfo.gapKey] ? '▲' : '▼'} ↓ {nextGapInfo.cards.length} Follow-On Unfiltered {nextGapInfo.cards.length === 1 ? 'Experience' : 'Experiences'}
+                </button>
+              )}
+              {/* 🔗 Add Follow-On — inibido se já tem filho */}
+              {foChildren.length === 0 && !isGreyed && (
                 <button onClick={() => {
                   setFollowOnParentId(fo.id);
                   if (fo.practiceId) { setSelectedPracticeId(fo.practiceId); loadProblemCategories(fo.practiceId); }
@@ -2730,38 +2716,8 @@ useEffect(() => {
             </div>
           </div>
         </div>
-        {/* Children with gap support */}
-        {expandedFollowOns[fo.id] && (() => {
-          const gapInfo = getGapInfo(fo.id, foChildren, matchedIds);
-          if (!gapInfo) {
-            return foChildren.map((child, idx) => renderFollowOnCard(child, matchedIds, threadIndex + 1 + idx));
-          }
-          const { gapChildren, gapKey, firstRelevantIdx, isDeepGap } = gapInfo;
-          const relevantChildren = isDeepGap ? [] : foChildren.slice(firstRelevantIdx);
-          // For deep gaps, find matched cards recursively
-          const getMatchedInSubtree = (ids) => {
-            const result = [];
-            const findMatched = (id) => {
-              const exp = experiences.find(e => e.id === id);
-              if (!exp) return;
-              if (matchedIds.has(id)) { result.push(exp); return; }
-              experiences.filter(e => e.parentExperienceId === id).forEach(k => findMatched(k.id));
-            };
-            ids.forEach(c => findMatched(c.id));
-            return result;
-          };
-          const deepMatchedCards = isDeepGap ? getMatchedInSubtree(gapChildren) : [];
-          return (
-            <>
-              {expandedGaps[gapKey] && gapChildren.map((child, idx) => renderFollowOnCard(child, matchedIds, threadIndex + 1 + idx))}
-              <div style={{ display: 'flex', justifyContent: 'center', height: '24px' }}>
-                <div style={{ width: '0', borderLeft: '4px dotted #93c5fd', height: '100%' }} />
-              </div>
-              {relevantChildren.map((child, idx) => renderFollowOnCard(child, matchedIds, threadIndex + 1 + gapChildren.length + idx))}
-              {deepMatchedCards.map((child, idx) => renderFollowOnCard(child, matchedIds, threadIndex + 1 + gapChildren.length + idx))}
-            </>
-          );
-        })()}
+        {/* Filhos recursivos — apenas no modo não-filtrado (modo filtrado usa buildThreadRenderList na raiz) */}
+        {!matchedIds && expandedFollowOns[fo.id] && foChildren.map((child, idx) => renderFollowOnCard(child, null, threadIndex + 1 + idx))}
       </div>
     );
   };
@@ -6042,7 +5998,7 @@ onClick={() => {
               };
 
               // IDs dos cards que batem no filtro atual
-              const matchedIds = new Set(currentExperiences.map(e => e.id));
+              const matchedIds = new Set(filteredExperiences.map(e => e.id));
 
               // Construir lista de itens a renderizar:
               // - Se root aparece no feed E tem filhos também no feed → substituir por thread completo
@@ -6183,7 +6139,7 @@ onClick={() => {
                 return new Set(getAllDesc(exp.id));
               })();
               const descendantMatchedInFilter = filteredExperiences.some(e => allDescendantIds.has(e.id));
-              const threadMatesInFilter = filteredExperiences.filter(e => e.id !== exp.id && getRoot(e.id)?.id === root?.id);
+              const threadMatesInFilter = currentExperiences.filter(e => e.id !== exp.id && getRoot(e.id)?.id === root?.id);
               const hasAnyThreadMatch = descendantMatchedInFilter || threadMatesInFilter.length > 0;
               const matchedIds = hasAnyThreadMatch ? new Set(filteredExperiences.map(e => e.id)) : null;
 
@@ -7049,18 +7005,18 @@ onClick={() => {
                               {expandedFollowOns[exp.id] ? '▲' : '▼'} ↓ {totalThreadCount} Follow-On {totalThreadCount === 1 ? 'Experience' : 'Experiences'}
                             </button>
                           )}
-                          {/* Gap button inside root card */}
-                          {(() => {
-                            if (!matchedIds || expFollowOns.length === 0) return null;
-                            const gapInfo = getGapInfo(exp.id, expFollowOns, matchedIds);
-                            if (!gapInfo) return null;
-                            const { gapChildren, gapKey } = gapInfo;
+                          {/* Gap button na raiz — quando filtro ativo e há unfiltered antes do primeiro match */}
+                          {matchedIds && (() => {
+                            const renderList = buildThreadRenderList(exp.id, matchedIds);
+                            if (!renderList) return null;
+                            const firstGap = renderList[0]?.type === 'gap' ? renderList[0] : null;
+                            if (!firstGap) return null;
                             return (
                               <button
-                                onClick={() => setExpandedGaps(g => ({ ...g, [gapKey]: !g[gapKey] }))}
+                                onClick={() => setExpandedGaps(g => ({ ...g, [firstGap.gapKey]: !g[firstGap.gapKey] }))}
                                 className="text-xs text-blue-500 hover:text-blue-700 font-medium flex items-center gap-1"
                               >
-                                {expandedGaps[gapKey] ? '▲' : '▼'} ↓ {gapChildren.length} Follow-On Unfiltered {gapChildren.length === 1 ? 'Experience' : 'Experiences'}
+                                {expandedGaps[firstGap.gapKey] ? '▲' : '▼'} ↓ {firstGap.cards.length} Follow-On Unfiltered {firstGap.cards.length === 1 ? 'Experience' : 'Experiences'}
                               </button>
                             );
                           })()}
@@ -7258,38 +7214,33 @@ onClick={() => {
           </div>
         </div>
 
-            {/* ⭐ FOLLOW-ON CARDS — renderizados recursivamente com gaps */}
+            {/* ⭐ FOLLOW-ON CARDS — usando buildThreadRenderList no modo filtrado */}
             {exp.author !== 'key_insights' && expFollowOns.length > 0 && expandedFollowOns[exp.id] && (
               <div className="space-y-0" style={{ marginTop: '0px' }}>
                 {(() => {
-                  const gapInfo = getGapInfo(exp.id, expFollowOns, matchedIds);
-                  if (!gapInfo) {
-                    return expFollowOns.map((fo, idx) => renderFollowOnCard(fo, matchedIds, idx + 1));
+                  const renderList = matchedIds ? buildThreadRenderList(exp.id, matchedIds) : null;
+                  if (!renderList) {
+                    return expFollowOns.map((fo, idx) => renderFollowOnCard(fo, null, idx + 1));
                   }
-                  const { gapChildren, gapKey, firstRelevantIdx, isDeepGap } = gapInfo;
-                  const relevantChildren = isDeepGap ? [] : expFollowOns.slice(firstRelevantIdx);
-                  const getMatchedInSubtree = (children) => {
-                    const result = [];
-                    const findMatched = (id) => {
-                      const e = experiences.find(x => x.id === id);
-                      if (!e) return;
-                      if (matchedIds.has(id)) { result.push(e); return; }
-                      experiences.filter(x => x.parentExperienceId === id).forEach(k => findMatched(k.id));
-                    };
-                    children.forEach(c => findMatched(c.id));
-                    return result;
-                  };
-                  const deepMatchedCards = isDeepGap ? getMatchedInSubtree(gapChildren) : [];
-                  return (
-                    <>
-                      {expandedGaps[gapKey] && gapChildren.map((child, idx) => renderFollowOnCard(child, matchedIds, idx + 1))}
-                      <div style={{ display: 'flex', justifyContent: 'center', height: '24px' }}>
-                        <div style={{ width: '0', borderLeft: '4px dotted #93c5fd', height: '100%' }} />
+                  return renderList.map((item, i) => {
+                    if (item.type === 'card') {
+                      const nextItem = renderList[i + 1];
+                      const nextGapInfo = nextItem?.type === 'gap' ? nextItem : null;
+                      return renderFollowOnCard(item.exp, matchedIds, item.index, nextGapInfo);
+                    }
+                    // type === 'gap'
+                    const { cards, gapKey } = item;
+                    return (
+                      <div key={gapKey}>
+                        <div style={{ display: 'flex', justifyContent: 'center', height: '24px' }}>
+                          <div style={{ width: '0', borderLeft: '4px dotted #93c5fd', height: '100%' }} />
+                        </div>
+                        {expandedGaps[gapKey] && cards.map(({ exp: card, index: cardIdx }) =>
+                          renderFollowOnCard(card, matchedIds, cardIdx)
+                        )}
                       </div>
-                      {relevantChildren.map((child, idx) => renderFollowOnCard(child, matchedIds, gapChildren.length + 1 + idx))}
-                      {deepMatchedCards.map((child, idx) => renderFollowOnCard(child, matchedIds, gapChildren.length + 1 + idx))}
-                    </>
-                  );
+                    );
+                  });
                 })()}
               </div>
             )}
