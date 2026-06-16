@@ -5892,7 +5892,7 @@ onClick={() => {
               })();
               return (
               <React.Fragment key={exp.id}>
-                {/* ⭐ UPSTREAM CARDS — renderizados ACIMA do card atual */}
+                {/* ⭐ UPSTREAM CARDS — renderizados ACIMA do card atual, formato completo */}
                 {expAncestorChain.length > 0 && expandedUpstream[exp.id] && (
                   <div className="space-y-0">
                     {expAncestorChain.map((ancestor, idx) => {
@@ -5901,14 +5901,33 @@ onClick={() => {
                       const catLabel = pname && pname !== 'General' ? `${pname} / ${ancestor.problemCategory}` : ancestor.problemCategory;
                       return (
                         <div key={ancestor.id}>
-                          {/* Card ancestral: raiz em tamanho normal, intermediários com mx-6 */}
+                          {/* Raiz: tamanho normal sem mx. Intermediários: mx-6 */}
                           <div className={isRoot ? '' : 'mx-6'}>
                             <div className={`bg-white rounded-2xl shadow-lg p-6 border-l-4 ${isRoot ? 'border-purple-400' : 'border-purple-300'}`}>
+                              {/* Badge */}
                               <div className="mb-3 text-center">
                                 <span className="text-xs bg-purple-100 text-purple-700 px-3 py-1 rounded-full font-medium">
                                   {isRoot ? '↑ Original Experience' : '↑ Upstream Experience'}
                                 </span>
                               </div>
+                              {/* By */}
+                              {(ancestor.author || ancestor.employeeId) && (
+                                <div className="mb-3">
+                                  <span className="text-xs text-gray-600">By: {appSettings.requireEmployeeLogin ? [ancestor.author, ancestor.employeeId, ancestor.country].filter(Boolean).join(', ') : [ancestor.author, ancestor.gender, ancestor.age, ancestor.country].filter(Boolean).join(', ')}</span>
+                                </div>
+                              )}
+                              {/* Ratings */}
+                              <div className="flex justify-end mb-4">
+                                <div className="flex flex-col items-end gap-2">
+                                  <div className="flex items-center gap-2 bg-yellow-50 px-3 py-2 rounded-lg">
+                                    <div className="flex gap-1">
+                                      {[1,2,3,4,5].map(star => <Star key={star} size={16} className={star <= Math.round(ancestor.avgRating) ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'} />)}
+                                    </div>
+                                    <span className="text-sm font-semibold text-gray-700">{ancestor.avgRating.toFixed(1)} <span className="text-xs text-gray-500">({ancestor.totalRatings})</span></span>
+                                  </div>
+                                </div>
+                              </div>
+                              {/* P/A/R grid */}
                               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
                                 <div className="space-y-2">
                                   <div className="flex items-center justify-between">
@@ -5929,14 +5948,21 @@ onClick={() => {
                                   <p className="text-sm text-gray-700">{ancestor.result}</p>
                                 </div>
                               </div>
-                              {(ancestor.author || ancestor.employeeId) && (
-                                <p className="text-xs text-gray-500 border-t pt-2">
-                                  By: {[ancestor.author, ancestor.employeeId, ancestor.country].filter(Boolean).join(', ')}
-                                </p>
+                              {/* Tags */}
+                              {ancestor.tags && ancestor.tags.length > 0 && (
+                                <div className="mb-3 flex flex-wrap gap-1">
+                                  {ancestor.tags.map(tag => <span key={tag} className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">{tag}</span>)}
+                                </div>
+                              )}
+                              {/* Comments count */}
+                              {ancestor.comments?.length > 0 && (
+                                <div className="border-t pt-3 mt-2">
+                                  <span className="text-xs text-gray-500 flex items-center gap-1"><MessageCircle size={12}/> {ancestor.comments.length} {ancestor.comments.length === 1 ? 'comment' : 'comments'}</span>
+                                </div>
                               )}
                             </div>
                           </div>
-                          {/* Conector roxo para o próximo */}
+                          {/* Conector roxo */}
                           <div style={{ display: 'flex', justifyContent: 'center', height: '32px' }}>
                             <div style={{ width: '4px', height: '100%', backgroundColor: '#c4b5fd', borderRadius: '2px' }} />
                           </div>
@@ -5946,7 +5972,14 @@ onClick={() => {
                   </div>
                 )}
                 <div>
-                <div id={`exp-${exp.id}`} className="bg-white rounded-2xl shadow-lg p-6">
+                <div id={`exp-${exp.id}`} className={`bg-white rounded-2xl shadow-lg p-6 ${exp.parentExperienceId ? 'border-l-4 border-yellow-400 mx-6' : ''}`}>
+                  {/* Fix 1 & 3 — Badge + highlight se card é Follow-On */}
+                  {exp.parentExperienceId && (
+                    <div className="mb-3 text-center">
+                      <span className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">🔗 Follow-On Experience</span>
+                      {filters.searchText && <span className="ml-2 text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full font-medium">🔍 Matched</span>}
+                    </div>
+                  )}
                   <div className="mb-4">
 {/* Linha 1: By à esquerda */}
 <div className="mb-3">
@@ -6697,26 +6730,16 @@ onClick={() => {
                         return children.reduce((acc, child) => acc + 1 + countAllDescendants(child.id), 0);
                       };
                       const totalThreadCount = countAllDescendants(exp.id);
-                      const ancestorChain = (() => {
-                        const chain = [];
-                        let current = experiences.find(e => e.id === exp.id);
-                        while (current?.parentExperienceId) {
-                          const parent = experiences.find(e => e.id === current.parentExperienceId);
-                          if (parent) chain.unshift(parent);
-                          current = parent;
-                        }
-                        return chain;
-                      })();
 
                       return (
                         <div className="mb-3 space-y-2">
                           {/* Upstream — só botão; cards renderizados fora do card atual */}
-                          {ancestorChain.length > 0 && (
+                          {expAncestorChain.length > 0 && (
                             <button
                               onClick={() => setExpandedUpstream({...expandedUpstream, [exp.id]: !expandedUpstream[exp.id]})}
                               className="text-xs text-purple-600 hover:text-purple-800 font-medium flex items-center gap-1"
                             >
-                              {expandedUpstream[exp.id] ? '▲' : '▼'} ↑ {ancestorChain.length} Upstream {ancestorChain.length === 1 ? 'Experience' : 'Experiences'}
+                              {expandedUpstream[exp.id] ? '▲' : '▼'} ↑ {expAncestorChain.length} Upstream {expAncestorChain.length === 1 ? 'Experience' : 'Experiences'}
                             </button>
                           )}
                           {/* Follow-Ons */}
