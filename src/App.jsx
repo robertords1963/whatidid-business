@@ -2445,31 +2445,29 @@ useEffect(() => {
   
   if (hasActiveFilters) {
     setCurrentPage(1);
-    // Fechar todos os threads, auto-expandir os com 2+ matches
     const _getRoot = (id) => {
       let c = experiences.find(e => e.id === id);
       while (c?.parentExperienceId) c = experiences.find(e => e.id === c.parentExperienceId);
       return c;
     };
-    const _getAllDescIds = (id) => {
-      const kids = experiences.filter(e => e.parentExperienceId === id);
-      return kids.reduce((acc, k) => [...acc, k.id, ..._getAllDescIds(k.id)], []);
-    };
-    const rootCounts = {};
-    filteredExperiences.forEach(exp => {
-      const r = _getRoot(exp.id);
-      if (r) rootCounts[r.id] = (rootCounts[r.id] || 0) + 1;
-    });
-    const newExpanded = {};
-    Object.entries(rootCounts).forEach(([rootId, count]) => {
-      // Expandir se qualquer descendente bateu no filtro (não só a raiz)
-      const rid = parseInt(rootId);
-      const rootExp = experiences.find(e => e.id === rid);
-      const hasFollowOnMatch = filteredExperiences.some(e => e.id !== rid && _getRoot(e.id)?.id === rid);
-      if (hasFollowOnMatch) {
-        newExpanded[rid] = true;
-        _getAllDescIds(rid).forEach(id => { newExpanded[id] = true; });
+    // Retorna o caminho da raiz até um nó (lista de IDs do parent ao nó)
+    const _getPathFromRoot = (id) => {
+      const path = [];
+      let c = experiences.find(e => e.id === id);
+      while (c) {
+        path.unshift(c.id);
+        c = c.parentExperienceId ? experiences.find(e => e.id === c.parentExperienceId) : null;
       }
+      return path;
+    };
+
+    const newExpanded = {};
+    // Para cada Follow-On que bateu no filtro, expandir o caminho da raiz até ele
+    filteredExperiences.forEach(exp => {
+      if (!exp.parentExperienceId) return; // pular raízes
+      const path = _getPathFromRoot(exp.id);
+      // Expandir cada nó no caminho (exceto o próprio exp — seus filhos ficam fechados)
+      path.slice(0, -1).forEach(id => { newExpanded[id] = true; });
     });
     setExpandedFollowOns(newExpanded);
     setExpandedUpstream({});
