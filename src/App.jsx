@@ -2352,6 +2352,9 @@ const filteredExperiences = experiences.filter(exp => {
 
   // Se está na tab Key Insights
   if (filterMode === 'key_insights') {
+    if (!exp.author === 'key_insights') return false;
+    // Filtro por practice
+    if (filterPracticeId && exp.practiceId !== filterPracticeId) return false;
     if (showKeyInsights && keyInsightCategory) {
       return exp.author === 'key_insights' && exp.problemCategory === keyInsightCategory;
     }
