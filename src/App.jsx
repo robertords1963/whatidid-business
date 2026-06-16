@@ -2386,9 +2386,12 @@ const filteredExperiences = experiences.filter(exp => {
   const matchesIndustrySector = !filters.industrySector || exp.industrySector === filters.industrySector;
   // Filtro por tags (OR — basta ter qualquer uma das tags selecionadas)
   const matchesTags = filterTags.length === 0 || filterTags.some(tag => (exp.tags || []).includes(tag));
-  // ⭐ Excluir Follow-Ons do feed principal (aparecem dentro do thread da original)
-  // Se há busca ativa, mostrar follow-ons também para que o search as encontre
-  if (exp.parentExperienceId && !filters.searchText) {
+
+  // ⭐ Follow-Ons excluídos do feed principal APENAS quando não há nenhum filtro ativo
+  const hasAnyFilter = filters.searchText || filters.problemCategory || filters.resultCategory ||
+    filters.rating || filters.gender || filters.age || filters.country ||
+    filters.industrySector || filterTags.length > 0 || filterPracticeId;
+  if (exp.parentExperienceId && !hasAnyFilter) {
     return false;
   }
 
@@ -5877,1096 +5880,152 @@ onClick={() => {
               </div>
             )}
 
-            {currentExperiences.map(exp => {
-              const expFollowOns = experiences.filter(e => e.parentExperienceId === exp.id);
-              // Cadeia de ancestrais para upstream
-              const expAncestorChain = (() => {
-                const chain = [];
-                let current = experiences.find(e => e.id === exp.id);
+            {(() => {
+              // Agrupar cards por thread raiz — evita duplicação quando múltiplos cards do mesmo thread são filtrados
+              const getRoot = (expId) => {
+                let current = experiences.find(e => e.id === expId);
                 while (current?.parentExperienceId) {
-                  const parent = experiences.find(e => e.id === current.parentExperienceId);
-                  if (parent) chain.unshift(parent);
-                  current = parent;
+                  current = experiences.find(e => e.id === current.parentExperienceId);
                 }
-                return chain;
-              })();
-              return (
-              <React.Fragment key={exp.id}>
-                {/* ⭐ UPSTREAM CARDS — renderizados ACIMA do card atual, formato completo */}
-                {expAncestorChain.length > 0 && expandedUpstream[exp.id] && (
-                  <div className="space-y-0">
-                    {expAncestorChain.map((ancestor, idx) => {
-                      const isRoot = !ancestor.parentExperienceId;
-                      const pname = practices.find(p => p.id === ancestor.practiceId)?.name;
-                      const catLabel = pname && pname !== 'General' ? `${pname} / ${ancestor.problemCategory}` : ancestor.problemCategory;
-                      return (
-                        <div key={ancestor.id}>
-                          {/* Raiz: tamanho normal sem mx. Intermediários: mx-6 */}
-                          <div className={isRoot ? '' : 'mx-6'}>
-                            <div className={`bg-white rounded-2xl shadow-lg p-6 border-l-4 ${isRoot ? 'border-purple-400' : 'border-purple-300'}`}>
-                              {/* Badge */}
-                              <div className="mb-3 text-center">
-                                <span className="text-xs bg-purple-100 text-purple-700 px-3 py-1 rounded-full font-medium">
-                                  {isRoot ? '↑ Original Experience' : '↑ Upstream Experience'}
-                                </span>
-                              </div>
-                              {/* By */}
-                              {(ancestor.author || ancestor.employeeId) && (
-                                <div className="mb-3">
-                                  <span className="text-xs text-gray-600">By: {appSettings.requireEmployeeLogin ? [ancestor.author, ancestor.employeeId, ancestor.country].filter(Boolean).join(', ') : [ancestor.author, ancestor.gender, ancestor.age, ancestor.country].filter(Boolean).join(', ')}</span>
-                                </div>
-                              )}
-                              {/* Ratings */}
-                              <div className="flex justify-end mb-4">
-                                <div className="flex flex-col items-end gap-2">
-                                  <div className="flex items-center gap-2 bg-yellow-50 px-3 py-2 rounded-lg">
-                                    <div className="flex gap-1">
-                                      {[1,2,3,4,5].map(star => <Star key={star} size={16} className={star <= Math.round(ancestor.avgRating) ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'} />)}
-                                    </div>
-                                    <span className="text-sm font-semibold text-gray-700">{ancestor.avgRating.toFixed(1)} <span className="text-xs text-gray-500">({ancestor.totalRatings})</span></span>
-                                  </div>
-                                </div>
-                              </div>
-                              {/* P/A/R grid */}
-                              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
-                                <div className="space-y-2">
-                                  <div className="flex items-center justify-between">
-                                    <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>Problem</h4>
-                                    <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full">{catLabel}</span>
-                                  </div>
-                                  <p className="text-sm text-gray-700">{ancestor.problem}</p>
-                                </div>
-                                <div className="space-y-2">
-                                  <h4 className="font-semibold text-blue-600 flex items-center gap-2"><TrendingUp size={16}/>Action</h4>
-                                  <p className="text-sm text-gray-700">{ancestor.solution}</p>
-                                </div>
-                                <div className="space-y-2">
-                                  <div className="flex items-center justify-between">
-                                    <h4 className="font-semibold text-green-600 flex items-center gap-2"><Share2 size={16}/>Result</h4>
-                                    <span className={`text-xs px-3 py-1 rounded-full ${getResultColor(ancestor.resultCategory)}`}>{getResultLabel(ancestor.resultCategory)}</span>
-                                  </div>
-                                  <p className="text-sm text-gray-700">{ancestor.result}</p>
-                                </div>
-                              </div>
-                              {/* Tags */}
-                              {ancestor.tags && ancestor.tags.length > 0 && (
-                                <div className="mb-3 flex flex-wrap gap-1">
-                                  {ancestor.tags.map(tag => <span key={tag} className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">{tag}</span>)}
-                                </div>
-                              )}
-                              {/* Comments count */}
-                              {ancestor.comments?.length > 0 && (
-                                <div className="border-t pt-3 mt-2">
-                                  <span className="text-xs text-gray-500 flex items-center gap-1"><MessageCircle size={12}/> {ancestor.comments.length} {ancestor.comments.length === 1 ? 'comment' : 'comments'}</span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                          {/* Conector roxo */}
-                          <div style={{ display: 'flex', justifyContent: 'center', height: '32px' }}>
-                            <div style={{ width: '4px', height: '100%', backgroundColor: '#c4b5fd', borderRadius: '2px' }} />
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-                <div>
-                <div id={`exp-${exp.id}`} className={`bg-white rounded-2xl shadow-lg p-6 ${exp.parentExperienceId ? 'border-l-4 border-yellow-400 mx-6' : ''}`}>
-                  {/* Fix 1 & 3 — Badge + highlight se card é Follow-On */}
-                  {exp.parentExperienceId && (
-                    <div className="mb-3 text-center">
-                      <span className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">🔗 Follow-On Experience</span>
-                      {filters.searchText && <span className="ml-2 text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full font-medium">🔍 Matched</span>}
-                    </div>
-                  )}
-                  <div className="mb-4">
-{/* Linha 1: By à esquerda */}
-<div className="mb-3">
-  {(exp.author || exp.gender || exp.age || exp.country || exp.employeeId) && (
-    <div>
-      <span className="text-xs text-gray-600 block">
-        By: {exp.author === 'key_insights' ? 'COMMON CASES' : 
-             appSettings.requireEmployeeLogin 
-               ? [exp.author, exp.employeeId, exp.country].filter(Boolean).join(', ')
-               : [exp.author, exp.gender, exp.age, exp.country].filter(Boolean).join(', ')
-            }
-      </span>
-      
-      {/* Ícone Document - linha separada */}
-{exp.cvUrl && exp.author !== 'key_insights' && (
-  <div className="flex items-center gap-2 mt-1">
-    <button
-      onClick={() => {
-        setCurrentCvUrl(exp.cvUrl);
-        setShowCvModal(true);
-      }}
-      className="text-blue-600 hover:text-blue-800 inline-flex items-center gap-1 text-xs"
-      title={`View ${appSettings.documentType === 'cv' ? 'CV' : 'File'} - ${exp.cvFilename || 'Document'}`}
-    >
-      <span className="font-semibold">{appSettings.documentType === 'cv' ? 'CV' : 'File'}</span> {appSettings.documentType === 'cv' ? '📄' : '📎'}
-    </button>
-    
-    {/* Botão Delete File - só para o dono */}
-    {appSettings.requireEmployeeLogin && exp.employeeId === employeeId && (
-      <button
-        onClick={async () => {
-          if (window.confirm('Delete this file?')) {
-            await deleteFileFromStorage(exp.cvUrl);
-            
-            const { error } = await supabase
-              .from('experiences')
-              .update({ cv_url: null, cv_filename: null })
-              .eq('id', exp.id);
-            
-            if (error) {
-              alert('Error removing file');
-            } else {
-              await loadExperiences(true);
-            }
-          }
-        }}
-        className="text-red-600 hover:text-red-800 text-xs"
-        title="Delete file"
-      >
-        ✕
-      </button>
-    )}
-  </div>
-)}
-    </div>
-  )}
-</div>
+                return current;
+              };
 
- {/* Delete Experience - só para o dono */}
-{appSettings.requireEmployeeLogin && exp.employeeId === employeeId && exp.author !== 'key_insights' && (
-  <button
-    onClick={async () => {
-      if (window.confirm('Delete this experience? All comments will also be deleted.')) {
-        await deleteExperienceFromSupabase(exp.id);
-      }
-    }}
-    className="text-red-600 hover:text-red-800 text-xs mt-2 inline-flex items-center gap-1"
-  >
-    🗑️ Delete Experience
-  </button>
-)}                   
-                    
-{exp.industrySector && !appSettings.requireEmployeeLogin && (
-  <div className="mb-3">
-    <span className="inline-flex items-center gap-1 text-xs bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full">
-      <Briefcase size={12} />
-      {exp.industrySector}
-    </span>
-  </div>
-)}
-  
-                    
+              // Conjunto de IDs filtrados
+              const filteredIds = new Set(currentExperiences.map(e => e.id));
 
-  <div className="flex justify-end">
-    <div className="flex flex-col items-end gap-3">
-      {/* Linha 2: Rating médio */}
-      <div className="flex items-center gap-2 bg-yellow-50 px-3 py-2 rounded-lg">
-        <div className="flex gap-1">
-          {[1, 2, 3, 4, 5].map(star => (
-            <Star
-              key={star}
-              size={18}
-              className={star <= Math.round(exp.avgRating) ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}
-            />
-          ))}
-        </div>
-        <div className="text-sm font-semibold text-gray-700">
-          {exp.avgRating.toFixed(1)} 
-          <span className="text-xs text-gray-500 ml-1">({exp.totalRatings} {exp.totalRatings === 1 ? 'rating' : 'ratings'})</span>
-        </div>
-      </div>
-      
-      {/* Linhas 3-4: Your rating */}
-      <div className="flex flex-col items-end">
-        <div className="text-xs text-gray-600 mb-1">Your rating:</div>
-        <div className="flex gap-1">
-          {[1, 2, 3, 4, 5].map(star => (
-            <button
-              key={star}
-              onClick={() => handleUserRating(exp.id, star)}
-              onMouseEnter={() => setHoverRating({...hoverRating, [exp.id]: star})}
-              onMouseLeave={() => setHoverRating({...hoverRating, [exp.id]: 0})}
-              className="transition-transform hover:scale-110"
-            >
-              <Star
-                size={20}
-                className={star <= (hoverRating[exp.id] || userRatings[exp.id] || 0) ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}
-              />
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-semibold text-red-600 flex items-center gap-2">
-                          <AlertCircle size={16} />
-                          Problem
-                        </h4>
-                        <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full">
-                          {(() => {
-                            const pname = practices.find(p => p.id === exp.practiceId)?.name;
-                            return pname && pname !== 'General' ? `${pname} / ${exp.problemCategory}` : exp.problemCategory;
-                          })()}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-700">
-  {highlightText(exp.problem, filters.searchText ? filters.searchText.toLowerCase().trim().split(/\s+/) : [])}
-</p>
-                    </div>
-                    <div className="space-y-2">
-                      <h4 className="font-semibold text-blue-600 flex items-center gap-2">
-                        <TrendingUp size={16} />
-                        Action
-                      </h4>
-<p className={`text-sm text-gray-700 ${exp.author === 'key_insights' ? 'whitespace-pre-line' : ''}`}>
-  {highlightText(exp.solution, filters.searchText ? filters.searchText.toLowerCase().trim().split(/\s+/) : [])}
-</p>
-                      </div>
-                    <div className="space-y-2">
-  <div className="flex items-center justify-between">
-    <h4 className="font-semibold text-green-600 flex items-center gap-2">
-      <Share2 size={16} />
-      Result
-    </h4>
-    {exp.author === 'key_insights' && exp.resultCategory === 'varies' ? (
-      <span className="text-xs px-3 py-1 rounded-full bg-purple-100 text-purple-800">
-        Result Varies
-      </span>
-    ) : (
-      <span className={`text-xs px-3 py-1 rounded-full ${getResultColor(exp.resultCategory)}`}>
-        {getResultLabel(exp.resultCategory)}
-      </span>
-    )}
-  </div>
-<p className="text-sm text-gray-700">
-  {highlightText(exp.result, filters.searchText ? filters.searchText.toLowerCase().trim().split(/\s+/) : [])}
-</p>
-</div>
-</div>
+              // Agrupar por root — cada root aparece uma vez
+              const seenRoots = new Set();
+              const groups = []; // { root, matchedIds }
 
-                  {/* Badges - Agora embaixo do grid */}
-                  <div className="mb-4 flex flex-wrap gap-2">
-                    
-                    
-                    
-                  </div>
-{/* Badges bi-direcionais - Movidos para baixo */}
-                  <div className="mb-4 flex flex-wrap gap-2 justify-end">
-                    {/* Tags badges — só para experiences do próprio usuário */}
-                    {exp.tags && exp.tags.length > 0 && (
-                      <div className="flex flex-wrap items-center gap-1 mr-auto">
-                        {editingTags === exp.id ? (
-                          // Modo edição: checkboxes de todas as tags da categoria
-                          <div className="flex flex-wrap gap-1.5 items-center">
-                            {(categoryData[exp.problemCategory]?.tags || exp.tags).map(tag => (
-                              <label key={tag} className="flex items-center gap-1 cursor-pointer">
-                                <input
-                                  type="checkbox"
-                                  defaultChecked={exp.tags.includes(tag)}
-                                  id={`edit-tag-${exp.id}-${tag}`}
-                                  className="w-3 h-3 text-purple-600 rounded"
-                                />
-                                <span className="text-xs text-gray-600">{tag}</span>
-                              </label>
-                            ))}
-                            <button
-                              onClick={async () => {
-                                const allTags = categoryData[exp.problemCategory]?.tags || exp.tags;
-                                const newTags = allTags.filter(tag =>
-                                  document.getElementById(`edit-tag-${exp.id}-${tag}`)?.checked
-                                );
-                                const { error } = await supabase.from('experiences').update({ tags: newTags }).eq('id', exp.id);
-                                if (!error) { setEditingTags(null); await loadExperiences(true); }
-                                else alert('Error saving tags');
-                              }}
-                              className="px-2 py-0.5 bg-purple-600 text-white rounded text-xs hover:bg-purple-700"
-                            >Save</button>
-                            <button onClick={() => setEditingTags(null)} className="px-2 py-0.5 bg-gray-400 text-white rounded text-xs">✕</button>
-                          </div>
-                        ) : (
-                          // Modo visualização: badges + botão Edit (só para o dono)
-                          <>
-                            {exp.tags.map(tag => (
-                              <span key={tag} className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">{tag}</span>
-                            ))}
-                            {(appSettings.requireEmployeeLogin ? exp.employeeId === employeeId : true) && exp.source === 'app' && (
-                              <button
-                                onClick={() => setEditingTags(exp.id)}
-                                className="text-sm text-gray-700 hover:text-black px-1 ml-1"
-                                title="Edit tags"
-                              >✎</button>
-                            )}
-                          </>
-                        )}
-                      </div>
-                    )}
-                    {/* Se não tem tags mas é do usuário e a categoria tem tags disponíveis */}
-                    {(!exp.tags || exp.tags.length === 0) && (appSettings.requireEmployeeLogin ? exp.employeeId === employeeId : true) && exp.source === 'app' && categoryData[exp.problemCategory]?.tags?.length > 0 && editingTags !== exp.id && (
-                      <button
-                        onClick={() => setEditingTags(exp.id)}
-                        className="text-xs text-gray-400 hover:text-purple-600 mr-auto"
-                        title="Add tags"
-                      >+ tags</button>
-                    )}
-                    {editingTags === exp.id && (!exp.tags || exp.tags.length === 0) && (
-                      <div className="flex flex-wrap gap-1.5 items-center mr-auto">
-                        {(categoryData[exp.problemCategory]?.tags || []).map(tag => (
-                          <label key={tag} className="flex items-center gap-1 cursor-pointer">
-                            <input type="checkbox" id={`edit-tag-${exp.id}-${tag}`} className="w-3 h-3 text-purple-600 rounded" />
-                            <span className="text-xs text-gray-600">{tag}</span>
-                          </label>
-                        ))}
-                        <button
-                          onClick={async () => {
-                            const allTags = categoryData[exp.problemCategory]?.tags || [];
-                            const newTags = allTags.filter(tag => document.getElementById(`edit-tag-${exp.id}-${tag}`)?.checked);
-                            const { error } = await supabase.from('experiences').update({ tags: newTags }).eq('id', exp.id);
-                            if (!error) { setEditingTags(null); await loadExperiences(true); }
-                            else alert('Error saving tags');
-                          }}
-                          className="px-2 py-0.5 bg-purple-600 text-white rounded text-xs hover:bg-purple-700"
-                        >Save</button>
-                        <button onClick={() => setEditingTags(null)} className="px-2 py-0.5 bg-gray-400 text-white rounded text-xs">✕</button>
-                      </div>
-                    )}
-                    {exp.relatedCommonCaseId && (exp.source === 'uploaded' || exp.source === 'app') && (
-  <button
-    onClick={() => {
-      console.log('=== BADGE CLICADO ===');
-      console.log('Exp ID:', exp.id);
-      console.log('Exp Category:', exp.problemCategory);
-      console.log('Related Common Case ID:', exp.relatedCommonCaseId);
-      
-      const commonCase = experiences.find(e => e.id === exp.relatedCommonCaseId);
-      console.log('Common Case encontrado:', commonCase);
-      console.log('Common Case problem:', commonCase?.problem);
-      console.log('Common Case category:', commonCase?.problemCategory);
-      
-      navigateToKeyInsight(exp.relatedCommonCaseId);
-    }}
-    className="inline-flex items-center gap-1 text-xs bg-purple-100 text-purple-800 px-3 py-1 rounded-full border-2 border-purple-300 hover:bg-purple-200 transition-colors cursor-pointer"
-  >
-    <Target size={12} />
-    🎯 Matching Common Case →
-  </button>
-)}
-                    
-                    {(() => {
-                      const mappedCount = experiences.filter(e => (e.source === 'uploaded' || e.source === 'app') && e.relatedCommonCaseId === exp.id).length;
-                      if (mappedCount > 0) {
-                        return (
-                          <button
-                            onClick={() => showMappedExperiences(exp.id)}
-                            className="inline-flex items-center gap-1 text-xs bg-green-100 text-green-800 px-3 py-1 rounded-full border-2 border-green-300 hover:bg-green-200 transition-colors cursor-pointer"
-                          >
-                            <Users size={12} />
-                            👥 {mappedCount} Matching {mappedCount === 1 ? 'Experience' : 'Experiences'} →
-                          </button>
-                        );
-                      }
-                      return null;
-                    })()}
-                  </div>
-
-
-                  
-                  {isAdmin && (() => {
-                    const confirmKey = `exp-${exp.id}`;
-                    const isConfirming = confirmDelete === confirmKey;
-                    return (
-                      <div className="mt-4 mb-4">
-                        <div className="flex gap-2 items-center flex-wrap">
-                          <button
-                            onClick={() => setEditingExperience(editingExperience === exp.id ? null : exp.id)}
-                            className="px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 flex items-center gap-2"
-                          >
-                            ✏️ {editingExperience === exp.id ? 'Cancel Edit' : 'Edit Experience'}
-                          </button>
-                          <button
-                            onClick={async () => {
-                              const isConfirming = confirmDelete === `exp-${exp.id}`;
-                              if (isConfirming) {
-                                await deleteExperienceFromSupabase(exp.id);
-                                setConfirmDelete(null);
-                              } else {
-                                setConfirmDelete(`exp-${exp.id}`);
-                              }
-                            }}
-                            className={`px-4 py-2 text-white rounded text-sm flex items-center gap-2 ${isConfirming ? 'bg-orange-600 hover:bg-orange-700 animate-pulse' : 'bg-red-600 hover:bg-red-700'}`}
-                          >
-                            <Trash2 size={14} />
-                            {isConfirming ? 'Click to CONFIRM DELETE!' : 'Delete Experience'}
-                          </button>
-                          {isConfirming && (
-                            <button
-                              onClick={() => setConfirmDelete(null)}
-                              className="px-4 py-2 bg-gray-500 text-white rounded text-sm hover:bg-gray-600"
-                            >
-                              Cancel
-                            </button>
-                          )}
-                          
-                          {/* Top 3 Checkboxes */}
-                          <div className="flex gap-3 ml-4 items-center">
-                            <span className="text-sm font-medium text-gray-700">Set as Top:</span>
-                            {[1, 2, 3].map(position => (
-                              <label key={position} className="flex items-center gap-1 cursor-pointer">
-                                <input
-                                  type="checkbox"
-                                  checked={topExperiences[position] === exp.id}
-                                  onChange={async (e) => {
-                                    if (e.target.checked) {
-                                      await setTopExperience(position, exp.id);
-                                    } else {
-                                      await removeTopExperience(position);
-                                    }
-                                  }}
-                                  className="w-4 h-4 text-yellow-500 rounded focus:ring-yellow-500"
-                                />
-                                <span className="text-sm font-medium text-yellow-600">
-                                  #{position}
-                                </span>
-                              </label>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })()}
-
-                  <div className="border-t pt-4 mt-4">
-                    <div className="mb-4">
-                      <h4 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                        <MessageCircle size={18} />
-                        Add a Comment
-                      </h4>
-                      
-<div className="space-y-2">
-  {/* Linha 1: Textarea */}
-  <textarea
-    value={newComment[exp.id] || ''}
-    onChange={(e) => {
-      if (e.target.value.length <= maxChars.comment) {
-        setNewComment({...newComment, [exp.id]: e.target.value});
-      }
-    }}
-    placeholder="Share your thoughts..."
-    className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none resize-none"
-    rows="2"
-  />
-  
-  {/* Linha 2: Upload + Enviar */}
-  <div className="flex gap-2 items-center">
-    {/* Upload Document - dinâmico */}
-    {appSettings.allowCvUpload && (
-      <div className="flex items-center">
-        {!commentCvFiles[exp.id] ? (
-          <label className="px-3 py-2 bg-gray-100 border-2 border-gray-200 rounded-lg hover:bg-gray-200 cursor-pointer flex items-center gap-1 text-sm">
-            <input
-              type="file"
-              accept={appSettings.documentType === 'cv' ? '.pdf' : '.pdf,.pptx,.xlsx,.docx,.ppt,.xls,.doc'}
-              onChange={(e) => {
-                const file = e.target.files[0];
-                if (file) {
-                  if (file.size > 5000000) {
-                    alert('File too large. Max 5MB');
-                    e.target.value = '';
-                  } else {
-                    setCommentCvFiles({...commentCvFiles, [exp.id]: file});
-                  }
+              currentExperiences.forEach(exp => {
+                const root = getRoot(exp.id);
+                if (!root) return;
+                if (!seenRoots.has(root.id)) {
+                  seenRoots.add(root.id);
+                  // Coletar todos matched IDs nesse thread
+                  const matchedInThread = currentExperiences.filter(e => {
+                    let c = experiences.find(x => x.id === e.id);
+                    while (c) {
+                      if (c.id === root.id) return true;
+                      c = experiences.find(x => x.id === c.parentExperienceId);
+                    }
+                    return false;
+                  }).map(e => e.id);
+                  groups.push({ root, matchedIds: new Set(matchedInThread) });
                 }
-              }}
-              className="hidden"
-            />
-            {appSettings.documentType === 'cv' ? '📎 CV' : '📎 File'}
-          </label>
-        ) : (
-          <div className="flex items-center gap-1 bg-green-50 border-2 border-green-300 rounded-lg px-2 py-1">
-            <span className="text-xs text-green-700">✓ {appSettings.documentType === 'cv' ? 'CV' : 'File'}</span>
-            <button
-              onClick={() => {
-                const newFiles = {...commentCvFiles};
-                delete newFiles[exp.id];
-                setCommentCvFiles(newFiles);
-              }}
-              className="text-red-600 hover:text-red-800 text-xs"
-            >
-              ✕
-            </button>
-          </div>
-        )}
-      </div>
-    )}
-    
-    <button
-      onClick={() => handleAddComment(exp.id)}
-      disabled={!newComment[exp.id]?.trim()}
-      className="px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2 py-2"
-    >
-      <Send size={18} />
-    </button>
-  </div>
-</div>
+              });
 
-                      
-                      <div className="text-xs text-gray-500 text-right mt-1">
-                        {(newComment[exp.id] || '').length}/{maxChars.comment}
-                      </div>
-                    </div>
+              // Função para renderizar um card de thread (root normal, outros como follow-on)
+              const renderThreadCard = (threadExp, isMatched, isRoot, matchedIds) => {
+                const expFollowOnsThread = experiences.filter(e => e.parentExperienceId === threadExp.id);
+                const pname = practices.find(p => p.id === threadExp.practiceId)?.name;
+                const catLabel = pname && pname !== 'General' ? `${pname} / ${threadExp.problemCategory}` : threadExp.problemCategory;
+                const dimmed = !isMatched; // acinzentar se não foi filtrado
+                const hasChildren = expFollowOnsThread.length > 0;
 
-                    {exp.comments.length > 0 && (
-  <div>
-    <button
-      onClick={() => {
-  if (showComments[exp.id] === true) {
-    setShowComments({...showComments, [exp.id]: false});
-  } else if (showComments[exp.id] === false) {
-    setShowComments({...showComments, [exp.id]: true});
-  } else {
-    if (exp.comments.length === 1) {
-      setShowComments({...showComments, [exp.id]: false});
-    } else {
-      setShowComments({...showComments, [exp.id]: true});
-    }
-  }
-}}
-      className="text-sm text-purple-600 hover:text-purple-800 font-medium mb-3 flex items-center gap-2"
-    >
-      <MessageCircle size={16} />
-      {showComments[exp.id] === true ? 'Hide all comments' : 
- showComments[exp.id] === false ? `Show all ${exp.comments.length} previous ${exp.comments.length === 1 ? 'comment' : 'comments'}` :
- exp.comments.length === 1 ? 'Hide all comments' : `Show all ${exp.comments.length} previous ${exp.comments.length === 1 ? 'comment' : 'comments'}`}
-    </button>
-   {showComments[exp.id] === true && (
-  <div className="space-y-3">
-    {exp.comments.map(comment => (
-      <div key={comment.id} className="bg-gray-50 rounded-lg p-3 relative">
-
-{/* By: info - SÓ NO CORP */}
-        {appSettings.requireEmployeeLogin && (comment.author || comment.employeeId || comment.country) && (
-          <div className="mb-2">
-            <span className="text-xs text-gray-600 block">
-              By: {[comment.author, comment.employeeId, comment.country].filter(Boolean).join(', ')}
-            </span>
-            
-            {/* Ícone Document - linha separada */}
-{comment.cvUrl && (
-  <div className="flex items-center gap-2 mt-1">
-    <button
-      onClick={() => {
-        setCurrentCvUrl(comment.cvUrl);
-        setShowCvModal(true);
-      }}
-      className="text-blue-600 hover:text-blue-800 inline-flex items-center gap-1 text-xs"
-    >
-      <span className="font-semibold">{appSettings.documentType === 'cv' ? 'CV' : 'File'}</span> {appSettings.documentType === 'cv' ? '📄' : '📎'}
-    </button>
-    
-    {/* Botão Delete File - só para o dono */}
-    {comment.employeeId === employeeId && (
-      <button
-        onClick={async () => {
-          if (window.confirm('Delete this file?')) {
-            await deleteFileFromStorage(comment.cvUrl);
-            
-            const { error } = await supabase
-              .from('comments')
-              .update({ cv_url: null, cv_filename: null })
-              .eq('id', comment.id);
-            
-            if (error) {
-              alert('Error removing file');
-            } else {
-              await loadExperiences(true);
-            }
-          }
-        }}
-        className="text-red-600 hover:text-red-800 text-xs"
-        title="Delete file"
-      >
-        ✕
-      </button>
-    )}
-  </div>
-)}
-          </div>
-        )}
-        
-        {/* Botão delete admin */}
-        {isAdmin && (() => {
-          const confirmKey = `comment-${exp.id}-${comment.id}`;
-          const isConfirming = confirmDelete === confirmKey;
-          return (
-            <div className="absolute top-2 right-2 flex gap-2">
-              <button
-                onClick={() => handleDeleteComment(exp.id, comment.id)}
-                className={`px-2 py-1 text-white text-xs rounded flex items-center gap-1 ${
-                  isConfirming ? 'bg-orange-600 hover:bg-orange-700 animate-pulse' : 'bg-red-600 hover:bg-red-700'
-                }`}
-              >
-                <Trash2 size={12} />
-                {isConfirming ? 'Confirm!' : 'Delete'}
-              </button>
-              {isConfirming && (
-                <button
-                  onClick={() => setConfirmDelete(null)}
-                  className="px-2 py-1 bg-gray-500 text-white text-xs rounded hover:bg-gray-600"
-                >
-                  Cancel
-                </button>
-              )}
-            </div>
-          );
-        })()}
-        
-        
-        
-        {comment.rating && (
-           <div className="flex items-center gap-1 mb-2 mt-1">
-            {[1, 2, 3, 4, 5].map(star => (
-              <Star
-                key={star}
-                size={14}
-                className={star <= comment.rating ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}
-              />
-            ))}
-          </div>
-        )}
-        
-        <p className="text-sm text-gray-700">
-          {comment.text}
-        </p>
-
-{/* Delete Comment - só para o dono */}
-{comment.employeeId === employeeId && (
-  <button
-    onClick={() => {
-      if (window.confirm('Delete this comment?')) {
-        handleDeleteComment(exp.id, comment.id);
-      }
-    }}
-    className="text-red-600 hover:text-red-800 text-xs mt-2 inline-flex items-center gap-1"
-  >
-    🗑️ Delete Comment
-  </button>
-)}
-      </div>
-    ))}
-  </div>
-)}
-
-{/* ⭐ NOVO: Último comentário sempre visível quando lista está fechada */}
-{showComments[exp.id] !== true && showComments[exp.id] !== false && exp.comments.length > 0 && (
-  <div className="space-y-3 mt-3">
-    {(() => {
-      const lastComment = exp.comments[exp.comments.length - 1];
-      return (
-        <div key={lastComment.id} className="bg-gray-50 rounded-lg p-3 border-2 border-purple-200 relative">
-
-{/* By: info - SÓ NO CORP */}
-          {appSettings.requireEmployeeLogin && (lastComment.author || lastComment.employeeId || lastComment.country) && (
-            <div className="mb-2">
-              <span className="text-xs text-gray-600 block">
-                By: {[lastComment.author, lastComment.employeeId, lastComment.country].filter(Boolean).join(', ')}
-              </span>
-              
-              {/* Ícone Document - linha separada */}
-{lastComment.cvUrl && (
-  <div className="flex items-center gap-2 mt-1">
-    <button
-      onClick={() => {
-        setCurrentCvUrl(lastComment.cvUrl);
-        setShowCvModal(true);
-      }}
-      className="text-blue-600 hover:text-blue-800 inline-flex items-center gap-1 text-xs"
-    >
-      <span className="font-semibold">{appSettings.documentType === 'cv' ? 'CV' : 'File'}</span> {appSettings.documentType === 'cv' ? '📄' : '📎'}
-    </button>
-    
-    {/* Botão Delete File - só para o dono */}
-    {lastComment.employeeId === employeeId && (
-      <button
-        onClick={async () => {
-          if (window.confirm('Delete this file?')) {
-            await deleteFileFromStorage(lastComment.cvUrl);
-            
-            const { error } = await supabase
-              .from('comments')
-              .update({ cv_url: null, cv_filename: null })
-              .eq('id', lastComment.id);
-            
-            if (error) {
-              alert('Error removing file');
-            } else {
-              await loadExperiences(true);
-            }
-          }
-        }}
-        className="text-red-600 hover:text-red-800 text-xs"
-        title="Delete file"
-      >
-        ✕
-      </button>
-    )}
-  </div>
-)}
-            </div>
-          )}
-          
-          {/* Botão delete admin */}
-          {isAdmin && (() => {
-            const confirmKey = `comment-${exp.id}-${lastComment.id}`;
-            const isConfirming = confirmDelete === confirmKey;
-            return (
-              <div className="absolute top-2 right-2 flex gap-2">
-                <button
-                  onClick={() => handleDeleteComment(exp.id, lastComment.id)}
-                  className={`px-2 py-1 text-white text-xs rounded flex items-center gap-1 ${
-                    isConfirming ? 'bg-orange-600 hover:bg-orange-700 animate-pulse' : 'bg-red-600 hover:bg-red-700'
-                  }`}
-                >
-                  <Trash2 size={12} />
-                  {isConfirming ? 'Confirm!' : 'Delete'}
-                </button>
-                {isConfirming && (
-                  <button
-                    onClick={() => setConfirmDelete(null)}
-                    className="px-2 py-1 bg-gray-500 text-white text-xs rounded hover:bg-gray-600"
-                  >
-                    Cancel
-                  </button>
-                )}
-              </div>
-            );
-          })()}
-          
-
-          
-          {lastComment.rating && (
-            <div className="flex items-center gap-1 mb-2">
-              {[1, 2, 3, 4, 5].map(star => (
-                <Star
-                  key={star}
-                  size={14}
-                  className={star <= lastComment.rating ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}
-                />
-              ))}
-            </div>
-          )}
-          
-          <p className="text-sm text-gray-700">
-            {lastComment.text}
-          </p>
-
-          {/* Delete Comment - só para o dono */}
-{lastComment.employeeId === employeeId && (
-  <button
-    onClick={() => {
-      if (window.confirm('Delete this comment?')) {
-        handleDeleteComment(exp.id, lastComment.id);
-      }
-    }}
-    className="text-red-600 hover:text-red-800 text-xs mt-2 inline-flex items-center gap-1"
-  >
-    🗑️ Delete Comment
-  </button>
-)}
-
-          
-        </div>
-      );
-    })()}
-  </div>
-)}
-                    
-             
-
-              </div>
-            )}
-
-{/* ⭐ FOLLOW-ON BUTTON — abaixo dos comments, inibido se já tem follow-on */}
-{exp.author !== 'key_insights' && (() => {
-  const hasFollowOn = experiences.some(e => e.parentExperienceId === exp.id);
-  if (hasFollowOn) return null;
-  return (
-    <button
-      onClick={() => {
-        setFollowOnParentId(exp.id);
-        // Pré-preencher practice e category do parent
-        if (exp.practiceId) setSelectedPracticeId(exp.practiceId);
-        setCurrentEntry(prev => ({
-          ...prev,
-          problemCategory: exp.problemCategory || ''
-        }));
-        if (exp.practiceId) loadProblemCategories(exp.practiceId);
-        document.getElementById('share-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }}
-      className="mt-3 text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
-    >
-      🔗 Add a Follow-On Experience
-    </button>
-  );
-})()}
-
-{/* Navigation CTA */}
-                  <div className="mt-4 pt-3 border-t border-gray-100">
-                    {/* ⭐ FOLLOW-ON THREAD INDICATORS */}
-                    {exp.author !== 'key_insights' && (() => {
-                      const followOns = experiences.filter(e => e.parentExperienceId === exp.id);
-                      // Contar todos os descendentes do thread
-                      const countAllDescendants = (parentId) => {
-                        const children = experiences.filter(e => e.parentExperienceId === parentId);
-                        return children.reduce((acc, child) => acc + 1 + countAllDescendants(child.id), 0);
-                      };
-                      const totalThreadCount = countAllDescendants(exp.id);
-
-                      return (
-                        <div className="mb-3 space-y-2">
-                          {/* Upstream — só botão; cards renderizados fora do card atual */}
-                          {expAncestorChain.length > 0 && (
-                            <button
-                              onClick={() => setExpandedUpstream({...expandedUpstream, [exp.id]: !expandedUpstream[exp.id]})}
-                              className="text-xs text-purple-600 hover:text-purple-800 font-medium flex items-center gap-1"
-                            >
-                              {expandedUpstream[exp.id] ? '▲' : '▼'} ↑ {expAncestorChain.length} Upstream {expAncestorChain.length === 1 ? 'Experience' : 'Experiences'}
-                            </button>
-                          )}
-                          {/* Follow-Ons */}
-                          {followOns.length > 0 && (
-                            <button
-                              onClick={() => {
-                                const isExpanding = !expandedFollowOns[exp.id];
-                                const getAllDescendantIds = (id) => {
-                                  const kids = experiences.filter(e => e.parentExperienceId === id);
-                                  return kids.reduce((acc, k) => [...acc, k.id, ...getAllDescendantIds(k.id)], []);
-                                };
-                                const allIds = [exp.id, ...getAllDescendantIds(exp.id)];
-                                setExpandedFollowOns(prev => {
-                                  const next = { ...prev };
-                                  allIds.forEach(id => { next[id] = isExpanding; });
-                                  return next;
-                                });
-                              }}
-                              className="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
-                            >
-                              {expandedFollowOns[exp.id] ? '▲' : '▼'} ↓ {totalThreadCount} Follow-On {totalThreadCount === 1 ? 'Experience' : 'Experiences'}
-                            </button>
-                          )}
-                        </div>
-                      );
-                    })()}
-
-                  </div>
-
-                  <div className="pt-2 border-t-2 border-gray-100 text-center">
-                    <div className="flex items-center justify-center gap-3 text-sm">
-                      <button
-                        onClick={() => document.getElementById('experiences-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-                        className="text-purple-600 hover:text-purple-800 font-medium transition-colors"
-                      >
-                        Browse
-                      </button>
-                      {appSettings.showTop3 && <>
-                      <span className="text-gray-400">•</span>
-                      <button
-                        onClick={() => document.querySelector('.bg-gradient-to-r.from-purple-100.to-blue-100')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-                        className="text-purple-600 hover:text-purple-800 font-medium transition-colors"
-                      >
-                        Top3
-                      </button>
-                      </>}
-                      <span className="text-gray-400">•</span>
-                      <button
-                        onClick={() => document.getElementById('share-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-                        className="text-purple-600 hover:text-purple-800 font-medium transition-colors"
-                      >
-                        Share your stories
-                      </button>
-                    </div>
-                  </div>
-
-              {isAdmin && editingExperience === -1 && (
-                  <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-4 mt-4">
-                    <h4 className="font-semibold text-gray-800 mb-3">Edit Experience #{exp.id}</h4>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                      <div>
-                        <label className="block text-sm font-medium mb-1">Problem Category</label>
-                        <select
-                          value={editingData[exp.id]?.problemCategory || exp.problemCategory}
-                          onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), problemCategory: e.target.value}})}
-                          className="w-full p-2 border-2 border-gray-300 rounded"
-                        >
-                          {problemCategories.map(cat => (
-                            <option key={cat} value={cat}>{cat}</option>
-                          ))}
-                        </select>
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium mb-1">Result Category</label>
-                        <select
-                          value={editingData[exp.id]?.resultCategory || exp.resultCategory}
-                          onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), resultCategory: e.target.value}})}
-                          className="w-full p-2 border-2 border-gray-300 rounded"
-                        >
-                          {resultCategories.map(cat => (
-                            <option key={cat.value} value={cat.value}>{cat.label}</option>
-                          ))}
-                        </select> 
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-3 mb-4">
-                      <div>
-                        <label className="block text-sm font-medium mb-1">Problem</label>
-                        <textarea
-                          value={editingData[exp.id]?.problem || exp.problem}
-                          onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), problem: e.target.value}})}
-                          className="w-full p-2 border-2 border-gray-300 rounded"
-                          rows="3"
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium mb-1">Solution</label>
-                        <textarea
-                          value={editingData[exp.id]?.solution || exp.solution}
-                          onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), solution: e.target.value}})}
-                          className="w-full p-2 border-2 border-gray-300 rounded"
-                          rows="3"
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium mb-1">Result</label>
-                        <textarea
-                          value={editingData[exp.id]?.result || exp.result}
-                          onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), result: e.target.value}})}
-                          className="w-full p-2 border-2 border-gray-300 rounded"
-                          rows="2"
-                        />
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
-                      <div>
-                        <label className="block text-sm font-medium mb-1">Author</label>
-                        <input
-                          type="text"
-                          value={editingData[exp.id]?.author || exp.author}
-                          onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), author: e.target.value}})}
-                          className="w-full p-2 border-2 border-gray-300 rounded"
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium mb-1">Gender</label>
-                        <select
-                          value={editingData[exp.id]?.gender || exp.gender}
-                          onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), gender: e.target.value}})}
-                          className="w-full p-2 border-2 border-gray-300 rounded"
-                        >
-                          <option value="">None</option>
-                          {genderOptions.map(g => (
-                            <option key={g} value={g}>{g}</option>
-                          ))}
-                        </select>
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium mb-1">Age</label>
-                        <select
-                          value={editingData[exp.id]?.age || exp.age}
-                          onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), age: e.target.value}})}
-                          className="w-full p-2 border-2 border-gray-300 rounded"
-                        >
-                          <option value="">None</option>
-                          {ageOptions.map(a => (
-                            <option key={a} value={a}>{a}</option>
-                          ))}
-                        </select>
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium mb-1">Country</label>
-                        <input
-                          type="text"
-                          value={editingData[exp.id]?.country || exp.country}
-                          onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), country: e.target.value}})}
-                          className="w-full p-2 border-2 border-gray-300 rounded"
-                        />
-                      </div>
-                    </div>
-                    
-                    <button
-                      
-                      onClick={async () => {
-  // Salvar posição
-  const expElement = document.getElementById(`exp-${exp.id}`);
-  const scrollPosition = expElement ? expElement.offsetTop - 100 : window.pageYOffset;
-  
-  const updatedExp = editingData[exp.id] || exp;
-  const { error } = await supabase
-    .from('experiences')
-    .update({
-      problem: updatedExp.problem,
-      problem_category: updatedExp.problemCategory,
-      solution: updatedExp.solution,
-      result: updatedExp.result,
-      result_category: updatedExp.resultCategory,
-      author: updatedExp.author,
-      gender: updatedExp.gender,
-      age: updatedExp.age,
-      country: updatedExp.country
-    })
-    .eq('id', exp.id);
-  
-  if (error) {
-    alert('Error updating experience');
-  } else {
-    await loadExperiences(true);
-    setEditingExperience(null);
-    setEditingData({});
-    
-    // Restaurar posição
-    setTimeout(() => {
-      window.scrollTo({ top: scrollPosition, behavior: 'instant' });
-    }, 100);
-  }
-}}
-                      
-                      className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 font-semibold"
+                return (
+                  <React.Fragment key={threadExp.id}>
+                    <div
+                      id={`exp-${threadExp.id}`}
+                      className={`bg-white rounded-2xl shadow-lg p-6 transition-opacity ${
+                        isRoot ? '' : 'mx-6 border-l-4 border-blue-300'
+                      } ${dimmed ? 'opacity-40' : ''}`}
                     >
-                      💾 Save Changes
-                    </button>
-                  </div>
-                )}
-            </div>
-          </div>
-        </div>
+                      {/* Badge */}
+                      {!isRoot && (
+                        <div className="mb-3 text-center">
+                          <span className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">🔗 Follow-On Experience</span>
+                        </div>
+                      )}
+                      {/* By */}
+                      {(threadExp.author || threadExp.employeeId) && (
+                        <div className="mb-3">
+                          <span className="text-xs text-gray-600">By: {appSettings.requireEmployeeLogin ? [threadExp.author, threadExp.employeeId, threadExp.country].filter(Boolean).join(', ') : [threadExp.author, threadExp.gender, threadExp.age, threadExp.country].filter(Boolean).join(', ')}</span>
+                        </div>
+                      )}
+                      {/* Ratings */}
+                      <div className="flex justify-end mb-4">
+                        <div className="flex flex-col items-end gap-2">
+                          <div className="flex items-center gap-2 bg-yellow-50 px-3 py-2 rounded-lg">
+                            <div className="flex gap-1">{[1,2,3,4,5].map(star => <Star key={star} size={18} className={star <= Math.round(threadExp.avgRating) ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'} />)}</div>
+                            <span className="text-sm font-semibold text-gray-700">{threadExp.avgRating.toFixed(1)} <span className="text-xs text-gray-500">({threadExp.totalRatings})</span></span>
+                          </div>
+                          {isMatched && (
+                            <div className="flex flex-col items-end">
+                              <div className="text-xs text-gray-600 mb-1">Your rating:</div>
+                              <div className="flex gap-1">{[1,2,3,4,5].map(star => (
+                                <button key={star} onClick={() => handleUserRating(threadExp.id, star)}
+                                  onMouseEnter={() => setHoverRating(h => ({...h, [threadExp.id]: star}))}
+                                  onMouseLeave={() => setHoverRating(h => ({...h, [threadExp.id]: 0}))}
+                                  className="transition-transform hover:scale-110">
+                                  <Star size={20} className={star <= (hoverRating[threadExp.id] || userRatings[threadExp.id] || 0) ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'} />
+                                </button>
+                              ))}</div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      {/* P/A/R */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>Problem</h4>
+                            <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full">{catLabel}</span>
+                          </div>
+                          <p className="text-sm text-gray-700">{highlightText(threadExp.problem, filters.searchText ? filters.searchText.toLowerCase().trim().split(/\s+/) : [])}</p>
+                        </div>
+                        <div className="space-y-2">
+                          <h4 className="font-semibold text-blue-600 flex items-center gap-2"><TrendingUp size={16}/>Action</h4>
+                          <p className="text-sm text-gray-700">{highlightText(threadExp.solution, filters.searchText ? filters.searchText.toLowerCase().trim().split(/\s+/) : [])}</p>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-semibold text-green-600 flex items-center gap-2"><Share2 size={16}/>Result</h4>
+                            <span className={`text-xs px-3 py-1 rounded-full ${getResultColor(threadExp.resultCategory)}`}>{getResultLabel(threadExp.resultCategory)}</span>
+                          </div>
+                          <p className="text-sm text-gray-700">{highlightText(threadExp.result, filters.searchText ? filters.searchText.toLowerCase().trim().split(/\s+/) : [])}</p>
+                        </div>
+                      </div>
+                      {/* Tags */}
+                      {threadExp.tags && threadExp.tags.length > 0 && (
+                        <div className="mb-3 flex flex-wrap gap-1">
+                          {threadExp.tags.map(tag => <span key={tag} className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">{tag}</span>)}
+                        </div>
+                      )}
+                      {/* Comments count only for dimmed, full for matched */}
+                      {threadExp.comments?.length > 0 && dimmed && (
+                        <div className="border-t pt-2 mt-2">
+                          <span className="text-xs text-gray-500 flex items-center gap-1"><MessageCircle size={12}/>{threadExp.comments.length} {threadExp.comments.length === 1 ? 'comment' : 'comments'}</span>
+                        </div>
+                      )}
+                    </div>
+                    {/* Connector + children */}
+                    {hasChildren && (
+                      <div className="space-y-0">
+                        {expFollowOnsThread.map(child => {
+                          const childIsMatched = matchedIds.has(child.id);
+                          return (
+                            <div key={child.id}>
+                              <div style={{ display: 'flex', justifyContent: 'center', height: '32px' }}>
+                                <div style={{ width: '4px', height: '100%', backgroundColor: '#93c5fd', borderRadius: '2px' }} />
+                              </div>
+                              {renderThreadCard(child, childIsMatched, false, matchedIds)}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </React.Fragment>
+                );
+              };
 
-            {/* ⭐ FOLLOW-ON CARDS — renderizados recursivamente */}
-            {exp.author !== 'key_insights' && expFollowOns.length > 0 && expandedFollowOns[exp.id] && (
-              <div className="space-y-0" style={{ marginTop: '0px' }}>
-                {expFollowOns.map(fo => renderFollowOnCard(fo))}
-              </div>
-            )}
+              return groups.map(({ root, matchedIds }) => (
+                <React.Fragment key={root.id}>
+                  {renderThreadCard(root, matchedIds.has(root.id), true, matchedIds)}
+                </React.Fragment>
+              ));
+            })()}
 
-              </React.Fragment>
-              );
-            })}
 
 
 
