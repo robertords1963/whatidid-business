@@ -2493,93 +2493,20 @@ useEffect(() => {
   };
 
   // ⭐ FUNÇÃO RECURSIVA — renderiza Follow-On cards em qualquer profundidade
-  // ⭐ Helper: renderiza filhos com gap tracejado para não-filtrados
-  const renderGapAwareChildren = (parentId, children, matchedIds, startIndex) => {
-    if (!matchedIds || children.length === 0) {
-      return children.map((child, idx) => (
-        <div key={child.id}>
-          <div style={{ display: 'flex', justifyContent: 'center', height: '32px' }}>
-            <div style={{ width: '4px', height: '100%', backgroundColor: '#93c5fd', borderRadius: '2px' }} />
-          </div>
-          {renderFollowOnCard(child, matchedIds, startIndex + idx)}
-        </div>
-      ));
-    }
-
+  // ⭐ Helper: calcula gap info para um conjunto de filhos
+  const getGapInfo = (parentId, children, matchedIds) => {
+    if (!matchedIds || children.length === 0) return null;
     const isMatchedOrHasMatchedDesc = (id) => {
       if (matchedIds.has(id)) return true;
-      const kids = experiences.filter(e => e.parentExperienceId === id);
-      return kids.some(k => isMatchedOrHasMatchedDesc(k.id));
+      return experiences.filter(e => e.parentExperienceId === id).some(k => isMatchedOrHasMatchedDesc(k.id));
     };
-
-    // Encontrar primeiro filho relevante (matched ou tem descendente matched)
     const firstRelevantIdx = children.findIndex(c => isMatchedOrHasMatchedDesc(c.id));
-
-    if (firstRelevantIdx === -1) {
-      // Nenhum filho relevante — renderizar normalmente acinzentados
-      return children.map((child, idx) => (
-        <div key={child.id}>
-          <div style={{ display: 'flex', justifyContent: 'center', height: '32px' }}>
-            <div style={{ width: '4px', height: '100%', backgroundColor: '#93c5fd', borderRadius: '2px' }} />
-          </div>
-          {renderFollowOnCard(child, matchedIds, startIndex + idx)}
-        </div>
-      ));
-    }
-
+    if (firstRelevantIdx <= 0) return null; // no gap before first relevant
     const gapChildren = children.slice(0, firstRelevantIdx);
-    const afterGap = children.slice(firstRelevantIdx);
-    const gapKey = `${parentId}_${afterGap[0]?.id}`;
-    let indexCounter = startIndex;
-    const result = [];
-
-    // Gap antes do primeiro relevante
-    if (gapChildren.length > 0) {
-      result.push(
-        <div key={`gap-${gapKey}`}>
-          {/* Conector tracejado */}
-          <div style={{ display: 'flex', justifyContent: 'center', height: '32px' }}>
-            <div style={{ width: '0px', height: '100%', borderLeft: '4px dashed #93c5fd' }} />
-          </div>
-          {/* Botão gap */}
-          <div className="flex justify-center my-1">
-            <button
-              onClick={() => setExpandedGaps(g => ({ ...g, [gapKey]: !g[gapKey] }))}
-              className="text-xs text-blue-500 hover:text-blue-700 font-medium bg-blue-50 border border-blue-200 rounded-full px-3 py-1"
-            >
-              {expandedGaps[gapKey] ? '▲' : '▼'} {gapChildren.length} Follow-On Unfiltered {gapChildren.length === 1 ? 'Experience' : 'Experiences'}
-            </button>
-          </div>
-          {/* Cards do gap quando expandido */}
-          {expandedGaps[gapKey] && gapChildren.map((child, idx) => (
-            <div key={child.id}>
-              <div style={{ display: 'flex', justifyContent: 'center', height: '32px' }}>
-                <div style={{ width: '4px', height: '100%', backgroundColor: '#93c5fd', borderRadius: '2px' }} />
-              </div>
-              {renderFollowOnCard(child, matchedIds, indexCounter + idx)}
-            </div>
-          ))}
-        </div>
-      );
-      indexCounter += gapChildren.length;
-    }
-
-    // Filhos relevantes com conectores normais
-    afterGap.forEach((child, idx) => {
-      result.push(
-        <div key={child.id}>
-          <div style={{ display: 'flex', justifyContent: 'center', height: '32px' }}>
-            <div style={{ width: '4px', height: '100%', backgroundColor: '#93c5fd', borderRadius: '2px' }} />
-          </div>
-          {renderFollowOnCard(child, matchedIds, indexCounter)}
-        </div>
-      );
-      indexCounter++;
-    });
-
-    return result;
+    const firstRelevant = children[firstRelevantIdx];
+    const gapKey = `${parentId}_${firstRelevant?.id}`;
+    return { gapChildren, gapKey, firstRelevantIdx };
   };
-
   const renderFollowOnCard = (fo, matchedIds = null, threadIndex = 1) => {
     const foChildren = experiences.filter(e => e.parentExperienceId === fo.id);
     const isGreyed = matchedIds !== null && !matchedIds.has(fo.id);
@@ -2763,7 +2690,34 @@ useEffect(() => {
           </div>
         </div>
         {/* Filhos recursivos com gaps */}
-        {expandedFollowOns[fo.id] && renderGapAwareChildren(fo.id, foChildren, matchedIds, threadIndex + 1)}
+        {expandedFollowOns[fo.id] && (() => {
+          const gapInfo = getGapInfo(fo.id, foChildren, matchedIds);
+          if (!gapInfo) {
+            return foChildren.map((child, idx) => renderFollowOnCard(child, matchedIds, threadIndex + 1 + idx));
+          }
+          const { gapChildren, gapKey, firstRelevantIdx } = gapInfo;
+          const relevantChildren = foChildren.slice(firstRelevantIdx);
+          return (
+            <>
+              {/* Conector pontilhado + botão gap + cards gap expandidos */}
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'center', height: '24px' }}>
+                  <div style={{ width: '0', borderLeft: '4px dotted #93c5fd', height: '100%' }} />
+                </div>
+                <div className="flex justify-center my-1">
+                  <button
+                    onClick={() => setExpandedGaps(g => ({ ...g, [gapKey]: !g[gapKey] }))}
+                    className="text-xs text-blue-500 hover:text-blue-700 font-medium bg-blue-50 border border-blue-200 rounded-full px-3 py-1"
+                  >
+                    {expandedGaps[gapKey] ? '▲' : '▼'} ↓ {gapChildren.length} Follow-On Unfiltered {gapChildren.length === 1 ? 'Experience' : 'Experiences'}
+                  </button>
+                </div>
+                {expandedGaps[gapKey] && gapChildren.map((child, idx) => renderFollowOnCard(child, matchedIds, threadIndex + 1 + idx))}
+              </div>
+              {relevantChildren.map((child, idx) => renderFollowOnCard(child, matchedIds, threadIndex + 1 + gapChildren.length + idx))}
+            </>
+          );
+        })()}
       </div>
     );
   };
@@ -6184,10 +6138,10 @@ onClick={() => {
                 };
                 return new Set(getAllDesc(exp.id));
               })();
-              const descendantMatchedInFilter = currentExperiences.some(e => allDescendantIds.has(e.id));
-              const threadMatesInFilter = currentExperiences.filter(e => e.id !== exp.id && getRoot(e.id)?.id === root?.id);
+              const descendantMatchedInFilter = filteredExperiences.some(e => allDescendantIds.has(e.id));
+              const threadMatesInFilter = filteredExperiences.filter(e => e.id !== exp.id && getRoot(e.id)?.id === root?.id);
               const hasAnyThreadMatch = descendantMatchedInFilter || threadMatesInFilter.length > 0;
-              const matchedIds = hasAnyThreadMatch ? new Set(currentExperiences.map(e => e.id)) : null;
+              const matchedIds = hasAnyThreadMatch ? new Set(filteredExperiences.map(e => e.id)) : null;
 
               const expFollowOns = experiences.filter(e => e.parentExperienceId === exp.id);
               // Cadeia de ancestrais para upstream
@@ -7248,7 +7202,33 @@ onClick={() => {
             {/* ⭐ FOLLOW-ON CARDS — renderizados recursivamente com gaps */}
             {exp.author !== 'key_insights' && expFollowOns.length > 0 && expandedFollowOns[exp.id] && (
               <div className="space-y-0" style={{ marginTop: '0px' }}>
-                {renderGapAwareChildren(exp.id, expFollowOns, matchedIds, 1)}
+                {(() => {
+                  const gapInfo = getGapInfo(exp.id, expFollowOns, matchedIds);
+                  if (!gapInfo) {
+                    return expFollowOns.map((fo, idx) => renderFollowOnCard(fo, matchedIds, idx + 1));
+                  }
+                  const { gapChildren, gapKey, firstRelevantIdx } = gapInfo;
+                  const relevantChildren = expFollowOns.slice(firstRelevantIdx);
+                  return (
+                    <>
+                      <div>
+                        <div style={{ display: 'flex', justifyContent: 'center', height: '24px' }}>
+                          <div style={{ width: '0', borderLeft: '4px dotted #93c5fd', height: '100%' }} />
+                        </div>
+                        <div className="flex justify-center my-1">
+                          <button
+                            onClick={() => setExpandedGaps(g => ({ ...g, [gapKey]: !g[gapKey] }))}
+                            className="text-xs text-blue-500 hover:text-blue-700 font-medium bg-blue-50 border border-blue-200 rounded-full px-3 py-1"
+                          >
+                            {expandedGaps[gapKey] ? '▲' : '▼'} ↓ {gapChildren.length} Follow-On Unfiltered {gapChildren.length === 1 ? 'Experience' : 'Experiences'}
+                          </button>
+                        </div>
+                        {expandedGaps[gapKey] && gapChildren.map((child, idx) => renderFollowOnCard(child, matchedIds, idx + 1))}
+                      </div>
+                      {relevantChildren.map((child, idx) => renderFollowOnCard(child, matchedIds, gapChildren.length + 1 + idx))}
+                    </>
+                  );
+                })()}
               </div>
             )}
 
