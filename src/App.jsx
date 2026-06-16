@@ -2672,10 +2672,25 @@ useEffect(() => {
                   });
                 }}
                   className="mt-3 text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">
-                  {expandedFollowOns[fo.id] ? '▲' : '▼'} ↓ {totalChildCount} Follow-On {totalChildCount === 1 ? 'Experience' : 'Experiences'}
+                  {expandedFollowOns[fo.id] ? '\u25b2' : '\u25bc'} \u2193 {totalChildCount} Follow-On {totalChildCount === 1 ? 'Experience' : 'Experiences'}
                 </button>
               )}
-              {/* 🔗 Add Follow-On — inibido se já tem filho */}
+              {/* Gap button inside card — shown when children have unfiltered gap */}
+              {(() => {
+                if (!matchedIds || foChildren.length === 0) return null;
+                const gapInfo = getGapInfo(fo.id, foChildren, matchedIds);
+                if (!gapInfo) return null;
+                const { gapChildren, gapKey } = gapInfo;
+                return (
+                  <button
+                    onClick={() => setExpandedGaps(g => ({ ...g, [gapKey]: !g[gapKey] }))}
+                    className="mt-2 text-xs text-blue-500 hover:text-blue-700 font-medium flex items-center gap-1"
+                  >
+                    {expandedGaps[gapKey] ? '\u25b2' : '\u25bc'} \u2193 {gapChildren.length} Follow-On Unfiltered {gapChildren.length === 1 ? 'Experience' : 'Experiences'}
+                  </button>
+                );
+              })()}
+              {/* Add Follow-On — only when no children */}
               {foChildren.length === 0 && (
                 <button onClick={() => {
                   setFollowOnParentId(fo.id);
@@ -2683,13 +2698,13 @@ useEffect(() => {
                   setCurrentEntry(prev => ({ ...prev, problemCategory: fo.problemCategory || '' }));
                   document.getElementById('share-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }} className="mt-3 text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">
-                  🔗 Add a Follow-On Experience
+                  \U0001f517 Add a Follow-On Experience
                 </button>
               )}
             </div>
           </div>
         </div>
-        {/* Filhos recursivos com gaps */}
+        {/* Children with gap support */}
         {expandedFollowOns[fo.id] && (() => {
           const gapInfo = getGapInfo(fo.id, foChildren, matchedIds);
           if (!gapInfo) {
@@ -2699,20 +2714,9 @@ useEffect(() => {
           const relevantChildren = foChildren.slice(firstRelevantIdx);
           return (
             <>
-              {/* Conector pontilhado + botão gap + cards gap expandidos */}
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'center', height: '24px' }}>
-                  <div style={{ width: '0', borderLeft: '4px dotted #93c5fd', height: '100%' }} />
-                </div>
-                <div className="flex justify-center my-1">
-                  <button
-                    onClick={() => setExpandedGaps(g => ({ ...g, [gapKey]: !g[gapKey] }))}
-                    className="text-xs text-blue-500 hover:text-blue-700 font-medium bg-blue-50 border border-blue-200 rounded-full px-3 py-1"
-                  >
-                    {expandedGaps[gapKey] ? '▲' : '▼'} ↓ {gapChildren.length} Follow-On Unfiltered {gapChildren.length === 1 ? 'Experience' : 'Experiences'}
-                  </button>
-                </div>
-                {expandedGaps[gapKey] && gapChildren.map((child, idx) => renderFollowOnCard(child, matchedIds, threadIndex + 1 + idx))}
+              {expandedGaps[gapKey] && gapChildren.map((child, idx) => renderFollowOnCard(child, matchedIds, threadIndex + 1 + idx))}
+              <div style={{ display: 'flex', justifyContent: 'center', height: '24px' }}>
+                <div style={{ width: '0', borderLeft: '4px dotted #93c5fd', height: '100%' }} />
               </div>
               {relevantChildren.map((child, idx) => renderFollowOnCard(child, matchedIds, threadIndex + 1 + gapChildren.length + idx))}
             </>
@@ -7005,6 +7009,21 @@ onClick={() => {
                               {expandedFollowOns[exp.id] ? '▲' : '▼'} ↓ {totalThreadCount} Follow-On {totalThreadCount === 1 ? 'Experience' : 'Experiences'}
                             </button>
                           )}
+                          {/* Gap button inside root card */}
+                          {(() => {
+                            if (!matchedIds || expFollowOns.length === 0) return null;
+                            const gapInfo = getGapInfo(exp.id, expFollowOns, matchedIds);
+                            if (!gapInfo) return null;
+                            const { gapChildren, gapKey } = gapInfo;
+                            return (
+                              <button
+                                onClick={() => setExpandedGaps(g => ({ ...g, [gapKey]: !g[gapKey] }))}
+                                className="text-xs text-blue-500 hover:text-blue-700 font-medium flex items-center gap-1"
+                              >
+                                {expandedGaps[gapKey] ? '▲' : '▼'} ↓ {gapChildren.length} Follow-On Unfiltered {gapChildren.length === 1 ? 'Experience' : 'Experiences'}
+                              </button>
+                            );
+                          })()}
                         </div>
                       );
                     })()}
@@ -7211,19 +7230,9 @@ onClick={() => {
                   const relevantChildren = expFollowOns.slice(firstRelevantIdx);
                   return (
                     <>
-                      <div>
-                        <div style={{ display: 'flex', justifyContent: 'center', height: '24px' }}>
-                          <div style={{ width: '0', borderLeft: '4px dotted #93c5fd', height: '100%' }} />
-                        </div>
-                        <div className="flex justify-center my-1">
-                          <button
-                            onClick={() => setExpandedGaps(g => ({ ...g, [gapKey]: !g[gapKey] }))}
-                            className="text-xs text-blue-500 hover:text-blue-700 font-medium bg-blue-50 border border-blue-200 rounded-full px-3 py-1"
-                          >
-                            {expandedGaps[gapKey] ? '▲' : '▼'} ↓ {gapChildren.length} Follow-On Unfiltered {gapChildren.length === 1 ? 'Experience' : 'Experiences'}
-                          </button>
-                        </div>
-                        {expandedGaps[gapKey] && gapChildren.map((child, idx) => renderFollowOnCard(child, matchedIds, idx + 1))}
+                      {expandedGaps[gapKey] && gapChildren.map((child, idx) => renderFollowOnCard(child, matchedIds, idx + 1))}
+                      <div style={{ display: 'flex', justifyContent: 'center', height: '24px' }}>
+                        <div style={{ width: '0', borderLeft: '4px dotted #93c5fd', height: '100%' }} />
                       </div>
                       {relevantChildren.map((child, idx) => renderFollowOnCard(child, matchedIds, gapChildren.length + 1 + idx))}
                     </>
