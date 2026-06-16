@@ -2405,6 +2405,35 @@ if (wasInteractedInSession) return true;
 
 return matchesPractice && matchesProblemCategory && matchesSearchText && matchesResultCategory && matchesRating && matchesGender && matchesAge && matchesCountry && matchesIndustrySector && matchesTags;
 });
+
+// ⭐ Quando um Follow-On bate no filtro, garantir que a raiz do thread apareça no feed
+const filteredWithRoots = (() => {
+  const hasAnyFilter = filters.searchText || filters.problemCategory || filters.resultCategory ||
+    filters.rating || filters.gender || filters.age || filters.country ||
+    filters.industrySector || filterTags.length > 0 || filterPracticeId;
+  if (!hasAnyFilter || filterMode === 'key_insights') return filteredExperiences;
+
+  const getRoot = (id) => {
+    let c = experiences.find(e => e.id === id);
+    while (c?.parentExperienceId) c = experiences.find(e => e.id === c.parentExperienceId);
+    return c;
+  };
+  const filteredIds = new Set(filteredExperiences.map(e => e.id));
+  const rootsToAdd = [];
+  filteredExperiences.forEach(exp => {
+    if (exp.parentExperienceId) {
+      const root = getRoot(exp.id);
+      if (root && !filteredIds.has(root.id)) {
+        filteredIds.add(root.id);
+        rootsToAdd.push(root);
+      }
+    }
+  });
+  if (rootsToAdd.length === 0) return filteredExperiences;
+  // Inserir raízes antes dos Follow-Ons correspondentes, remover Follow-Ons do nível top
+  const withoutFollowOns = filteredExperiences.filter(e => !e.parentExperienceId);
+  return [...withoutFollowOns, ...rootsToAdd];
+})();
   // Reset to page 1 when filters change
 // Reset to page 1 when filters change (exceto quando navegando para Key Insight)
 useEffect(() => {
@@ -2432,8 +2461,11 @@ useEffect(() => {
     });
     const newExpanded = {};
     Object.entries(rootCounts).forEach(([rootId, count]) => {
-      if (count >= 2) {
-        const rid = parseInt(rootId);
+      // Expandir se qualquer descendente bateu no filtro (não só a raiz)
+      const rid = parseInt(rootId);
+      const rootExp = experiences.find(e => e.id === rid);
+      const hasFollowOnMatch = filteredExperiences.some(e => e.id !== rid && _getRoot(e.id)?.id === rid);
+      if (hasFollowOnMatch) {
         newExpanded[rid] = true;
         _getAllDescIds(rid).forEach(id => { newExpanded[id] = true; });
       }
@@ -2444,10 +2476,10 @@ useEffect(() => {
 }, [filters]);
 
   // Pagination logic
-  const totalPages = Math.ceil(filteredExperiences.length / experiencesPerPage);
+  const totalPages = Math.ceil(filteredWithRoots.length / experiencesPerPage);
   const indexOfLastExperience = currentPage * experiencesPerPage;
   const indexOfFirstExperience = indexOfLastExperience - experiencesPerPage;
-  const currentExperiences = filteredExperiences.slice(indexOfFirstExperience, indexOfLastExperience);
+  const currentExperiences = filteredWithRoots.slice(indexOfFirstExperience, indexOfLastExperience);
 
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
@@ -5784,7 +5816,7 @@ onClick={() => {
 </div>
 
           {/* Pagination - Top */}
-          {filteredExperiences.length > experiencesPerPage && (
+          {filteredWithRoots.length > experiencesPerPage && (
             <div id="pagination-top" className="mb-6 flex flex-col items-center gap-4">
               <div className="text-sm text-gray-600">
                 Page {currentPage} of {totalPages} • Showing {indexOfFirstExperience + 1}-{Math.min(indexOfLastExperience, filteredExperiences.length)} of {filteredExperiences.length} experiences
@@ -6041,18 +6073,33 @@ onClick={() => {
             })()}
 
             {currentExperiences.map(exp => {
-              // Se Follow-On cujo root também está no filtro → pular (aparece expandido sob a raiz)
+              // ⭐ Lógica de thread: sempre mostrar a raiz quando um Follow-On bate no filtro
               const getRoot = (id) => {
                 let current = experiences.find(e => e.id === id);
                 while (current?.parentExperienceId) current = experiences.find(e => e.id === current.parentExperienceId);
                 return current;
               };
               const root = getRoot(exp.id);
+              const isFollowOn = !!exp.parentExperienceId;
+
+              if (isFollowOn) {
+                // Pular — a raiz vai aparecer no feed (já está ou será adicionada)
+                // Se a raiz não está em currentExperiences, será mostrada via uma entrada separada
+                return null;
+              }
+
+              // Para raízes: verificar se algum descendente bateu no filtro
+              const allDescendantIds = (() => {
+                const getAllDesc = (id) => {
+                  const kids = experiences.filter(e => e.parentExperienceId === id);
+                  return kids.reduce((acc, k) => [...acc, k.id, ...getAllDesc(k.id)], []);
+                };
+                return new Set(getAllDesc(exp.id));
+              })();
+              const descendantMatchedInFilter = currentExperiences.some(e => allDescendantIds.has(e.id));
               const threadMatesInFilter = currentExperiences.filter(e => e.id !== exp.id && getRoot(e.id)?.id === root?.id);
-              // Pular apenas Follow-Ons cujo root também está no filtro (aparecem expandidos sob a raiz)
-              if (threadMatesInFilter.length > 0 && exp.parentExperienceId) return null;
-              // matchedIds para acinzentar não-filtrados no thread
-              const matchedIds = threadMatesInFilter.length > 0 ? new Set(currentExperiences.map(e => e.id)) : null;
+              const hasAnyThreadMatch = descendantMatchedInFilter || threadMatesInFilter.length > 0;
+              const matchedIds = hasAnyThreadMatch ? new Set(currentExperiences.map(e => e.id)) : null;
 
               const expFollowOns = experiences.filter(e => e.parentExperienceId === exp.id);
               // Cadeia de ancestrais para upstream
@@ -7130,7 +7177,7 @@ onClick={() => {
 
           
           {/* Pagination */}
-          {filteredExperiences.length > experiencesPerPage && (
+          {filteredWithRoots.length > experiencesPerPage && (
             <div className="mt-8 flex flex-col items-center gap-4">
               <div className="text-sm text-gray-600">
                 Page {currentPage} of {totalPages} • Showing {indexOfFirstExperience + 1}-{Math.min(indexOfLastExperience, filteredExperiences.length)} of {filteredExperiences.length} experiences
