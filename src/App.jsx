@@ -2463,12 +2463,12 @@ useEffect(() => {
     };
 
     const newExpanded = {};
-    // Para cada Follow-On que bateu no filtro, expandir o caminho da raiz até ele
+    // Expandir apenas a raiz de cada thread com Follow-On matched
+    // O gap rendering cuidará de mostrar o matched card diretamente via conector pontilhado
     filteredExperiences.forEach(exp => {
-      if (!exp.parentExperienceId) return; // pular raízes
-      const path = _getPathFromRoot(exp.id);
-      // Expandir cada nó no caminho (exceto o próprio exp — seus filhos ficam fechados)
-      path.slice(0, -1).forEach(id => { newExpanded[id] = true; });
+      if (!exp.parentExperienceId) return;
+      const root = _getRoot(exp.id);
+      if (root) newExpanded[root.id] = true;
     });
     setExpandedFollowOns(newExpanded);
     setExpandedUpstream({});
@@ -2496,16 +2496,42 @@ useEffect(() => {
   // ⭐ Helper: calcula gap info para um conjunto de filhos
   const getGapInfo = (parentId, children, matchedIds) => {
     if (!matchedIds || children.length === 0) return null;
-    const isMatchedOrHasMatchedDesc = (id) => {
+
+    // Find if any descendant (direct or indirect) is matched
+    const hasMatchedDesc = (id) => {
       if (matchedIds.has(id)) return true;
-      return experiences.filter(e => e.parentExperienceId === id).some(k => isMatchedOrHasMatchedDesc(k.id));
+      return experiences.filter(e => e.parentExperienceId === id).some(k => hasMatchedDesc(k.id));
     };
-    const firstRelevantIdx = children.findIndex(c => isMatchedOrHasMatchedDesc(c.id));
-    if (firstRelevantIdx <= 0) return null; // no gap before first relevant
-    const gapChildren = children.slice(0, firstRelevantIdx);
-    const firstRelevant = children[firstRelevantIdx];
-    const gapKey = `${parentId}_${firstRelevant?.id}`;
-    return { gapChildren, gapKey, firstRelevantIdx };
+
+    // Separate children into: gap (not matched, but path leads to match) vs direct match
+    const directlyMatched = children.filter(c => matchedIds.has(c.id));
+    const pathToMatch = children.filter(c => !matchedIds.has(c.id) && hasMatchedDesc(c.id));
+    const neitherMatched = children.filter(c => !matchedIds.has(c.id) && !hasMatchedDesc(c.id));
+
+    // Gap children = those that come before the first directly matched child
+    // In a linear thread, directlyMatched may be empty — the match is deeper
+    // In that case, show ALL non-matched children as gap, and recurse into pathToMatch
+    if (directlyMatched.length === 0 && pathToMatch.length === 0) return null;
+
+    // Unmatched children that appear before the first match path
+    const firstMatchPathIdx = children.findIndex(c => matchedIds.has(c.id) || (!matchedIds.has(c.id) && hasMatchedDesc(c.id)));
+    const gapChildren = children.slice(0, firstMatchPathIdx).filter(c => !matchedIds.has(c.id));
+
+    // If only pathToMatch (linear thread): ALL non-matched are gap, pathToMatch[0] is "relevant"
+    const allNonMatchedBeforeFirst = children.slice(0, firstMatchPathIdx);
+    if (allNonMatchedBeforeFirst.length === 0 && pathToMatch.length > 0 && directlyMatched.length === 0) {
+      // Linear: fo1 is the path, not matched — fo1 itself is the gap
+      const allGap = pathToMatch; // all path children are gap (not directly matched)
+      const gapKey = `${parentId}_deep_${allGap[0]?.id}`;
+      return { gapChildren: allGap, gapKey, firstRelevantIdx: children.length, isDeepGap: true };
+    }
+
+    if (gapChildren.length === 0 && allNonMatchedBeforeFirst.length === 0) return null;
+
+    const firstRelevant = children[firstMatchPathIdx];
+    if (!firstRelevant) return null;
+    const gapKey = `${parentId}_${firstRelevant.id}`;
+    return { gapChildren: allNonMatchedBeforeFirst, gapKey, firstRelevantIdx: firstMatchPathIdx };
   };
   const renderFollowOnCard = (fo, matchedIds = null, threadIndex = 1) => {
     const foChildren = experiences.filter(e => e.parentExperienceId === fo.id);
@@ -2698,7 +2724,7 @@ useEffect(() => {
                   setCurrentEntry(prev => ({ ...prev, problemCategory: fo.problemCategory || '' }));
                   document.getElementById('share-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }} className="mt-3 text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">
-                  \U0001f517 Add a Follow-On Experience
+                  🔗 Add a Follow-On Experience
                 </button>
               )}
             </div>
@@ -2710,8 +2736,21 @@ useEffect(() => {
           if (!gapInfo) {
             return foChildren.map((child, idx) => renderFollowOnCard(child, matchedIds, threadIndex + 1 + idx));
           }
-          const { gapChildren, gapKey, firstRelevantIdx } = gapInfo;
-          const relevantChildren = foChildren.slice(firstRelevantIdx);
+          const { gapChildren, gapKey, firstRelevantIdx, isDeepGap } = gapInfo;
+          const relevantChildren = isDeepGap ? [] : foChildren.slice(firstRelevantIdx);
+          // For deep gaps, find matched cards recursively
+          const getMatchedInSubtree = (ids) => {
+            const result = [];
+            const findMatched = (id) => {
+              const exp = experiences.find(e => e.id === id);
+              if (!exp) return;
+              if (matchedIds.has(id)) { result.push(exp); return; }
+              experiences.filter(e => e.parentExperienceId === id).forEach(k => findMatched(k.id));
+            };
+            ids.forEach(c => findMatched(c.id));
+            return result;
+          };
+          const deepMatchedCards = isDeepGap ? getMatchedInSubtree(gapChildren) : [];
           return (
             <>
               {expandedGaps[gapKey] && gapChildren.map((child, idx) => renderFollowOnCard(child, matchedIds, threadIndex + 1 + idx))}
@@ -2719,6 +2758,7 @@ useEffect(() => {
                 <div style={{ width: '0', borderLeft: '4px dotted #93c5fd', height: '100%' }} />
               </div>
               {relevantChildren.map((child, idx) => renderFollowOnCard(child, matchedIds, threadIndex + 1 + gapChildren.length + idx))}
+              {deepMatchedCards.map((child, idx) => renderFollowOnCard(child, matchedIds, threadIndex + 1 + gapChildren.length + idx))}
             </>
           );
         })()}
@@ -7226,8 +7266,20 @@ onClick={() => {
                   if (!gapInfo) {
                     return expFollowOns.map((fo, idx) => renderFollowOnCard(fo, matchedIds, idx + 1));
                   }
-                  const { gapChildren, gapKey, firstRelevantIdx } = gapInfo;
-                  const relevantChildren = expFollowOns.slice(firstRelevantIdx);
+                  const { gapChildren, gapKey, firstRelevantIdx, isDeepGap } = gapInfo;
+                  const relevantChildren = isDeepGap ? [] : expFollowOns.slice(firstRelevantIdx);
+                  const getMatchedInSubtree = (children) => {
+                    const result = [];
+                    const findMatched = (id) => {
+                      const e = experiences.find(x => x.id === id);
+                      if (!e) return;
+                      if (matchedIds.has(id)) { result.push(e); return; }
+                      experiences.filter(x => x.parentExperienceId === id).forEach(k => findMatched(k.id));
+                    };
+                    children.forEach(c => findMatched(c.id));
+                    return result;
+                  };
+                  const deepMatchedCards = isDeepGap ? getMatchedInSubtree(gapChildren) : [];
                   return (
                     <>
                       {expandedGaps[gapKey] && gapChildren.map((child, idx) => renderFollowOnCard(child, matchedIds, idx + 1))}
@@ -7235,6 +7287,7 @@ onClick={() => {
                         <div style={{ width: '0', borderLeft: '4px dotted #93c5fd', height: '100%' }} />
                       </div>
                       {relevantChildren.map((child, idx) => renderFollowOnCard(child, matchedIds, gapChildren.length + 1 + idx))}
+                      {deepMatchedCards.map((child, idx) => renderFollowOnCard(child, matchedIds, gapChildren.length + 1 + idx))}
                     </>
                   );
                 })()}
