@@ -2525,7 +2525,7 @@ useEffect(() => {
     return items;
   };
 
-  const renderFollowOnCard = (fo, matchedIds = null, threadIndex = 1, nextGapInfo = null) => {
+  const renderFollowOnCard = (fo, matchedIds = null, threadIndex = 1, nextGapInfo = null, hideConnector = false) => {
     const foChildren = experiences.filter(e => e.parentExperienceId === fo.id);
     const isGreyed = matchedIds !== null && !matchedIds.has(fo.id);
     const countAllDescendants = (id) => {
@@ -2541,10 +2541,12 @@ useEffect(() => {
 
     return (
       <div key={fo.id}>
-        {/* Conector vertical */}
-        <div style={{ display: 'flex', justifyContent: 'center', height: '32px' }}>
-          <div style={{ width: '4px', height: '100%', backgroundColor: '#93c5fd', borderRadius: '2px' }} />
-        </div>
+        {/* Conector vertical — só mostra se não foi suprimido */}
+        {!hideConnector && (
+          <div style={{ display: 'flex', justifyContent: 'center', height: '32px' }}>
+            <div style={{ width: '4px', height: '100%', backgroundColor: '#93c5fd', borderRadius: '2px' }} />
+          </div>
+        )}
         {/* Card */}
         <div className="sm:mx-6">
           <div id={`exp-${fo.id}`} className={`bg-white rounded-2xl shadow-lg p-6 border-l-4 border-blue-300 ${isGreyed ? 'opacity-40' : ''}`}>
@@ -7226,17 +7228,28 @@ onClick={() => {
                     if (item.type === 'card') {
                       const nextItem = renderList[i + 1];
                       const nextGapInfo = nextItem?.type === 'gap' ? nextItem : null;
-                      return renderFollowOnCard(item.exp, matchedIds, item.index, nextGapInfo);
+                      const prevItem = i > 0 ? renderList[i - 1] : null;
+                      const hideConnector = prevItem?.type === 'gap';
+                      return renderFollowOnCard(item.exp, matchedIds, item.index, nextGapInfo, hideConnector);
                     }
                     // type === 'gap'
                     const { cards, gapKey } = item;
+                    const isExpanded = expandedGaps[gapKey];
+                    const isTrailingGap = gapKey.includes('_after_');
+                    const prevItem = i > 0 ? renderList[i - 1] : null;
                     return (
                       <div key={gapKey}>
-                        <div style={{ display: 'flex', justifyContent: 'center', height: '24px' }}>
-                          <div style={{ width: '0', borderLeft: '4px dotted #93c5fd', height: '100%' }} />
-                        </div>
-                        {expandedGaps[gapKey] && cards.map(({ exp: card, index: cardIdx }) =>
-                          renderFollowOnCard(card, matchedIds, cardIdx)
+                        {/* Conector: só para gaps não-trailing. Pontilhado=fechado, sólido=aberto */}
+                        {!isTrailingGap && (
+                          <div style={{ display: 'flex', justifyContent: 'center', height: '32px' }}>
+                            {isExpanded
+                              ? <div style={{ width: '4px', height: '100%', backgroundColor: '#93c5fd', borderRadius: '2px' }} />
+                              : <div style={{ width: '0', borderLeft: '4px dotted #93c5fd', height: '100%' }} />
+                            }
+                          </div>
+                        )}
+                        {isExpanded && cards.map(({ exp: card, index: cardIdx }, cardI) =>
+                          renderFollowOnCard(card, matchedIds, cardIdx, null, !isTrailingGap && cardI === 0)
                         )}
                       </div>
                     );
