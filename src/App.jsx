@@ -2388,7 +2388,10 @@ const filteredExperiences = experiences.filter(exp => {
   const matchesTags = filterTags.length === 0 || filterTags.some(tag => (exp.tags || []).includes(tag));
   // ⭐ Excluir Follow-Ons do feed principal (aparecem dentro do thread da original)
   // Se há busca ativa, mostrar follow-ons também para que o search as encontre
-  if (exp.parentExperienceId && !filters.searchText) {
+  const hasAnyFilter = filters.searchText || filters.problemCategory || filters.resultCategory ||
+    filters.rating || filters.gender || filters.age || filters.country ||
+    filters.industrySector || filterTags.length > 0 || filterPracticeId;
+  if (exp.parentExperienceId && !hasAnyFilter) {
     return false;
   }
 
