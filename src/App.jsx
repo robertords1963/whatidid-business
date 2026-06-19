@@ -100,6 +100,7 @@ const [companyNameSize, setCompanyNameSize] = useState('medium');
 const [companyLogoSize, setCompanyLogoSize] = useState('medium');
 const [practices, setPractices] = useState([]);
 const [selectedPracticeId, setSelectedPracticeId] = useState(null);
+const [shareFormPracticeId, setShareFormPracticeId] = useState(null); // practice escolhida no Share Your Experience
 const [filterPracticeId, setFilterPracticeId] = useState(null);
 const [adminCategories, setAdminCategories] = useState([]);
 const [uiPractices, setUiPractices] = useState([]);
@@ -5071,9 +5072,10 @@ onClick={() => {
               {uiPractices.length > 1 || (uiPractices.length === 1 && uiPractices[0].name !== 'General') ? (
   <div className="mb-2">
     <select
-      value={selectedPracticeId || ''}
+      value={(uiPractices.length === 1 ? uiPractices[0].id : shareFormPracticeId) || ''}
       onChange={(e) => {
         const id = parseInt(e.target.value);
+        setShareFormPracticeId(id);
         setSelectedPracticeId(id);
         setCurrentEntry({...currentEntry, problemCategory: ''});
         loadProblemCategories(id);
@@ -5081,6 +5083,7 @@ onClick={() => {
       className={`w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none bg-gray-100 ${uiPractices.length === 1 ? 'cursor-not-allowed' : ''}`}
       disabled={uiPractices.length === 1}
     >
+      {uiPractices.length > 1 && <option value="">Select practice</option>}
       {uiPractices.map(p => (
         <option key={p.id} value={p.id}>{p.name}</option>
       ))}
@@ -5592,7 +5595,7 @@ onClick={() => {
       className={`w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none bg-gray-100 ${uiPractices.length === 1 ? 'cursor-not-allowed' : ''}`}
       disabled={uiPractices.length === 1}
     >
-      <option value="">All Practices</option>
+      <option value="">All</option>
       {uiPractices.map(p => (
         <option key={p.id} value={p.id}>{p.name}</option>
       ))}
@@ -5807,7 +5810,7 @@ onClick={() => {
       className={`w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none bg-gray-100 ${uiPractices.length === 1 ? 'cursor-not-allowed' : ''}`}
       disabled={uiPractices.length === 1}
     >
-      <option value="">All Practices</option>
+      <option value="">All</option>
       {uiPractices.map(p => (
         <option key={p.id} value={p.id}>{p.name}</option>
       ))}
