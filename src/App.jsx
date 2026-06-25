@@ -5071,7 +5071,7 @@ onClick={() => {
       className={`flex-1 px-4 py-3 font-bold text-base md:text-xl rounded-t-xl transition-all border-2 border-b-0 ${
         activeMainTab === 'see'
           ? 'bg-white text-purple-700 border-purple-300 shadow-md relative z-10'
-          : 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200'
+          : 'bg-gray-100 text-gray-400 border-transparent hover:bg-gray-200'
       }`}
     >
       See What Others Did
@@ -5084,7 +5084,7 @@ onClick={() => {
       className={`flex-1 px-4 py-3 font-bold text-base md:text-xl rounded-t-xl transition-all border-2 border-b-0 ${
         activeMainTab === 'share'
           ? 'bg-white text-blue-700 border-blue-300 shadow-md relative z-10'
-          : 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200'
+          : 'bg-gray-100 text-gray-400 border-transparent hover:bg-gray-200'
       }`}
     >
       Share Your Experience
@@ -5409,8 +5409,9 @@ onClick={() => {
         : 'Upload File (optional) - PPT, XLS, PDF, DOCX'}
     </label>
     
-    {!selectedCv ? (
-      <label className="px-3 py-2 bg-gray-100 border-2 border-gray-200 rounded-lg hover:bg-gray-200 cursor-pointer inline-flex items-center gap-1 text-sm">
+    <div className="flex gap-2 items-center">
+      {!selectedCv ? (
+        <label className="px-3 py-2 bg-gray-100 border-2 border-gray-200 rounded-lg hover:bg-gray-200 cursor-pointer inline-flex items-center gap-1 text-sm">
   <input
     type="file"
     accept={appSettings.documentType === 'cv' ? '.pdf' : '.pdf,.pptx,.xlsx,.docx,.ppt,.xls,.doc'}
@@ -5429,33 +5430,45 @@ onClick={() => {
   />
   {appSettings.documentType === 'cv' ? '📎 CV' : '📎 File'}
 </label>
-    ) : (
-      <div className="flex items-center gap-2 p-2 bg-green-50 border-2 border-green-300 rounded-lg">
-        <span className="text-sm text-green-700">
-          {appSettings.documentType === 'cv' ? '📄' : '📎'} {selectedCv.name}
-        </span>
-        <button
-          onClick={() => setSelectedCv(null)}
-          className="ml-auto text-red-600 hover:text-red-800"
-        >
-          ❌ Remove
-        </button>
-      </div>
-    )}
+      ) : (
+        <div className="flex items-center gap-2 p-2 bg-green-50 border-2 border-green-300 rounded-lg">
+          <span className="text-sm text-green-700">
+            {appSettings.documentType === 'cv' ? '📄' : '📎'} {selectedCv.name}
+          </span>
+          <button
+            onClick={() => setSelectedCv(null)}
+            className="text-red-600 hover:text-red-800"
+          >
+            ❌ Remove
+          </button>
+        </div>
+      )}
+
+      <button
+        onClick={handleSubmit}
+        className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
+        title="Share Experience"
+      >
+        <Send size={18} />
+      </button>
+    </div>
     
     <p className="text-xs text-gray-500 mt-1">Max 5MB</p>
   </div>
 )}
-  
-          <div className="flex justify-end mt-6">
-            <button
-              onClick={handleSubmit}
-              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
-              title="Share Experience"
-            >
-              <Send size={18} />
-            </button>
-          </div>
+
+{/* Fallback: se upload não estiver habilitado, mostrar botão de envio sozinho */}
+{!appSettings.allowCvUpload && (
+  <div className="md:col-span-2 flex justify-end">
+    <button
+      onClick={handleSubmit}
+      className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
+      title="Share Experience"
+    >
+      <Send size={18} />
+    </button>
+  </div>
+)}
         </div>
         
 <div className={`space-y-6 ${activeMainTab !== 'see' ? 'hidden' : ''} border-2 border-purple-300 border-t-0 rounded-b-2xl p-4 -mt-1 relative z-0`} id="experiences-section">
