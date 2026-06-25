@@ -5061,7 +5061,7 @@ onClick={() => {
         })()}
 
 {/* Tabs estilo fichário — substitui os botões de navegação */}
-<div className={`border-2 rounded-2xl ${activeMainTab === 'see' ? 'border-purple-300' : 'border-blue-300'} mt-5 mb-8 overflow-hidden`}>
+<div className="mt-5 mb-8">
 <div id="main-tabs-anchor" className="flex justify-center mb-0">
   <div className="flex w-full">
     <button
@@ -5069,10 +5069,10 @@ onClick={() => {
         setActiveMainTab('see');
         setTimeout(() => { const el = document.getElementById('main-tabs-anchor'); if (el) { const y = el.getBoundingClientRect().top + window.pageYOffset - 80; window.scrollTo({ top: y, behavior: 'smooth' }); } }, 50);
       }}
-      className={`flex-1 px-4 py-3 font-bold text-base md:text-xl transition-all ${
+      className={`flex-1 px-4 py-3 font-bold text-base md:text-xl transition-all rounded-t-2xl border-2 border-b-0 ${
         activeMainTab === 'see'
-          ? 'bg-white text-purple-700'
-          : 'bg-gray-100 text-gray-400 border-r-2 border-b-2 border-gray-200 hover:bg-gray-200'
+          ? 'bg-white text-purple-700 border-purple-300 relative z-10'
+          : 'bg-gray-100 text-gray-400 border-gray-200 hover:bg-gray-200'
       }`}
     >
       See What Others Did
@@ -5082,10 +5082,10 @@ onClick={() => {
         setActiveMainTab('share');
         setTimeout(() => { const el = document.getElementById('main-tabs-anchor'); if (el) { const y = el.getBoundingClientRect().top + window.pageYOffset - 80; window.scrollTo({ top: y, behavior: 'smooth' }); } }, 50);
       }}
-      className={`flex-1 px-4 py-3 font-bold text-base md:text-xl transition-all ${
+      className={`flex-1 px-4 py-3 font-bold text-base md:text-xl transition-all rounded-t-2xl border-2 border-b-0 -ml-px ${
         activeMainTab === 'share'
-          ? 'bg-white text-blue-700'
-          : 'bg-gray-100 text-gray-400 border-l-2 border-b-2 border-gray-200 hover:bg-gray-200'
+          ? 'bg-white text-blue-700 border-blue-300 relative z-10'
+          : 'bg-gray-100 text-gray-400 border-gray-200 hover:bg-gray-200'
       }`}
     >
       Share Your Experience
@@ -5093,7 +5093,7 @@ onClick={() => {
   </div>
 </div>
 
-<div id="share-section" className={`bg-white p-8 ${activeMainTab !== 'share' ? 'hidden' : ''}`}>
+<div id="share-section" className={`bg-white p-8 rounded-b-2xl border-2 border-t-0 border-blue-300 ${activeMainTab !== 'share' ? 'hidden' : ''}`}>
 
   {/* ⭐ FOLLOW-ON BANNER */}
   {followOnParentId && (() => {
@@ -5472,7 +5472,7 @@ onClick={() => {
 )}
         </div>
         
-<div className={`space-y-6 ${activeMainTab !== 'see' ? 'hidden' : ''} p-4`} id="experiences-section">
+<div className={`space-y-6 ${activeMainTab !== 'see' ? 'hidden' : ''} p-4 rounded-b-2xl border-2 border-t-0 border-purple-300`} id="experiences-section">
           
           
           
