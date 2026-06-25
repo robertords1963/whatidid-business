@@ -2720,7 +2720,7 @@ useEffect(() => {
                   setFollowOnParentId(fo.id);
                   if (fo.practiceId) { setSelectedPracticeId(fo.practiceId); loadProblemCategories(fo.practiceId); }
                   setCurrentEntry(prev => ({ ...prev, problemCategory: fo.problemCategory || '' }));
-                  setActiveMainTab('share'); setTimeout(() => document.getElementById('share-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+                  setActiveMainTab('share'); setTimeout(() => { const el = document.getElementById('main-tabs-anchor'); if (el) { const y = el.getBoundingClientRect().top + window.pageYOffset - 80; window.scrollTo({ top: y, behavior: 'smooth' }); } }, 50);
                 }} className="mt-3 text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">
                   🔗 Add a Follow-On Experience
                 </button>
@@ -4897,6 +4897,13 @@ for (const row of rows) {
           
           return (
             <div className="bg-gradient-to-r from-purple-100 to-blue-100 rounded-2xl shadow-xl p-8 mb-8 border-2 border-purple-300 relative">
+              <button
+                onClick={() => setTop3VisibleInSession(false)}
+                className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-sm bg-white bg-opacity-70 hover:bg-opacity-100 rounded-full px-3 py-1 transition-colors"
+                title="Hide Top 3"
+              >
+                ✕ Hide
+              </button>
               <div className="text-center mb-6">
                 <h2 className="text-2xl font-bold text-gray-800 flex items-center justify-center gap-3 mb-2">
                   <Star className="text-yellow-500 fill-yellow-500" size={28} />
@@ -5053,12 +5060,12 @@ onClick={() => {
         })()}
 
 {/* Tabs estilo fichário — substitui os botões de navegação */}
-<div className="flex justify-center mt-5 mb-0">
+<div id="main-tabs-anchor" className="flex justify-center mt-5 mb-0">
   <div className="flex w-full">
     <button
       onClick={() => {
         setActiveMainTab('see');
-        setTimeout(() => document.getElementById('main-tabs-anchor')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+        setTimeout(() => { const el = document.getElementById('main-tabs-anchor'); if (el) { const y = el.getBoundingClientRect().top + window.pageYOffset - 80; window.scrollTo({ top: y, behavior: 'smooth' }); } }, 50);
       }}
       className={`flex-1 px-4 py-3 font-bold text-base md:text-xl rounded-t-xl transition-all border-2 border-b-0 ${
         activeMainTab === 'see'
@@ -5071,7 +5078,7 @@ onClick={() => {
     <button
       onClick={() => {
         setActiveMainTab('share');
-        setTimeout(() => document.getElementById('main-tabs-anchor')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+        setTimeout(() => { const el = document.getElementById('main-tabs-anchor'); if (el) { const y = el.getBoundingClientRect().top + window.pageYOffset - 80; window.scrollTo({ top: y, behavior: 'smooth' }); } }, 50);
       }}
       className={`flex-1 px-4 py-3 font-bold text-base md:text-xl rounded-t-xl transition-all border-2 border-b-0 ${
         activeMainTab === 'share'
@@ -5083,7 +5090,6 @@ onClick={() => {
     </button>
   </div>
 </div>
-<div id="main-tabs-anchor" />
 
 <div id="share-section" className={`bg-white rounded-2xl shadow-xl p-8 mb-8 ${activeMainTab !== 'share' ? 'hidden' : ''}`}>
 
@@ -5570,25 +5576,15 @@ onClick={() => {
                   );
                 })()}
               </div>
-              {/* Fix 3 — Botão Show/Hide Top 3 no canto superior direito */}
-              {appSettings.showTop3 && (
-                top3VisibleInSession ? (
-                  <button
-                    onClick={() => setTop3VisibleInSession(false)}
-                    className="text-gray-500 hover:text-gray-700 text-sm bg-gray-100 hover:bg-gray-200 rounded-full px-3 py-1 transition-colors flex items-center gap-1"
-                    title="Hide Top 3"
-                  >
-                    ✕ Hide Top 3
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => setTop3VisibleInSession(true)}
-                    className="text-yellow-700 hover:text-yellow-800 text-sm bg-yellow-100 hover:bg-yellow-200 rounded-full px-3 py-1 transition-colors flex items-center gap-1"
-                  >
-                    <Star size={14} className="fill-yellow-600" />
-                    Show Top 3
-                  </button>
-                )
+              {/* Botão Show Top 3 — só aparece quando Top3 está escondido */}
+              {appSettings.showTop3 && !top3VisibleInSession && (
+                <button
+                  onClick={() => setTop3VisibleInSession(true)}
+                  className="text-yellow-700 hover:text-yellow-800 text-sm bg-yellow-100 hover:bg-yellow-200 rounded-full px-3 py-1 transition-colors flex items-center gap-1"
+                >
+                  <Star size={14} className="fill-yellow-600" />
+                  Show Top 3
+                </button>
               )}
             </div>
             
@@ -7005,7 +7001,7 @@ onClick={() => {
           problemCategory: exp.problemCategory || ''
         }));
         if (exp.practiceId) loadProblemCategories(exp.practiceId);
-        setActiveMainTab('share'); setTimeout(() => document.getElementById('share-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+        setActiveMainTab('share'); setTimeout(() => { const el = document.getElementById('main-tabs-anchor'); if (el) { const y = el.getBoundingClientRect().top + window.pageYOffset - 80; window.scrollTo({ top: y, behavior: 'smooth' }); } }, 50);
       }}
       className="mt-3 text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
     >
@@ -7092,7 +7088,7 @@ onClick={() => {
                   <div className="pt-2 border-t-2 border-gray-100 text-center">
                     <div className="flex items-center justify-center gap-3 text-sm">
                       <button
-                        onClick={() => { setActiveMainTab('see'); setTimeout(() => document.getElementById('experiences-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50); }}
+                        onClick={() => { setActiveMainTab('see'); setTimeout(() => { const el = document.getElementById('main-tabs-anchor'); if (el) { const y = el.getBoundingClientRect().top + window.pageYOffset - 80; window.scrollTo({ top: y, behavior: 'smooth' }); } }, 50); }}
                         className="text-purple-600 hover:text-purple-800 font-medium transition-colors"
                       >
                         Browse
@@ -7108,7 +7104,7 @@ onClick={() => {
                       </>}
                       <span className="text-gray-400">•</span>
                       <button
-                        onClick={() => { setActiveMainTab('share'); setTimeout(() => document.getElementById('share-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50); }}
+                        onClick={() => { setActiveMainTab('share'); setTimeout(() => { const el = document.getElementById('main-tabs-anchor'); if (el) { const y = el.getBoundingClientRect().top + window.pageYOffset - 80; window.scrollTo({ top: y, behavior: 'smooth' }); } }, 50); }}
                         className="text-purple-600 hover:text-purple-800 font-medium transition-colors"
                       >
                         Share your stories
