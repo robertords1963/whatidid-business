@@ -91,6 +91,7 @@ export default function WhatIDid() {
   allowCvUpload: true,
   documentType: 'cv',
   showTop3: false,
+  top3StartVisible: true,
   showMarquee: false
 });
 
@@ -121,6 +122,7 @@ const [followOnParentId, setFollowOnParentId] = useState(null); // id da exp que
 const [expandedUpstream, setExpandedUpstream] = useState({});
 const [expandedFollowOns, setExpandedFollowOns] = useState({});
 const [expandedGaps, setExpandedGaps] = useState({}); // { [gapKey]: true }
+const [top3VisibleInSession, setTop3VisibleInSession] = useState(true); // controla visibilidade na sessão atual
   
   // ⭐ ADICIONAR AQUI - Estados para Employee Login ⭐
   const [isEmployeeLoggedIn, setIsEmployeeLoggedIn] = useState(false);
@@ -416,12 +418,14 @@ const loadAppSettings = async () => {
     allowCvUpload: data.allow_cv_upload,
     documentType: data.document_type || 'cv',
     showTop3: data.show_top3 || false,
+    top3StartVisible: data.top3_start_visible !== false,
     showMarquee: data.show_marquee || false
   });
   setCompanyName(data.company_name || '');
   setCompanyLogoUrl(data.company_logo_url || '');
   setCompanyNameSize(data.company_name_size || 'medium');
   setCompanyLogoSize(data.company_logo_size || 'medium');
+  setTop3VisibleInSession(data.top3_start_visible !== false);
 }
   } catch (error) {
     console.error('Error loading app settings:', error);
@@ -3109,6 +3113,15 @@ autoComplete="off"
   >
     Share Your Experience
   </button>
+  {appSettings.showTop3 && !top3VisibleInSession && (
+    <button
+      onClick={() => setTop3VisibleInSession(true)}
+      className="px-6 py-2.5 bg-yellow-500 text-white font-medium rounded-lg hover:bg-yellow-600 transition-colors text-sm md:text-base shadow-md hover:shadow-lg flex items-center gap-2"
+    >
+      <Star size={16} className="fill-white" />
+      Show Top 3
+    </button>
+  )}
 </div>
 
           
@@ -3425,6 +3438,19 @@ autoComplete="off"
           }} className="w-5 h-5" />
         <label htmlFor="showTop3" className="text-sm font-medium text-gray-700 cursor-pointer">Show Top 3 Experiences</label>
       </div>
+
+      {/* Top 3 Start Visible — só aparece se showTop3 ativado */}
+      {appSettings.showTop3 && (
+        <div className="ml-8 flex items-center gap-3">
+          <input type="checkbox" id="top3StartVisible" checked={appSettings.top3StartVisible}
+            onChange={async (e) => {
+              setAppSettings({...appSettings, top3StartVisible: e.target.checked});
+              setTop3VisibleInSession(e.target.checked);
+              await supabase.from('app_settings').update({ top3_start_visible: e.target.checked }).eq('id', 1);
+            }} className="w-4 h-4" />
+          <label htmlFor="top3StartVisible" className="text-xs text-gray-600 cursor-pointer">Start visible (users can still hide/show it)</label>
+        </div>
+      )}
 
       {/* Show Marquee */}
       <div className="flex items-center gap-3">
@@ -4885,7 +4911,7 @@ for (const row of rows) {
         })()}
 
         {/* Top 3 Experiences This Week - MOVED TO TOP */}
-        {appSettings.showTop3 && (() => {
+        {appSettings.showTop3 && top3VisibleInSession && (() => {
           const top3Data = [1, 2, 3]
             .map(pos => experiences.find(exp => exp.id === topExperiences[pos]))
             .filter(Boolean);
@@ -4893,7 +4919,14 @@ for (const row of rows) {
           if (top3Data.length === 0) return null;
           
           return (
-            <div className="bg-gradient-to-r from-purple-100 to-blue-100 rounded-2xl shadow-xl p-8 mb-8 border-2 border-purple-300">
+            <div className="bg-gradient-to-r from-purple-100 to-blue-100 rounded-2xl shadow-xl p-8 mb-8 border-2 border-purple-300 relative">
+              <button
+                onClick={() => setTop3VisibleInSession(false)}
+                className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-sm bg-white bg-opacity-70 hover:bg-opacity-100 rounded-full px-3 py-1 transition-colors"
+                title="Hide Top 3"
+              >
+                ✕ Hide
+              </button>
               <div className="text-center mb-6">
                 <h2 className="text-2xl font-bold text-gray-800 flex items-center justify-center gap-3 mb-2">
                   <Star className="text-yellow-500 fill-yellow-500" size={28} />
@@ -7039,7 +7072,7 @@ onClick={() => {
                       >
                         Browse
                       </button>
-                      {appSettings.showTop3 && <>
+                      {appSettings.showTop3 && top3VisibleInSession && <>
                       <span className="text-gray-400">•</span>
                       <button
                         onClick={() => document.querySelector('.bg-gradient-to-r.from-purple-100.to-blue-100')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
