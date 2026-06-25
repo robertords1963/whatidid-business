@@ -2480,6 +2480,20 @@ useEffect(() => {
   const indexOfFirstExperience = indexOfLastExperience - experiencesPerPage;
   const currentExperiences = filteredWithRoots.slice(indexOfFirstExperience, indexOfLastExperience);
 
+  // ⭐ Scroll robusto até as abas — usa requestAnimationFrame duplo para garantir
+  // que o layout já foi recalculado após mudanças de estado (ex: Top3 aparecer/desaparecer)
+  const scrollToTabs = () => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const el = document.getElementById('main-tabs-anchor');
+        if (el) {
+          const y = el.getBoundingClientRect().top + window.pageYOffset - 12;
+          window.scrollTo({ top: y, behavior: 'smooth' });
+        }
+      });
+    });
+  };
+
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
     const paginationTop = document.getElementById('pagination-top');
@@ -2720,7 +2734,7 @@ useEffect(() => {
                   setFollowOnParentId(fo.id);
                   if (fo.practiceId) { setSelectedPracticeId(fo.practiceId); loadProblemCategories(fo.practiceId); }
                   setCurrentEntry(prev => ({ ...prev, problemCategory: fo.problemCategory || '' }));
-                  setActiveMainTab('share'); setTimeout(() => { const el = document.getElementById('main-tabs-anchor'); if (el) { const y = el.getBoundingClientRect().top + window.pageYOffset - 80; window.scrollTo({ top: y, behavior: 'smooth' }); } }, 50);
+                  setActiveMainTab('share'); scrollToTabs();
                 }} className="mt-3 text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">
                   🔗 Add a Follow-On Experience
                 </button>
@@ -5023,13 +5037,7 @@ onClick={() => {
                 <button
                   onClick={() => {
                     setActiveMainTab('see');
-                    setTimeout(() => {
-                      const el = document.getElementById('main-tabs-anchor');
-                      if (el) {
-                        const y = el.getBoundingClientRect().top + window.pageYOffset - 80;
-                        window.scrollTo({ top: y, behavior: 'smooth' });
-                      }
-                    }, 50);
+                    scrollToTabs();
                   }}
                   className="text-purple-600 hover:text-purple-800 font-medium text-sm flex items-center gap-2 mx-auto transition-colors"
                 >
@@ -5067,7 +5075,7 @@ onClick={() => {
     <button
       onClick={() => {
         setActiveMainTab('see');
-        setTimeout(() => { const el = document.getElementById('main-tabs-anchor'); if (el) { const y = el.getBoundingClientRect().top + window.pageYOffset - 80; window.scrollTo({ top: y, behavior: 'smooth' }); } }, 50);
+        scrollToTabs();
       }}
       className={`flex-1 px-4 py-3 font-bold text-base md:text-xl transition-all rounded-t-2xl border-2 border-b-0 ${
         activeMainTab === 'see'
@@ -5080,7 +5088,7 @@ onClick={() => {
     <button
       onClick={() => {
         setActiveMainTab('share');
-        setTimeout(() => { const el = document.getElementById('main-tabs-anchor'); if (el) { const y = el.getBoundingClientRect().top + window.pageYOffset - 80; window.scrollTo({ top: y, behavior: 'smooth' }); } }, 50);
+        scrollToTabs();
       }}
       className={`flex-1 px-4 py-3 font-bold text-base md:text-xl transition-all rounded-t-2xl border-2 border-b-0 -ml-px ${
         activeMainTab === 'share'
@@ -5451,7 +5459,8 @@ onClick={() => {
 
       <button
         onClick={handleSubmit}
-        className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
+        disabled={!(currentEntry.problem && currentEntry.problemCategory && currentEntry.solution && currentEntry.result && currentEntry.resultCategory)}
+        className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
         title="Share Experience"
       >
         <Send size={18} />
@@ -5467,7 +5476,8 @@ onClick={() => {
   <div className="md:col-span-2 flex justify-end">
     <button
       onClick={handleSubmit}
-      className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
+      disabled={!(currentEntry.problem && currentEntry.problemCategory && currentEntry.solution && currentEntry.result && currentEntry.resultCategory)}
+      className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
       title="Share Experience"
     >
       <Send size={18} />
@@ -5602,7 +5612,7 @@ onClick={() => {
               {appSettings.showTop3 && !top3VisibleInSession && (
                 <button
                   onClick={() => setTop3VisibleInSession(true)}
-                  className="text-yellow-700 hover:text-yellow-800 text-sm bg-yellow-100 hover:bg-yellow-200 rounded-full px-3 py-1 transition-colors whitespace-nowrap"
+                  className="text-yellow-700 hover:text-yellow-800 text-sm bg-yellow-100 hover:bg-yellow-200 rounded-full px-3 py-1 transition-colors whitespace-nowrap w-full sm:w-auto text-center"
                 >
                   Show Top 3
                 </button>
@@ -7022,7 +7032,7 @@ onClick={() => {
           problemCategory: exp.problemCategory || ''
         }));
         if (exp.practiceId) loadProblemCategories(exp.practiceId);
-        setActiveMainTab('share'); setTimeout(() => { const el = document.getElementById('main-tabs-anchor'); if (el) { const y = el.getBoundingClientRect().top + window.pageYOffset - 80; window.scrollTo({ top: y, behavior: 'smooth' }); } }, 50);
+        setActiveMainTab('share'); scrollToTabs();
       }}
       className="mt-3 text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
     >
@@ -7109,7 +7119,7 @@ onClick={() => {
                   <div className="pt-2 border-t-2 border-gray-100 text-center">
                     <div className="flex items-center justify-center gap-3 text-sm">
                       <button
-                        onClick={() => { setActiveMainTab('see'); setTimeout(() => { const el = document.getElementById('main-tabs-anchor'); if (el) { const y = el.getBoundingClientRect().top + window.pageYOffset - 80; window.scrollTo({ top: y, behavior: 'smooth' }); } }, 50); }}
+                        onClick={() => { setActiveMainTab('see'); scrollToTabs(); }}
                         className="text-purple-600 hover:text-purple-800 font-medium transition-colors"
                       >
                         Browse
@@ -7125,7 +7135,7 @@ onClick={() => {
                       </>}
                       <span className="text-gray-400">•</span>
                       <button
-                        onClick={() => { setActiveMainTab('share'); setTimeout(() => { const el = document.getElementById('main-tabs-anchor'); if (el) { const y = el.getBoundingClientRect().top + window.pageYOffset - 80; window.scrollTo({ top: y, behavior: 'smooth' }); } }, 50); }}
+                        onClick={() => { setActiveMainTab('share'); scrollToTabs(); }}
                         className="text-purple-600 hover:text-purple-800 font-medium transition-colors"
                       >
                         Share your stories
