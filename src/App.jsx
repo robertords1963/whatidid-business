@@ -122,7 +122,8 @@ const [followOnParentId, setFollowOnParentId] = useState(null); // id da exp que
 const [expandedUpstream, setExpandedUpstream] = useState({});
 const [expandedFollowOns, setExpandedFollowOns] = useState({});
 const [expandedGaps, setExpandedGaps] = useState({}); // { [gapKey]: true }
-const [top3VisibleInSession, setTop3VisibleInSession] = useState(true); // controla visibilidade na sessão atual
+const [top3VisibleInSession, setTop3VisibleInSession] = useState(true);
+const [activeMainTab, setActiveMainTab] = useState('see'); // 'see' | 'share'
   
   // ⭐ ADICIONAR AQUI - Estados para Employee Login ⭐
   const [isEmployeeLoggedIn, setIsEmployeeLoggedIn] = useState(false);
@@ -999,6 +1000,7 @@ if (matches.length > 0) {
     });
 
     // ⭐ FORÇAR MUDANÇA PARA INDIVIDUAL EXPERIENCES
+    setActiveMainTab('see');
     setFilterMode('individual');
     setShowKeyInsights(false);
     setKeyInsightCategory('');
@@ -1048,6 +1050,7 @@ if (matches.length > 0) {
     console.log('=== navigateToKeyInsight ===');
     console.log('commonCaseId:', commonCaseId);
     
+    setActiveMainTab('see');
     setFilterMode('key_insights');
     setShowKeyInsights(false);
     setKeyInsightCategory('');
@@ -1106,6 +1109,7 @@ setTimeout(() => {
 
   // FUNÇÃO 5: Navegar Key Insight → Pro
   const showMappedExperiences = (commonCaseId) => {
+  setActiveMainTab('see');
   setFilterMode('individual');
   setFilters({
     problemCategory: '',
@@ -1207,6 +1211,7 @@ setTimeout(() => {
 
     // Fix 2 — Scroll para o novo card após carregar
     if (newExpId) {
+      setActiveMainTab('see');
       setTimeout(() => {
         const el = document.getElementById(`exp-${newExpId}`);
         if (el) {
@@ -2715,7 +2720,7 @@ useEffect(() => {
                   setFollowOnParentId(fo.id);
                   if (fo.practiceId) { setSelectedPracticeId(fo.practiceId); loadProblemCategories(fo.practiceId); }
                   setCurrentEntry(prev => ({ ...prev, problemCategory: fo.problemCategory || '' }));
-                  document.getElementById('share-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  setActiveMainTab('share'); setTimeout(() => document.getElementById('share-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
                 }} className="mt-3 text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">
                   🔗 Add a Follow-On Experience
                 </button>
@@ -3095,34 +3100,7 @@ autoComplete="off"
   </div>
 )}
           
-{/* Navigation Buttons */}
-<div className="flex flex-wrap gap-3 justify-center mt-5 mb-2">
-  <button
-    onClick={() => {
-      document.getElementById('experiences-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }}
-    className="px-6 py-2.5 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-colors text-sm md:text-base shadow-md hover:shadow-lg"
-  >
-    See What Others Did
-  </button>
-  <button
-    onClick={() => {
-      document.getElementById('share-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }}
-    className="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors text-sm md:text-base shadow-md hover:shadow-lg"
-  >
-    Share Your Experience
-  </button>
-  {appSettings.showTop3 && !top3VisibleInSession && (
-    <button
-      onClick={() => setTop3VisibleInSession(true)}
-      className="px-6 py-2.5 bg-yellow-500 text-white font-medium rounded-lg hover:bg-yellow-600 transition-colors text-sm md:text-base shadow-md hover:shadow-lg flex items-center gap-2"
-    >
-      <Star size={16} className="fill-white" />
-      Show Top 3
-    </button>
-  )}
-</div>
+
 
           
           {showAdminLogin && !isAdmin && (
@@ -3439,7 +3417,6 @@ autoComplete="off"
         <label htmlFor="showTop3" className="text-sm font-medium text-gray-700 cursor-pointer">Show Top 3 Experiences</label>
       </div>
 
-      {/* Top 3 Start Visible — só aparece se showTop3 ativado */}
       {appSettings.showTop3 && (
         <div className="ml-8 flex items-center gap-3">
           <input type="checkbox" id="top3StartVisible" checked={appSettings.top3StartVisible}
@@ -4945,6 +4922,7 @@ onClick={() => {
   const expId = exp.id;
   
   // SEMPRE mudar para Individual e limpar TODOS os filtros
+  setActiveMainTab('see');
   setFilterMode('individual');
   setShowKeyInsights(false);
   setKeyInsightCategory('');
@@ -5044,10 +5022,13 @@ onClick={() => {
               <div className="text-center">
                 <button
                   onClick={() => {
-                    const experiencesSection = document.getElementById('experiences-section');
-                    if (experiencesSection) {
-                      experiencesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }
+                    setActiveMainTab('see');
+                    setTimeout(() => {
+                      const experiencesSection = document.getElementById('experiences-section');
+                      if (experiencesSection) {
+                        experiencesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      }
+                    }, 50);
                   }}
                   className="text-purple-600 hover:text-purple-800 font-medium text-sm flex items-center gap-2 mx-auto transition-colors"
                 >
@@ -5078,7 +5059,51 @@ onClick={() => {
           );
         })()}
 
-<div id="share-section" className="bg-white rounded-2xl shadow-xl p-8 mb-8">
+{/* Tabs estilo fichário — substitui os botões de navegação */}
+<div className="flex justify-center mt-5 mb-0">
+  <div className="flex w-full max-w-2xl">
+    <button
+      onClick={() => {
+        setActiveMainTab('see');
+        setTimeout(() => document.getElementById('main-tabs-anchor')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+      }}
+      className={`flex-1 px-4 py-3 font-semibold text-sm md:text-base rounded-t-xl transition-all border-2 border-b-0 ${
+        activeMainTab === 'see'
+          ? 'bg-white text-purple-700 border-purple-300 shadow-md relative z-10'
+          : 'bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-200'
+      }`}
+    >
+      See What Others Did
+    </button>
+    <button
+      onClick={() => {
+        setActiveMainTab('share');
+        setTimeout(() => document.getElementById('main-tabs-anchor')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+      }}
+      className={`flex-1 px-4 py-3 font-semibold text-sm md:text-base rounded-t-xl transition-all border-2 border-b-0 ${
+        activeMainTab === 'share'
+          ? 'bg-white text-blue-700 border-blue-300 shadow-md relative z-10'
+          : 'bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-200'
+      }`}
+    >
+      Share Your Experience
+    </button>
+  </div>
+</div>
+{appSettings.showTop3 && !top3VisibleInSession && (
+  <div className="flex justify-center mt-3">
+    <button
+      onClick={() => setTop3VisibleInSession(true)}
+      className="px-4 py-1.5 bg-yellow-500 text-white text-sm font-medium rounded-lg hover:bg-yellow-600 transition-colors shadow-md flex items-center gap-2"
+    >
+      <Star size={14} className="fill-white" />
+      Show Top 3
+    </button>
+  </div>
+)}
+<div id="main-tabs-anchor" />
+
+<div id="share-section" className={`bg-white rounded-2xl shadow-xl p-8 mb-8 ${activeMainTab !== 'share' ? 'hidden' : ''}`}>
   <h2 className="text-2xl font-bold text-gray-800 mb-6">Share Your Experiences</h2>
 
   {/* ⭐ FOLLOW-ON BANNER */}
@@ -5442,7 +5467,7 @@ onClick={() => {
           </button>
         </div>
         
-<div className="space-y-6" id="experiences-section">
+<div className={`space-y-6 ${activeMainTab !== 'see' ? 'hidden' : ''}`} id="experiences-section">
           
           
           
@@ -6980,7 +7005,7 @@ onClick={() => {
           problemCategory: exp.problemCategory || ''
         }));
         if (exp.practiceId) loadProblemCategories(exp.practiceId);
-        document.getElementById('share-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setActiveMainTab('share'); setTimeout(() => document.getElementById('share-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
       }}
       className="mt-3 text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
     >
@@ -7067,7 +7092,7 @@ onClick={() => {
                   <div className="pt-2 border-t-2 border-gray-100 text-center">
                     <div className="flex items-center justify-center gap-3 text-sm">
                       <button
-                        onClick={() => document.getElementById('experiences-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                        onClick={() => { setActiveMainTab('see'); setTimeout(() => document.getElementById('experiences-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50); }}
                         className="text-purple-600 hover:text-purple-800 font-medium transition-colors"
                       >
                         Browse
@@ -7083,7 +7108,7 @@ onClick={() => {
                       </>}
                       <span className="text-gray-400">•</span>
                       <button
-                        onClick={() => document.getElementById('share-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                        onClick={() => { setActiveMainTab('share'); setTimeout(() => document.getElementById('share-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50); }}
                         className="text-purple-600 hover:text-purple-800 font-medium transition-colors"
                       >
                         Share your stories
