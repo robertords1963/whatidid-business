@@ -5062,7 +5062,7 @@ onClick={() => {
 
 {/* Tabs estilo fichário — substitui os botões de navegação */}
 <div className="mt-5 mb-8">
-<div id="main-tabs-anchor" className="flex justify-center mb-0">
+<div id="main-tabs-anchor" className="flex justify-center mb-0 relative">
   <div className="flex w-full">
     <button
       onClick={() => {
@@ -5091,6 +5091,10 @@ onClick={() => {
       Share Your Experience
     </button>
   </div>
+  {/* Linha conectora — fecha o friso colorido por baixo da aba inativa, sem sobrepor a aba ativa */}
+  <div
+    className={`absolute bottom-0 h-0.5 ${activeMainTab === 'see' ? 'bg-purple-300 right-0 left-1/2' : 'bg-blue-300 left-0 right-1/2'}`}
+  />
 </div>
 
 <div id="share-section" className={`bg-white p-8 rounded-b-2xl border-2 border-t-0 border-blue-300 ${activeMainTab !== 'share' ? 'hidden' : ''}`}>
