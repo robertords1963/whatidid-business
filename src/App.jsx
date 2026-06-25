@@ -5569,7 +5569,7 @@ onClick={() => {
           
 <div className="bg-white rounded-xl shadow-md p-6 mb-6">
 {/* Título e Info */}
-            <div className="mb-6 flex items-start justify-between flex-wrap gap-2">
+            <div className="mb-6">
               <div className="flex items-center gap-4 text-sm text-gray-600 flex-wrap">
                 <span className="font-medium">{experiences.length} experiences shared</span>
                 
@@ -5607,17 +5607,21 @@ onClick={() => {
                     </>
                   );
                 })()}
+
+                {/* Botão Show Top 3 — só na aba Individual Experiences, e só quando Top3 está escondido */}
+                {appSettings.showTop3 && !top3VisibleInSession && filterMode === 'individual' && (
+                  <>
+                    <span className="text-gray-400">•</span>
+                    <button
+                      onClick={() => setTop3VisibleInSession(true)}
+                      className="text-yellow-700 hover:text-yellow-800 text-xs bg-yellow-100 hover:bg-yellow-200 rounded-full px-3 py-1 transition-colors inline-block"
+                      style={{ whiteSpace: 'nowrap' }}
+                    >
+                      Show Top 3
+                    </button>
+                  </>
+                )}
               </div>
-              {/* Botão Show Top 3 — só aparece quando Top3 está escondido */}
-              {appSettings.showTop3 && !top3VisibleInSession && (
-                <button
-                  onClick={() => setTop3VisibleInSession(true)}
-                  className="text-yellow-700 hover:text-yellow-800 text-xs bg-yellow-100 hover:bg-yellow-200 rounded-full px-3 py-1 transition-colors inline-block"
-                  style={{ whiteSpace: 'nowrap' }}
-                >
-                  Show Top 3
-                </button>
-              )}
             </div>
             
             {/* TABS */}
