@@ -5024,9 +5024,10 @@ onClick={() => {
                   onClick={() => {
                     setActiveMainTab('see');
                     setTimeout(() => {
-                      const experiencesSection = document.getElementById('experiences-section');
-                      if (experiencesSection) {
-                        experiencesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      const el = document.getElementById('main-tabs-anchor');
+                      if (el) {
+                        const y = el.getBoundingClientRect().top + window.pageYOffset - 80;
+                        window.scrollTo({ top: y, behavior: 'smooth' });
                       }
                     }, 50);
                   }}
@@ -5070,7 +5071,7 @@ onClick={() => {
       className={`flex-1 px-4 py-3 font-bold text-base md:text-xl rounded-t-xl transition-all border-2 border-b-0 ${
         activeMainTab === 'see'
           ? 'bg-white text-purple-700 border-purple-300 shadow-md relative z-10'
-          : 'bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-200'
+          : 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200'
       }`}
     >
       See What Others Did
@@ -5083,7 +5084,7 @@ onClick={() => {
       className={`flex-1 px-4 py-3 font-bold text-base md:text-xl rounded-t-xl transition-all border-2 border-b-0 ${
         activeMainTab === 'share'
           ? 'bg-white text-blue-700 border-blue-300 shadow-md relative z-10'
-          : 'bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-200'
+          : 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200'
       }`}
     >
       Share Your Experience
@@ -5091,7 +5092,7 @@ onClick={() => {
   </div>
 </div>
 
-<div id="share-section" className={`bg-white rounded-2xl shadow-xl p-8 mb-8 ${activeMainTab !== 'share' ? 'hidden' : ''}`}>
+<div id="share-section" className={`bg-white rounded-b-2xl shadow-xl p-8 mb-8 border-2 border-blue-300 border-t-0 -mt-1 relative z-0 ${activeMainTab !== 'share' ? 'hidden' : ''}`}>
 
   {/* ⭐ FOLLOW-ON BANNER */}
   {followOnParentId && (() => {
@@ -5446,15 +5447,18 @@ onClick={() => {
   </div>
 )}
   
-          <button
-            onClick={handleSubmit}
-            className="w-full mt-6 bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all shadow-lg"
-          >
-            Share Experience
-          </button>
+          <div className="flex justify-end mt-6">
+            <button
+              onClick={handleSubmit}
+              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
+              title="Share Experience"
+            >
+              <Send size={18} />
+            </button>
+          </div>
         </div>
         
-<div className={`space-y-6 ${activeMainTab !== 'see' ? 'hidden' : ''}`} id="experiences-section">
+<div className={`space-y-6 ${activeMainTab !== 'see' ? 'hidden' : ''} border-2 border-purple-300 border-t-0 rounded-b-2xl p-4 -mt-1 relative z-0`} id="experiences-section">
           
           
           
