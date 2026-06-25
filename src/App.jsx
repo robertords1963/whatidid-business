@@ -5612,7 +5612,8 @@ onClick={() => {
               {appSettings.showTop3 && !top3VisibleInSession && (
                 <button
                   onClick={() => setTop3VisibleInSession(true)}
-                  className="text-yellow-700 hover:text-yellow-800 text-sm bg-yellow-100 hover:bg-yellow-200 rounded-full px-3 py-1 transition-colors whitespace-nowrap w-full sm:w-auto text-center"
+                  className="text-yellow-700 hover:text-yellow-800 text-xs bg-yellow-100 hover:bg-yellow-200 rounded-full px-3 py-1 transition-colors inline-block"
+                  style={{ whiteSpace: 'nowrap' }}
                 >
                   Show Top 3
                 </button>
