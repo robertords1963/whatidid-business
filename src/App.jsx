@@ -4897,13 +4897,6 @@ for (const row of rows) {
           
           return (
             <div className="bg-gradient-to-r from-purple-100 to-blue-100 rounded-2xl shadow-xl p-8 mb-8 border-2 border-purple-300 relative">
-              <button
-                onClick={() => setTop3VisibleInSession(false)}
-                className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-sm bg-white bg-opacity-70 hover:bg-opacity-100 rounded-full px-3 py-1 transition-colors"
-                title="Hide Top 3"
-              >
-                ✕ Hide
-              </button>
               <div className="text-center mb-6">
                 <h2 className="text-2xl font-bold text-gray-800 flex items-center justify-center gap-3 mb-2">
                   <Star className="text-yellow-500 fill-yellow-500" size={28} />
@@ -5061,13 +5054,13 @@ onClick={() => {
 
 {/* Tabs estilo fichário — substitui os botões de navegação */}
 <div className="flex justify-center mt-5 mb-0">
-  <div className="flex w-full max-w-2xl">
+  <div className="flex w-full">
     <button
       onClick={() => {
         setActiveMainTab('see');
         setTimeout(() => document.getElementById('main-tabs-anchor')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
       }}
-      className={`flex-1 px-4 py-3 font-semibold text-sm md:text-base rounded-t-xl transition-all border-2 border-b-0 ${
+      className={`flex-1 px-4 py-3 font-bold text-base md:text-xl rounded-t-xl transition-all border-2 border-b-0 ${
         activeMainTab === 'see'
           ? 'bg-white text-purple-700 border-purple-300 shadow-md relative z-10'
           : 'bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-200'
@@ -5080,7 +5073,7 @@ onClick={() => {
         setActiveMainTab('share');
         setTimeout(() => document.getElementById('main-tabs-anchor')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
       }}
-      className={`flex-1 px-4 py-3 font-semibold text-sm md:text-base rounded-t-xl transition-all border-2 border-b-0 ${
+      className={`flex-1 px-4 py-3 font-bold text-base md:text-xl rounded-t-xl transition-all border-2 border-b-0 ${
         activeMainTab === 'share'
           ? 'bg-white text-blue-700 border-blue-300 shadow-md relative z-10'
           : 'bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-200'
@@ -5090,21 +5083,9 @@ onClick={() => {
     </button>
   </div>
 </div>
-{appSettings.showTop3 && !top3VisibleInSession && (
-  <div className="flex justify-center mt-3">
-    <button
-      onClick={() => setTop3VisibleInSession(true)}
-      className="px-4 py-1.5 bg-yellow-500 text-white text-sm font-medium rounded-lg hover:bg-yellow-600 transition-colors shadow-md flex items-center gap-2"
-    >
-      <Star size={14} className="fill-white" />
-      Show Top 3
-    </button>
-  </div>
-)}
 <div id="main-tabs-anchor" />
 
 <div id="share-section" className={`bg-white rounded-2xl shadow-xl p-8 mb-8 ${activeMainTab !== 'share' ? 'hidden' : ''}`}>
-  <h2 className="text-2xl font-bold text-gray-800 mb-6">Share Your Experiences</h2>
 
   {/* ⭐ FOLLOW-ON BANNER */}
   {followOnParentId && (() => {
@@ -5550,8 +5531,7 @@ onClick={() => {
           
 <div className="bg-white rounded-xl shadow-md p-6 mb-6">
 {/* Título e Info */}
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">See What Others Did</h2>
+            <div className="mb-6 flex items-start justify-between flex-wrap gap-2">
               <div className="flex items-center gap-4 text-sm text-gray-600 flex-wrap">
                 <span className="font-medium">{experiences.length} experiences shared</span>
                 
@@ -5590,6 +5570,26 @@ onClick={() => {
                   );
                 })()}
               </div>
+              {/* Fix 3 — Botão Show/Hide Top 3 no canto superior direito */}
+              {appSettings.showTop3 && (
+                top3VisibleInSession ? (
+                  <button
+                    onClick={() => setTop3VisibleInSession(false)}
+                    className="text-gray-500 hover:text-gray-700 text-sm bg-gray-100 hover:bg-gray-200 rounded-full px-3 py-1 transition-colors flex items-center gap-1"
+                    title="Hide Top 3"
+                  >
+                    ✕ Hide Top 3
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setTop3VisibleInSession(true)}
+                    className="text-yellow-700 hover:text-yellow-800 text-sm bg-yellow-100 hover:bg-yellow-200 rounded-full px-3 py-1 transition-colors flex items-center gap-1"
+                  >
+                    <Star size={14} className="fill-yellow-600" />
+                    Show Top 3
+                  </button>
+                )
+              )}
             </div>
             
             {/* TABS */}
