@@ -124,6 +124,9 @@ const [expandedFollowOns, setExpandedFollowOns] = useState({});
 const [expandedGaps, setExpandedGaps] = useState({}); // { [gapKey]: true }
 const [top3VisibleInSession, setTop3VisibleInSession] = useState(true);
 const [activeMainTab, setActiveMainTab] = useState('see'); // 'see' | 'share'
+// ⭐ Snapshot para o botão Back contextual — guarda de onde o usuário veio ao clicar
+// em Browse / Top3 / Share no rodapé de um card, e para onde deve voltar
+const [navSnapshot, setNavSnapshot] = useState(null); // { destination: 'browse'|'top3'|'share', state: {...}, scrollY: number }
   
   // ⭐ ADICIONAR AQUI - Estados para Employee Login ⭐
   const [isEmployeeLoggedIn, setIsEmployeeLoggedIn] = useState(false);
@@ -985,6 +988,25 @@ if (matches.length > 0) {
 };
 
   // FUNÇÃO 2: Reset form
+  // ⭐ Clear All — limpa só os campos digitados pelo usuário, preserva o que veio pré-preenchido de um Follow-On
+  const handleClearAll = () => {
+    setCurrentEntry(prev => ({
+      problem: '',
+      // Se for Follow-On, problemCategory já vinha pré-preenchida do parent — preservar
+      problemCategory: followOnParentId ? prev.problemCategory : '',
+      solution: '',
+      result: '',
+      resultCategory: '',
+      industrySector: '',
+      author: '',
+      gender: '',
+      age: '',
+      country: userCountryName || ''
+    }));
+    setSelectedTags([]);
+    setSelectedCv(null);
+  };
+
   const resetForm = () => {
     setCurrentEntry({
       problem: '',
@@ -2482,6 +2504,42 @@ useEffect(() => {
 
   // ⭐ Scroll robusto até as abas — usa requestAnimationFrame duplo para garantir
   // que o layout já foi recalculado após mudanças de estado (ex: Top3 aparecer/desaparecer)
+  // ⭐ Captura o estado atual antes de navegar para Browse/Top3/Share via rodapé de um card
+  const captureNavSnapshot = (destination) => {
+    setNavSnapshot({
+      destination, // 'browse' | 'top3' | 'share'
+      state: {
+        activeMainTab,
+        filterMode,
+        filters: { ...filters },
+        filterPracticeId,
+        currentPage,
+        showKeyInsights,
+        keyInsightCategory,
+        mappedFilter
+      },
+      scrollY: window.pageYOffset
+    });
+  };
+
+  // ⭐ Restaura o snapshot e remove o botão Back
+  const goBackToSnapshot = () => {
+    if (!navSnapshot) return;
+    const { state, scrollY } = navSnapshot;
+    setActiveMainTab(state.activeMainTab);
+    setFilterMode(state.filterMode);
+    setFilters(state.filters);
+    setFilterPracticeId(state.filterPracticeId);
+    setCurrentPage(state.currentPage);
+    setShowKeyInsights(state.showKeyInsights);
+    setKeyInsightCategory(state.keyInsightCategory);
+    setMappedFilter(state.mappedFilter);
+    setNavSnapshot(null);
+    setTimeout(() => {
+      window.scrollTo({ top: scrollY, behavior: 'smooth' });
+    }, 100);
+  };
+
   const scrollToTabs = () => {
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
@@ -4911,6 +4969,15 @@ for (const row of rows) {
           
           return (
             <div className="bg-gradient-to-r from-purple-100 to-blue-100 rounded-2xl shadow-xl p-8 mb-8 border-2 border-purple-300 relative">
+              {navSnapshot?.destination === 'top3' && (
+                <button
+                  onClick={goBackToSnapshot}
+                  className="absolute top-4 left-4 text-gray-500 hover:text-gray-700 text-sm bg-white bg-opacity-70 hover:bg-opacity-100 rounded-full px-3 py-1 transition-colors"
+                  title="Back to where you were"
+                >
+                  ← Back
+                </button>
+              )}
               <button
                 onClick={() => setTop3VisibleInSession(false)}
                 className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-sm bg-white bg-opacity-70 hover:bg-opacity-100 rounded-full px-3 py-1 transition-colors"
@@ -5077,12 +5144,20 @@ onClick={() => {
         setActiveMainTab('see');
         scrollToTabs();
       }}
-      className={`flex-1 px-4 py-3 font-bold text-base md:text-xl transition-all rounded-t-2xl border-2 border-b-0 ${
+      className={`flex-1 px-4 py-3 font-bold text-base md:text-xl transition-all rounded-t-2xl border-2 border-b-0 relative ${
         activeMainTab === 'see'
           ? 'bg-white text-purple-700 border-purple-300 relative z-10'
           : 'bg-gray-100 text-gray-400 border-gray-200 hover:bg-gray-200'
       }`}
     >
+      {activeMainTab === 'see' && (navSnapshot?.destination === 'browse') && (
+        <span
+          onClick={(e) => { e.stopPropagation(); goBackToSnapshot(); }}
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-medium text-purple-500 hover:text-purple-700 bg-purple-50 rounded-full px-2 py-1 cursor-pointer"
+        >
+          ← Back
+        </span>
+      )}
       See What Others Did
     </button>
     <button
@@ -5090,12 +5165,20 @@ onClick={() => {
         setActiveMainTab('share');
         scrollToTabs();
       }}
-      className={`flex-1 px-4 py-3 font-bold text-base md:text-xl transition-all rounded-t-2xl border-2 border-b-0 -ml-px ${
+      className={`flex-1 px-4 py-3 font-bold text-base md:text-xl transition-all rounded-t-2xl border-2 border-b-0 -ml-px relative ${
         activeMainTab === 'share'
           ? 'bg-white text-blue-700 border-blue-300 relative z-10'
           : 'bg-gray-100 text-gray-400 border-gray-200 hover:bg-gray-200'
       }`}
     >
+      {activeMainTab === 'share' && (navSnapshot?.destination === 'share') && (
+        <span
+          onClick={(e) => { e.stopPropagation(); goBackToSnapshot(); }}
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-medium text-blue-500 hover:text-blue-700 bg-blue-50 rounded-full px-2 py-1 cursor-pointer"
+        >
+          ← Back
+        </span>
+      )}
       Share Your Experience
     </button>
   </div>
@@ -5106,6 +5189,16 @@ onClick={() => {
 </div>
 
 <div id="share-section" className={`bg-white p-8 rounded-b-2xl border-2 border-t-0 border-blue-300 ${activeMainTab !== 'share' ? 'hidden' : ''}`}>
+
+  {/* Clear All — limpa só o que o usuário digitou */}
+  <div className="flex justify-end mb-3">
+    <button
+      onClick={handleClearAll}
+      className="text-xs text-gray-500 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-full px-3 py-1 transition-colors"
+    >
+      Clear All
+    </button>
+  </div>
 
   {/* ⭐ FOLLOW-ON BANNER */}
   {followOnParentId && (() => {
@@ -7124,7 +7217,7 @@ onClick={() => {
                   <div className="pt-2 border-t-2 border-gray-100 text-center">
                     <div className="flex items-center justify-center gap-3 text-sm">
                       <button
-                        onClick={() => { setActiveMainTab('see'); scrollToTabs(); }}
+                        onClick={() => { captureNavSnapshot('browse'); setActiveMainTab('see'); scrollToTabs(); }}
                         className="text-purple-600 hover:text-purple-800 font-medium transition-colors"
                       >
                         Browse
@@ -7132,7 +7225,7 @@ onClick={() => {
                       {appSettings.showTop3 && top3VisibleInSession && <>
                       <span className="text-gray-400">•</span>
                       <button
-                        onClick={() => document.querySelector('.bg-gradient-to-r.from-purple-100.to-blue-100')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                        onClick={() => { captureNavSnapshot('top3'); document.querySelector('.bg-gradient-to-r.from-purple-100.to-blue-100')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
                         className="text-purple-600 hover:text-purple-800 font-medium transition-colors"
                       >
                         Top3
@@ -7140,7 +7233,7 @@ onClick={() => {
                       </>}
                       <span className="text-gray-400">•</span>
                       <button
-                        onClick={() => { setActiveMainTab('share'); scrollToTabs(); }}
+                        onClick={() => { captureNavSnapshot('share'); setActiveMainTab('share'); scrollToTabs(); }}
                         className="text-purple-600 hover:text-purple-800 font-medium transition-colors"
                       >
                         Share your stories
