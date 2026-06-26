@@ -2552,6 +2552,43 @@ useEffect(() => {
     });
   };
 
+  // ⭐ Hide/Show Top3 — só no desktop (>=768px), compensa o scroll pela altura
+  // exata do bloco que aparece/desaparece, evitando o salto para o topo.
+  // No mobile (<768px) não faz nada — o comportamento nativo do navegador já funciona bem.
+  const handleTop3Toggle = (show) => {
+    const isDesktop = window.innerWidth >= 768;
+
+    if (!isDesktop) {
+      setTop3VisibleInSession(show);
+      return;
+    }
+
+    if (!show) {
+      // Esconder: medir a altura do bloco Top3 ANTES de remover
+      const top3Block = document.querySelector('.bg-gradient-to-r.from-purple-100.to-blue-100');
+      const blockHeight = top3Block ? top3Block.offsetHeight : 0;
+      // mb-8 do bloco = 32px de margem inferior, incluída no offsetHeight? offsetHeight não inclui margin, então somamos
+      const totalRemoved = blockHeight + 32;
+
+      setTop3VisibleInSession(false);
+
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: Math.max(0, window.pageYOffset - totalRemoved), behavior: 'auto' });
+      });
+    } else {
+      // Mostrar: a altura do bloco só existe DEPOIS de renderizar, então
+      // aplicamos o estado primeiro e medimos no frame seguinte
+      setTop3VisibleInSession(true);
+
+      requestAnimationFrame(() => {
+        const top3Block = document.querySelector('.bg-gradient-to-r.from-purple-100.to-blue-100');
+        const blockHeight = top3Block ? top3Block.offsetHeight : 0;
+        const totalAdded = blockHeight + 32;
+        window.scrollTo({ top: window.pageYOffset + totalAdded, behavior: 'auto' });
+      });
+    }
+  };
+
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
     const paginationTop = document.getElementById('pagination-top');
@@ -4979,7 +5016,7 @@ for (const row of rows) {
                 </button>
               )}
               <button
-                onClick={() => setTop3VisibleInSession(false)}
+                onClick={() => handleTop3Toggle(false)}
                 className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-sm bg-white bg-opacity-70 hover:bg-opacity-100 rounded-full px-3 py-1 transition-colors"
                 title="Hide Top 3"
               >
@@ -5706,7 +5743,7 @@ onClick={() => {
                   <>
                     <span className="text-gray-400">•</span>
                     <button
-                      onClick={() => setTop3VisibleInSession(true)}
+                      onClick={() => handleTop3Toggle(true)}
                       className="text-yellow-700 hover:text-yellow-800 text-xs bg-yellow-100 hover:bg-yellow-200 rounded-full px-3 py-1 transition-colors inline-block"
                       style={{ whiteSpace: 'nowrap' }}
                     >
