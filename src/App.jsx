@@ -3274,12 +3274,12 @@ autoComplete="off"
     >
       <svg width="16" height="16" viewBox="150 40 160 160" style={{ borderRadius: '3px', flexShrink: 0 }}>
         <rect x="150" y="40" width="160" height="160" rx="32" fill="#9333ea" />
-        <path d="M 248.36,86.61 L 263.48,86.61 L 247.76,155.86 L 232.64,155.86 Z" fill="#D97706" />
-        <circle cx="251.38" cy="74.21" r="10.6" fill="#D97706" />
         <text x="218.12" y="155.86" textAnchor="middle" fontFamily="Arial, sans-serif" fontSize="96.8" fontWeight="700" fill="#faf5ff">W</text>
         <g clipPath="url(#miniDClip)">
           <text x="225.68" y="155.86" textAnchor="start" fontFamily="Arial, sans-serif" fontSize="96.8" fontWeight="700" fill="#faf5ff">D</text>
         </g>
+        <path d="M 248.36,86.61 L 263.48,86.61 L 247.76,155.86 L 232.64,155.86 Z" fill="#D97706" />
+        <circle cx="251.38" cy="74.21" r="10.6" fill="#D97706" />
         <defs>
           <clipPath id="miniDClip">
             <path d="M 255.92,75.72 L 308.84,75.72 L 308.84,166.44 L 210.56,166.44 L 210.56,136.2 L 255.92,136.2 Z" />
