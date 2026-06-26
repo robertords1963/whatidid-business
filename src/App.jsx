@@ -2552,34 +2552,6 @@ useEffect(() => {
     });
   };
 
-  // ⭐ Toggle Top3 preservando a posição visual de referência (as abas)
-  // Evita que o navegador "puxe" o scroll para o topo (ao esconder) ou
-  // deixe o conteúdo estático (ao mostrar) quando próximo do topo da página
-  const toggleTop3Visibility = (show) => {
-    const anchor = document.getElementById('main-tabs-anchor');
-    // Distância do anchor até o topo da viewport ANTES da mudança
-    const distanceFromTop = anchor ? anchor.getBoundingClientRect().top : null;
-
-    setTop3VisibleInSession(show);
-
-    if (distanceFromTop === null) return;
-
-    // Depois do React re-renderizar (Top3 aparece/desaparece), recolocar
-    // o scroll para que o anchor volte exatamente à mesma distância do topo
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        const anchorAfter = document.getElementById('main-tabs-anchor');
-        if (anchorAfter) {
-          const newDistanceFromTop = anchorAfter.getBoundingClientRect().top;
-          const delta = newDistanceFromTop - distanceFromTop;
-          if (Math.abs(delta) > 1) {
-            window.scrollTo({ top: window.pageYOffset + delta, behavior: 'auto' });
-          }
-        }
-      });
-    });
-  };
-
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
     const paginationTop = document.getElementById('pagination-top');
@@ -5007,7 +4979,7 @@ for (const row of rows) {
                 </button>
               )}
               <button
-                onClick={() => toggleTop3Visibility(false)}
+                onClick={() => setTop3VisibleInSession(false)}
                 className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-sm bg-white bg-opacity-70 hover:bg-opacity-100 rounded-full px-3 py-1 transition-colors"
                 title="Hide Top 3"
               >
@@ -5734,7 +5706,7 @@ onClick={() => {
                   <>
                     <span className="text-gray-400">•</span>
                     <button
-                      onClick={() => toggleTop3Visibility(true)}
+                      onClick={() => setTop3VisibleInSession(true)}
                       className="text-yellow-700 hover:text-yellow-800 text-xs bg-yellow-100 hover:bg-yellow-200 rounded-full px-3 py-1 transition-colors inline-block"
                       style={{ whiteSpace: 'nowrap' }}
                     >
