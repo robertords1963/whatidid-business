@@ -130,6 +130,12 @@ const [navSnapshot, setNavSnapshot] = useState(null); // { destination: 'browse'
   
   // ⭐ ADICIONAR AQUI - Estados para Employee Login ⭐
   const [isEmployeeLoggedIn, setIsEmployeeLoggedIn] = useState(false);
+  // ⭐ PWA Install
+  const [deferredInstallPrompt, setDeferredInstallPrompt] = useState(null);
+  const [isAppInstalled, setIsAppInstalled] = useState(false);
+  const [showIosInstallModal, setShowIosInstallModal] = useState(false);
+  const [isIosDevice, setIsIosDevice] = useState(false);
+  const [isDesktopDevice, setIsDesktopDevice] = useState(false);
   const [employeeId, setEmployeeId] = useState('');
   const [employeePassword, setEmployeePassword] = useState('');
   const [loginError, setLoginError] = useState('');
@@ -204,6 +210,58 @@ const [navSnapshot, setNavSnapshot] = useState(null); // { destination: 'browse'
   loadPractices();
   loadDemoGroups();
 }, []);
+
+// ⭐ PWA Install — detectar plataforma (mobile/desktop), estado de instalação,
+// e capturar o prompt nativo do Chrome/Edge (funciona em Android E desktop)
+useEffect(() => {
+  // Detectar se já está rodando instalado (modo standalone)
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+    || window.navigator.standalone === true; // iOS Safari específico
+  setIsAppInstalled(isStandalone);
+
+  // Detectar iOS (Safari não dispara beforeinstallprompt)
+  const ua = window.navigator.userAgent;
+  const isIos = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+  setIsIosDevice(isIos);
+
+  // Detectar desktop vs mobile (para adaptar o texto do botão)
+  const isMobileUA = /Android|iPhone|iPad|iPod/i.test(ua);
+  setIsDesktopDevice(!isMobileUA);
+
+  // Capturar o evento nativo — dispara tanto em Chrome/Edge Android quanto em Chrome/Edge desktop
+  const handleBeforeInstallPrompt = (e) => {
+    e.preventDefault();
+    setDeferredInstallPrompt(e);
+  };
+  window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+  // Detectar quando o app é instalado, para esconder o botão
+  const handleAppInstalled = () => {
+    setIsAppInstalled(true);
+    setDeferredInstallPrompt(null);
+  };
+  window.addEventListener('appinstalled', handleAppInstalled);
+
+  return () => {
+    window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.removeEventListener('appinstalled', handleAppInstalled);
+  };
+}, []);
+
+const handleInstallClick = async () => {
+  if (isIosDevice) {
+    setShowIosInstallModal(true);
+    return;
+  }
+  if (deferredInstallPrompt) {
+    deferredInstallPrompt.prompt();
+    const { outcome } = await deferredInstallPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setIsAppInstalled(true);
+    }
+    setDeferredInstallPrompt(null);
+  }
+};
 
 // Verificar login do funcionário ao carregar
 useEffect(() => {
@@ -3197,17 +3255,41 @@ autoComplete="off"
 </div>
 
 {/* Employee Info - Centralizado */}
-{isEmployeeLoggedIn && (
-  <div className="flex items-center justify-center gap-3 mt-4 mb-2">
-    <span className="text-sm text-gray-700 font-medium">👤 {employeeId}</span>
+<div className="flex items-center justify-center gap-3 mt-4 mb-2 flex-wrap">
+  {isEmployeeLoggedIn && (
+    <>
+      <span className="text-sm text-gray-700 font-medium">👤 {employeeId}</span>
+      <button
+        onClick={handleEmployeeLogout}
+        className="text-sm bg-gray-200 text-gray-700 px-3 py-1 rounded hover:bg-gray-300 transition-colors"
+      >
+        Logout
+      </button>
+    </>
+  )}
+  {!isAppInstalled && (deferredInstallPrompt || isIosDevice) && (
     <button
-      onClick={handleEmployeeLogout}
-      className="text-sm bg-gray-200 text-gray-700 px-3 py-1 rounded hover:bg-gray-300 transition-colors"
+      onClick={handleInstallClick}
+      className="text-sm bg-gray-200 text-gray-700 px-3 py-1 rounded hover:bg-gray-300 transition-colors flex items-center gap-1.5 whitespace-nowrap"
     >
-      Logout
+      <svg width="16" height="16" viewBox="150 40 160 160" style={{ borderRadius: '3px', flexShrink: 0 }}>
+        <rect x="150" y="40" width="160" height="160" rx="32" fill="#9333ea" />
+        <path d="M 248.36,86.61 L 263.48,86.61 L 247.76,155.86 L 232.64,155.86 Z" fill="#D97706" />
+        <circle cx="251.38" cy="74.21" r="10.6" fill="#D97706" />
+        <text x="218.12" y="155.86" textAnchor="middle" fontFamily="Arial, sans-serif" fontSize="96.8" fontWeight="700" fill="#faf5ff">W</text>
+        <g clipPath="url(#miniDClip)">
+          <text x="225.68" y="155.86" textAnchor="start" fontFamily="Arial, sans-serif" fontSize="96.8" fontWeight="700" fill="#faf5ff">D</text>
+        </g>
+        <defs>
+          <clipPath id="miniDClip">
+            <path d="M 255.92,75.72 L 308.84,75.72 L 308.84,166.44 L 210.56,166.44 L 210.56,136.2 L 255.92,136.2 Z" />
+          </clipPath>
+        </defs>
+      </svg>
+      {isDesktopDevice ? 'Add to Desktop' : 'Add to Phone'}
     </button>
-  </div>
-)}
+  )}
+</div>
           
 
 
@@ -7593,6 +7675,39 @@ onClick={() => {
           )}
         </div>
 </div>
+
+        {/* iOS Install Instructions Modal */}
+        {showIosInstallModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowIosInstallModal(false)}>
+            <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-gray-800">Add to Home Screen</h3>
+                <button onClick={() => setShowIosInstallModal(false)} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">×</button>
+              </div>
+              <div className="space-y-4 text-sm text-gray-700">
+                <p>To add the WhatIDid icon to your phone:</p>
+                <div className="flex items-center gap-3">
+                  <span className="flex-shrink-0 w-7 h-7 bg-purple-100 text-purple-700 rounded-full flex items-center justify-center font-bold">1</span>
+                  <span>Tap the <strong>Share</strong> button <span className="inline-block">⬆️</span> at the bottom of Safari</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="flex-shrink-0 w-7 h-7 bg-purple-100 text-purple-700 rounded-full flex items-center justify-center font-bold">2</span>
+                  <span>Scroll down and tap <strong>"Add to Home Screen"</strong></span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="flex-shrink-0 w-7 h-7 bg-purple-100 text-purple-700 rounded-full flex items-center justify-center font-bold">3</span>
+                  <span>Tap <strong>"Add"</strong> — done!</span>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowIosInstallModal(false)}
+                className="w-full mt-5 bg-purple-600 text-white py-2.5 rounded-lg hover:bg-purple-700 font-semibold transition-colors"
+              >
+                Got it
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Content Modal */}
         {showModal && contentPages[showModal] && (
