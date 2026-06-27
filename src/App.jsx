@@ -3272,20 +3272,13 @@ autoComplete="off"
       onClick={handleInstallClick}
       className="text-sm bg-gray-200 text-gray-700 px-3 py-1 rounded hover:bg-gray-300 transition-colors flex items-center gap-1.5 whitespace-nowrap"
     >
-      <svg width="16" height="16" viewBox="150 40 160 160" style={{ borderRadius: '3px', flexShrink: 0 }}>
-        <rect x="150" y="40" width="160" height="160" rx="32" fill="#9333ea" />
-        <text x="218.12" y="155.86" textAnchor="middle" fontFamily="Arial, sans-serif" fontSize="96.8" fontWeight="700" fill="#faf5ff">W</text>
-        <g clipPath="url(#miniDClip)">
-          <text x="225.68" y="155.86" textAnchor="start" fontFamily="Arial, sans-serif" fontSize="96.8" fontWeight="700" fill="#faf5ff">D</text>
-        </g>
-        <path d="M 248.36,86.61 L 263.48,86.61 L 247.76,155.86 L 232.64,155.86 Z" fill="#D97706" />
-        <circle cx="251.38" cy="74.21" r="10.6" fill="#D97706" />
-        <defs>
-          <clipPath id="miniDClip">
-            <path d="M 255.92,75.72 L 308.84,75.72 L 308.84,166.44 L 210.56,166.44 L 210.56,136.2 L 255.92,136.2 Z" />
-          </clipPath>
-        </defs>
-      </svg>
+            <img
+        src="data:image/png;base64,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"
+        alt=""
+        width="16"
+        height="16"
+        style={{ borderRadius: '3px', flexShrink: 0 }}
+      />
       {isDesktopDevice ? 'Add to Desktop' : 'Add to Phone'}
     </button>
   )}
