@@ -250,6 +250,24 @@ useEffect(() => {
   };
 }, []);
 
+useEffect(() => {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('install') === '1') {
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+      || window.navigator.standalone === true;
+    if (!isStandalone) {
+      const ua = window.navigator.userAgent;
+      const isIos = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+      if (isIos) {
+        setShowIosInstallModal(true);
+        setAutoOpenedInstall(true);
+      } else if (deferredInstallPrompt) {
+        deferredInstallPrompt.prompt();
+      }
+    }
+  }
+}, [deferredInstallPrompt]);
+ 
 const handleInstallClick = async () => {
   if (isIosDevice) {
     setShowIosInstallModal(true);
