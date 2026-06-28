@@ -134,8 +134,6 @@ const [navSnapshot, setNavSnapshot] = useState(null); // { destination: 'browse'
   const [deferredInstallPrompt, setDeferredInstallPrompt] = useState(null);
   const [isAppInstalled, setIsAppInstalled] = useState(false);
   const [showIosInstallModal, setShowIosInstallModal] = useState(false);
- const [installPending, setInstallPending] = useState(false);
-const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   const [isIosDevice, setIsIosDevice] = useState(false);
   const [isDesktopDevice, setIsDesktopDevice] = useState(false);
   const [employeeId, setEmployeeId] = useState('');
@@ -250,24 +248,6 @@ useEffect(() => {
   };
 }, []);
 
-useEffect(() => {
-  const params = new URLSearchParams(window.location.search);
-  if (params.get('install') === '1') {
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches
-      || window.navigator.standalone === true;
-    if (!isStandalone) {
-      const ua = window.navigator.userAgent;
-      const isIos = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
-      if (isIos) {
-        setShowIosInstallModal(true);
-        setAutoOpenedInstall(true);
-      } else if (deferredInstallPrompt) {
-        deferredInstallPrompt.prompt();
-      }
-    }
-  }
-}, [deferredInstallPrompt]);
- 
 const handleInstallClick = async () => {
   if (isIosDevice) {
     setShowIosInstallModal(true);
@@ -2939,10 +2919,6 @@ useEffect(() => {
     <>
 
 {/* ⭐ TELA DE LOGIN - Bloqueia acesso se requireEmployeeLogin = true ⭐ */}
-     {installPending ? (
-  <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50" />
-) : appSettings.requireEmployeeLogin && !isEmployeeLoggedIn ? (
-  <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 px-4 pt-16 pb-8">
     {appSettings.requireEmployeeLogin && !isEmployeeLoggedIn ? (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 px-4 pt-16 pb-8">
   <div className="text-center mb-6">
@@ -7698,7 +7674,7 @@ onClick={() => {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowIosInstallModal(false)}>
             <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-gray-800">Add WhatIDid Icon to Home Screen</h3>
+                <h3 className="text-lg font-bold text-gray-800">Add to Home Screen</h3>
                 <button onClick={() => setShowIosInstallModal(false)} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">×</button>
               </div>
                             <div className="space-y-4 text-sm text-gray-700">
@@ -7724,29 +7700,12 @@ onClick={() => {
                   <span>Tap <strong>"Add"</strong> — done!</span>
                 </div>
               </div>
-              {autoOpenedInstall ? (
-  <div className="flex gap-3 mt-5">
-    <button
-      onClick={() => { setShowIosInstallModal(false); setInstallPending(true); }}
-      className="flex-1 bg-purple-600 text-white py-2.5 rounded-lg hover:bg-purple-700 font-semibold transition-colors"
-    >
-      Will do it
-    </button>
-    <button
-      onClick={() => setShowIosInstallModal(false)}
-      className="flex-1 bg-gray-200 text-gray-700 py-2.5 rounded-lg hover:bg-gray-300 font-semibold transition-colors"
-    >
-      Skip for now
-    </button>
-  </div>
-) : (
-  <button
-    onClick={() => setShowIosInstallModal(false)}
-    className="w-full mt-5 bg-purple-600 text-white py-2.5 rounded-lg hover:bg-purple-700 font-semibold transition-colors"
-  >
-    Got it
-  </button>
-)}
+              <button
+                onClick={() => setShowIosInstallModal(false)}
+                className="w-full mt-5 bg-purple-600 text-white py-2.5 rounded-lg hover:bg-purple-700 font-semibold transition-colors"
+              >
+                Got it
+              </button>
             </div>
           </div>
         )}
@@ -8338,11 +8297,3 @@ if (selected.length === 0) {
     </>
   );
 }
-
-
-
-
-
-
-
-
