@@ -7694,7 +7694,7 @@ onClick={() => {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowIosInstallModal(false)}>
             <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-gray-800">Add to Home Screen</h3>
+                <h3 className="text-lg font-bold text-gray-800">Add WhatIDid Icon to Home Screen</h3>
                 <button onClick={() => setShowIosInstallModal(false)} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">×</button>
               </div>
                             <div className="space-y-4 text-sm text-gray-700">
