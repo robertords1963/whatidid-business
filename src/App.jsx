@@ -7720,12 +7720,29 @@ onClick={() => {
                   <span>Tap <strong>"Add"</strong> — done!</span>
                 </div>
               </div>
-              <button
-                onClick={() => setShowIosInstallModal(false)}
-                className="w-full mt-5 bg-purple-600 text-white py-2.5 rounded-lg hover:bg-purple-700 font-semibold transition-colors"
-              >
-                Got it
-              </button>
+              {autoOpenedInstall ? (
+  <div className="flex gap-3 mt-5">
+    <button
+      onClick={() => { setShowIosInstallModal(false); setInstallPending(true); }}
+      className="flex-1 bg-purple-600 text-white py-2.5 rounded-lg hover:bg-purple-700 font-semibold transition-colors"
+    >
+      Will do it
+    </button>
+    <button
+      onClick={() => setShowIosInstallModal(false)}
+      className="flex-1 bg-gray-200 text-gray-700 py-2.5 rounded-lg hover:bg-gray-300 font-semibold transition-colors"
+    >
+      Skip for now
+    </button>
+  </div>
+) : (
+  <button
+    onClick={() => setShowIosInstallModal(false)}
+    className="w-full mt-5 bg-purple-600 text-white py-2.5 rounded-lg hover:bg-purple-700 font-semibold transition-colors"
+  >
+    Got it
+  </button>
+)}
             </div>
           </div>
         )}
