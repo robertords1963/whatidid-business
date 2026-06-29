@@ -284,6 +284,12 @@ const handleInstallClick = async () => {
   }
 };
 
+ const handleExit = () => {
+  setShowIosInstallModal(false);
+  window.close();
+  setExitRequested(true);
+};
+
 // Verificar login do funcionário ao carregar
 useEffect(() => {
   const loggedIn = localStorage.getItem('employeeLoggedIn');
