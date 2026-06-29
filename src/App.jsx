@@ -136,6 +136,7 @@ const [navSnapshot, setNavSnapshot] = useState(null); // { destination: 'browse'
   const [showIosInstallModal, setShowIosInstallModal] = useState(false);
 const [installPending, setInstallPending] = useState(false);
 const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
+ const [exitRequested, setExitRequested] = useState(false);
   const [isIosDevice, setIsIosDevice] = useState(false);
   const [isDesktopDevice, setIsDesktopDevice] = useState(false);
   const [employeeId, setEmployeeId] = useState('');
