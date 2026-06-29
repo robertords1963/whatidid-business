@@ -2947,7 +2947,7 @@ useEffect(() => {
     <>
 
 {/* ⭐ TELA DE LOGIN - Bloqueia acesso se requireEmployeeLogin = true ⭐ */}
-{{exitRequested ? (
+{exitRequested ? (
   <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center p-6 text-center">
     <div>
       <p className="text-xl text-gray-700 font-semibold mb-2">All set!</p>
