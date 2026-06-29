@@ -8350,7 +8350,7 @@ if (selected.length === 0) {
     onClick={() => setShowIosInstallModal(false)}
     className="w-full mt-5 bg-purple-600 text-white py-2.5 rounded-lg hover:bg-purple-700 font-semibold transition-colors"
   >
-    Got it
+    Will do it
   </button>
 )}
             </div>
