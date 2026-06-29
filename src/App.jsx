@@ -2957,7 +2957,16 @@ useEffect(() => {
       </span>
     </h1>
   </div>
-  <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full mx-auto">
+  <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full mx-auto relative">
+        {autoOpenedInstall && (
+          <button
+            onClick={() => setShowIosInstallModal(true)}
+            className="absolute top-4 left-4 text-sm text-gray-400 hover:text-gray-600 font-medium"
+            aria-label="Back"
+          >
+            ← Back
+          </button>
+        )}
         <p className="text-gray-600 text-center mb-6">Employee Login</p>
           
           <div className="space-y-4">
