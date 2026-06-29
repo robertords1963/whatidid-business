@@ -2947,11 +2947,18 @@ useEffect(() => {
     <>
 
 {/* ⭐ TELA DE LOGIN - Bloqueia acesso se requireEmployeeLogin = true ⭐ */}
-{exitRequested ? (
+{{exitRequested ? (
   <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center p-6 text-center">
     <div>
       <p className="text-xl text-gray-700 font-semibold mb-2">All set!</p>
-      <p className="text-gray-500">You can close this tab whenever you're ready.</p>
+      <p className="text-gray-500">You can now close this browser tab — swipe up from the bottom or use your tab switcher to close it.</p>
+    </div>
+  </div>
+) : installLogoutMessage ? (
+  <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center p-6 text-center">
+    <div>
+      <p className="text-xl text-gray-700 font-semibold mb-2">Icon added! 🎉</p>
+      <p className="text-gray-500">Open WhatIDid from the new icon on your Home Screen and log in there.</p>
     </div>
   </div>
 ) : appSettings.requireEmployeeLogin && !isEmployeeLoggedIn ? (
