@@ -2958,10 +2958,29 @@ useEffect(() => {
     </div>
   </div>
 ) : installLogoutMessage ? (
-  <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center p-6 text-center">
-    <div>
-      <p className="text-xl text-gray-700 font-semibold mb-2">Icon added! 🎉</p>
-      <p className="text-gray-500">Open WhatIDid from the new icon on your Home Screen and log in there.</p>
+  <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 px-4 pt-16 pb-8 flex justify-center">
+    <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6">
+      <div className="mb-4">
+        <h3 className="text-lg font-bold text-gray-800">Add WhatIDid Icon to Home Screen</h3>
+      </div>
+      <div className="space-y-4 text-sm text-gray-700">
+        <p>To add the WhatIDid icon to your phone:</p>
+        COLOQUE_AQUI_OS_4_PASSOS
+      </div>
+      <div className="flex gap-3 mt-5">
+        <button
+          onClick={() => setInstallLogoutMessage(false)}
+          className="flex-1 bg-purple-600 text-white py-2.5 rounded-lg hover:bg-purple-700 font-semibold transition-colors"
+        >
+          Login Again
+        </button>
+        <button
+          onClick={() => window.history.back()}
+          className="flex-1 bg-gray-200 text-gray-700 py-2.5 rounded-lg hover:bg-gray-300 font-semibold transition-colors"
+        >
+          Exit
+        </button>
+      </div>
     </div>
   </div>
 ) : appSettings.requireEmployeeLogin && !isEmployeeLoggedIn ? (
