@@ -272,7 +272,10 @@ useEffect(() => {
  
 const handleInstallClick = async () => {
   if (isIosDevice) {
-    setShowIosInstallModal(true);
+    if (isEmployeeLoggedIn) {
+      handleEmployeeLogout();
+    }
+    setInstallLogoutMessage(true);
     return;
   }
   if (deferredInstallPrompt) {
