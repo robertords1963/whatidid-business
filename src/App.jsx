@@ -2939,9 +2939,7 @@ useEffect(() => {
     <>
 
 {/* ⭐ TELA DE LOGIN - Bloqueia acesso se requireEmployeeLogin = true ⭐ */}
-{installPending ? (
-  <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50" />
-) : appSettings.requireEmployeeLogin && !isEmployeeLoggedIn ? (
+{appSettings.requireEmployeeLogin && !isEmployeeLoggedIn ? (
   <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 px-4 pt-16 pb-8">    
   <div className="text-center mb-6">
     <h1 className="text-3xl font-bold text-gray-800 flex items-center justify-center gap-2">
