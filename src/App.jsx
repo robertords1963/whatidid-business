@@ -8348,7 +8348,13 @@ if (selected.length === 0) {
   </div>
 ) : (
   <button
-    onClick={() => setShowIosInstallModal(false)}
+    onClick={() => {
+      setShowIosInstallModal(false);
+      if (isEmployeeLoggedIn) {
+        handleEmployeeLogout();
+        setInstallLogoutMessage(true);
+      }
+    }}
     className="w-full mt-5 bg-purple-600 text-white py-2.5 rounded-lg hover:bg-purple-700 font-semibold transition-colors"
   >
     Will do it
