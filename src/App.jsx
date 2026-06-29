@@ -8320,13 +8320,13 @@ if (selected.length === 0) {
       onClick={() => setShowIosInstallModal(false)}
       className="flex-1 bg-purple-600 text-white py-2.5 rounded-lg hover:bg-purple-700 font-semibold transition-colors"
     >
-      Will do it
+      Skip to Login
     </button>
     <button
-      onClick={() => setShowIosInstallModal(false)}
+      onClick={handleExit}
       className="flex-1 bg-gray-200 text-gray-700 py-2.5 rounded-lg hover:bg-gray-300 font-semibold transition-colors"
     >
-      Skip for now
+      Exit
     </button>
   </div>
 ) : (
