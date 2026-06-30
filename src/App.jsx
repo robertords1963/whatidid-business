@@ -266,12 +266,25 @@ useEffect(() => {
         }
         setInstallLogoutMessage(true);
         setAutoOpenedInstall(true);
+        params.delete('install');
+        const cleanUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '') + window.location.hash;
+        window.history.replaceState(null, '', cleanUrl);
       } else if (deferredInstallPrompt) {
         deferredInstallPrompt.prompt();
       }
     }
   }
 }, [deferredInstallPrompt]);
+
+useEffect(() => {
+  const handlePageShow = (event) => {
+    if (event.persisted) {
+      setInstallLogoutMessage(false);
+    }
+  };
+  window.addEventListener('pageshow', handlePageShow);
+  return () => window.removeEventListener('pageshow', handlePageShow);
+}, []);
  
 const handleInstallClick = async () => {
   if (isIosDevice) {
@@ -294,10 +307,7 @@ const handleInstallClick = async () => {
  const handleExit = () => {
   setShowIosInstallModal(false);
   if (autoOpenedInstall) {
-    window.location.href = 'whatsapp://';
-    setTimeout(() => {
-      window.location.href = 'https://www.google.com';
-    }, 800);
+    window.location.href = 'https://www.google.com';
   } else {
     window.history.back();
   }
