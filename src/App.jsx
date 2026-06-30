@@ -306,20 +306,12 @@ const handleInstallClick = async () => {
 
  const handleExit = () => {
   setShowIosInstallModal(false);
-  if (autoOpenedInstall) {
-    window.location.href = 'https://www.google.com';
-  } else {
-    window.history.back();
-  }
+  window.history.back();
 };
 
 const handleIconInstalled = () => {
   setShowIosInstallModal(false);
-  if (autoOpenedInstall) {
-    window.location.href = 'https://www.google.com';
-  } else {
-    window.history.back();
-  }
+  window.history.back();
 };
 
 // Verificar login do funcionário ao carregar
