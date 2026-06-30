@@ -261,7 +261,10 @@ useEffect(() => {
       const ua = window.navigator.userAgent;
       const isIos = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
       if (isIos) {
-        setShowIosInstallModal(true);
+        if (isEmployeeLoggedIn) {
+          handleEmployeeLogout();
+        }
+        setInstallLogoutMessage(true);
         setAutoOpenedInstall(true);
       } else if (deferredInstallPrompt) {
         deferredInstallPrompt.prompt();
@@ -290,8 +293,23 @@ const handleInstallClick = async () => {
 
  const handleExit = () => {
   setShowIosInstallModal(false);
-  window.close();
-  setExitRequested(true);
+  if (autoOpenedInstall) {
+    window.location.href = 'whatsapp://';
+    setTimeout(() => {
+      window.location.href = 'https://www.google.com';
+    }, 800);
+  } else {
+    window.history.back();
+  }
+};
+
+const handleIconInstalled = () => {
+  setShowIosInstallModal(false);
+  if (autoOpenedInstall) {
+    window.location.href = 'https://www.google.com';
+  } else {
+    window.history.back();
+  }
 };
 
 // Verificar login do funcionário ao carregar
@@ -2994,20 +3012,22 @@ useEffect(() => {
       </p>
       <div className="mt-5 space-y-3">
         <button
-          onClick={() => window.history.back()}
+          onClick={handleIconInstalled}
           className="w-full bg-purple-600 text-white py-2.5 rounded-lg hover:bg-purple-700 font-semibold transition-colors"
         >
           Icon installed
         </button>
         <div className="flex gap-3">
+          {!autoOpenedInstall && (
+            <button
+              onClick={() => setInstallLogoutMessage(false)}
+              className="flex-1 bg-gray-200 text-gray-700 py-2.5 rounded-lg hover:bg-gray-300 font-semibold transition-colors"
+            >
+              Not now, Back to login
+            </button>
+          )}
           <button
-            onClick={() => setInstallLogoutMessage(false)}
-            className="flex-1 bg-gray-200 text-gray-700 py-2.5 rounded-lg hover:bg-gray-300 font-semibold transition-colors"
-          >
-            Not now, Back to login
-          </button>
-          <button
-            onClick={() => window.history.back()}
+            onClick={handleExit}
             className="flex-1 bg-gray-200 text-gray-700 py-2.5 rounded-lg hover:bg-gray-300 font-semibold transition-colors"
           >
             Exit
