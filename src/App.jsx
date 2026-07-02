@@ -114,6 +114,7 @@ const [selectedTags, setSelectedTags] = useState([]);  // tags selecionadas no S
 const [showCategoryDrawer, setShowCategoryDrawer] = useState(false); // drawer mobile
 const [hoveredCategory, setHoveredCategory] = useState(null); // hover desktop
 const [showCategoryDropdown, setShowCategoryDropdown] = useState(false); // custom dropdown aberto
+const [showFilterCategoryDropdown, setShowFilterCategoryDropdown] = useState(false); // dropdown filtro See What Others Did
 const [filterTags, setFilterTags] = useState([]); // tags ativas no filtro See What Others Did
 const [editingTags, setEditingTags] = useState(null); // id da experience com tags em edição
 
@@ -1881,6 +1882,18 @@ useEffect(() => {
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, [showCategoryDropdown]);
+
+  useEffect(() => {
+    if (!showFilterCategoryDropdown) return;
+    const handleClick = (e) => {
+      if (!e.target.closest('.category-dropdown-container')) {
+        setShowFilterCategoryDropdown(false);
+        setHoveredCategory(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [showFilterCategoryDropdown]);
 
   // Rotate quotes every 7 seconds
   useEffect(() => {
@@ -6044,17 +6057,77 @@ onClick={() => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-2">Category</label>
-                    <select
-                      value={filters.problemCategory}
-                      onChange={(e) => {
-                        setFilters({...filters, problemCategory: e.target.value});
-                        setFilterTags([]); // reset tags ao trocar categoria
-                      }}
-                      className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-                    >
-                      <option value="">All</option>
-                      {problemCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-                    </select>
+                    <div className="relative category-dropdown-container">
+                      <div
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => setShowFilterCategoryDropdown(!showFilterCategoryDropdown)}
+                        onKeyDown={(e) => e.key === 'Enter' && setShowFilterCategoryDropdown(!showFilterCategoryDropdown)}
+                        className="w-full p-2 border-2 border-gray-200 rounded-lg text-left flex items-center justify-between cursor-default focus:border-purple-500 focus:outline-none"
+                        style={{ fontFamily: 'inherit', fontSize: 'inherit', color: filters.problemCategory ? 'inherit' : '#6b7280', backgroundColor: '#f3f4f6' }}
+                      >
+                        <span>{filters.problemCategory || 'All'}</span>
+                        <span className="text-gray-500" style={{ fontSize: '10px' }}>▼</span>
+                      </div>
+                      {showFilterCategoryDropdown && (
+                        <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-gray-100 border-2 border-gray-200 rounded-lg shadow-xl">
+                          <div
+                            className="flex items-center"
+                            onMouseEnter={() => setHoveredCategory('__all__')}
+                            onMouseLeave={() => setHoveredCategory(null)}
+                          >
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setFilters({...filters, problemCategory: ''});
+                                setFilterTags([]);
+                                setShowFilterCategoryDropdown(false);
+                                setHoveredCategory(null);
+                              }}
+                              className={`flex-1 text-left px-3 py-2 hover:bg-purple-50 transition-colors ${!filters.problemCategory ? 'bg-purple-50 text-purple-700 font-medium' : 'text-gray-700'}`}
+                              style={{ fontFamily: 'inherit', fontSize: 'inherit' }}
+                            >
+                              All
+                            </button>
+                          </div>
+                          {problemCategories.map(cat => {
+                            const desc = categoryData[cat]?.description;
+                            return (
+                              <div
+                                key={cat}
+                                className="relative flex items-center"
+                                onMouseEnter={() => setHoveredCategory(cat)}
+                                onMouseLeave={() => setHoveredCategory(null)}
+                              >
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setFilters({...filters, problemCategory: cat});
+                                    setFilterTags([]);
+                                    setShowFilterCategoryDropdown(false);
+                                    setHoveredCategory(null);
+                                  }}
+                                  className={`flex-1 text-left px-3 py-2 hover:bg-purple-50 transition-colors ${filters.problemCategory === cat ? 'bg-purple-50 text-purple-700 font-medium' : 'text-gray-700'}`}
+                                  style={{ fontFamily: 'inherit', fontSize: 'inherit' }}
+                                >
+                                  {cat}
+                                </button>
+                                {desc && (
+                                  <>
+                                    <span className="pr-2 text-gray-400 text-xs cursor-default select-none">ⓘ</span>
+                                    {hoveredCategory === cat && (
+                                      <div className="hidden sm:block absolute left-full top-0 ml-2 z-[999] w-64 bg-gray-800 text-white rounded-lg p-3 shadow-2xl pointer-events-none" style={{ fontSize: '12px', lineHeight: '1.5' }}>
+                                        <p className="text-gray-200">{desc}</p>
+                                      </div>
+                                    )}
+                                  </>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
                     {/* Tag chips — aparecem quando categoria selecionada tem tags */}
                     {filters.problemCategory && categoryData[filters.problemCategory]?.tags?.length > 0 && (() => {
                       // Só mostrar tags que já foram usadas em experiences dessa categoria
