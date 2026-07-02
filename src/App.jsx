@@ -5390,6 +5390,7 @@ onClick={() => {
           : 'bg-gray-100 text-gray-400 border-gray-200 hover:bg-gray-200'
       }`}
     >
+      See What Others Did
       {activeMainTab === 'see' && (navSnapshot?.destination === 'browse') && (
         <span
           onClick={(e) => { e.stopPropagation(); goBackToSnapshot(); }}
@@ -5406,7 +5407,6 @@ onClick={() => {
           ← Back
         </span>
       )}
-      See What Others Did
     </button>
     <button
       onClick={() => {
@@ -5419,6 +5419,7 @@ onClick={() => {
           : 'bg-gray-100 text-gray-400 border-gray-200 hover:bg-gray-200'
       }`}
     >
+      Share Your Experience
       {activeMainTab === 'share' && (navSnapshot?.destination === 'share') && (
         <span
           onClick={(e) => { e.stopPropagation(); goBackToSnapshot(); }}
@@ -5435,7 +5436,6 @@ onClick={() => {
           ← Back
         </span>
       )}
-      Share Your Experience
     </button>
   </div>
   {/* Linha conectora — fecha o friso colorido por baixo da aba inativa, sem sobrepor a aba ativa */}
