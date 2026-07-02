@@ -6057,7 +6057,8 @@ onClick={() => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-2">Category</label>
-                    <div className="relative category-dropdown-container">
+                    <div className="flex items-center gap-2">
+                    <div className="relative category-dropdown-container flex-1">
                       <div
                         role="button"
                         tabIndex={0}
@@ -6127,6 +6128,16 @@ onClick={() => {
                           })}
                         </div>
                       )}
+                    </div>
+                    {/* ⓘ mobile */}
+                    {problemCategories.some(cat => categoryData[cat]?.description) && (
+                      <button
+                        type="button"
+                        onClick={() => setShowCategoryDrawer(true)}
+                        className="sm:hidden flex-shrink-0 w-8 h-8 rounded-full border-2 border-gray-300 text-gray-500 hover:border-purple-400 hover:text-purple-600 flex items-center justify-center font-medium transition-colors"
+                        style={{ fontSize: '14px' }}
+                      >ⓘ</button>
+                    )}
                     </div>
                     {/* Tag chips — aparecem quando categoria selecionada tem tags */}
                     {filters.problemCategory && categoryData[filters.problemCategory]?.tags?.length > 0 && (() => {
