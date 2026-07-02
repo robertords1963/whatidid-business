@@ -5393,7 +5393,15 @@ onClick={() => {
       {activeMainTab === 'see' && (navSnapshot?.destination === 'browse') && (
         <span
           onClick={(e) => { e.stopPropagation(); goBackToSnapshot(); }}
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-medium text-purple-500 hover:text-purple-700 bg-purple-50 rounded-full px-2 py-1 cursor-pointer"
+          className="block md:hidden text-xs font-medium text-purple-500 hover:text-purple-700 bg-purple-50 rounded-full px-2 py-1 cursor-pointer mt-1"
+        >
+          ← Back
+        </span>
+      )}
+      {activeMainTab === 'see' && (navSnapshot?.destination === 'browse') && (
+        <span
+          onClick={(e) => { e.stopPropagation(); goBackToSnapshot(); }}
+          className="hidden md:block absolute left-3 top-1/2 -translate-y-1/2 text-xs font-medium text-purple-500 hover:text-purple-700 bg-purple-50 rounded-full px-2 py-1 cursor-pointer"
         >
           ← Back
         </span>
@@ -5414,7 +5422,15 @@ onClick={() => {
       {activeMainTab === 'share' && (navSnapshot?.destination === 'share') && (
         <span
           onClick={(e) => { e.stopPropagation(); goBackToSnapshot(); }}
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-medium text-blue-500 hover:text-blue-700 bg-blue-50 rounded-full px-2 py-1 cursor-pointer"
+          className="block md:hidden text-xs font-medium text-blue-500 hover:text-blue-700 bg-blue-50 rounded-full px-2 py-1 cursor-pointer mt-1"
+        >
+          ← Back
+        </span>
+      )}
+      {activeMainTab === 'share' && (navSnapshot?.destination === 'share') && (
+        <span
+          onClick={(e) => { e.stopPropagation(); goBackToSnapshot(); }}
+          className="hidden md:block absolute left-3 top-1/2 -translate-y-1/2 text-xs font-medium text-blue-500 hover:text-blue-700 bg-blue-50 rounded-full px-2 py-1 cursor-pointer"
         >
           ← Back
         </span>
