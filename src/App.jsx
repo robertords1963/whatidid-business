@@ -3005,13 +3005,6 @@ useEffect(() => {
                             </div>
                           )}
                           <p className="text-sm text-gray-700">{comment.text}</p>
-                          {/* Delete - só para o dono */}
-                          {comment.employeeId === employeeId && (
-                            <button
-                              onClick={() => { if (window.confirm('Delete this comment?')) handleDeleteComment(fo.id, comment.id); }}
-                              className="text-red-600 hover:text-red-800 text-xs mt-1 inline-flex items-center gap-1"
-                            >🗑️ Delete Comment</button>
-                          )}
                           {/* Reações */}
                           <div className="flex flex-wrap gap-1 mt-2 items-center">
                             {Object.entries(reactions[comment.id] || {}).map(([emoji, ids]) => (
@@ -3039,6 +3032,13 @@ useEffect(() => {
                               </div>
                             </div>
                           </div>
+                          {/* Delete - só para o dono */}
+                          {comment.employeeId === employeeId && (
+                            <button
+                              onClick={() => { if (window.confirm('Delete this comment?')) handleDeleteComment(fo.id, comment.id); }}
+                              className="text-red-600 hover:text-red-800 text-xs mt-1 inline-flex items-center gap-1"
+                            >🗑️ Delete Comment</button>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -3054,12 +3054,6 @@ useEffect(() => {
                           </span>
                         )}
                         <p className="text-sm text-gray-700">{lastComment.text}</p>
-                        {lastComment.employeeId === employeeId && (
-                          <button
-                            onClick={() => { if (window.confirm('Delete this comment?')) handleDeleteComment(fo.id, lastComment.id); }}
-                            className="text-red-600 hover:text-red-800 text-xs mt-1 inline-flex items-center gap-1"
-                          >🗑️ Delete Comment</button>
-                        )}
                         <div className="flex flex-wrap gap-1 mt-2 items-center">
                           {Object.entries(reactions[lastComment.id] || {}).map(([emoji, ids]) => (
                             <button
@@ -3086,6 +3080,12 @@ useEffect(() => {
                             </div>
                           </div>
                         </div>
+                        {lastComment.employeeId === employeeId && (
+                          <button
+                            onClick={() => { if (window.confirm('Delete this comment?')) handleDeleteComment(fo.id, lastComment.id); }}
+                            className="text-red-600 hover:text-red-800 text-xs mt-1 inline-flex items-center gap-1"
+                          >🗑️ Delete Comment</button>
+                        )}
                       </div>
                     );
                   })()}
@@ -7412,19 +7412,6 @@ onClick={() => {
           {comment.text}
         </p>
 
-{/* Delete Comment - só para o dono */}
-{comment.employeeId === employeeId && (
-  <button
-    onClick={() => {
-      if (window.confirm('Delete this comment?')) {
-        handleDeleteComment(exp.id, comment.id);
-      }
-    }}
-    className="text-red-600 hover:text-red-800 text-xs mt-2 inline-flex items-center gap-1"
-  >
-    🗑️ Delete Comment
-  </button>
-)}
         {/* Reações */}
         <div className="flex flex-wrap gap-1 mt-2 items-center">
           {Object.entries(reactions[comment.id] || {}).map(([emoji, ids]) => (
@@ -7459,6 +7446,19 @@ onClick={() => {
             </div>
           </div>
         </div>
+        {/* Delete Comment - só para o dono */}
+        {comment.employeeId === employeeId && (
+          <button
+            onClick={() => {
+              if (window.confirm('Delete this comment?')) {
+                handleDeleteComment(exp.id, comment.id);
+              }
+            }}
+            className="text-red-600 hover:text-red-800 text-xs mt-1 inline-flex items-center gap-1"
+          >
+            🗑️ Delete Comment
+          </button>
+        )}
       </div>
     ))}
   </div>
@@ -7566,20 +7566,6 @@ onClick={() => {
           <p className="text-sm text-gray-700">
             {lastComment.text}
           </p>
-
-          {/* Delete Comment - só para o dono */}
-{lastComment.employeeId === employeeId && (
-  <button
-    onClick={() => {
-      if (window.confirm('Delete this comment?')) {
-        handleDeleteComment(exp.id, lastComment.id);
-      }
-    }}
-    className="text-red-600 hover:text-red-800 text-xs mt-2 inline-flex items-center gap-1"
-  >
-    🗑️ Delete Comment
-  </button>
-)}
           {/* Reações */}
           <div className="flex flex-wrap gap-1 mt-2 items-center">
             {Object.entries(reactions[lastComment.id] || {}).map(([emoji, ids]) => (
@@ -7614,8 +7600,13 @@ onClick={() => {
               </div>
             </div>
           </div>
-
-          
+          {/* Delete Comment - só para o dono */}
+          {lastComment.employeeId === employeeId && (
+            <button
+              onClick={() => { if (window.confirm('Delete this comment?')) handleDeleteComment(exp.id, lastComment.id); }}
+              className="text-red-600 hover:text-red-800 text-xs mt-1 inline-flex items-center gap-1"
+            >🗑️ Delete Comment</button>
+          )}
         </div>
       );
     })()}
