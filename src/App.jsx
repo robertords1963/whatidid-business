@@ -2862,7 +2862,7 @@ useEffect(() => {
     };
     const totalChildCount = countAllDescendants(fo.id);
     const practiceName = practices.find(p => p.id === fo.practiceId)?.name;
-    const categoryLabel = practiceName && practiceName !== 'General'
+    const categoryLabel = practiceName && practiceName !== 'General' && practiceName !== 'Corporate Areas'
       ? `${practiceName} / ${fo.problemCategory}`
       : fo.problemCategory;
     const searchTerms = filters.searchText ? filters.searchText.toLowerCase().trim().split(/\s+/) : [];
@@ -6664,7 +6664,7 @@ onClick={() => {
               const renderFullThread = (exp, isMatched, isRootLevel, threadIndex = 1) => {
                 const children = experiences.filter(e => e.parentExperienceId === exp.id);
                 const pname = practices.find(p => p.id === exp.practiceId)?.name;
-                const catLabel = pname && pname !== 'General' ? `${pname} / ${exp.problemCategory}` : exp.problemCategory;
+                const catLabel = pname && pname !== 'General' && pname !== 'Corporate Areas' ? `${pname} / ${exp.problemCategory}` : exp.problemCategory;
                 const searchTerms = filters.searchText ? filters.searchText.toLowerCase().trim().split(/\s+/) : [];
 
                 return (
@@ -6980,7 +6980,7 @@ onClick={() => {
                         <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full">
                           {(() => {
                             const pname = practices.find(p => p.id === exp.practiceId)?.name;
-                            return pname && pname !== 'General' ? `${pname} / ${exp.problemCategory}` : exp.problemCategory;
+                            return pname && pname !== 'General' && pname !== 'Corporate Areas' ? `${pname} / ${exp.problemCategory}` : exp.problemCategory;
                           })()}
                         </span>
                       </div>
