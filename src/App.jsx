@@ -115,6 +115,10 @@ const [showCategoryDrawer, setShowCategoryDrawer] = useState(false); // drawer m
 const [hoveredCategory, setHoveredCategory] = useState(null); // hover desktop
 const [showCategoryDropdown, setShowCategoryDropdown] = useState(false); // custom dropdown aberto
 const [showFilterCategoryDropdown, setShowFilterCategoryDropdown] = useState(false); // dropdown filtro See What Others Did
+const [reactions, setReactions] = useState({}); // { comment_id: { emoji: [employee_ids] } }
+const [showReactionPicker, setShowReactionPicker] = useState({}); // { comment_id: bool }
+
+const REACTION_EMOJIS = ['👍','❤️','💡','🎯','😮','😢','🙂','😀','🤩','😂','👏','🙏','💪','👊'];
 const [filterTags, setFilterTags] = useState([]); // tags ativas no filtro See What Others Did
 const [editingTags, setEditingTags] = useState(null); // id da experience com tags em edição
 
@@ -1463,6 +1467,47 @@ if (appSettings.requireEmployeeLogin && !isAdmin && exp.employeeId !== employeeI
   }
   };
 
+  const loadReactions = async (commentIds) => {
+    if (!commentIds?.length) return;
+    const { data, error } = await supabase
+      .from('reactions')
+      .select('comment_id, emoji, employee_id')
+      .in('comment_id', commentIds);
+    if (error) { console.error('Error loading reactions:', error); return; }
+    const grouped = {};
+    (data || []).forEach(r => {
+      if (!grouped[r.comment_id]) grouped[r.comment_id] = {};
+      if (!grouped[r.comment_id][r.emoji]) grouped[r.comment_id][r.emoji] = [];
+      grouped[r.comment_id][r.emoji].push(r.employee_id);
+    });
+    setReactions(grouped);
+  };
+
+  const toggleReaction = async (commentId, emoji) => {
+    if (!employeeId) return;
+    const existing = reactions[commentId]?.[emoji] || [];
+    const hasReacted = existing.includes(employeeId);
+    if (hasReacted) {
+      await supabase.from('reactions').delete()
+        .eq('comment_id', commentId).eq('emoji', emoji).eq('employee_id', employeeId);
+    } else {
+      await supabase.from('reactions').insert([{ comment_id: commentId, emoji, employee_id: employeeId }]);
+    }
+    setReactions(prev => {
+      const updated = { ...prev };
+      if (!updated[commentId]) updated[commentId] = {};
+      if (!updated[commentId][emoji]) updated[commentId][emoji] = [];
+      if (hasReacted) {
+        updated[commentId][emoji] = updated[commentId][emoji].filter(id => id !== employeeId);
+        if (updated[commentId][emoji].length === 0) delete updated[commentId][emoji];
+      } else {
+        updated[commentId][emoji] = [...updated[commentId][emoji], employeeId];
+      }
+      return updated;
+    });
+    setShowReactionPicker(prev => ({ ...prev, [commentId]: false }));
+  };
+
 
 const [currentEntry, setCurrentEntry] = useState({
     problem: '',
@@ -1894,6 +1939,28 @@ useEffect(() => {
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, [showFilterCategoryDropdown]);
+
+  useEffect(() => {
+    const visibleCommentIds = Object.entries(showComments)
+      .filter(([, v]) => v)
+      .flatMap(([expId]) => {
+        const exp = experiences.find(e => String(e.id) === String(expId));
+        return (exp?.comments || []).map(c => c.id);
+      });
+    if (visibleCommentIds.length > 0) loadReactions(visibleCommentIds);
+  }, [showComments, experiences]);
+
+  useEffect(() => {
+    const hasOpen = Object.values(showReactionPicker).some(v => v);
+    if (!hasOpen) return;
+    const handleClick = (e) => {
+      if (!e.target.closest('.reaction-picker-container')) {
+        setShowReactionPicker({});
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [showReactionPicker]);
 
   // Rotate quotes every 7 seconds
   useEffect(() => {
@@ -2910,6 +2977,41 @@ useEffect(() => {
                       {fo.comments.map(comment => (
                         <div key={comment.id} className="bg-gray-50 rounded-lg p-3">
                           <p className="text-sm text-gray-700">{comment.text}</p>
+                          {/* Reações existentes */}
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {Object.entries(reactions[comment.id] || {}).map(([emoji, ids]) => (
+                              <button
+                                key={emoji}
+                                onClick={() => toggleReaction(comment.id, emoji)}
+                                className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-sm border transition-colors ${ids.includes(employeeId) ? 'bg-purple-100 border-purple-300 text-purple-700' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-100'}`}
+                              >
+                                <span>{emoji}</span>
+                                <span className="text-xs font-medium">{ids.length}</span>
+                              </button>
+                            ))}
+                            {/* Botão para abrir picker */}
+                            <div className="relative reaction-picker-container">
+                              <button
+                                onClick={() => setShowReactionPicker(prev => ({ ...prev, [comment.id]: !prev[comment.id] }))}
+                                className="flex items-center justify-center w-7 h-7 rounded-full border border-gray-200 bg-white text-gray-400 hover:bg-gray-100 text-sm transition-colors"
+                                title="React"
+                              >😊</button>
+                              {showReactionPicker[comment.id] && (
+                                <div className="absolute bottom-full left-0 mb-1 z-50 bg-white border border-gray-200 rounded-xl shadow-xl p-2" style={{ width: '196px' }}>
+                                  <div className="grid grid-cols-7 gap-1">
+                                    {REACTION_EMOJIS.map(emoji => (
+                                      <button
+                                        key={emoji}
+                                        onClick={() => toggleReaction(comment.id, emoji)}
+                                        className="text-xl hover:scale-125 transition-transform p-0.5 rounded"
+                                        title={emoji}
+                                      >{emoji}</button>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       ))}
                     </div>
