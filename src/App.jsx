@@ -485,7 +485,36 @@ const orderedSynthetic = shuffleOrderRef.current
   .map(id => syntheticExps.find(e => e.id === id))
   .filter(Boolean);
 
-setExperiences([...keyInsights, ...userExps, ...orderedSynthetic]);
+const allExps = [...keyInsights, ...userExps, ...orderedSynthetic];
+setExperiences(allExps);
+
+// Carregar reações dos últimos comentários visíveis (bloco default)
+const lastCommentIds = allExps
+  .filter(e => e.comments?.length > 0)
+  .map(e => e.comments[e.comments.length - 1].id);
+if (lastCommentIds.length > 0) {
+  const { data: reactData } = await supabase
+    .from('reactions')
+    .select('comment_id, emoji, employee_id')
+    .in('comment_id', lastCommentIds);
+  if (reactData?.length) {
+    const grouped = {};
+    reactData.forEach(r => {
+      if (!grouped[r.comment_id]) grouped[r.comment_id] = {};
+      if (!grouped[r.comment_id][r.emoji]) grouped[r.comment_id][r.emoji] = [];
+      grouped[r.comment_id][r.emoji].push(r.employee_id);
+    });
+    setReactions(prev => ({ ...prev, ...grouped }));
+  }
+  // Inicializar IDs sem reações para o ícone aparecer
+  setReactions(prev => {
+    const updated = { ...prev };
+    lastCommentIds.forEach(id => {
+      if (!updated[id]) updated[id] = {};
+    });
+    return updated;
+  });
+}
   } catch (error) {
     console.error('Error loading experiences:', error);
     alert('Error loading data. Please refresh the page.');
@@ -1460,12 +1489,20 @@ if (appSettings.requireEmployeeLogin && !isAdmin && exp.employeeId !== employeeI
     setCommentCvFiles(newFiles);
     
     await loadExperiences(true);
-    // Recarregar reações depois do reload
+    // Garantir que os IDs dos comentarios existem no estado de reacoes
     const { data: freshComments } = await supabase
       .from('comments')
       .select('id')
       .eq('experience_id', experienceId);
     if (freshComments?.length) {
+      // Inicializar IDs novos com objeto vazio pra o icone aparecer imediatamente
+      setReactions(prev => {
+        const updated = { ...prev };
+        freshComments.forEach(c => {
+          if (!updated[c.id]) updated[c.id] = {};
+        });
+        return updated;
+      });
       await loadReactions(freshComments.map(c => c.id));
     }
   } catch (error) {
@@ -7488,6 +7525,40 @@ onClick={() => {
     🗑️ Delete Comment
   </button>
 )}
+          {/* Reações */}
+          <div className="flex flex-wrap gap-1 mt-2 items-center">
+            {Object.entries(reactions[lastComment.id] || {}).map(([emoji, ids]) => (
+              <button
+                key={emoji}
+                onClick={() => toggleReaction(lastComment.id, emoji)}
+                className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-sm border transition-colors ${ids.includes(employeeId) ? 'bg-purple-100 border-purple-300 text-purple-700' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-100'}`}
+              >
+                <span>{emoji}</span>
+                <span className="text-xs font-medium">{ids.length}</span>
+              </button>
+            ))}
+            <div className="relative group">
+              <button
+                className="flex items-center justify-center w-7 h-7 rounded-full border border-gray-300 bg-white text-gray-400 hover:border-purple-400 hover:text-purple-500 transition-colors"
+                title="React"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+              </button>
+              <div className="hidden group-hover:block absolute bottom-0 left-0 z-50" style={{ paddingBottom: '28px', width: '196px' }}>
+                <div className="bg-white border border-gray-200 rounded-xl shadow-xl p-2">
+                  <div className="grid grid-cols-7 gap-1">
+                    {REACTION_EMOJIS.map(emoji => (
+                      <button
+                        key={emoji}
+                        onClick={() => toggleReaction(lastComment.id, emoji)}
+                        className="text-xl hover:scale-125 transition-transform p-0.5 rounded"
+                      >{emoji}</button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
           
         </div>
