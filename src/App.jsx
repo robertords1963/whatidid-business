@@ -114,13 +114,12 @@ const [selectedTags, setSelectedTags] = useState([]);  // tags selecionadas no S
 const [showCategoryDrawer, setShowCategoryDrawer] = useState(false); // drawer mobile
 const [hoveredCategory, setHoveredCategory] = useState(null); // hover desktop
 const [showCategoryDropdown, setShowCategoryDropdown] = useState(false); // custom dropdown aberto
-const [showFilterCategoryDropdown, setShowFilterCategoryDropdown] = useState(false); // dropdown filtro See What Others Did
-const [reactions, setReactions] = useState({}); // { comment_id: { emoji: [employee_ids] } }
-const [showReactionPicker, setShowReactionPicker] = useState({}); // { comment_id: bool }
-
-const REACTION_EMOJIS = ['👍','❤️','💡','🎯','😮','😢','🙂','😀','🤩','😂','👏','🙏','💪','👊'];
 const [filterTags, setFilterTags] = useState([]); // tags ativas no filtro See What Others Did
 const [editingTags, setEditingTags] = useState(null); // id da experience com tags em edição
+const [showFilterCategoryDropdown, setShowFilterCategoryDropdown] = useState(false);
+const [reactions, setReactions] = useState({}); // { comment_id: { emoji: [employee_ids] } }
+
+const REACTION_EMOJIS = ['👍','❤️','💡','🎯','😮','😢','🙂','😀','🤩','😂','👏','🙏','💪','👊'];
 
 // ⭐ FOLLOW-ON EXPERIENCE
 const [followOnParentId, setFollowOnParentId] = useState(null); // id da exp que originou o follow-on
@@ -1461,7 +1460,7 @@ if (appSettings.requireEmployeeLogin && !isAdmin && exp.employeeId !== employeeI
     setCommentCvFiles(newFiles);
     
     await loadExperiences(true);
-    // Recarregar reações depois do reload completo
+    // Recarregar reações depois do reload
     const { data: freshComments } = await supabase
       .from('comments')
       .select('id')
@@ -1488,7 +1487,7 @@ if (appSettings.requireEmployeeLogin && !isAdmin && exp.employeeId !== employeeI
       if (!grouped[r.comment_id][r.emoji]) grouped[r.comment_id][r.emoji] = [];
       grouped[r.comment_id][r.emoji].push(r.employee_id);
     });
-    setReactions(grouped);
+    setReactions(prev => ({ ...prev, ...grouped }));
   };
 
   const toggleReaction = async (commentId, emoji) => {
@@ -1502,7 +1501,7 @@ if (appSettings.requireEmployeeLogin && !isAdmin && exp.employeeId !== employeeI
       await supabase.from('reactions').insert([{ comment_id: commentId, emoji, employee_id: employeeId }]);
     }
     setReactions(prev => {
-      const updated = { ...prev };
+      const updated = JSON.parse(JSON.stringify(prev));
       if (!updated[commentId]) updated[commentId] = {};
       if (!updated[commentId][emoji]) updated[commentId][emoji] = [];
       if (hasReacted) {
@@ -1513,7 +1512,6 @@ if (appSettings.requireEmployeeLogin && !isAdmin && exp.employeeId !== employeeI
       }
       return updated;
     });
-    setShowReactionPicker(prev => ({ ...prev, [commentId]: false }));
   };
 
 
@@ -1936,18 +1934,7 @@ useEffect(() => {
     return () => document.removeEventListener('mousedown', handleClick);
   }, [showCategoryDropdown]);
 
-  useEffect(() => {
-    if (!showFilterCategoryDropdown) return;
-    const handleClick = (e) => {
-      if (!e.target.closest('.category-dropdown-container')) {
-        setShowFilterCategoryDropdown(false);
-        setHoveredCategory(null);
-      }
-    };
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, [showFilterCategoryDropdown]);
-
+  // Carregar reações quando comentários são expandidos
   useEffect(() => {
     const visibleCommentIds = Object.entries(showComments)
       .filter(([, v]) => v)
@@ -1957,18 +1944,6 @@ useEffect(() => {
       });
     if (visibleCommentIds.length > 0) loadReactions(visibleCommentIds);
   }, [showComments, experiences]);
-
-  useEffect(() => {
-    const hasOpen = Object.values(showReactionPicker).some(v => v);
-    if (!hasOpen) return;
-    const handleClick = (e) => {
-      if (!e.target.closest('.reaction-picker-container')) {
-        setShowReactionPicker({});
-      }
-    };
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, [showReactionPicker]);
 
   // Rotate quotes every 7 seconds
   useEffect(() => {
@@ -2985,8 +2960,7 @@ useEffect(() => {
                       {fo.comments.map(comment => (
                         <div key={comment.id} className="bg-gray-50 rounded-lg p-3">
                           <p className="text-sm text-gray-700">{comment.text}</p>
-                          {/* Reações existentes */}
-                          <div className="flex flex-wrap gap-1 mt-2">
+                          <div className="flex flex-wrap gap-1 mt-2 items-center">
                             {Object.entries(reactions[comment.id] || {}).map(([emoji, ids]) => (
                               <button
                                 key={emoji}
@@ -2997,22 +2971,24 @@ useEffect(() => {
                                 <span className="text-xs font-medium">{ids.length}</span>
                               </button>
                             ))}
-                            {/* Botão para abrir picker */}
-                            <div className="relative reaction-picker-container group">
+                            <div className="relative group">
                               <button
                                 className="flex items-center justify-center w-7 h-7 rounded-full border border-gray-300 bg-white text-gray-400 hover:border-purple-400 hover:text-purple-500 transition-colors"
                                 title="React"
-                              ><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg></button>
-                              <div className="hidden group-hover:block absolute bottom-full left-0 mb-1 z-50 bg-white border border-gray-200 rounded-xl shadow-xl p-2" style={{ width: '196px' }}>
-                                <div className="grid grid-cols-7 gap-1">
-                                  {REACTION_EMOJIS.map(emoji => (
-                                    <button
-                                      key={emoji}
-                                      onClick={() => toggleReaction(comment.id, emoji)}
-                                      className="text-xl hover:scale-125 transition-transform p-0.5 rounded"
-                                      title={emoji}
-                                    >{emoji}</button>
-                                  ))}
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+                              </button>
+                              <div className="hidden group-hover:block absolute bottom-0 left-0 z-50" style={{ paddingBottom: '28px', width: '196px' }}>
+                                <div className="bg-white border border-gray-200 rounded-xl shadow-xl p-2">
+                                  <div className="grid grid-cols-7 gap-1">
+                                    {REACTION_EMOJIS.map(emoji => (
+                                      <button
+                                        key={emoji}
+                                        onClick={() => toggleReaction(comment.id, emoji)}
+                                        className="text-xl hover:scale-125 transition-transform p-0.5 rounded"
+                                      >{emoji}</button>
+                                    ))}
+                                  </div>
                                 </div>
                               </div>
                             </div>
@@ -5611,7 +5587,7 @@ onClick={() => {
       className={`w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none bg-gray-100 ${uiPractices.length === 1 ? 'cursor-not-allowed' : ''}`}
       disabled={uiPractices.length === 1}
     >
-      {uiPractices.length > 1 && <option value="">Select Function / Practice</option>}
+      {uiPractices.length > 1 && <option value="">Select practice</option>}
       {uiPractices.map(p => (
         <option key={p.id} value={p.id}>{p.name}</option>
       ))}
@@ -6142,7 +6118,7 @@ onClick={() => {
                   {/* Practice filter - só aparece se 2+ practices ativas, ou se 1 com nome diferente de General */}
                   {uiPractices.length > 1 || (uiPractices.length === 1 && uiPractices[0].name !== 'General') ? (
   <div>
-    <label className="block text-sm font-medium text-gray-600 mb-2">Function / Practice</label>
+    <label className="block text-sm font-medium text-gray-600 mb-2">Practice</label>
     <select
       value={filterPracticeId || ''}
       onChange={(e) => {
@@ -6164,88 +6140,17 @@ onClick={() => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-2">Category</label>
-                    <div className="flex items-center gap-2">
-                    <div className="relative category-dropdown-container flex-1">
-                      <div
-                        role="button"
-                        tabIndex={0}
-                        onClick={() => setShowFilterCategoryDropdown(!showFilterCategoryDropdown)}
-                        onKeyDown={(e) => e.key === 'Enter' && setShowFilterCategoryDropdown(!showFilterCategoryDropdown)}
-                        className="w-full p-2 border-2 border-gray-200 rounded-lg text-left flex items-center justify-between cursor-default focus:border-purple-500 focus:outline-none"
-                        style={{ fontFamily: 'inherit', fontSize: 'inherit', color: filters.problemCategory ? 'inherit' : '#6b7280', backgroundColor: '#f3f4f6' }}
-                      >
-                        <span>{filters.problemCategory || 'All'}</span>
-                        <span className="text-gray-500" style={{ fontSize: '10px' }}>▼</span>
-                      </div>
-                      {showFilterCategoryDropdown && (
-                        <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-gray-100 border-2 border-gray-200 rounded-lg shadow-xl">
-                          <div
-                            className="flex items-center"
-                            onMouseEnter={() => setHoveredCategory('__all__')}
-                            onMouseLeave={() => setHoveredCategory(null)}
-                          >
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setFilters({...filters, problemCategory: ''});
-                                setFilterTags([]);
-                                setShowFilterCategoryDropdown(false);
-                                setHoveredCategory(null);
-                              }}
-                              className={`flex-1 text-left px-3 py-2 hover:bg-purple-50 transition-colors ${!filters.problemCategory ? 'bg-purple-50 text-purple-700 font-medium' : 'text-gray-700'}`}
-                              style={{ fontFamily: 'inherit', fontSize: 'inherit' }}
-                            >
-                              All
-                            </button>
-                          </div>
-                          {problemCategories.map(cat => {
-                            const desc = categoryData[cat]?.description;
-                            return (
-                              <div
-                                key={cat}
-                                className="relative flex items-center"
-                                onMouseEnter={() => setHoveredCategory(cat)}
-                                onMouseLeave={() => setHoveredCategory(null)}
-                              >
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setFilters({...filters, problemCategory: cat});
-                                    setFilterTags([]);
-                                    setShowFilterCategoryDropdown(false);
-                                    setHoveredCategory(null);
-                                  }}
-                                  className={`flex-1 text-left px-3 py-2 hover:bg-purple-50 transition-colors ${filters.problemCategory === cat ? 'bg-purple-50 text-purple-700 font-medium' : 'text-gray-700'}`}
-                                  style={{ fontFamily: 'inherit', fontSize: 'inherit' }}
-                                >
-                                  {cat}
-                                </button>
-                                {desc && (
-                                  <>
-                                    <span className="pr-2 text-gray-400 text-xs cursor-default select-none">ⓘ</span>
-                                    {hoveredCategory === cat && (
-                                      <div className="hidden sm:block absolute left-full top-0 ml-2 z-[999] w-64 bg-gray-800 text-white rounded-lg p-3 shadow-2xl pointer-events-none" style={{ fontSize: '12px', lineHeight: '1.5' }}>
-                                        <p className="text-gray-200">{desc}</p>
-                                      </div>
-                                    )}
-                                  </>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                    {/* ⓘ mobile */}
-                    {problemCategories.some(cat => categoryData[cat]?.description) && (
-                      <button
-                        type="button"
-                        onClick={() => setShowCategoryDrawer(true)}
-                        className="sm:hidden flex-shrink-0 w-8 h-8 rounded-full border-2 border-gray-300 text-gray-500 hover:border-purple-400 hover:text-purple-600 flex items-center justify-center font-medium transition-colors"
-                        style={{ fontSize: '14px' }}
-                      >ⓘ</button>
-                    )}
-                    </div>
+                    <select
+                      value={filters.problemCategory}
+                      onChange={(e) => {
+                        setFilters({...filters, problemCategory: e.target.value});
+                        setFilterTags([]); // reset tags ao trocar categoria
+                      }}
+                      className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                    >
+                      <option value="">All</option>
+                      {problemCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                    </select>
                     {/* Tag chips — aparecem quando categoria selecionada tem tags */}
                     {filters.problemCategory && categoryData[filters.problemCategory]?.tags?.length > 0 && (() => {
                       // Só mostrar tags que já foram usadas em experiences dessa categoria
@@ -6427,7 +6332,7 @@ onClick={() => {
     {/* Practice filter - mesma lógica dos outros lugares */}
     {uiPractices.length > 1 || (uiPractices.length === 1 && uiPractices[0].name !== 'General') ? (
   <div className="mb-3">
-    <label className="block text-sm font-medium text-gray-700 mb-2">Function / Practice:</label>
+    <label className="block text-sm font-medium text-gray-700 mb-2">Practice:</label>
     <select
       value={filterPracticeId || ''}
       onChange={(e) => {
@@ -7429,7 +7334,7 @@ onClick={() => {
   </button>
 )}
         {/* Reações */}
-        <div className="flex flex-wrap gap-1 mt-2">
+        <div className="flex flex-wrap gap-1 mt-2 items-center">
           {Object.entries(reactions[comment.id] || {}).map(([emoji, ids]) => (
             <button
               key={emoji}
@@ -7440,21 +7345,24 @@ onClick={() => {
               <span className="text-xs font-medium">{ids.length}</span>
             </button>
           ))}
-          <div className="relative reaction-picker-container group">
+          <div className="relative group">
             <button
               className="flex items-center justify-center w-7 h-7 rounded-full border border-gray-300 bg-white text-gray-400 hover:border-purple-400 hover:text-purple-500 transition-colors"
               title="React"
-            ><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg></button>
-            <div className="hidden group-hover:block absolute bottom-full left-0 mb-1 z-50 bg-white border border-gray-200 rounded-xl shadow-xl p-2" style={{ width: '196px' }}>
-              <div className="grid grid-cols-7 gap-1">
-                {REACTION_EMOJIS.map(emoji => (
-                  <button
-                    key={emoji}
-                    onClick={() => toggleReaction(comment.id, emoji)}
-                    className="text-xl hover:scale-125 transition-transform p-0.5 rounded"
-                    title={emoji}
-                  >{emoji}</button>
-                ))}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+            </button>
+            <div className="hidden group-hover:block absolute bottom-0 left-0 z-50" style={{ paddingBottom: '28px', width: '196px' }}>
+              <div className="bg-white border border-gray-200 rounded-xl shadow-xl p-2">
+                <div className="grid grid-cols-7 gap-1">
+                  {REACTION_EMOJIS.map(emoji => (
+                    <button
+                      key={emoji}
+                      onClick={() => toggleReaction(comment.id, emoji)}
+                      className="text-xl hover:scale-125 transition-transform p-0.5 rounded"
+                    >{emoji}</button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
