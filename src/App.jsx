@@ -1461,6 +1461,12 @@ if (appSettings.requireEmployeeLogin && !isAdmin && exp.employeeId !== employeeI
     setCommentCvFiles(newFiles);
     
     await loadExperiences(true);
+    // Recarregar reações após novo comentário
+    const exp = experiences.find(e => e.id === experienceId);
+    if (exp?.comments?.length) {
+      const ids = exp.comments.map(c => c.id);
+      await loadReactions(ids);
+    }
   } catch (error) {
     console.error('Error adding comment:', error);
     alert('Error adding comment');
@@ -2990,26 +2996,23 @@ useEffect(() => {
                               </button>
                             ))}
                             {/* Botão para abrir picker */}
-                            <div className="relative reaction-picker-container">
+                            <div className="relative reaction-picker-container group">
                               <button
-                                onClick={() => setShowReactionPicker(prev => ({ ...prev, [comment.id]: !prev[comment.id] }))}
-                                className="flex items-center justify-center w-7 h-7 rounded-full border border-gray-200 bg-white text-gray-400 hover:bg-gray-100 text-sm transition-colors"
+                                className="flex items-center justify-center w-7 h-7 rounded-full border border-gray-300 bg-white text-gray-400 hover:border-purple-400 hover:text-purple-500 text-sm transition-colors"
                                 title="React"
-                              >😊</button>
-                              {showReactionPicker[comment.id] && (
-                                <div className="absolute bottom-full left-0 mb-1 z-50 bg-white border border-gray-200 rounded-xl shadow-xl p-2" style={{ width: '196px' }}>
-                                  <div className="grid grid-cols-7 gap-1">
-                                    {REACTION_EMOJIS.map(emoji => (
-                                      <button
-                                        key={emoji}
-                                        onClick={() => toggleReaction(comment.id, emoji)}
-                                        className="text-xl hover:scale-125 transition-transform p-0.5 rounded"
-                                        title={emoji}
-                                      >{emoji}</button>
-                                    ))}
-                                  </div>
+                              >👍</button>
+                              <div className="hidden group-hover:block absolute bottom-full left-0 mb-1 z-50 bg-white border border-gray-200 rounded-xl shadow-xl p-2" style={{ width: '196px' }}>
+                                <div className="grid grid-cols-7 gap-1">
+                                  {REACTION_EMOJIS.map(emoji => (
+                                    <button
+                                      key={emoji}
+                                      onClick={() => toggleReaction(comment.id, emoji)}
+                                      className="text-xl hover:scale-125 transition-transform p-0.5 rounded"
+                                      title={emoji}
+                                    >{emoji}</button>
+                                  ))}
                                 </div>
-                              )}
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -7435,26 +7438,23 @@ onClick={() => {
               <span className="text-xs font-medium">{ids.length}</span>
             </button>
           ))}
-          <div className="relative reaction-picker-container">
+          <div className="relative reaction-picker-container group">
             <button
-              onClick={() => setShowReactionPicker(prev => ({ ...prev, [comment.id]: !prev[comment.id] }))}
-              className="flex items-center justify-center w-7 h-7 rounded-full border border-gray-200 bg-white text-gray-400 hover:bg-gray-100 text-sm transition-colors"
+              className="flex items-center justify-center w-7 h-7 rounded-full border border-gray-300 bg-white text-gray-400 hover:border-purple-400 hover:text-purple-500 text-sm transition-colors"
               title="React"
-            >😊</button>
-            {showReactionPicker[comment.id] && (
-              <div className="absolute bottom-full left-0 mb-1 z-50 bg-white border border-gray-200 rounded-xl shadow-xl p-2" style={{ width: '196px' }}>
-                <div className="grid grid-cols-7 gap-1">
-                  {REACTION_EMOJIS.map(emoji => (
-                    <button
-                      key={emoji}
-                      onClick={() => toggleReaction(comment.id, emoji)}
-                      className="text-xl hover:scale-125 transition-transform p-0.5 rounded"
-                      title={emoji}
-                    >{emoji}</button>
-                  ))}
-                </div>
+            >👍</button>
+            <div className="hidden group-hover:block absolute bottom-full left-0 mb-1 z-50 bg-white border border-gray-200 rounded-xl shadow-xl p-2" style={{ width: '196px' }}>
+              <div className="grid grid-cols-7 gap-1">
+                {REACTION_EMOJIS.map(emoji => (
+                  <button
+                    key={emoji}
+                    onClick={() => toggleReaction(comment.id, emoji)}
+                    className="text-xl hover:scale-125 transition-transform p-0.5 rounded"
+                    title={emoji}
+                  >{emoji}</button>
+                ))}
               </div>
-            )}
+            </div>
           </div>
         </div>
       </div>
