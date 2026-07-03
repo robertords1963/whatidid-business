@@ -7423,6 +7423,40 @@ onClick={() => {
     🗑️ Delete Comment
   </button>
 )}
+        {/* Reações */}
+        <div className="flex flex-wrap gap-1 mt-2">
+          {Object.entries(reactions[comment.id] || {}).map(([emoji, ids]) => (
+            <button
+              key={emoji}
+              onClick={() => toggleReaction(comment.id, emoji)}
+              className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-sm border transition-colors ${ids.includes(employeeId) ? 'bg-purple-100 border-purple-300 text-purple-700' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-100'}`}
+            >
+              <span>{emoji}</span>
+              <span className="text-xs font-medium">{ids.length}</span>
+            </button>
+          ))}
+          <div className="relative reaction-picker-container">
+            <button
+              onClick={() => setShowReactionPicker(prev => ({ ...prev, [comment.id]: !prev[comment.id] }))}
+              className="flex items-center justify-center w-7 h-7 rounded-full border border-gray-200 bg-white text-gray-400 hover:bg-gray-100 text-sm transition-colors"
+              title="React"
+            >😊</button>
+            {showReactionPicker[comment.id] && (
+              <div className="absolute bottom-full left-0 mb-1 z-50 bg-white border border-gray-200 rounded-xl shadow-xl p-2" style={{ width: '196px' }}>
+                <div className="grid grid-cols-7 gap-1">
+                  {REACTION_EMOJIS.map(emoji => (
+                    <button
+                      key={emoji}
+                      onClick={() => toggleReaction(comment.id, emoji)}
+                      className="text-xl hover:scale-125 transition-transform p-0.5 rounded"
+                      title={emoji}
+                    >{emoji}</button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     ))}
   </div>
