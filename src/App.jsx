@@ -1461,11 +1461,13 @@ if (appSettings.requireEmployeeLogin && !isAdmin && exp.employeeId !== employeeI
     setCommentCvFiles(newFiles);
     
     await loadExperiences(true);
-    // Recarregar reações após novo comentário
-    const exp = experiences.find(e => e.id === experienceId);
-    if (exp?.comments?.length) {
-      const ids = exp.comments.map(c => c.id);
-      await loadReactions(ids);
+    // Recarregar reações depois do reload completo
+    const { data: freshComments } = await supabase
+      .from('comments')
+      .select('id')
+      .eq('experience_id', experienceId);
+    if (freshComments?.length) {
+      await loadReactions(freshComments.map(c => c.id));
     }
   } catch (error) {
     console.error('Error adding comment:', error);
@@ -2998,9 +3000,9 @@ useEffect(() => {
                             {/* Botão para abrir picker */}
                             <div className="relative reaction-picker-container group">
                               <button
-                                className="flex items-center justify-center w-7 h-7 rounded-full border border-gray-300 bg-white text-gray-400 hover:border-purple-400 hover:text-purple-500 text-sm transition-colors"
+                                className="flex items-center justify-center w-7 h-7 rounded-full border border-gray-300 bg-white text-gray-400 hover:border-purple-400 hover:text-purple-500 transition-colors"
                                 title="React"
-                              >👍</button>
+                              ><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg></button>
                               <div className="hidden group-hover:block absolute bottom-full left-0 mb-1 z-50 bg-white border border-gray-200 rounded-xl shadow-xl p-2" style={{ width: '196px' }}>
                                 <div className="grid grid-cols-7 gap-1">
                                   {REACTION_EMOJIS.map(emoji => (
@@ -7440,9 +7442,9 @@ onClick={() => {
           ))}
           <div className="relative reaction-picker-container group">
             <button
-              className="flex items-center justify-center w-7 h-7 rounded-full border border-gray-300 bg-white text-gray-400 hover:border-purple-400 hover:text-purple-500 text-sm transition-colors"
+              className="flex items-center justify-center w-7 h-7 rounded-full border border-gray-300 bg-white text-gray-400 hover:border-purple-400 hover:text-purple-500 transition-colors"
               title="React"
-            >👍</button>
+            ><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg></button>
             <div className="hidden group-hover:block absolute bottom-full left-0 mb-1 z-50 bg-white border border-gray-200 rounded-xl shadow-xl p-2" style={{ width: '196px' }}>
               <div className="grid grid-cols-7 gap-1">
                 {REACTION_EMOJIS.map(emoji => (
