@@ -2862,7 +2862,7 @@ useEffect(() => {
     };
     const totalChildCount = countAllDescendants(fo.id);
     const practiceName = practices.find(p => p.id === fo.practiceId)?.name;
-    const categoryLabel = practiceName && practiceName !== 'General' && practiceName !== 'Corporate Areas'
+    const categoryLabel = practiceName && practiceName !== 'General'
       ? `${practiceName} / ${fo.problemCategory}`
       : fo.problemCategory;
     const searchTerms = filters.searchText ? filters.searchText.toLowerCase().trim().split(/\s+/) : [];
@@ -2930,16 +2930,11 @@ useEffect(() => {
             {/* P/A/R grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
               <div className="space-y-2">
-                <div>
+                <div className="flex items-center justify-between">
                   <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>Problem</h4>
-                  {categoryLabel.includes(' / ') ? (
-                    <div className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-lg mt-1 self-start">
-                      <div>{categoryLabel.split(' / ')[0]}</div>
-                      <div>{categoryLabel.split(' / ')[1]}</div>
-                    </div>
-                  ) : (
-                    <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full mt-1">{categoryLabel}</span>
-                  )}
+                  <div className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-lg mt-1" style={{width:'fit-content'}}>
+  {categoryLabel.includes(' / ') ? <>{categoryLabel.split(' / ')[0]}<br/>{categoryLabel.split(' / ')[1]}</> : categoryLabel}
+</div>
                 </div>
                 <p className="text-sm text-gray-700">{highlightText(fo.problem, searchTerms)}</p>
               </div>
@@ -6671,7 +6666,7 @@ onClick={() => {
               const renderFullThread = (exp, isMatched, isRootLevel, threadIndex = 1) => {
                 const children = experiences.filter(e => e.parentExperienceId === exp.id);
                 const pname = practices.find(p => p.id === exp.practiceId)?.name;
-                const catLabel = pname && pname !== 'General' && pname !== 'Corporate Areas' ? `${pname} / ${exp.problemCategory}` : exp.problemCategory;
+                const catLabel = pname && pname !== 'General' ? `${pname} / ${exp.problemCategory}` : exp.problemCategory;
                 const searchTerms = filters.searchText ? filters.searchText.toLowerCase().trim().split(/\s+/) : [];
 
                 return (
@@ -6702,16 +6697,11 @@ onClick={() => {
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
                         <div className="space-y-2">
-                          <div>
+                          <div className="flex items-center justify-between">
                             <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>Problem</h4>
-                            {catLabel.includes(' / ') ? (
-                              <div className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-lg mt-1 self-start">
-                                <div>{catLabel.split(' / ')[0]}</div>
-                                <div>{catLabel.split(' / ')[1]}</div>
-                              </div>
-                            ) : (
-                              <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full mt-1">{catLabel}</span>
-                            )}
+                            <div className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-lg mt-1" style={{width:'fit-content'}}>
+  {catLabel.includes(' / ') ? <>{catLabel.split(' / ')[0]}<br/>{catLabel.split(' / ')[1]}</> : catLabel}
+</div>
                           </div>
                           <p className="text-sm text-gray-700">{highlightText(exp.problem, searchTerms)}</p>
                         </div>
@@ -6822,16 +6812,11 @@ onClick={() => {
                               </div>
                               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
                                 <div className="space-y-2">
-                                  <div>
+                                  <div className="flex items-center justify-between">
                                     <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>Problem</h4>
-                                    {catLabel.includes(' / ') ? (
-                              <div className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-lg mt-1 self-start">
-                                <div>{catLabel.split(' / ')[0]}</div>
-                                <div>{catLabel.split(' / ')[1]}</div>
-                              </div>
-                            ) : (
-                              <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full mt-1">{catLabel}</span>
-                            )}
+                                    <div className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-lg mt-1" style={{width:'fit-content'}}>
+  {catLabel.includes(' / ') ? <>{catLabel.split(' / ')[0]}<br/>{catLabel.split(' / ')[1]}</> : catLabel}
+</div>
                                   </div>
                                   <p className="text-sm text-gray-700">{ancestor.problem}</p>
                                 </div>
@@ -7001,7 +6986,7 @@ onClick={() => {
                         <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full">
                           {(() => {
                             const pname = practices.find(p => p.id === exp.practiceId)?.name;
-                            return pname && pname !== 'General' && pname !== 'Corporate Areas' ? `${pname} / ${exp.problemCategory}` : exp.problemCategory;
+                            return pname && pname !== 'General' ? `${pname} / ${exp.problemCategory}` : exp.problemCategory;
                           })()}
                         </span>
                       </div>
