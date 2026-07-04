@@ -2138,7 +2138,7 @@ useEffect(() => {
     }
   };
 
-  const addQuote = async () => { 
+  const addQuote = async () => {
     if (!newQuote.text.trim()) {
       alert('Please enter quote text');
       return;
@@ -2932,11 +2932,14 @@ useEffect(() => {
               <div className="space-y-2">
                 <div>
                   <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>Problem</h4>
-                  <div className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-lg text-center leading-tight mt-1" style={{ display: 'table' }}>
-  {categoryLabel.includes(' / ') ? (
-    <><div>{categoryLabel.split(' / ')[0]}</div><div>{categoryLabel.split(' / ')[1]}</div></>
-  ) : categoryLabel}
-</div>
+                  {categoryLabel.includes(' / ') ? (
+                    <div className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-lg mt-1 self-start">
+                      <div>{categoryLabel.split(' / ')[0]}</div>
+                      <div>{categoryLabel.split(' / ')[1]}</div>
+                    </div>
+                  ) : (
+                    <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full mt-1">{categoryLabel}</span>
+                  )}
                 </div>
                 <p className="text-sm text-gray-700">{highlightText(fo.problem, searchTerms)}</p>
               </div>
@@ -6701,11 +6704,14 @@ onClick={() => {
                         <div className="space-y-2">
                           <div>
                             <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>Problem</h4>
-                            <div className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-lg text-center leading-tight mt-1" style={{ display: 'table' }}>
-  {catLabel.includes(' / ') ? (
-    <><div>{catLabel.split(' / ')[0]}</div><div>{catLabel.split(' / ')[1]}</div></>
-  ) : catLabel}
-</div>
+                            {catLabel.includes(' / ') ? (
+                              <div className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-lg mt-1 self-start">
+                                <div>{catLabel.split(' / ')[0]}</div>
+                                <div>{catLabel.split(' / ')[1]}</div>
+                              </div>
+                            ) : (
+                              <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full mt-1">{catLabel}</span>
+                            )}
                           </div>
                           <p className="text-sm text-gray-700">{highlightText(exp.problem, searchTerms)}</p>
                         </div>
@@ -6818,11 +6824,14 @@ onClick={() => {
                                 <div className="space-y-2">
                                   <div>
                                     <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>Problem</h4>
-                                    <div className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-lg text-center leading-tight mt-1" style={{ display: 'table' }}>
-  {catLabel.includes(' / ') ? (
-    <><div>{catLabel.split(' / ')[0]}</div><div>{catLabel.split(' / ')[1]}</div></>
-  ) : catLabel}
-</div>
+                                    {catLabel.includes(' / ') ? (
+                              <div className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-lg mt-1 self-start">
+                                <div>{catLabel.split(' / ')[0]}</div>
+                                <div>{catLabel.split(' / ')[1]}</div>
+                              </div>
+                            ) : (
+                              <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full mt-1">{catLabel}</span>
+                            )}
                                   </div>
                                   <p className="text-sm text-gray-700">{ancestor.problem}</p>
                                 </div>
