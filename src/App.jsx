@@ -6571,9 +6571,11 @@ onClick={() => {
             {/* CONTEÚDO DA TAB KEY INSIGHTS */}
 {filterMode === 'key_insights' && (
   <div>
-    {/* Practice filter - mesma lógica dos outros lugares */}
-    {uiPractices.length > 1 || (uiPractices.length === 1 && uiPractices[0].name !== 'General') ? (
-  <div className="mb-3">
+    {/* Filtros principais - mesma largura de coluna da aba Individual Experiences */}
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-3">
+      {/* Practice filter - mesma lógica dos outros lugares */}
+      {uiPractices.length > 1 || (uiPractices.length === 1 && uiPractices[0].name !== 'General') ? (
+  <div>
     <label className="block text-sm font-medium text-gray-700 mb-2">Function / Practice:</label>
     <select
       value={filterPracticeId || ''}
@@ -6595,85 +6597,88 @@ onClick={() => {
   </div>
 ) : null}
 
-    <label className="block text-sm font-medium text-gray-700 mb-3">Category:</label>
-    <div className="flex items-center gap-2">
-      <div className="flex-1 relative key-insight-category-dropdown-container">
-        <div
-          role="button"
-          tabIndex={0}
-          onClick={() => setShowKeyInsightCategoryDropdown(!showKeyInsightCategoryDropdown)}
-          onKeyDown={(e) => e.key === 'Enter' && setShowKeyInsightCategoryDropdown(!showKeyInsightCategoryDropdown)}
-          className="w-full p-2 border-2 border-gray-200 rounded-lg text-left flex items-center justify-between cursor-default focus:border-purple-500"
-          style={{ fontFamily: 'inherit', fontSize: 'inherit' }}
-        >
-          <span>{keyInsightCategory || 'All'}</span>
-          <span className="text-gray-500" style={{ fontSize: '10px' }}>▼</span>
-        </div>
-
-        {showKeyInsightCategoryDropdown && (
-          <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border-2 border-gray-200 rounded-lg shadow-xl" style={{ overflow: 'visible' }}>
-            <button
-              type="button"
-              onClick={() => {
-                setKeyInsightCategory('');
-                setShowKeyInsights(false);
-                setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '' });
-                setShowKeyInsightCategoryDropdown(false);
-              }}
-              className={`w-full text-left px-3 py-2 hover:bg-purple-50 transition-colors ${!keyInsightCategory ? 'bg-purple-50 text-purple-700 font-medium' : 'text-gray-700'}`}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Category:</label>
+        <div className="flex items-center gap-2">
+          <div className="flex-1 relative key-insight-category-dropdown-container">
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => setShowKeyInsightCategoryDropdown(!showKeyInsightCategoryDropdown)}
+              onKeyDown={(e) => e.key === 'Enter' && setShowKeyInsightCategoryDropdown(!showKeyInsightCategoryDropdown)}
+              className="w-full p-2 border-2 border-gray-200 rounded-lg text-left flex items-center justify-between cursor-default focus:border-purple-500"
               style={{ fontFamily: 'inherit', fontSize: 'inherit' }}
             >
-              All
-            </button>
-            {problemCategories.map(cat => {
-              const desc = categoryData[cat]?.description;
-              return (
-                <div
-                  key={cat}
-                  className="relative flex items-center"
-                  onMouseEnter={() => setHoveredKeyInsightCategory(cat)}
-                  onMouseLeave={() => setHoveredKeyInsightCategory(null)}
-                >
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setKeyInsightCategory(cat);
-                      setShowKeyInsights(true);
-                      setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '' });
-                      setShowKeyInsightCategoryDropdown(false);
-                      setHoveredKeyInsightCategory(null);
-                    }}
-                    className={`flex-1 text-left px-3 py-2 hover:bg-purple-50 transition-colors ${keyInsightCategory === cat ? 'bg-purple-50 text-purple-700 font-medium' : 'text-gray-700'}`}
-                    style={{ fontFamily: 'inherit', fontSize: 'inherit' }}
-                  >
-                    {cat}
-                  </button>
-                  {desc && (
-                    <>
-                      <span className="pr-2 text-gray-400 text-xs cursor-default select-none">ⓘ</span>
-                      {hoveredKeyInsightCategory === cat && (
-                        <div className="hidden sm:block absolute left-full top-0 ml-2 z-[999] w-64 bg-gray-800 text-white rounded-lg p-3 shadow-2xl pointer-events-none" style={{ fontSize: '12px', lineHeight: '1.5' }}>
-                          <p className="text-gray-200">{desc}</p>
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+              <span>{keyInsightCategory || 'All'}</span>
+              <span className="text-gray-500" style={{ fontSize: '10px' }}>▼</span>
+            </div>
 
-      {/* ⓘ mobile */}
-      {problemCategories.some(cat => categoryData[cat]?.description) && (
-        <button
-          type="button"
-          onClick={() => setShowCategoryDrawer(true)}
-          className="sm:hidden flex-shrink-0 w-8 h-8 rounded-full border-2 border-gray-300 text-gray-500 hover:border-purple-400 hover:text-purple-600 flex items-center justify-center font-medium transition-colors"
-          style={{ fontSize: '14px' }}
-        >ⓘ</button>
-      )}
+            {showKeyInsightCategoryDropdown && (
+              <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border-2 border-gray-200 rounded-lg shadow-xl" style={{ overflow: 'visible' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setKeyInsightCategory('');
+                    setShowKeyInsights(false);
+                    setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '' });
+                    setShowKeyInsightCategoryDropdown(false);
+                  }}
+                  className={`w-full text-left px-3 py-2 hover:bg-purple-50 transition-colors ${!keyInsightCategory ? 'bg-purple-50 text-purple-700 font-medium' : 'text-gray-700'}`}
+                  style={{ fontFamily: 'inherit', fontSize: 'inherit' }}
+                >
+                  All
+                </button>
+                {problemCategories.map(cat => {
+                  const desc = categoryData[cat]?.description;
+                  return (
+                    <div
+                      key={cat}
+                      className="relative flex items-center"
+                      onMouseEnter={() => setHoveredKeyInsightCategory(cat)}
+                      onMouseLeave={() => setHoveredKeyInsightCategory(null)}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setKeyInsightCategory(cat);
+                          setShowKeyInsights(true);
+                          setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '' });
+                          setShowKeyInsightCategoryDropdown(false);
+                          setHoveredKeyInsightCategory(null);
+                        }}
+                        className={`flex-1 text-left px-3 py-2 hover:bg-purple-50 transition-colors ${keyInsightCategory === cat ? 'bg-purple-50 text-purple-700 font-medium' : 'text-gray-700'}`}
+                        style={{ fontFamily: 'inherit', fontSize: 'inherit' }}
+                      >
+                        {cat}
+                      </button>
+                      {desc && (
+                        <>
+                          <span className="pr-2 text-gray-400 text-xs cursor-default select-none">ⓘ</span>
+                          {hoveredKeyInsightCategory === cat && (
+                            <div className="hidden sm:block absolute left-full top-0 ml-2 z-[999] w-64 bg-gray-800 text-white rounded-lg p-3 shadow-2xl pointer-events-none" style={{ fontSize: '12px', lineHeight: '1.5' }}>
+                              <p className="text-gray-200">{desc}</p>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* ⓘ mobile */}
+          {problemCategories.some(cat => categoryData[cat]?.description) && (
+            <button
+              type="button"
+              onClick={() => setShowCategoryDrawer(true)}
+              className="sm:hidden flex-shrink-0 w-8 h-8 rounded-full border-2 border-gray-300 text-gray-500 hover:border-purple-400 hover:text-purple-600 flex items-center justify-center font-medium transition-colors"
+              style={{ fontSize: '14px' }}
+            >ⓘ</button>
+          )}
+        </div>
+      </div>
     </div>
     
     <div className="mt-4">
