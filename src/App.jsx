@@ -74,6 +74,29 @@ const marqueeStyles = `
   }
 `;
 
+// Badge de Function/Practice + Category exibido no bloco "Problem".
+// Quando o texto tem "Practice / Category", força quebra em 2 linhas
+// (em vez de deixar o texto encolher/estourar dentro do pill redondo).
+function CategoryBadge({ label }) {
+  if (!label) return null;
+  const parts = label.split(' / ');
+  if (parts.length < 2) {
+    return (
+      <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full whitespace-nowrap">
+        {label}
+      </span>
+    );
+  }
+  const [practicePart, ...rest] = parts;
+  const categoryPart = rest.join(' / ');
+  return (
+    <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-lg text-right leading-tight inline-block">
+      <span className="block">{practicePart}</span>
+      <span className="block">{categoryPart}</span>
+    </span>
+  );
+}
+
 export default function WhatIDid() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminPassword, setAdminPassword] = useState('');
@@ -2932,9 +2955,7 @@ useEffect(() => {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>Problem</h4>
-                  <div className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-lg mt-1" style={{width:'fit-content'}}>
-  {categoryLabel.includes(' / ') ? <>{categoryLabel.split(' / ')[0]}<br/>{categoryLabel.split(' / ')[1]}</> : categoryLabel}
-</div>
+                  <CategoryBadge label={categoryLabel} />
                 </div>
                 <p className="text-sm text-gray-700">{highlightText(fo.problem, searchTerms)}</p>
               </div>
@@ -6699,9 +6720,7 @@ onClick={() => {
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
                             <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>Problem</h4>
-                            <div className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-lg mt-1" style={{width:'fit-content'}}>
-  {catLabel.includes(' / ') ? <>{catLabel.split(' / ')[0]}<br/>{catLabel.split(' / ')[1]}</> : catLabel}
-</div>
+                            <CategoryBadge label={catLabel} />
                           </div>
                           <p className="text-sm text-gray-700">{highlightText(exp.problem, searchTerms)}</p>
                         </div>
@@ -6814,9 +6833,7 @@ onClick={() => {
                                 <div className="space-y-2">
                                   <div className="flex items-center justify-between">
                                     <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>Problem</h4>
-                                    <div className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-lg mt-1" style={{width:'fit-content'}}>
-  {catLabel.includes(' / ') ? <>{catLabel.split(' / ')[0]}<br/>{catLabel.split(' / ')[1]}</> : catLabel}
-</div>
+                                    <CategoryBadge label={catLabel} />
                                   </div>
                                   <p className="text-sm text-gray-700">{ancestor.problem}</p>
                                 </div>
@@ -6983,12 +7000,10 @@ onClick={() => {
                           <AlertCircle size={16} />
                           Problem
                         </h4>
-                        <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full">
-                          {(() => {
-                            const pname = practices.find(p => p.id === exp.practiceId)?.name;
-                            return pname && pname !== 'General' ? `${pname} / ${exp.problemCategory}` : exp.problemCategory;
-                          })()}
-                        </span>
+                        <CategoryBadge label={(() => {
+                          const pname = practices.find(p => p.id === exp.practiceId)?.name;
+                          return pname && pname !== 'General' ? `${pname} / ${exp.problemCategory}` : exp.problemCategory;
+                        })()} />
                       </div>
                       <p className="text-sm text-gray-700">
   {highlightText(exp.problem, filters.searchText ? filters.searchText.toLowerCase().trim().split(/\s+/) : [])}
