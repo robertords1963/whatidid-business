@@ -85,7 +85,7 @@ const HIDDEN_PRACTICE_NAMES = ['General', 'Corporate Areas'];
 // (ex: "AI, Data, Analytics & Reporting"), deixa o texto quebrar naturalmente
 // nos espaços/vírgulas dentro de uma largura máxima, em vez de estourar numa
 // linha só.
-const LONG_BADGE_TEXT_THRESHOLD = 18; // caracteres — acima disso, vira caixa em vez de pílula
+const LONG_BADGE_TEXT_THRESHOLD = 20; // caracteres — acima disso, vira caixa em vez de pílula
 
 function CategoryBadge({ label }) {
   if (!label) return null;
