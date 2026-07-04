@@ -2932,7 +2932,11 @@ useEffect(() => {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>Problem</h4>
-                  <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full">{categoryLabel}</span>
+                  <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full text-center leading-tight">
+  {categoryLabel.includes(' / ') ? (
+    <>{categoryLabel.split(' / ')[0]}<br/>{categoryLabel.split(' / ')[1]}</>
+  ) : categoryLabel}
+</span>
                 </div>
                 <p className="text-sm text-gray-700">{highlightText(fo.problem, searchTerms)}</p>
               </div>
@@ -6697,7 +6701,11 @@ onClick={() => {
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
                             <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>Problem</h4>
-                            <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full">{catLabel}</span>
+                            <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full text-center leading-tight">
+  {catLabel.includes(' / ') ? (
+    <>{catLabel.split(' / ')[0]}<br/>{catLabel.split(' / ')[1]}</>
+  ) : catLabel}
+</span>
                           </div>
                           <p className="text-sm text-gray-700">{highlightText(exp.problem, searchTerms)}</p>
                         </div>
@@ -6810,7 +6818,11 @@ onClick={() => {
                                 <div className="space-y-2">
                                   <div className="flex items-center justify-between">
                                     <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>Problem</h4>
-                                    <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full">{catLabel}</span>
+                                    <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full text-center leading-tight">
+  {catLabel.includes(' / ') ? (
+    <>{catLabel.split(' / ')[0]}<br/>{catLabel.split(' / ')[1]}</>
+  ) : catLabel}
+</span>
                                   </div>
                                   <p className="text-sm text-gray-700">{ancestor.problem}</p>
                                 </div>
