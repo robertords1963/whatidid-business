@@ -172,6 +172,9 @@ const [showCategoryDropdown, setShowCategoryDropdown] = useState(false); // cust
 const [filterTags, setFilterTags] = useState([]); // tags ativas no filtro See What Others Did
 const [editingTags, setEditingTags] = useState(null); // id da experience com tags em edição
 const [showFilterCategoryDropdown, setShowFilterCategoryDropdown] = useState(false);
+const [hoveredFilterCategory, setHoveredFilterCategory] = useState(null); // hover desktop no filtro do See What Others Did
+const [showKeyInsightCategoryDropdown, setShowKeyInsightCategoryDropdown] = useState(false);
+const [hoveredKeyInsightCategory, setHoveredKeyInsightCategory] = useState(null); // hover desktop no filtro do Key Insights
 const [reactions, setReactions] = useState({}); // { comment_id: { emoji: [employee_ids] } }
 
 const REACTION_EMOJIS = ['👍','❤️','💡','🎯','😮','😢','🙂','😀','🤩','😂','👏','🙏','💪','👊'];
@@ -2025,6 +2028,32 @@ useEffect(() => {
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, [showCategoryDropdown]);
+
+  // Fechar dropdown de categoria do filtro (See What Others Did) ao clicar fora
+  useEffect(() => {
+    if (!showFilterCategoryDropdown) return;
+    const handleClick = (e) => {
+      if (!e.target.closest('.filter-category-dropdown-container')) {
+        setShowFilterCategoryDropdown(false);
+        setHoveredFilterCategory(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [showFilterCategoryDropdown]);
+
+  // Fechar dropdown de categoria do filtro (Key Insights) ao clicar fora
+  useEffect(() => {
+    if (!showKeyInsightCategoryDropdown) return;
+    const handleClick = (e) => {
+      if (!e.target.closest('.key-insight-category-dropdown-container')) {
+        setShowKeyInsightCategoryDropdown(false);
+        setHoveredKeyInsightCategory(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [showKeyInsightCategoryDropdown]);
 
   // Carregar reações quando comentários são expandidos
   useEffect(() => {
@@ -6287,17 +6316,83 @@ onClick={() => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-2">Category</label>
-                    <select
-                      value={filters.problemCategory}
-                      onChange={(e) => {
-                        setFilters({...filters, problemCategory: e.target.value});
-                        setFilterTags([]); // reset tags ao trocar categoria
-                      }}
-                      className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-                    >
-                      <option value="">All</option>
-                      {problemCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-                    </select>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 relative filter-category-dropdown-container">
+                        <div
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => setShowFilterCategoryDropdown(!showFilterCategoryDropdown)}
+                          onKeyDown={(e) => e.key === 'Enter' && setShowFilterCategoryDropdown(!showFilterCategoryDropdown)}
+                          className="w-full p-2 border-2 border-gray-200 rounded-lg text-left flex items-center justify-between cursor-default focus:border-purple-500"
+                          style={{ fontFamily: 'inherit', fontSize: 'inherit' }}
+                        >
+                          <span>{filters.problemCategory || 'All'}</span>
+                          <span className="text-gray-500" style={{ fontSize: '10px' }}>▼</span>
+                        </div>
+
+                        {showFilterCategoryDropdown && (
+                          <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border-2 border-gray-200 rounded-lg shadow-xl" style={{ overflow: 'visible' }}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setFilters({...filters, problemCategory: ''});
+                                setFilterTags([]);
+                                setShowFilterCategoryDropdown(false);
+                              }}
+                              className={`w-full text-left px-3 py-2 hover:bg-purple-50 transition-colors ${!filters.problemCategory ? 'bg-purple-50 text-purple-700 font-medium' : 'text-gray-700'}`}
+                              style={{ fontFamily: 'inherit', fontSize: 'inherit' }}
+                            >
+                              All
+                            </button>
+                            {problemCategories.map(cat => {
+                              const desc = categoryData[cat]?.description;
+                              return (
+                                <div
+                                  key={cat}
+                                  className="relative flex items-center"
+                                  onMouseEnter={() => setHoveredFilterCategory(cat)}
+                                  onMouseLeave={() => setHoveredFilterCategory(null)}
+                                >
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setFilters({...filters, problemCategory: cat});
+                                      setFilterTags([]);
+                                      setShowFilterCategoryDropdown(false);
+                                      setHoveredFilterCategory(null);
+                                    }}
+                                    className={`flex-1 text-left px-3 py-2 hover:bg-purple-50 transition-colors ${filters.problemCategory === cat ? 'bg-purple-50 text-purple-700 font-medium' : 'text-gray-700'}`}
+                                    style={{ fontFamily: 'inherit', fontSize: 'inherit' }}
+                                  >
+                                    {cat}
+                                  </button>
+                                  {desc && (
+                                    <>
+                                      <span className="pr-2 text-gray-400 text-xs cursor-default select-none">ⓘ</span>
+                                      {hoveredFilterCategory === cat && (
+                                        <div className="hidden sm:block absolute left-full top-0 ml-2 z-[999] w-64 bg-gray-800 text-white rounded-lg p-3 shadow-2xl pointer-events-none" style={{ fontSize: '12px', lineHeight: '1.5' }}>
+                                          <p className="text-gray-200">{desc}</p>
+                                        </div>
+                                      )}
+                                    </>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* ⓘ mobile */}
+                      {problemCategories.some(cat => categoryData[cat]?.description) && (
+                        <button
+                          type="button"
+                          onClick={() => setShowCategoryDrawer(true)}
+                          className="sm:hidden flex-shrink-0 w-8 h-8 rounded-full border-2 border-gray-300 text-gray-500 hover:border-purple-400 hover:text-purple-600 flex items-center justify-center font-medium transition-colors"
+                          style={{ fontSize: '14px' }}
+                        >ⓘ</button>
+                      )}
+                    </div>
                     {/* Tag chips — aparecem quando categoria selecionada tem tags */}
                     {filters.problemCategory && categoryData[filters.problemCategory]?.tags?.length > 0 && (() => {
                       // Só mostrar tags que já foram usadas em experiences dessa categoria
@@ -6501,25 +6596,85 @@ onClick={() => {
 ) : null}
 
     <label className="block text-sm font-medium text-gray-700 mb-3">Category:</label>
-    <select
-      value={keyInsightCategory}
-      onChange={(e) => {
-        const value = e.target.value;
-        setKeyInsightCategory(value);
-        if (value) {
-          setShowKeyInsights(true);
-        } else {
-          setShowKeyInsights(false);
-        }
-        setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '' });
-      }}
-      className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-    >
-      <option value="">All</option>
-      {problemCategories.map(cat => (
-        <option key={cat} value={cat}>{cat}</option>
-      ))}
-    </select>
+    <div className="flex items-center gap-2">
+      <div className="flex-1 relative key-insight-category-dropdown-container">
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={() => setShowKeyInsightCategoryDropdown(!showKeyInsightCategoryDropdown)}
+          onKeyDown={(e) => e.key === 'Enter' && setShowKeyInsightCategoryDropdown(!showKeyInsightCategoryDropdown)}
+          className="w-full p-2 border-2 border-gray-200 rounded-lg text-left flex items-center justify-between cursor-default focus:border-purple-500"
+          style={{ fontFamily: 'inherit', fontSize: 'inherit' }}
+        >
+          <span>{keyInsightCategory || 'All'}</span>
+          <span className="text-gray-500" style={{ fontSize: '10px' }}>▼</span>
+        </div>
+
+        {showKeyInsightCategoryDropdown && (
+          <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border-2 border-gray-200 rounded-lg shadow-xl" style={{ overflow: 'visible' }}>
+            <button
+              type="button"
+              onClick={() => {
+                setKeyInsightCategory('');
+                setShowKeyInsights(false);
+                setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '' });
+                setShowKeyInsightCategoryDropdown(false);
+              }}
+              className={`w-full text-left px-3 py-2 hover:bg-purple-50 transition-colors ${!keyInsightCategory ? 'bg-purple-50 text-purple-700 font-medium' : 'text-gray-700'}`}
+              style={{ fontFamily: 'inherit', fontSize: 'inherit' }}
+            >
+              All
+            </button>
+            {problemCategories.map(cat => {
+              const desc = categoryData[cat]?.description;
+              return (
+                <div
+                  key={cat}
+                  className="relative flex items-center"
+                  onMouseEnter={() => setHoveredKeyInsightCategory(cat)}
+                  onMouseLeave={() => setHoveredKeyInsightCategory(null)}
+                >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setKeyInsightCategory(cat);
+                      setShowKeyInsights(true);
+                      setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '' });
+                      setShowKeyInsightCategoryDropdown(false);
+                      setHoveredKeyInsightCategory(null);
+                    }}
+                    className={`flex-1 text-left px-3 py-2 hover:bg-purple-50 transition-colors ${keyInsightCategory === cat ? 'bg-purple-50 text-purple-700 font-medium' : 'text-gray-700'}`}
+                    style={{ fontFamily: 'inherit', fontSize: 'inherit' }}
+                  >
+                    {cat}
+                  </button>
+                  {desc && (
+                    <>
+                      <span className="pr-2 text-gray-400 text-xs cursor-default select-none">ⓘ</span>
+                      {hoveredKeyInsightCategory === cat && (
+                        <div className="hidden sm:block absolute left-full top-0 ml-2 z-[999] w-64 bg-gray-800 text-white rounded-lg p-3 shadow-2xl pointer-events-none" style={{ fontSize: '12px', lineHeight: '1.5' }}>
+                          <p className="text-gray-200">{desc}</p>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* ⓘ mobile */}
+      {problemCategories.some(cat => categoryData[cat]?.description) && (
+        <button
+          type="button"
+          onClick={() => setShowCategoryDrawer(true)}
+          className="sm:hidden flex-shrink-0 w-8 h-8 rounded-full border-2 border-gray-300 text-gray-500 hover:border-purple-400 hover:text-purple-600 flex items-center justify-center font-medium transition-colors"
+          style={{ fontSize: '14px' }}
+        >ⓘ</button>
+      )}
+    </div>
     
     <div className="mt-4">
       <div className="text-sm font-bold text-purple-600 mb-2">
