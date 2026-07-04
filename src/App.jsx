@@ -2932,11 +2932,11 @@ useEffect(() => {
               <div className="space-y-2">
                 <div>
                   <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>Problem</h4>
-                  <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-lg text-center leading-tight mt-1" style={{ display: 'inline-block' }}>
+                  <div className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-lg text-center leading-tight mt-1" style={{ display: 'table' }}>
   {categoryLabel.includes(' / ') ? (
     <><div>{categoryLabel.split(' / ')[0]}</div><div>{categoryLabel.split(' / ')[1]}</div></>
   ) : categoryLabel}
-</span>
+</div>
                 </div>
                 <p className="text-sm text-gray-700">{highlightText(fo.problem, searchTerms)}</p>
               </div>
@@ -6701,11 +6701,11 @@ onClick={() => {
                         <div className="space-y-2">
                           <div>
                             <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>Problem</h4>
-                            <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-lg text-center leading-tight mt-1" style={{ display: 'inline-block' }}>
+                            <div className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-lg text-center leading-tight mt-1" style={{ display: 'table' }}>
   {catLabel.includes(' / ') ? (
     <><div>{catLabel.split(' / ')[0]}</div><div>{catLabel.split(' / ')[1]}</div></>
   ) : catLabel}
-</span>
+</div>
                           </div>
                           <p className="text-sm text-gray-700">{highlightText(exp.problem, searchTerms)}</p>
                         </div>
@@ -6818,11 +6818,11 @@ onClick={() => {
                                 <div className="space-y-2">
                                   <div>
                                     <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>Problem</h4>
-                                    <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-lg text-center leading-tight mt-1" style={{ display: 'inline-block' }}>
+                                    <div className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-lg text-center leading-tight mt-1" style={{ display: 'table' }}>
   {catLabel.includes(' / ') ? (
     <><div>{catLabel.split(' / ')[0]}</div><div>{catLabel.split(' / ')[1]}</div></>
   ) : catLabel}
-</span>
+</div>
                                   </div>
                                   <p className="text-sm text-gray-700">{ancestor.problem}</p>
                                 </div>
