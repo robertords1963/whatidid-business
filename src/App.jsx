@@ -74,6 +74,10 @@ const marqueeStyles = `
   }
 `;
 
+// Nomes de Practice que não devem aparecer no badge (mostrar só a Category).
+// "General" é o nome legado; "Corporate Areas" é o nome atual pós-rename no Supabase.
+const HIDDEN_PRACTICE_NAMES = ['General', 'Corporate Areas'];
+
 // Badge de Function/Practice + Category exibido no bloco "Problem".
 // Quando o texto tem "Practice / Category", força quebra em 2 linhas
 // (em vez de deixar o texto encolher/estourar dentro do pill redondo).
@@ -2885,7 +2889,7 @@ useEffect(() => {
     };
     const totalChildCount = countAllDescendants(fo.id);
     const practiceName = practices.find(p => p.id === fo.practiceId)?.name;
-    const categoryLabel = practiceName && practiceName !== 'General'
+    const categoryLabel = practiceName && !HIDDEN_PRACTICE_NAMES.includes(practiceName)
       ? `${practiceName} / ${fo.problemCategory}`
       : fo.problemCategory;
     const searchTerms = filters.searchText ? filters.searchText.toLowerCase().trim().split(/\s+/) : [];
@@ -6687,7 +6691,7 @@ onClick={() => {
               const renderFullThread = (exp, isMatched, isRootLevel, threadIndex = 1) => {
                 const children = experiences.filter(e => e.parentExperienceId === exp.id);
                 const pname = practices.find(p => p.id === exp.practiceId)?.name;
-                const catLabel = pname && pname !== 'General' ? `${pname} / ${exp.problemCategory}` : exp.problemCategory;
+                const catLabel = pname && !HIDDEN_PRACTICE_NAMES.includes(pname) ? `${pname} / ${exp.problemCategory}` : exp.problemCategory;
                 const searchTerms = filters.searchText ? filters.searchText.toLowerCase().trim().split(/\s+/) : [];
 
                 return (
@@ -6818,7 +6822,7 @@ onClick={() => {
                     {expAncestorChain.map((ancestor, idx) => {
                       const isRoot = !ancestor.parentExperienceId;
                       const pname = practices.find(p => p.id === ancestor.practiceId)?.name;
-                      const catLabel = pname && pname !== 'General' ? `${pname} / ${ancestor.problemCategory}` : ancestor.problemCategory;
+                      const catLabel = pname && !HIDDEN_PRACTICE_NAMES.includes(pname) ? `${pname} / ${ancestor.problemCategory}` : ancestor.problemCategory;
                       return (
                         <div key={ancestor.id}>
                           {/* Card ancestral: raiz em tamanho normal, intermediários com mx-6 */}
@@ -7002,7 +7006,7 @@ onClick={() => {
                         </h4>
                         <CategoryBadge label={(() => {
                           const pname = practices.find(p => p.id === exp.practiceId)?.name;
-                          return pname && pname !== 'General' ? `${pname} / ${exp.problemCategory}` : exp.problemCategory;
+                          return pname && !HIDDEN_PRACTICE_NAMES.includes(pname) ? `${pname} / ${exp.problemCategory}` : exp.problemCategory;
                         })()} />
                       </div>
                       <p className="text-sm text-gray-700">
