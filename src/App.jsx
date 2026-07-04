@@ -2932,7 +2932,7 @@ useEffect(() => {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>Problem</h4>
-                  <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full text-center leading-tight">
+                  <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-lg text-center leading-tight whitespace-normal w-fit">
   {categoryLabel.includes(' / ') ? (
     <>{categoryLabel.split(' / ')[0]}<br/>{categoryLabel.split(' / ')[1]}</>
   ) : categoryLabel}
@@ -6701,7 +6701,7 @@ onClick={() => {
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
                             <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>Problem</h4>
-                            <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full text-center leading-tight">
+                            <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-lg text-center leading-tight whitespace-normal w-fit">
   {catLabel.includes(' / ') ? (
     <>{catLabel.split(' / ')[0]}<br/>{catLabel.split(' / ')[1]}</>
   ) : catLabel}
@@ -6818,7 +6818,7 @@ onClick={() => {
                                 <div className="space-y-2">
                                   <div className="flex items-center justify-between">
                                     <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>Problem</h4>
-                                    <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full text-center leading-tight">
+                                    <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-lg text-center leading-tight whitespace-normal w-fit">
   {catLabel.includes(' / ') ? (
     <>{catLabel.split(' / ')[0]}<br/>{catLabel.split(' / ')[1]}</>
   ) : catLabel}
