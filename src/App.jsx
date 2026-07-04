@@ -5734,7 +5734,7 @@ onClick={() => {
       className={`w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none bg-gray-100 ${uiPractices.length === 1 ? 'cursor-not-allowed' : ''}`}
       disabled={uiPractices.length === 1}
     >
-      {uiPractices.length > 1 && <option value="">Select practice</option>}
+      {uiPractices.length > 1 && <option value="">Select Function / Practice</option>}
       {uiPractices.map(p => (
         <option key={p.id} value={p.id}>{p.name}</option>
       ))}
@@ -6265,7 +6265,7 @@ onClick={() => {
                   {/* Practice filter - só aparece se 2+ practices ativas, ou se 1 com nome diferente de General */}
                   {uiPractices.length > 1 || (uiPractices.length === 1 && uiPractices[0].name !== 'General') ? (
   <div>
-    <label className="block text-sm font-medium text-gray-600 mb-2">Practice</label>
+    <label className="block text-sm font-medium text-gray-600 mb-2">Function / Practice</label>
     <select
       value={filterPracticeId || ''}
       onChange={(e) => {
@@ -6479,7 +6479,7 @@ onClick={() => {
     {/* Practice filter - mesma lógica dos outros lugares */}
     {uiPractices.length > 1 || (uiPractices.length === 1 && uiPractices[0].name !== 'General') ? (
   <div className="mb-3">
-    <label className="block text-sm font-medium text-gray-700 mb-2">Practice:</label>
+    <label className="block text-sm font-medium text-gray-700 mb-2">Function / Practice:</label>
     <select
       value={filterPracticeId || ''}
       onChange={(e) => {
