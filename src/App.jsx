@@ -2138,7 +2138,7 @@ useEffect(() => {
     }
   };
 
-  const addQuote = async () => {
+  const addQuote = async () => { 
     if (!newQuote.text.trim()) {
       alert('Please enter quote text');
       return;
