@@ -79,23 +79,39 @@ const marqueeStyles = `
 const HIDDEN_PRACTICE_NAMES = ['General', 'Corporate Areas'];
 
 // Badge de Function/Practice + Category exibido no bloco "Problem".
-// Quando o texto tem "Practice / Category", força quebra em 2 linhas
+// Quando o texto tem "Practice / Category", força quebra de linha após o "/"
 // (em vez de deixar o texto encolher/estourar dentro do pill redondo).
+// Quando é só a Category (Practice = General/Corporate Areas) e ela é longa
+// (ex: "AI, Data, Analytics & Reporting"), deixa o texto quebrar naturalmente
+// nos espaços/vírgulas dentro de uma largura máxima, em vez de estourar numa
+// linha só.
+const LONG_BADGE_TEXT_THRESHOLD = 18; // caracteres — acima disso, vira caixa em vez de pílula
+
 function CategoryBadge({ label }) {
   if (!label) return null;
   const parts = label.split(' / ');
+
   if (parts.length < 2) {
+    const isLong = label.length > LONG_BADGE_TEXT_THRESHOLD;
+    if (!isLong) {
+      return (
+        <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full whitespace-nowrap">
+          {label}
+        </span>
+      );
+    }
     return (
-      <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full whitespace-nowrap">
+      <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-lg text-right leading-tight inline-block max-w-[130px]">
         {label}
       </span>
     );
   }
+
   const [practicePart, ...rest] = parts;
   const categoryPart = rest.join(' / ');
   return (
-    <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-lg text-right leading-tight inline-block">
-      <span className="block">{practicePart}</span>
+    <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-lg text-right leading-tight inline-block max-w-[140px]">
+      <span className="block">{practicePart} /</span>
       <span className="block">{categoryPart}</span>
     </span>
   );
