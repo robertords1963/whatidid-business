@@ -2932,9 +2932,9 @@ useEffect(() => {
               <div className="space-y-2">
                 <div className="flex items-center gap-2 flex-wrap">
                   <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>Problem</h4>
-                  <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-lg text-center leading-tight shrink-0">
+                  <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-lg text-center leading-tight" style={{ width: "fit-content" }}>
   {categoryLabel.includes(' / ') ? (
-    <>{categoryLabel.split(' / ')[0]}<br/>{categoryLabel.split(' / ')[1]}</>
+    <><div>{categoryLabel.split(' / ')[0]}</div><div>{categoryLabel.split(' / ')[1]}</div></>
   ) : categoryLabel}
 </span>
                 </div>
@@ -6701,9 +6701,9 @@ onClick={() => {
                         <div className="space-y-2">
                           <div className="flex items-center gap-2 flex-wrap">
                             <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>Problem</h4>
-                            <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-lg text-center leading-tight shrink-0">
+                            <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-lg text-center leading-tight" style={{ width: "fit-content" }}>
   {catLabel.includes(' / ') ? (
-    <>{catLabel.split(' / ')[0]}<br/>{catLabel.split(' / ')[1]}</>
+    <><div>{catLabel.split(' / ')[0]}</div><div>{catLabel.split(' / ')[1]}</div></>
   ) : catLabel}
 </span>
                           </div>
@@ -6818,9 +6818,9 @@ onClick={() => {
                                 <div className="space-y-2">
                                   <div className="flex items-center gap-2 flex-wrap">
                                     <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>Problem</h4>
-                                    <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-lg text-center leading-tight shrink-0">
+                                    <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-lg text-center leading-tight" style={{ width: "fit-content" }}>
   {catLabel.includes(' / ') ? (
-    <>{catLabel.split(' / ')[0]}<br/>{catLabel.split(' / ')[1]}</>
+    <><div>{catLabel.split(' / ')[0]}</div><div>{catLabel.split(' / ')[1]}</div></>
   ) : catLabel}
 </span>
                                   </div>
