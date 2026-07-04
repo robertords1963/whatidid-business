@@ -2930,9 +2930,9 @@ useEffect(() => {
             {/* P/A/R grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 flex-wrap">
                   <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>Problem</h4>
-                  <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-lg text-center leading-tight whitespace-normal w-fit">
+                  <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-lg text-center leading-tight shrink-0">
   {categoryLabel.includes(' / ') ? (
     <>{categoryLabel.split(' / ')[0]}<br/>{categoryLabel.split(' / ')[1]}</>
   ) : categoryLabel}
@@ -6699,9 +6699,9 @@ onClick={() => {
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
                         <div className="space-y-2">
-                          <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 flex-wrap">
                             <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>Problem</h4>
-                            <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-lg text-center leading-tight whitespace-normal w-fit">
+                            <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-lg text-center leading-tight shrink-0">
   {catLabel.includes(' / ') ? (
     <>{catLabel.split(' / ')[0]}<br/>{catLabel.split(' / ')[1]}</>
   ) : catLabel}
@@ -6816,9 +6816,9 @@ onClick={() => {
                               </div>
                               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
                                 <div className="space-y-2">
-                                  <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2 flex-wrap">
                                     <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>Problem</h4>
-                                    <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-lg text-center leading-tight whitespace-normal w-fit">
+                                    <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-lg text-center leading-tight shrink-0">
   {catLabel.includes(' / ') ? (
     <>{catLabel.split(' / ')[0]}<br/>{catLabel.split(' / ')[1]}</>
   ) : catLabel}
