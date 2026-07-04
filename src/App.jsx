@@ -2930,9 +2930,9 @@ useEffect(() => {
             {/* P/A/R grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
               <div className="space-y-2">
-                <div className="flex items-center gap-2 flex-wrap">
+                <div>
                   <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>Problem</h4>
-                  <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-lg text-center leading-tight" style={{ width: "fit-content" }}>
+                  <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-lg text-center leading-tight mt-1" style={{ display: 'inline-block' }}>
   {categoryLabel.includes(' / ') ? (
     <><div>{categoryLabel.split(' / ')[0]}</div><div>{categoryLabel.split(' / ')[1]}</div></>
   ) : categoryLabel}
@@ -6699,9 +6699,9 @@ onClick={() => {
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
                         <div className="space-y-2">
-                          <div className="flex items-center gap-2 flex-wrap">
+                          <div>
                             <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>Problem</h4>
-                            <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-lg text-center leading-tight" style={{ width: "fit-content" }}>
+                            <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-lg text-center leading-tight mt-1" style={{ display: 'inline-block' }}>
   {catLabel.includes(' / ') ? (
     <><div>{catLabel.split(' / ')[0]}</div><div>{catLabel.split(' / ')[1]}</div></>
   ) : catLabel}
@@ -6816,9 +6816,9 @@ onClick={() => {
                               </div>
                               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
                                 <div className="space-y-2">
-                                  <div className="flex items-center gap-2 flex-wrap">
+                                  <div>
                                     <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>Problem</h4>
-                                    <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-lg text-center leading-tight" style={{ width: "fit-content" }}>
+                                    <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-lg text-center leading-tight mt-1" style={{ display: 'inline-block' }}>
   {catLabel.includes(' / ') ? (
     <><div>{catLabel.split(' / ')[0]}</div><div>{catLabel.split(' / ')[1]}</div></>
   ) : catLabel}
