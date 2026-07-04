@@ -368,12 +368,27 @@ const handleInstallClick = async () => {
 
  const handleExit = () => {
   setShowIosInstallModal(false);
-  window.history.back();
+  if (autoOpenedInstall) {
+    // Veio do link do WhatsApp: fechar a aba é uma ação do navegador, não
+    // depende de pra onde a página navega. Em vez de tentar navegar (o que
+    // se mostrou pouco confiável nesse contexto — risco de Universal
+    // Link), só trocamos nossa própria tela por uma com instruções claras
+    // de como fechar a aba.
+    setInstallLogoutMessage(false);
+    setExitRequested(true);
+  } else {
+    window.history.back();
+  }
 };
 
 const handleIconInstalled = () => {
   setShowIosInstallModal(false);
-  window.history.back();
+  if (autoOpenedInstall) {
+    setInstallLogoutMessage(false);
+    setExitRequested(true);
+  } else {
+    window.history.back();
+  }
 };
 
 // Verificar login do funcionário ao carregar
@@ -3245,8 +3260,8 @@ useEffect(() => {
 {exitRequested ? (
   <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center p-6 text-center">
     <div>
-      <p className="text-xl text-gray-700 font-semibold mb-2">All set!</p>
-      <p className="text-gray-500">You can now close this browser tab — swipe up from the bottom or use your tab switcher to close it.</p>
+      <p className="text-xl text-gray-700 font-semibold mb-2">All done!</p>
+      <p className="text-gray-500">To close this tab: tap the tabs icon in Safari's toolbar (the overlapping squares), then tap the ✕ on this tab — or swipe it away.</p>
     </div>
   </div>
 ) : installLogoutMessage ? (
