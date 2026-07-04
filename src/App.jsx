@@ -3261,7 +3261,10 @@ useEffect(() => {
   <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center p-6 text-center">
     <div>
       <p className="text-xl text-gray-700 font-semibold mb-2">All done!</p>
-      <p className="text-gray-500">To close this tab: tap the tabs icon in Safari's toolbar (the overlapping squares), then tap the ✕ on this tab — or swipe it away.</p>
+      <p className="text-gray-500">Just type your next stop in the address bar below.</p>
+    </div>
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 text-purple-500 animate-bounce pointer-events-none select-none" style={{ fontSize: '36px', lineHeight: 1 }}>
+      ↓
     </div>
   </div>
 ) : installLogoutMessage ? (
