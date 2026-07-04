@@ -85,7 +85,19 @@ const HIDDEN_PRACTICE_NAMES = ['General', 'Corporate Areas'];
 // (ex: "AI, Data, Analytics & Reporting"), deixa o texto quebrar naturalmente
 // nos espaços/vírgulas dentro de uma largura máxima, em vez de estourar numa
 // linha só.
-const LONG_BADGE_TEXT_THRESHOLD = 20; // caracteres — acima disso, vira caixa em vez de pílula
+const LONG_BADGE_TEXT_THRESHOLD = 20; // caracteres — acima disso, a linha pode quebrar
+
+// Renderiza uma linha do badge. Só permite quebra dentro dela própria se o
+// texto for longo o bastante — do contrário fica sempre numa linha só,
+// mesmo dentro de um badge de 2 linhas (Practice / Category).
+function BadgeLine({ text }) {
+  const isLong = text.length > LONG_BADGE_TEXT_THRESHOLD;
+  return (
+    <span className={`block ${isLong ? 'whitespace-normal max-w-[140px]' : 'whitespace-nowrap'}`}>
+      {text}
+    </span>
+  );
+}
 
 function CategoryBadge({ label }) {
   if (!label) return null;
@@ -110,9 +122,9 @@ function CategoryBadge({ label }) {
   const [practicePart, ...rest] = parts;
   const categoryPart = rest.join(' / ');
   return (
-    <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-lg text-right leading-tight inline-block max-w-[140px]">
-      <span className="block">{practicePart} /</span>
-      <span className="block">{categoryPart}</span>
+    <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-lg text-right leading-tight inline-block">
+      <BadgeLine text={`${practicePart} /`} />
+      <BadgeLine text={categoryPart} />
     </span>
   );
 }
