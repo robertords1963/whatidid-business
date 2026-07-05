@@ -2877,8 +2877,12 @@ useEffect(() => {
     });
   };
 
-  // ⭐ Hide/Show Top3 — só no desktop (>=768px), compensa o scroll pela altura
-  // exata do bloco que aparece/desaparece, evitando o salto para o topo.
+  // ⭐ Hide/Show Top3 — só no desktop (>=768px), compensa o scroll pela
+  // diferença real de posição das abas (id="main-tabs-anchor") antes/depois
+  // da mudança, em vez de calcular a altura do bloco manualmente (frágil:
+  // travava em 0 perto do topo no Hide, e podia medir errado/cedo demais no
+  // Show). Usa duplo requestAnimationFrame pra garantir que o layout já
+  // recalculou antes de medir a posição final.
   // No mobile (<768px) não faz nada — o comportamento nativo do navegador já funciona bem.
   const handleTop3Toggle = (show) => {
     const isDesktop = window.innerWidth >= 768;
@@ -2888,30 +2892,21 @@ useEffect(() => {
       return;
     }
 
-    if (!show) {
-      // Esconder: medir a altura do bloco Top3 ANTES de remover
-      const top3Block = document.querySelector('.bg-gradient-to-r.from-purple-100.to-blue-100');
-      const blockHeight = top3Block ? top3Block.offsetHeight : 0;
-      // mb-8 do bloco = 32px de margem inferior, incluída no offsetHeight? offsetHeight não inclui margin, então somamos
-      const totalRemoved = blockHeight + 32;
+    const anchor = document.getElementById('main-tabs-anchor');
+    const beforeTop = anchor ? anchor.getBoundingClientRect().top : null;
 
-      setTop3VisibleInSession(false);
+    setTop3VisibleInSession(show);
 
+    requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        window.scrollTo({ top: Math.max(0, window.pageYOffset - totalRemoved), behavior: 'auto' });
+        if (!anchor || beforeTop === null) return;
+        const afterTop = anchor.getBoundingClientRect().top;
+        const delta = afterTop - beforeTop;
+        if (delta !== 0) {
+          window.scrollBy({ top: delta, behavior: 'auto' });
+        }
       });
-    } else {
-      // Mostrar: a altura do bloco só existe DEPOIS de renderizar, então
-      // aplicamos o estado primeiro e medimos no frame seguinte
-      setTop3VisibleInSession(true);
-
-      requestAnimationFrame(() => {
-        const top3Block = document.querySelector('.bg-gradient-to-r.from-purple-100.to-blue-100');
-        const blockHeight = top3Block ? top3Block.offsetHeight : 0;
-        const totalAdded = blockHeight + 32;
-        window.scrollTo({ top: window.pageYOffset + totalAdded, behavior: 'auto' });
-      });
-    }
+    });
   };
 
   const handlePageChange = (pageNumber) => {
