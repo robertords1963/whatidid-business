@@ -82,21 +82,29 @@ const HIDDEN_PRACTICE_NAMES = ['General', 'Corporate Areas'];
 // Quando o texto tem "Practice / Category", força quebra de linha após o "/"
 // (em vez de deixar o texto encolher/estourar dentro do pill redondo).
 // Quando é só a Category (Practice = General/Corporate Areas) e ela é longa
-// (ex: "AI, Data, Analytics & Reporting"), deixa o texto quebrar naturalmente
-// nos espaços/vírgulas dentro de uma largura máxima, em vez de estourar numa
-// linha só.
+// (ex: "AI, Data, Analytics & Reporting"), quebra em várias linhas.
 const LONG_BADGE_TEXT_THRESHOLD = 20; // caracteres — acima disso, a linha pode quebrar
 
-// Renderiza uma linha do badge. Só permite quebra dentro dela própria se o
-// texto for longo o bastante — do contrário fica sempre numa linha só,
-// mesmo dentro de um badge de 2 linhas (Practice / Category).
-function BadgeLine({ text }) {
-  const isLong = text.length > LONG_BADGE_TEXT_THRESHOLD;
-  return (
-    <span className={`block ${isLong ? 'whitespace-normal max-w-[140px]' : 'whitespace-nowrap'}`}>
-      {text}
-    </span>
-  );
+// Quebra o texto em linhas manualmente (em vez de usar max-width do CSS).
+// Isso evita um bug onde inline-block + max-width faz a caixa ficar do
+// tamanho da max-width inteira mesmo quando a linha quebrada é mais estreita
+// que isso, deixando espaço vazio do lado (já que o texto fica alinhado à
+// direita dentro de uma caixa maior do que precisa).
+function wrapText(text, maxLineLen = 14) {
+  const words = text.split(' ');
+  const lines = [];
+  let current = '';
+  for (const word of words) {
+    const candidate = current ? `${current} ${word}` : word;
+    if (candidate.length > maxLineLen && current) {
+      lines.push(current);
+      current = word;
+    } else {
+      current = candidate;
+    }
+  }
+  if (current) lines.push(current);
+  return lines;
 }
 
 function CategoryBadge({ label }) {
@@ -112,19 +120,28 @@ function CategoryBadge({ label }) {
         </span>
       );
     }
+    const lines = wrapText(label);
     return (
-      <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-lg text-right leading-tight inline-block max-w-[130px]">
-        {label}
+      <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-lg leading-tight inline-flex flex-col items-end">
+        {lines.map((line, i) => (
+          <span key={i} className="whitespace-nowrap">{line}</span>
+        ))}
       </span>
     );
   }
 
   const [practicePart, ...rest] = parts;
   const categoryPart = rest.join(' / ');
+  const categoryLines = categoryPart.length > LONG_BADGE_TEXT_THRESHOLD
+    ? wrapText(categoryPart)
+    : [categoryPart];
+
   return (
-    <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-lg text-right leading-tight inline-block">
-      <BadgeLine text={`${practicePart} /`} />
-      <BadgeLine text={categoryPart} />
+    <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-lg leading-tight inline-flex flex-col items-end">
+      <span className="whitespace-nowrap">{practicePart} /</span>
+      {categoryLines.map((line, i) => (
+        <span key={i} className="whitespace-nowrap">{line}</span>
+      ))}
     </span>
   );
 }
