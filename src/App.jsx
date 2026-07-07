@@ -2877,42 +2877,17 @@ useEffect(() => {
     });
   };
 
-  // ⭐ Hide/Show Top3 — só no desktop (>=768px), compensa o scroll pela
-  // diferença real de posição das abas (id="main-tabs-anchor") antes/depois
-  // da mudança. Em vez de medir só uma vez (que pode falhar se o navegador
-  // ainda não terminou o layout, ou se o "scroll anchoring" nativo dele
-  // brigar com esse ajuste manual), corrige continuamente por ~20 frames
-  // até a posição estabilizar — bem mais robusto contra qualquer timing.
-  // No mobile (<768px) não faz nada — o comportamento nativo do navegador já funciona bem.
+  // ⭐ Hide/Show Top3 — testando remover TODA a compensação manual de scroll.
+  // As 3 tentativas anteriores (altura do bloco, delta de posição uma vez,
+  // delta contínuo por 20 frames) falharam igualmente em Chrome E Safari
+  // desktop — ou seja, o problema não é uma peculiaridade de motor de
+  // navegador (scroll anchoring etc), é algo no nosso próprio código de
+  // compensação. No mobile, onde NUNCA rodamos nenhum JS de scroll, sempre
+  // funcionou perfeitamente. Por isso agora tratamos desktop e mobile do
+  // mesmo jeito: deixar o navegador cuidar disso sozinho, sem nenhuma
+  // interferência nossa.
   const handleTop3Toggle = (show) => {
-    const isDesktop = window.innerWidth >= 768;
-
-    if (!isDesktop) {
-      setTop3VisibleInSession(show);
-      return;
-    }
-
-    const anchor = document.getElementById('main-tabs-anchor');
-    const beforeTop = anchor ? anchor.getBoundingClientRect().top : null;
-
     setTop3VisibleInSession(show);
-
-    if (!anchor || beforeTop === null) return;
-
-    let ticks = 0;
-    const maxTicks = 20; // ~20 frames (~330ms), rede de segurança
-    const compensate = () => {
-      const afterTop = anchor.getBoundingClientRect().top;
-      const delta = afterTop - beforeTop;
-      if (Math.abs(delta) > 0.5) {
-        window.scrollBy({ top: delta, behavior: 'auto' });
-      }
-      ticks += 1;
-      if (ticks < maxTicks) {
-        requestAnimationFrame(compensate);
-      }
-    };
-    requestAnimationFrame(compensate);
   };
 
   const handlePageChange = (pageNumber) => {
