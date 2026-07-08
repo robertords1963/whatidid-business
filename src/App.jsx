@@ -5797,7 +5797,7 @@ onClick={() => {
                           tabIndex={0}
                           onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
                           onKeyDown={(e) => e.key === 'Enter' && setShowCategoryDropdown(!showCategoryDropdown)}
-                          className="w-full p-2 border-2 border-gray-200 rounded-lg text-left flex items-center justify-between cursor-default"
+                          className="w-full p-2 border-2 border-gray-200 rounded-lg text-left flex items-center justify-between cursor-default leading-tight"
                           style={{ fontFamily: 'inherit', fontSize: 'inherit', color: currentEntry.problemCategory ? 'inherit' : '#6b7280', backgroundColor: '#f3f4f6' }}
                         >
                           <span>{currentEntry.problemCategory || 'Select category'}</span>
@@ -6334,7 +6334,7 @@ onClick={() => {
                           tabIndex={0}
                           onClick={() => setShowFilterCategoryDropdown(!showFilterCategoryDropdown)}
                           onKeyDown={(e) => e.key === 'Enter' && setShowFilterCategoryDropdown(!showFilterCategoryDropdown)}
-                          className="w-full p-2 border-2 border-gray-200 rounded-lg text-left flex items-center justify-between cursor-default focus:border-purple-500"
+                          className="w-full p-2 border-2 border-gray-200 rounded-lg text-left flex items-center justify-between cursor-default leading-tight focus:border-purple-500"
                           style={{ fontFamily: 'inherit', fontSize: 'inherit' }}
                         >
                           <span>{filters.problemCategory || 'All'}</span>
@@ -6617,7 +6617,7 @@ onClick={() => {
               tabIndex={0}
               onClick={() => setShowKeyInsightCategoryDropdown(!showKeyInsightCategoryDropdown)}
               onKeyDown={(e) => e.key === 'Enter' && setShowKeyInsightCategoryDropdown(!showKeyInsightCategoryDropdown)}
-              className="w-full p-2 border-2 border-gray-200 rounded-lg text-left flex items-center justify-between cursor-default focus:border-purple-500"
+              className="w-full p-2 border-2 border-gray-200 rounded-lg text-left flex items-center justify-between cursor-default leading-tight focus:border-purple-500"
               style={{ fontFamily: 'inherit', fontSize: 'inherit' }}
             >
               <span>{keyInsightCategory || 'All'}</span>
