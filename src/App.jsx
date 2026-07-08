@@ -5761,7 +5761,7 @@ onClick={() => {
               
               {/* Practice dropdown - só aparece se 2+ practices ativas, ou se 1 prática com nome diferente de General */}
               {uiPractices.length > 1 || (uiPractices.length === 1 && uiPractices[0].name !== 'General') ? (
-  <div className="mb-2">
+  <div className="mb-2 relative">
     <select
       value={(uiPractices.length === 1 ? uiPractices[0].id : shareFormPracticeId) || ''}
       onChange={(e) => {
@@ -5771,7 +5771,7 @@ onClick={() => {
         setCurrentEntry({...currentEntry, problemCategory: ''});
         loadProblemCategories(id);
       }}
-      className={`w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none bg-gray-100 ${uiPractices.length === 1 ? 'cursor-not-allowed' : ''}`}
+      className={`w-full h-9 p-2 pr-8 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none bg-gray-100 appearance-none ${uiPractices.length === 1 ? 'cursor-not-allowed' : ''}`}
       disabled={uiPractices.length === 1}
     >
       {uiPractices.length > 1 && <option value="">Select Function / Practice</option>}
@@ -5779,6 +5779,7 @@ onClick={() => {
         <option key={p.id} value={p.id}>{p.name}</option>
       ))}
     </select>
+    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500" style={{ fontSize: '10px' }}>▼</span>
   </div>
 ) : null}
 
@@ -5797,7 +5798,7 @@ onClick={() => {
                           tabIndex={0}
                           onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
                           onKeyDown={(e) => e.key === 'Enter' && setShowCategoryDropdown(!showCategoryDropdown)}
-                          className="w-full p-2 border-2 border-gray-200 rounded-lg text-left flex items-center justify-between cursor-default"
+                          className="w-full h-9 p-2 border-2 border-gray-200 rounded-lg text-left flex items-center justify-between cursor-default"
                           style={{ fontFamily: 'inherit', fontSize: 'inherit', color: currentEntry.problemCategory ? 'inherit' : '#6b7280', backgroundColor: '#f3f4f6' }}
                         >
                           <span>{currentEntry.problemCategory || 'Select category'}</span>
@@ -6306,6 +6307,7 @@ onClick={() => {
                   {uiPractices.length > 1 || (uiPractices.length === 1 && uiPractices[0].name !== 'General') ? (
   <div>
     <label className="block text-sm font-medium text-gray-600 mb-2">Function / Practice</label>
+    <div className="relative">
     <select
       value={filterPracticeId || ''}
       onChange={(e) => {
@@ -6314,7 +6316,7 @@ onClick={() => {
         setFilters({...filters, problemCategory: ''});
         loadProblemCategories(id);
       }}
-      className={`w-full h-10 p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none bg-gray-100 ${uiPractices.length === 1 ? 'cursor-not-allowed' : ''}`}
+      className={`w-full h-9 p-2 pr-8 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none bg-gray-100 appearance-none ${uiPractices.length === 1 ? 'cursor-not-allowed' : ''}`}
       disabled={uiPractices.length === 1}
     >
       <option value="">All</option>
@@ -6322,6 +6324,8 @@ onClick={() => {
         <option key={p.id} value={p.id}>{p.name}</option>
       ))}
     </select>
+    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500" style={{ fontSize: '10px' }}>▼</span>
+    </div>
   </div>
 ) : null}
 
@@ -6334,7 +6338,7 @@ onClick={() => {
                           tabIndex={0}
                           onClick={() => setShowFilterCategoryDropdown(!showFilterCategoryDropdown)}
                           onKeyDown={(e) => e.key === 'Enter' && setShowFilterCategoryDropdown(!showFilterCategoryDropdown)}
-                          className="w-full h-10 p-2 border-2 border-gray-200 rounded-lg text-left flex items-center justify-between cursor-default focus:border-purple-500"
+                          className="w-full h-9 p-2 border-2 border-gray-200 rounded-lg text-left flex items-center justify-between cursor-default focus:border-purple-500"
                           style={{ fontFamily: 'inherit', fontSize: 'inherit' }}
                         >
                           <span>{filters.problemCategory || 'All'}</span>
@@ -6463,14 +6467,17 @@ onClick={() => {
                   
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-2">Result</label>
+                    <div className="relative">
                     <select
                       value={filters.resultCategory}
                       onChange={(e) => setFilters({...filters, resultCategory: e.target.value})}
-                      className="w-full h-10 p-2 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:outline-none"
+                      className="w-full h-9 p-2 pr-8 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:outline-none appearance-none"
                     >
                       <option value="">All</option>
                       {resultCategories.map(cat => <option key={cat.value} value={cat.value}>{cat.label}</option>)}
                     </select>
+                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500" style={{ fontSize: '10px' }}>▼</span>
+                    </div>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-2">Enter Keywords</label>
@@ -6479,7 +6486,7 @@ onClick={() => {
                       value={filters.searchText}
                       onChange={(e) => setFilters({...filters, searchText: e.target.value})}
                       placeholder="Search..."
-                      className="w-full h-10 p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                      className="w-full h-9 p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
                     />
                   </div>
                 </div>
@@ -6588,6 +6595,7 @@ onClick={() => {
       {uiPractices.length > 1 || (uiPractices.length === 1 && uiPractices[0].name !== 'General') ? (
   <div>
     <label className="block text-sm font-medium text-gray-700 mb-2">Function / Practice:</label>
+    <div className="relative">
     <select
       value={filterPracticeId || ''}
       onChange={(e) => {
@@ -6597,7 +6605,7 @@ onClick={() => {
         setShowKeyInsights(false);
         loadProblemCategories(id);
       }}
-      className={`w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none bg-gray-100 ${uiPractices.length === 1 ? 'cursor-not-allowed' : ''}`}
+      className={`w-full h-9 p-2 pr-8 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none bg-gray-100 appearance-none ${uiPractices.length === 1 ? 'cursor-not-allowed' : ''}`}
       disabled={uiPractices.length === 1}
     >
       <option value="">All</option>
@@ -6605,6 +6613,8 @@ onClick={() => {
         <option key={p.id} value={p.id}>{p.name}</option>
       ))}
     </select>
+    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500" style={{ fontSize: '10px' }}>▼</span>
+    </div>
   </div>
 ) : null}
 
@@ -6617,7 +6627,7 @@ onClick={() => {
               tabIndex={0}
               onClick={() => setShowKeyInsightCategoryDropdown(!showKeyInsightCategoryDropdown)}
               onKeyDown={(e) => e.key === 'Enter' && setShowKeyInsightCategoryDropdown(!showKeyInsightCategoryDropdown)}
-              className="w-full p-2 border-2 border-gray-200 rounded-lg text-left flex items-center justify-between cursor-default focus:border-purple-500"
+              className="w-full h-9 p-2 border-2 border-gray-200 rounded-lg text-left flex items-center justify-between cursor-default focus:border-purple-500"
               style={{ fontFamily: 'inherit', fontSize: 'inherit' }}
             >
               <span>{keyInsightCategory || 'All'}</span>
