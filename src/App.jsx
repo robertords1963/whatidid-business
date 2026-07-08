@@ -5797,7 +5797,7 @@ onClick={() => {
                           tabIndex={0}
                           onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
                           onKeyDown={(e) => e.key === 'Enter' && setShowCategoryDropdown(!showCategoryDropdown)}
-                          className="w-full p-2 border-2 border-gray-200 rounded-lg text-left flex items-center justify-between cursor-default leading-tight"
+                          className="w-full p-2 border-2 border-gray-200 rounded-lg text-left flex items-center justify-between cursor-default"
                           style={{ fontFamily: 'inherit', fontSize: 'inherit', color: currentEntry.problemCategory ? 'inherit' : '#6b7280', backgroundColor: '#f3f4f6' }}
                         >
                           <span>{currentEntry.problemCategory || 'Select category'}</span>
@@ -6314,7 +6314,7 @@ onClick={() => {
         setFilters({...filters, problemCategory: ''});
         loadProblemCategories(id);
       }}
-      className={`w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none bg-gray-100 ${uiPractices.length === 1 ? 'cursor-not-allowed' : ''}`}
+      className={`w-full h-10 p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none bg-gray-100 ${uiPractices.length === 1 ? 'cursor-not-allowed' : ''}`}
       disabled={uiPractices.length === 1}
     >
       <option value="">All</option>
@@ -6334,7 +6334,7 @@ onClick={() => {
                           tabIndex={0}
                           onClick={() => setShowFilterCategoryDropdown(!showFilterCategoryDropdown)}
                           onKeyDown={(e) => e.key === 'Enter' && setShowFilterCategoryDropdown(!showFilterCategoryDropdown)}
-                          className="w-full p-2 border-2 border-gray-200 rounded-lg text-left flex items-center justify-between cursor-default leading-tight focus:border-purple-500"
+                          className="w-full h-10 p-2 border-2 border-gray-200 rounded-lg text-left flex items-center justify-between cursor-default focus:border-purple-500"
                           style={{ fontFamily: 'inherit', fontSize: 'inherit' }}
                         >
                           <span>{filters.problemCategory || 'All'}</span>
@@ -6466,7 +6466,7 @@ onClick={() => {
                     <select
                       value={filters.resultCategory}
                       onChange={(e) => setFilters({...filters, resultCategory: e.target.value})}
-                      className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:outline-none"
+                      className="w-full h-10 p-2 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:outline-none"
                     >
                       <option value="">All</option>
                       {resultCategories.map(cat => <option key={cat.value} value={cat.value}>{cat.label}</option>)}
@@ -6479,7 +6479,7 @@ onClick={() => {
                       value={filters.searchText}
                       onChange={(e) => setFilters({...filters, searchText: e.target.value})}
                       placeholder="Search..."
-                      className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                      className="w-full h-10 p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
                     />
                   </div>
                 </div>
@@ -6617,7 +6617,7 @@ onClick={() => {
               tabIndex={0}
               onClick={() => setShowKeyInsightCategoryDropdown(!showKeyInsightCategoryDropdown)}
               onKeyDown={(e) => e.key === 'Enter' && setShowKeyInsightCategoryDropdown(!showKeyInsightCategoryDropdown)}
-              className="w-full p-2 border-2 border-gray-200 rounded-lg text-left flex items-center justify-between cursor-default leading-tight focus:border-purple-500"
+              className="w-full p-2 border-2 border-gray-200 rounded-lg text-left flex items-center justify-between cursor-default focus:border-purple-500"
               style={{ fontFamily: 'inherit', fontSize: 'inherit' }}
             >
               <span>{keyInsightCategory || 'All'}</span>
