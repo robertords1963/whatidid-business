@@ -227,19 +227,21 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   // Employee Management states
   const [employees, setEmployees] = useState([]);
   const [employeeSearch, setEmployeeSearch] = useState('');
-  const [newEmployee, setNewEmployee] = useState({ employee_id: '', name: '', country: '', email: '' });
+  const [newEmployee, setNewEmployee] = useState({ employee_id: '', name: '', country: '', email: '', is_admin: false });
   const [editingEmployee, setEditingEmployee] = useState(null);
   const [editingEmployeeData, setEditingEmployeeData] = useState({});
-  const [showFirstAccess, setShowFirstAccess] = useState(false);
-  const [firstAccessId, setFirstAccessId] = useState('');
-  const [firstAccessPassword, setFirstAccessPassword] = useState('');
-  const [firstAccessConfirm, setFirstAccessConfirm] = useState('');
-  const [firstAccessError, setFirstAccessError] = useState('');
-  const [firstAccessSuccess, setFirstAccessSuccess] = useState(false);
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
-  const [forgotPasswordId, setForgotPasswordId] = useState('');
-  const [forgotPasswordMsg, setForgotPasswordMsg] = useState('');
-  const [forgotPasswordError, setForgotPasswordError] = useState('');
+  // Fluxo unificado "1st Access or Set / Reset Password" (substitui First Access e Forgot Password separados)
+  const [showAccountAccess, setShowAccountAccess] = useState(false);
+  const [accountAccessStep, setAccountAccessStep] = useState('lookup'); // 'lookup' | 'choose-match' | 'verify' | 'set-password' | 'done'
+  const [accountAccessEmail, setAccountAccessEmail] = useState('');
+  const [accountAccessEmployeeId, setAccountAccessEmployeeId] = useState('');
+  const [accountAccessMatches, setAccountAccessMatches] = useState([]);
+  const [accountAccessRecord, setAccountAccessRecord] = useState(null);
+  const [accountAccessCode, setAccountAccessCode] = useState('');
+  const [accountAccessCodeInput, setAccountAccessCodeInput] = useState('');
+  const [accountAccessPassword, setAccountAccessPassword] = useState('');
+  const [accountAccessConfirmPassword, setAccountAccessConfirmPassword] = useState('');
+  const [accountAccessError, setAccountAccessError] = useState('');
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [changePasswordNew, setChangePasswordNew] = useState('');
   const [changePasswordConfirm, setChangePasswordConfirm] = useState('');
@@ -804,11 +806,12 @@ const addEmployee = async () => {
       name: newEmployee.name.trim(),
       country: newEmployee.country.trim(),
       email: newEmployee.email.trim(),
+      is_admin: newEmployee.is_admin,
       status: 'pending',
       active: true
     }]);
     if (error) throw error;
-    setNewEmployee({ employee_id: '', name: '', country: '', email: '' });
+    setNewEmployee({ employee_id: '', name: '', country: '', email: '', is_admin: false });
     await loadEmployees();
     alert('Employee added successfully!');
   } catch (error) {
@@ -823,7 +826,8 @@ const updateEmployee = async (empId) => {
       .update({
         name: editingEmployeeData.name,
         country: editingEmployeeData.country,
-        email: editingEmployeeData.email
+        email: editingEmployeeData.email,
+        is_admin: editingEmployeeData.is_admin
       })
       .eq('employee_id', empId);
     if (error) throw error;
@@ -876,102 +880,138 @@ const handleExcelUpload = async (file) => {
   }
 };
 
-const handleFirstAccess = async () => {
-  setFirstAccessError('');
-  if (!firstAccessId.trim() || !firstAccessPassword.trim()) {
-    setFirstAccessError('Please enter Employee ID and password');
-    return;
+// Regras de senha — ajuste os critérios aqui livremente
+const PASSWORD_RULES = [
+  { label: 'At least 8 characters', test: (pw) => pw.length >= 8 },
+  { label: 'At least one uppercase letter (A-Z)', test: (pw) => /[A-Z]/.test(pw) },
+  { label: 'At least one lowercase letter (a-z)', test: (pw) => /[a-z]/.test(pw) },
+  { label: 'At least one number (0-9)', test: (pw) => /[0-9]/.test(pw) },
+];
+const isPasswordValid = (pw) => PASSWORD_RULES.every(rule => rule.test(pw));
+
+const sendEmailJs = async (toEmail, name, message) => {
+  if (!window.emailjs) {
+    await new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js';
+      script.onload = resolve;
+      script.onerror = reject;
+      document.head.appendChild(script);
+    });
+    window.emailjs.init('qvhCb3G8AEyQmrUCF');
   }
-  if (firstAccessPassword !== firstAccessConfirm) {
-    setFirstAccessError('Passwords do not match');
-    return;
-  }
-  if (firstAccessPassword.length < 6) {
-    setFirstAccessError('Password must be at least 6 characters');
+  await window.emailjs.send('service_ad7ltxl', 'template_ty07scl', {
+    to_email: toEmail,
+    name: name,
+    email: toEmail,
+    message: message
+  });
+};
+
+// Passo 1: acha a(s) conta(s) por e-mail + Employee ID, manda código de verificação
+const handleAccountAccessLookup = async () => {
+  setAccountAccessError('');
+  if (!accountAccessEmail.trim() || !accountAccessEmployeeId.trim()) {
+    setAccountAccessError('Please enter both your email and Employee ID.');
     return;
   }
   try {
     const { data, error } = await supabase
       .from('employees')
       .select('*')
-      .eq('employee_id', firstAccessId.trim())
-      .eq('active', true)
-      .single();
-    if (error || !data) {
-      setFirstAccessError('Employee ID not found');
+      .eq('email', accountAccessEmail.trim().toLowerCase())
+      .eq('employee_id', accountAccessEmployeeId.trim())
+      .eq('active', true);
+    if (error) throw error;
+    if (!data || data.length === 0) {
+      setAccountAccessError('No account found with that email and Employee ID. Check with your company Admin.');
       return;
     }
-    if (data.password && data.status === 'active') {
-      setFirstAccessError('This Employee ID already has a password. Use Forgot Password instead.');
+    // Com company_id no futuro, esse array pode ter mais de 1 (mesmo email+ID em empresas diferentes).
+    // Por enquanto (só Default), sempre vai ter no máximo 1.
+    if (data.length > 1) {
+      setAccountAccessMatches(data);
+      setAccountAccessStep('choose-match');
       return;
     }
-    const { error: updateError } = await supabase
-      .from('employees')
-      .update({ password: firstAccessPassword, status: 'active' })
-      .eq('employee_id', firstAccessId.trim());
-    if (updateError) throw updateError;
-    setFirstAccessSuccess(true);
-  } catch (error) {
-    console.error('First access error:', error);
-    setFirstAccessError('Error setting password. Please try again.');
+    await proceedWithAccountAccessRecord(data[0]);
+  } catch (err) {
+    console.error('Account access lookup error:', err);
+    setAccountAccessError('Something went wrong. Please try again.');
   }
 };
 
-const handleForgotPassword = async () => {
-  setForgotPasswordError('');
-  setForgotPasswordMsg('');
-  if (!forgotPasswordId.trim()) {
-    setForgotPasswordError('Please enter your Employee ID');
+const handleChooseAccountAccessMatch = async (record) => {
+  await proceedWithAccountAccessRecord(record);
+};
+
+const proceedWithAccountAccessRecord = async (record) => {
+  if (!record.email) {
+    setAccountAccessError('No email registered for this account. Please contact your Admin.');
+    return;
+  }
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+  setAccountAccessRecord(record);
+  setAccountAccessCode(code);
+  try {
+    await sendEmailJs(
+      record.email,
+      record.name || accountAccessEmployeeId.trim(),
+      `Hi ${record.name || accountAccessEmployeeId.trim()},\n\nYour WhatIDid verification code is: ${code}\n\nEnter this code to continue setting your password.\n\nWhatIDid Team`
+    );
+    setAccountAccessStep('verify');
+  } catch (err) {
+    console.error('Error sending verification code:', err);
+    setAccountAccessError('Error sending verification email. Please try again.');
+  }
+};
+
+// Passo 2: confirma o código
+const handleVerifyAccountAccessCode = () => {
+  setAccountAccessError('');
+  if (accountAccessCodeInput.trim() !== accountAccessCode) {
+    setAccountAccessError('Incorrect code. Please check your email and try again.');
+    return;
+  }
+  setAccountAccessStep('set-password');
+};
+
+// Passo 3: cria/troca a senha
+const handleSetAccountAccessPassword = async () => {
+  setAccountAccessError('');
+  if (!isPasswordValid(accountAccessPassword)) {
+    setAccountAccessError('Password does not meet all requirements below.');
+    return;
+  }
+  if (accountAccessPassword !== accountAccessConfirmPassword) {
+    setAccountAccessError('Passwords do not match.');
     return;
   }
   try {
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('employees')
-      .select('email, name')
-      .eq('employee_id', forgotPasswordId.trim())
-      .eq('active', true)
-      .single();
-    if (error || !data) {
-      setForgotPasswordError('Employee ID not found');
-      return;
-    }
-    if (!data.email) {
-      setForgotPasswordError('No email registered for this Employee ID. Please contact your Admin.');
-      return;
-    }
-    // Generate temp password
-    const tempPassword = Math.random().toString(36).slice(-8);
-    await supabase.from('employees')
-      .update({ password: tempPassword, status: 'active', force_password_change: true })
-      .eq('employee_id', forgotPasswordId.trim());
-
-    // Load EmailJS and send email
-    if (!window.emailjs) {
-      await new Promise((resolve, reject) => {
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js';
-        script.onload = resolve;
-        script.onerror = reject;
-        document.head.appendChild(script);
-      });
-      window.emailjs.init('qvhCb3G8AEyQmrUCF');
-    }
-
-    await window.emailjs.send('service_ad7ltxl', 'template_ty07scl', {
-      to_email: data.email,
-      name: data.name || forgotPasswordId.trim(),
-      email: data.email,
-      message: `Hi ${data.name || forgotPasswordId.trim()},\n\nYour temporary password for WhatIDid is: ${tempPassword}\n\nPlease login with this password. You will be asked to set a new password after logging in.\n\nWhatIDid Team`
-    });
-
-    // Mask email for display
-    const emailParts = data.email.split('@');
-    const masked = emailParts[0].slice(0,2) + '***@' + emailParts[1];
-    setForgotPasswordMsg(`A temporary password has been sent to ${masked}. Please check your inbox.`);
-  } catch (error) {
-    console.error('Forgot password error:', error);
-    setForgotPasswordError('Error sending email. Please contact your Admin.');
+      .update({ password: accountAccessPassword, status: 'active', force_password_change: false })
+      .eq('id', accountAccessRecord.id); // usa o id interno da linha, evita ambiguidade
+    if (error) throw error;
+    setAccountAccessStep('done');
+  } catch (err) {
+    console.error('Error setting password:', err);
+    setAccountAccessError('Error saving your password. Please try again.');
   }
+};
+
+const resetAccountAccessFlow = () => {
+  setShowAccountAccess(false);
+  setAccountAccessStep('lookup');
+  setAccountAccessEmail('');
+  setAccountAccessEmployeeId('');
+  setAccountAccessMatches([]);
+  setAccountAccessRecord(null);
+  setAccountAccessCode('');
+  setAccountAccessCodeInput('');
+  setAccountAccessPassword('');
+  setAccountAccessConfirmPassword('');
+  setAccountAccessError('');
 };
 
 // ==================== END EMPLOYEE MANAGEMENT ====================
@@ -1011,7 +1051,13 @@ const handleEmployeeLogin = async () => {
   setEmployeePassword('');
   await loadCurrentEmployeeGroup(employeeId);
   await loadExperiences(false, employeeId);
-  
+
+  // Se esse employee é marcado como Admin, libera o modo Admin também
+  if (data.is_admin) {
+    setIsAdmin(true);
+    localStorage.setItem('isAdmin', 'true');
+  }
+
   // If force_password_change is set, prompt to change password
   if (data.force_password_change || data.status === 'pending') {
     setShowChangePassword(true);
@@ -3387,114 +3433,156 @@ autoComplete="off"
               Login
             </button>
 
-            <div className="flex justify-between mt-3">
+            <div className="flex justify-center mt-3">
               <button
-                onClick={() => { setShowFirstAccess(true); setShowForgotPassword(false); setFirstAccessError(''); setFirstAccessSuccess(false); setFirstAccessId(''); setFirstAccessPassword(''); setFirstAccessConfirm(''); }}
+                onClick={() => { resetAccountAccessFlow(); setShowAccountAccess(true); }}
                 className="text-sm text-purple-600 hover:text-purple-800 font-medium"
               >
-                First Access / Set Password
-              </button>
-              <button
-                onClick={() => { setShowForgotPassword(true); setShowFirstAccess(false); setForgotPasswordError(''); setForgotPasswordMsg(''); setForgotPasswordId(''); }}
-                className="text-sm text-gray-500 hover:text-gray-700 font-medium"
-              >
-                Forgot Password?
+                1st Access or Set / Reset Password
               </button>
             </div>
           </div>
         </div>
 
-        {/* First Access Modal */}
-        {showFirstAccess && (
+        {/* Account Access Modal — unifica "1st Access" e "Forgot Password" */}
+        {showAccountAccess && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-gray-800">First Access — Set Password</h3>
-                <button onClick={() => setShowFirstAccess(false)} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">×</button>
+                <h3 className="text-lg font-bold text-gray-800">
+                  {accountAccessStep === 'done' ? 'Password Set!' : '1st Access or Set / Reset Password'}
+                </h3>
+                <button onClick={resetAccountAccessFlow} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">×</button>
               </div>
-              {firstAccessSuccess ? (
+
+              {/* Passo 1: e-mail + Employee ID */}
+              {accountAccessStep === 'lookup' && (
+                <div className="space-y-4">
+                  <p className="text-sm text-gray-600">Enter your email and Employee ID. We'll send a verification code to confirm it's you.</p>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input type="email" value={accountAccessEmail} onChange={(e) => setAccountAccessEmail(e.target.value)}
+                      className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                      placeholder="Enter your email" autoComplete="off" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Employee ID</label>
+                    <input type="text" value={accountAccessEmployeeId} onChange={(e) => setAccountAccessEmployeeId(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleAccountAccessLookup()}
+                      className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                      placeholder="Enter your Employee ID" autoComplete="off" />
+                  </div>
+                  {accountAccessError && (
+                    <div className="bg-red-50 border-2 border-red-200 rounded-lg p-3">
+                      <p className="text-red-700 text-sm">{accountAccessError}</p>
+                    </div>
+                  )}
+                  <button onClick={handleAccountAccessLookup}
+                    className="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 font-semibold transition-colors">
+                    Send Verification Code
+                  </button>
+                </div>
+              )}
+
+              {/* Passo 1b: escolher qual empresa, se houver mais de um match */}
+              {accountAccessStep === 'choose-match' && (
+                <div className="space-y-3">
+                  <p className="text-sm text-gray-600">We found more than one account with that email and Employee ID. Please select the correct one:</p>
+                  {accountAccessMatches.map((m) => (
+                    <label key={m.id} className="flex items-center gap-3 p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-purple-400">
+                      <input type="checkbox" checked={false} readOnly onClick={() => handleChooseAccountAccessMatch(m)} className="w-4 h-4" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-800">{m.companies?.name || 'Company'}</p>
+                        <p className="text-xs text-gray-500">{m.name} · {m.country}</p>
+                      </div>
+                    </label>
+                  ))}
+                  {accountAccessError && (
+                    <div className="bg-red-50 border-2 border-red-200 rounded-lg p-3">
+                      <p className="text-red-700 text-sm">{accountAccessError}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Passo 2: confirmar código de verificação */}
+              {accountAccessStep === 'verify' && (
+                <div className="space-y-4">
+                  <p className="text-sm text-gray-600">
+                    {accountAccessRecord?.companies?.name && (
+                      <>You're accessing <strong>{accountAccessRecord.companies.name}</strong>.<br /></>
+                    )}
+                    We sent a 6-digit code to your email. Enter it below.
+                  </p>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Verification Code</label>
+                    <input type="text" value={accountAccessCodeInput} onChange={(e) => setAccountAccessCodeInput(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleVerifyAccountAccessCode()}
+                      className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                      placeholder="6-digit code" maxLength={6} autoComplete="off" />
+                  </div>
+                  {accountAccessError && (
+                    <div className="bg-red-50 border-2 border-red-200 rounded-lg p-3">
+                      <p className="text-red-700 text-sm">{accountAccessError}</p>
+                    </div>
+                  )}
+                  <button onClick={handleVerifyAccountAccessCode}
+                    className="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 font-semibold transition-colors">
+                    Verify Code
+                  </button>
+                </div>
+              )}
+
+              {/* Passo 3: criar a senha */}
+              {accountAccessStep === 'set-password' && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+                    <input type="password" value={accountAccessPassword} onChange={(e) => setAccountAccessPassword(e.target.value)}
+                      className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                      placeholder="Choose a password" />
+                  </div>
+                  <div className="space-y-1">
+                    {PASSWORD_RULES.map((rule, i) => {
+                      const passed = rule.test(accountAccessPassword);
+                      return (
+                        <div key={i} className={`text-xs flex items-center gap-1.5 ${passed ? 'text-green-600' : 'text-gray-400'}`}>
+                          <span>{passed ? '✓' : '○'}</span>
+                          <span>{rule.label}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+                    <input type="password" value={accountAccessConfirmPassword} onChange={(e) => setAccountAccessConfirmPassword(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleSetAccountAccessPassword()}
+                      className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                      placeholder="Repeat your password" />
+                  </div>
+                  {accountAccessError && (
+                    <div className="bg-red-50 border-2 border-red-200 rounded-lg p-3">
+                      <p className="text-red-700 text-sm">{accountAccessError}</p>
+                    </div>
+                  )}
+                  <button onClick={handleSetAccountAccessPassword}
+                    className="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 font-semibold transition-colors">
+                    Save Password
+                  </button>
+                </div>
+              )}
+
+              {/* Passo 4: sucesso */}
+              {accountAccessStep === 'done' && (
                 <div className="text-center py-4">
                   <div className="text-4xl mb-3">✅</div>
                   <h4 className="text-lg font-bold text-gray-800 mb-2">Password Set!</h4>
                   <p className="text-gray-600 text-sm mb-4">You can now login with your Employee ID and new password.</p>
                   <button
-                    onClick={() => setShowFirstAccess(false)}
+                    onClick={resetAccountAccessFlow}
                     className="w-full bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 font-semibold"
                   >
                     Go to Login
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Employee ID</label>
-                    <input type="text" value={firstAccessId} onChange={(e) => setFirstAccessId(e.target.value)}
-                      className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-                      placeholder="Enter your Employee ID" autoComplete="off" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
-                    <input type="password" value={firstAccessPassword} onChange={(e) => setFirstAccessPassword(e.target.value)}
-                      className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-                      placeholder="At least 6 characters" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
-                    <input type="password" value={firstAccessConfirm} onChange={(e) => setFirstAccessConfirm(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && handleFirstAccess()}
-                      className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-                      placeholder="Repeat your password" />
-                  </div>
-                  {firstAccessError && (
-                    <div className="bg-red-50 border-2 border-red-200 rounded-lg p-3">
-                      <p className="text-red-700 text-sm">{firstAccessError}</p>
-                    </div>
-                  )}
-                  <button onClick={handleFirstAccess}
-                    className="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 font-semibold transition-colors">
-                    Set Password
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Forgot Password Modal */}
-        {showForgotPassword && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-gray-800">Forgot Password</h3>
-                <button onClick={() => setShowForgotPassword(false)} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">×</button>
-              </div>
-              {forgotPasswordMsg ? (
-                <div className="text-center py-4">
-                  <div className="text-4xl mb-3">📧</div>
-                  <p className="text-gray-700 text-sm mb-4">{forgotPasswordMsg}</p>
-                  <button onClick={() => setShowForgotPassword(false)}
-                    className="w-full bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 font-semibold">
-                    Back to Login
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <p className="text-sm text-gray-600">Enter your Employee ID and a temporary password will be generated. Contact your Admin to receive it.</p>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Employee ID</label>
-                    <input type="text" value={forgotPasswordId} onChange={(e) => setForgotPasswordId(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && handleForgotPassword()}
-                      className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-                      placeholder="Enter your Employee ID" autoComplete="off" />
-                  </div>
-                  {forgotPasswordError && (
-                    <div className="bg-red-50 border-2 border-red-200 rounded-lg p-3">
-                      <p className="text-red-700 text-sm">{forgotPasswordError}</p>
-                    </div>
-                  )}
-                  <button onClick={handleForgotPassword}
-                    className="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 font-semibold transition-colors">
-                    Reset Password
                   </button>
                 </div>
               )}
@@ -4729,6 +4817,11 @@ autoComplete="off"
         <input type="email" value={newEmployee.email} onChange={(e) => setNewEmployee({...newEmployee, email: e.target.value})}
           placeholder="Corporate Email" className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
       </div>
+      <label className="flex items-center gap-2 mb-3 text-sm text-gray-700 cursor-pointer">
+        <input type="checkbox" checked={newEmployee.is_admin} onChange={(e) => setNewEmployee({...newEmployee, is_admin: e.target.checked})}
+          className="w-4 h-4" />
+        Is Admin (this person can also access the Admin panel)
+      </label>
       <div className="flex gap-2 flex-wrap">
         <button onClick={addEmployee} className="px-4 py-2 bg-slate-600 text-white rounded-lg text-sm hover:bg-slate-700">
           + Add Employee
@@ -4784,6 +4877,10 @@ autoComplete="off"
                   className="flex-1 min-w-20 p-1 border border-gray-300 rounded text-sm" placeholder="Country" />
                 <input type="email" defaultValue={emp.email} onChange={(e) => setEditingEmployeeData({...editingEmployeeData, email: e.target.value})}
                   className="flex-1 min-w-32 p-1 border border-gray-300 rounded text-sm" placeholder="Email" />
+                <label className="flex items-center gap-1 text-xs text-gray-600 shrink-0">
+                  <input type="checkbox" defaultChecked={emp.is_admin} onChange={(e) => setEditingEmployeeData({...editingEmployeeData, is_admin: e.target.checked})} />
+                  Admin
+                </label>
                 <button onClick={() => updateEmployee(emp.employee_id)} className="px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700">Save</button>
                 <button onClick={() => { setEditingEmployee(null); setEditingEmployeeData({}); }} className="px-2 py-1 bg-gray-400 text-white rounded text-xs">Cancel</button>
               </>
@@ -4793,10 +4890,15 @@ autoComplete="off"
                 <span className="text-sm text-gray-700 flex-1 min-w-24">{emp.name}</span>
                 <span className="text-xs text-gray-500 min-w-16">{emp.country}</span>
                 <span className="text-xs text-gray-500 flex-1 min-w-32 truncate">{emp.email}</span>
+                {emp.is_admin && (
+                  <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-purple-100 text-purple-700">
+                    🛡️ Admin
+                  </span>
+                )}
                 <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${emp.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
                   {emp.status === 'active' ? '✓ Active' : '⏳ Pending'}
                 </span>
-                <button onClick={() => { setEditingEmployee(emp.employee_id); setEditingEmployeeData({ name: emp.name, country: emp.country, email: emp.email }); }}
+                <button onClick={() => { setEditingEmployee(emp.employee_id); setEditingEmployeeData({ name: emp.name, country: emp.country, email: emp.email, is_admin: emp.is_admin }); }}
                   className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700">Edit</button>
                 <button onClick={async () => {
                   if (!window.confirm(`Delete all experiences and comments by ${emp.employee_id}? This cannot be undone.`)) return;
