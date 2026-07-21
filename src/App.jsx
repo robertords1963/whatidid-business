@@ -148,6 +148,9 @@ function CategoryBadge({ label }) {
 
 export default function WhatIDid() {
   const [isAdmin, setIsAdmin] = useState(() => localStorage.getItem('isAdmin') === 'true');
+  // employeeIsAdmin: essa conta PODE ser Admin (vem do banco, fixo até logout completo).
+  // isAdmin: a tela de Admin está ATIVA agora (liga/desliga, sem precisar de senha).
+  const [employeeIsAdmin, setEmployeeIsAdmin] = useState(() => localStorage.getItem('employeeIsAdmin') === 'true');
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [adminKeywords, setAdminKeywords] = useState('');
   const [confirmDelete, setConfirmDelete] = useState(null);
@@ -1053,6 +1056,8 @@ const handleEmployeeLogin = async () => {
 
   // Se esse employee é marcado como Admin, libera o modo Admin também
   if (data.is_admin) {
+    setEmployeeIsAdmin(true);
+    localStorage.setItem('employeeIsAdmin', 'true');
     setIsAdmin(true);
     localStorage.setItem('isAdmin', 'true');
   }
@@ -1073,6 +1078,10 @@ const handleEmployeeLogin = async () => {
   setEmployeeId('');
   localStorage.removeItem('employeeLoggedIn');
   localStorage.removeItem('employeeId');
+  setIsAdmin(false);
+  setEmployeeIsAdmin(false);
+  localStorage.removeItem('isAdmin');
+  localStorage.removeItem('employeeIsAdmin');
   // Reset filters
   setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '', industrySector: '' });
   setFilterMode('individual');
@@ -8439,20 +8448,24 @@ onClick={() => {
               >
                 Portal
               </a>
-              {isAdmin && (
+              {employeeIsAdmin && (
                 <>
                   <span className="text-gray-300">|</span>
                   <button
                     onClick={() => {
-                      setIsAdmin(false);
-                      localStorage.removeItem('isAdmin');
-                      setAdminKeywords('');
-                      setShowAdminLogin(false);
+                      if (isAdmin) {
+                        setIsAdmin(false);
+                        localStorage.removeItem('isAdmin');
+                        setAdminKeywords('');
+                      } else {
+                        setIsAdmin(true);
+                        localStorage.setItem('isAdmin', 'true');
+                      }
                     }}
-                    className="font-medium transition-colors flex items-center gap-2 text-purple-600"
+                    className={`font-medium transition-colors flex items-center gap-2 ${isAdmin ? 'text-purple-600' : 'text-gray-600 hover:text-purple-600'}`}
                   >
                     <Shield size={14} />
-                    Admin Mode (Click to Logout)
+                    {isAdmin ? 'Admin Mode (Click to Logout)' : 'Enter Admin Mode'}
                   </button>
                 </>
               )}
