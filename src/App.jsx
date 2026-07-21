@@ -147,7 +147,7 @@ function CategoryBadge({ label }) {
 }
 
 export default function WhatIDid() {
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(() => localStorage.getItem('isAdmin') === 'true');
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [adminKeywords, setAdminKeywords] = useState('');
   const [confirmDelete, setConfirmDelete] = useState(null);
@@ -8445,6 +8445,7 @@ onClick={() => {
                   <button
                     onClick={() => {
                       setIsAdmin(false);
+                      localStorage.removeItem('isAdmin');
                       setAdminKeywords('');
                       setShowAdminLogin(false);
                     }}
