@@ -148,7 +148,6 @@ function CategoryBadge({ label }) {
 
 export default function WhatIDid() {
   const [isAdmin, setIsAdmin] = useState(false);
-  const [adminPassword, setAdminPassword] = useState('');
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [adminKeywords, setAdminKeywords] = useState('');
   const [confirmDelete, setConfirmDelete] = useState(null);
@@ -2063,16 +2062,6 @@ const prevVideo = () => {
   }
 };
 
-  const handleAdminLogin = () => {
-    if (adminPassword === 'admin123') {
-      setIsAdmin(true);
-      localStorage.setItem('isAdmin', 'true');
-      setShowAdminLogin(false);
-    } else {
-      alert('Incorrect password');
-    }
-  };
-
   // Scroll to top when admin box is opened
   useEffect(() => {
   if (showAdminLogin || isAdmin) {
@@ -3513,6 +3502,7 @@ autoComplete="off"
                       <>You're accessing <strong>{accountAccessRecord.companies.name}</strong>.<br /></>
                     )}
                     We sent a 6-digit code to your email. Enter it below.
+                    <br /><span className="text-xs text-gray-500">Don't see it? Check your spam/junk folder too.</span>
                   </p>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Verification Code</label>
@@ -3786,25 +3776,7 @@ autoComplete="off"
 
 
           
-          {showAdminLogin && !isAdmin && (
-            <div className="mt-4 bg-white rounded-lg shadow-md p-4 max-w-md mx-auto">
-              <h3 className="font-semibold mb-2">Admin Login</h3>
-              <input
-                type="password"
-                value={adminPassword}
-                onChange={(e) => setAdminPassword(e.target.value)}
-                placeholder="Password"
-                className="w-full p-2 border-2 border-gray-200 rounded-lg mb-2"
-                onKeyPress={(e) => e.key === 'Enter' && handleAdminLogin()}
-              />
-              <button
-                onClick={handleAdminLogin}
-                className="w-full bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700"
-              >
-                Login
-              </button>
-            </div>
-          )}
+          
 
           {isAdmin && (
             <div className="mt-4 bg-purple-50 border-2 border-purple-300 rounded-lg shadow-md p-4 max-w-md mx-auto">
@@ -8467,24 +8439,22 @@ onClick={() => {
               >
                 Portal
               </a>
-              <span className="text-gray-300">|</span>
-              <button
-                onClick={() => {
-                  if (isAdmin) {
-                    setIsAdmin(false);
-                    setAdminKeywords('');
-                    setShowAdminLogin(false);
-                  } else {
-                    setShowAdminLogin(!showAdminLogin);
-                  }
-                }}
-                className={`font-medium transition-colors flex items-center gap-2 ${
-                  isAdmin ? 'text-purple-600' : 'text-gray-600 hover:text-purple-600'
-                }`}
-              >
-                {isAdmin && <Shield size={14} />}
-                {isAdmin ? 'Admin Mode (Click to Logout)' : 'Admin'}
-              </button>
+              {isAdmin && (
+                <>
+                  <span className="text-gray-300">|</span>
+                  <button
+                    onClick={() => {
+                      setIsAdmin(false);
+                      setAdminKeywords('');
+                      setShowAdminLogin(false);
+                    }}
+                    className="font-medium transition-colors flex items-center gap-2 text-purple-600"
+                  >
+                    <Shield size={14} />
+                    Admin Mode (Click to Logout)
+                  </button>
+                </>
+              )}
             </div>
             <div className="text-sm text-gray-500">
               © 2026 WhatIDid - All rights reserved
