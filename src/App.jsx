@@ -235,13 +235,25 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   // Contexto de navegação do ADM Master: null = Default; caso contrário, id da empresa sendo gerenciada.
   // Sempre reseta pra null (Default) a cada reload da página, por segurança.
   const [adminCompanyContext, setAdminCompanyContext] = useState(null);
-  // O company_id que as operações do Admin devem usar agora: a empresa selecionada
-  // no dropdown, ou a Default se nenhuma estiver selecionada.
+  // company_id da própria conta que logou (vem do registro de employee dela).
+  const [loggedInEmployeeCompanyId, setLoggedInEmployeeCompanyId] = useState(() => {
+    const stored = localStorage.getItem('loggedInEmployeeCompanyId');
+    return stored ? parseInt(stored) : null;
+  });
   const defaultCompanyId = companies.find(c => c.code === 'default')?.id || null;
-  const effectiveCompanyId = adminCompanyContext || defaultCompanyId;
-  const effectiveCompanyName = adminCompanyContext
+  // Só o Admin do Default pode navegar entre empresas pelo dropdown — qualquer
+  // outra empresa só vê e opera sobre os próprios dados, sempre.
+  const isDefaultAdmin = !!loggedInEmployeeCompanyId && loggedInEmployeeCompanyId === defaultCompanyId;
+  // O company_id que as operações do Admin devem usar agora: se for o Admin do
+  // Default navegando pra outra empresa via dropdown, usa essa; senão, usa
+  // sempre o company_id da própria conta logada.
+  const effectiveCompanyId = (isDefaultAdmin && adminCompanyContext) ? adminCompanyContext : (loggedInEmployeeCompanyId || defaultCompanyId);
+  const effectiveCompanyName = (isDefaultAdmin && adminCompanyContext)
     ? (companies.find(c => c.id === adminCompanyContext)?.name || 'Unknown')
-    : 'Default';
+    : (companies.find(c => c.id === effectiveCompanyId)?.name || 'Default');
+  // true quando o contexto ativo (seja por login direto, seja pelo dropdown do
+  // Master) é o Default — usado pra decidir se mostra as 5 seções exclusivas.
+  const isViewingDefault = effectiveCompanyId === defaultCompanyId;
   const [employeeSearch, setEmployeeSearch] = useState('');
   const [newEmployee, setNewEmployee] = useState({ employee_id: '', name: '', country: '', email: '', is_admin: false });
   const [editingEmployee, setEditingEmployee] = useState(null);
@@ -1129,6 +1141,10 @@ const handleEmployeeLogin = async () => {
   await loadCurrentEmployeeGroup(employeeId);
   await loadExperiences(false, employeeId);
 
+  // Guarda o company_id da própria conta que logou
+  setLoggedInEmployeeCompanyId(data.company_id || null);
+  localStorage.setItem('loggedInEmployeeCompanyId', data.company_id || '');
+
   // Se esse employee é marcado como Admin, libera o modo Admin também
   if (data.is_admin) {
     setEmployeeIsAdmin(true);
@@ -1157,6 +1173,9 @@ const handleEmployeeLogin = async () => {
   setEmployeeIsAdmin(false);
   localStorage.removeItem('isAdmin');
   localStorage.removeItem('employeeIsAdmin');
+  setLoggedInEmployeeCompanyId(null);
+  localStorage.removeItem('loggedInEmployeeCompanyId');
+  setAdminCompanyContext(null);
   // Reset filters
   setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '', industrySector: '' });
   setFilterMode('individual');
@@ -3885,7 +3904,7 @@ autoComplete="off"
             </div>
           )}
 
-{isAdmin && (
+{isAdmin && isDefaultAdmin && (
   <div className={`mt-4 rounded-lg shadow-md p-4 max-w-4xl mx-auto border-2 ${adminCompanyContext ? 'bg-amber-50 border-amber-400' : 'bg-gray-50 border-gray-300'}`}>
     <div className="flex items-center gap-3 flex-wrap">
       <label className="text-sm font-medium text-gray-700">Managing:</label>
@@ -3908,7 +3927,7 @@ autoComplete="off"
   </div>
 )}
 
-{isAdmin && (
+{isAdmin && isDefaultAdmin && (
   <div className="mt-4 bg-indigo-50 border-2 border-indigo-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
       🏢 Manage Companies
@@ -3965,7 +3984,7 @@ autoComplete="off"
     
     <div className="bg-white rounded p-4 space-y-4">
       {/* 1. Nome da Edição — sempre "Corp" pra empresas, escondido fora do Default */}
-      {!adminCompanyContext && (
+      {isViewingDefault && (
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Edition Name
@@ -3996,7 +4015,7 @@ autoComplete="off"
       </div>
       )}
       
-      {!adminCompanyContext && (
+      {isViewingDefault && (
       <>
       {/* 2. Employee Login */}
       <div className="flex items-center gap-3">
@@ -4678,7 +4697,7 @@ autoComplete="off"
           )}
         </div>
 
-{isAdmin && !adminCompanyContext && (
+{isAdmin && isViewingDefault && (
   <div className="mt-4 bg-pink-50 border-2 border-pink-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
       🎯 Manage Demo Groups
@@ -5288,7 +5307,7 @@ for (const row of rows) {
   </div>
 )}
 
-{isAdmin && !adminCompanyContext && (
+{isAdmin && isViewingDefault && (
   <div className="mt-4 bg-orange-50 border-2 border-orange-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
       ⭐ Assign Ratings to Experiences
