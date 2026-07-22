@@ -260,8 +260,12 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
     ? (companies.find(c => c.id === adminCompanyContext)?.name || 'Unknown')
     : (companies.find(c => c.id === effectiveCompanyId)?.name || 'Default');
   // true quando o contexto ativo (seja por login direto, seja pelo dropdown do
-  // Master) é o Default — usado pra decidir se mostra as 5 seções exclusivas.
+  // Master) é o Default — usado só pra saber QUAL DADO está sendo mostrado.
   const isViewingDefault = effectiveCompanyId === defaultCompanyId;
+  // true só quando é o Admin do Default DE VERDADE, olhando pro próprio Default
+  // (não um Admin de empresa espiando o Sample, que também usa dados do Default,
+  // mas não deve ver as 5 seções exclusivas do Default).
+  const showDefaultOnlyTools = isDefaultAdmin && isViewingDefault;
   // true quando um Admin de empresa (não Default) está no modo "Sample" — nesse
   // caso, tudo que ele vê é somente leitura (não pode editar o conteúdo do Default).
   const isReadOnlyView = !isDefaultAdmin && companyViewMode === 'sample';
@@ -4016,7 +4020,7 @@ autoComplete="off"
     
     <div className="bg-white rounded p-4 space-y-4">
       {/* 1. Nome da Edição — sempre "Corp" pra empresas, escondido fora do Default */}
-      {isViewingDefault && (
+      {showDefaultOnlyTools && (
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Edition Name
@@ -4047,7 +4051,7 @@ autoComplete="off"
       </div>
       )}
       
-      {isViewingDefault && (
+      {showDefaultOnlyTools && (
       <>
       {/* 2. Employee Login */}
       <div className="flex items-center gap-3">
@@ -4729,7 +4733,7 @@ autoComplete="off"
           )}
         </div>
 
-{isAdmin && isViewingDefault && (
+{isAdmin && showDefaultOnlyTools && (
   <div className="mt-4 bg-pink-50 border-2 border-pink-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
       🎯 Manage Demo Groups
@@ -4940,7 +4944,7 @@ autoComplete="off"
     {/* Search + List */}
     <div className="bg-white rounded p-4">
       <div className="flex items-center gap-3 mb-3">
-        <h4 className="font-medium text-gray-700">Employees ({employees.length})</h4>
+        <h4 className="font-medium text-gray-700">Search Employees ({employees.length})</h4>
         <input type="text" value={employeeSearch} onChange={(e) => setEmployeeSearch(e.target.value)}
           placeholder="Search by ID, name or email..." className="flex-1 p-2 border-2 border-gray-200 rounded-lg text-sm" />
       </div>
@@ -5345,7 +5349,7 @@ for (const row of rows) {
   </div>
 )}
 
-{isAdmin && isViewingDefault && (
+{isAdmin && showDefaultOnlyTools && (
   <div className="mt-4 bg-orange-50 border-2 border-orange-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
       ⭐ Assign Ratings to Experiences
