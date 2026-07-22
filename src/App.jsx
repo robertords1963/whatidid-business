@@ -243,6 +243,10 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   // Pro Admin de uma empresa (não Default): 'own' (visão normal, editável) ou
   // 'sample' (conteúdo do Default, somente leitura, pra decidir o que importar).
   const [companyViewMode, setCompanyViewMode] = useState('own');
+  // Visibilidade das seções pro ADM Master (lista de chaves liberadas) + estado de importação
+  const [companyMasterVisibility, setCompanyMasterVisibility] = useState([]);
+  const [importingBundle, setImportingBundle] = useState(false);
+  const [importingQuotes, setImportingQuotes] = useState(false);
   const defaultCompanyId = companies.find(c => c.code === 'default')?.id || null;
   // Só o Admin do Default pode navegar entre empresas pelo dropdown — qualquer
   // outra empresa só vê e opera sobre os próprios dados, sempre.
@@ -347,6 +351,13 @@ useEffect(() => {
     loadEmployees(effectiveCompanyId);
   }
 }, [effectiveCompanyId]);
+
+// Carrega a visibilidade que a própria empresa (não Default) liberou pro ADM Master
+useEffect(() => {
+  if (loggedInEmployeeCompanyId && !isDefaultAdmin) {
+    loadCompanyMasterVisibility(loggedInEmployeeCompanyId);
+  }
+}, [loggedInEmployeeCompanyId, isDefaultAdmin]);
 
 // ⭐ PWA Install — detectar plataforma (mobile/desktop), estado de instalação,
 // e capturar o prompt nativo do Chrome/Edge (funciona em Android E desktop)
@@ -894,6 +905,150 @@ const toggleCompanyActive = async (companyId, active) => {
     await loadCompanies();
   } catch (error) {
     console.error('Error updating company:', error);
+  }
+};
+
+// Carrega quais seções essa empresa liberou pro ADM Master ver
+const loadCompanyMasterVisibility = async (companyId) => {
+  if (!companyId) return;
+  try {
+    const { data, error } = await supabase
+      .from('company_master_visibility')
+      .select('section_key')
+      .eq('company_id', companyId)
+      .maybeSingle();
+    if (error) throw error;
+    setCompanyMasterVisibility(data?.section_key || []);
+  } catch (error) {
+    console.error('Error loading company master visibility:', error);
+  }
+};
+
+// Liga/desliga a visibilidade de uma seção específica pro ADM Master
+const toggleMasterVisibility = async (sectionKey, checked) => {
+  const updated = checked
+    ? [...new Set([...companyMasterVisibility, sectionKey])]
+    : companyMasterVisibility.filter(k => k !== sectionKey);
+  setCompanyMasterVisibility(updated);
+  try {
+    const { error } = await supabase
+      .from('company_master_visibility')
+      .upsert({ company_id: effectiveCompanyId, section_key: updated, updated_at: new Date().toISOString() }, { onConflict: 'company_id' });
+    if (error) throw error;
+  } catch (error) {
+    console.error('Error saving visibility:', error);
+    alert('Error saving visibility setting.');
+  }
+};
+
+// Importa o "pacote" ligado: Practices + Categories + Employees sintéticos +
+// Experiences sintéticas (inclui Key Insights, já que são experiences com
+// author = 'key_insights'). São importados juntos porque um depende do outro.
+const importDefaultBundle = async () => {
+  if (!effectiveCompanyId || effectiveCompanyId === defaultCompanyId) return;
+  if (!window.confirm("Import Practices, Categories, Employees and Experiences (including Key Insights) from Default? This adds new items on top of what you already have.")) return;
+  setImportingBundle(true);
+  const batchId = `bundle-${Date.now()}`;
+  const companyCode = companies.find(c => c.id === effectiveCompanyId)?.code || String(effectiveCompanyId);
+  try {
+    // 1. Practices
+    const { data: defaultPractices, error: pErr } = await supabase
+      .from('practices').select('*').eq('company_id', defaultCompanyId);
+    if (pErr) throw pErr;
+    const practiceIdMap = {};
+    for (const p of (defaultPractices || [])) {
+      const { data: inserted, error } = await supabase.from('practices').insert([{
+        name: p.name, show_in_ui: p.show_in_ui, display_order: p.display_order, active: p.active,
+        company_id: effectiveCompanyId, imported_from_id: p.id, import_batch_id: batchId
+      }]).select().single();
+      if (error) throw error;
+      practiceIdMap[p.id] = inserted.id;
+    }
+
+    // 2. Categories
+    const { data: defaultCategories, error: cErr } = await supabase
+      .from('problem_categories').select('*').eq('company_id', defaultCompanyId);
+    if (cErr) throw cErr;
+    for (const c of (defaultCategories || [])) {
+      const { error } = await supabase.from('problem_categories').insert([{
+        name: c.name, description: c.description, tags: c.tags,
+        display_order: c.display_order, active: c.active, practice_id: practiceIdMap[c.practice_id] || null,
+        company_id: effectiveCompanyId, imported_from_id: c.id, import_batch_id: batchId
+      }]);
+      if (error) throw error;
+    }
+
+    // 3. Employees sintéticos (is_demo = true). Novo employee_id gerado pra
+    //    evitar colisão, já que employee_id precisa ser único no banco inteiro.
+    const { data: defaultEmployees, error: eErr } = await supabase
+      .from('employees').select('*').eq('company_id', defaultCompanyId).eq('is_demo', true);
+    if (eErr) throw eErr;
+    const employeeIdMap = {};
+    for (const emp of (defaultEmployees || [])) {
+      const newEmployeeId = `${emp.employee_id}-${companyCode}`;
+      const { error } = await supabase.from('employees').insert([{
+        employee_id: newEmployeeId, name: emp.name, country: emp.country,
+        is_demo: true, status: 'active', active: true,
+        company_id: effectiveCompanyId, imported_from_id: emp.id, import_batch_id: batchId
+      }]);
+      if (error) throw error;
+      employeeIdMap[emp.employee_id] = newEmployeeId;
+    }
+
+    // 4. Experiences sintéticas (source != 'app'), incluindo Key Insights
+    const { data: defaultExperiences, error: xErr } = await supabase
+      .from('experiences').select('*').eq('company_id', defaultCompanyId).neq('source', 'app');
+    if (xErr) throw xErr;
+    for (const exp of (defaultExperiences || [])) {
+      const { error } = await supabase.from('experiences').insert([{
+        problem: exp.problem, problem_category: exp.problem_category, solution: exp.solution,
+        result: exp.result, result_category: exp.result_category, industry_sector: exp.industry_sector,
+        author: exp.author, gender: exp.gender, age: exp.age, country: exp.country,
+        employee_id: employeeIdMap[exp.employee_id] || null,
+        practice_id: practiceIdMap[exp.practice_id] || null,
+        tags: exp.tags, avg_rating: exp.avg_rating, total_ratings: exp.total_ratings,
+        source: exp.source,
+        company_id: effectiveCompanyId, imported_from_id: exp.id, import_batch_id: batchId
+      }]);
+      if (error) throw error;
+    }
+
+    await loadPractices();
+    await loadProblemCategories();
+    await loadEmployees(effectiveCompanyId);
+    alert('Import complete!');
+  } catch (error) {
+    console.error('Error importing bundle:', error);
+    alert('Error during import: ' + error.message);
+  } finally {
+    setImportingBundle(false);
+  }
+};
+
+// Importa Quotes do Default (independente do resto, não tem a mesma cadeia de dependência)
+const importQuotesFromDefault = async () => {
+  if (!effectiveCompanyId || effectiveCompanyId === defaultCompanyId) return;
+  if (!window.confirm('Import Quotes from Default?')) return;
+  setImportingQuotes(true);
+  const batchId = `quotes-${Date.now()}`;
+  try {
+    const { data: defaultQuotes, error } = await supabase
+      .from('quotes').select('*').eq('company_id', defaultCompanyId);
+    if (error) throw error;
+    for (const q of (defaultQuotes || [])) {
+      const { error: insErr } = await supabase.from('quotes').insert([{
+        text: q.text, author: q.author, position: q.position, active: q.active,
+        company_id: effectiveCompanyId, imported_from_id: q.id, import_batch_id: batchId
+      }]);
+      if (insErr) throw insErr;
+    }
+    await loadQuotes();
+    alert('Quotes imported!');
+  } catch (error) {
+    console.error('Error importing quotes:', error);
+    alert('Error importing quotes: ' + error.message);
+  } finally {
+    setImportingQuotes(false);
   }
 };
 // ==================== FIM MULTI-EMPRESA ====================
@@ -3963,6 +4118,67 @@ autoComplete="off"
   </div>
 )}
 
+{isAdmin && !isDefaultAdmin && companyViewMode === 'own' && (
+  <div className="mt-4 bg-white border-2 border-gray-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
+    <h3 className="font-semibold text-gray-800 mb-1">Section Settings</h3>
+    <p className="text-xs text-gray-500 mb-3">Column 1 — let the ADM Master view & edit this section for support. Column 2 — bring starter content from Default (synthetic examples, not real people).</p>
+    <table className="w-full text-sm">
+      <thead>
+        <tr className="text-left text-gray-600 border-b">
+          <th className="py-1">Section</th>
+          <th className="py-1 text-center">View & Edit access for ADM Master</th>
+          <th className="py-1 text-center">Import from Default</th>
+        </tr>
+      </thead>
+      <tbody>
+        {[
+          { key: 'employees', label: 'Employees' },
+          { key: 'experiences', label: 'See What Others Did' },
+          { key: 'top3', label: 'Top 3' },
+          { key: 'key_insights', label: 'Key Insights' },
+          { key: 'practices', label: 'Practices' },
+          { key: 'categories', label: 'Categories' },
+        ].map(row => (
+          <tr key={row.key} className="border-b last:border-b-0">
+            <td className="py-2">{row.label}</td>
+            <td className="py-2 text-center">
+              <input type="checkbox"
+                checked={companyMasterVisibility.includes(row.key)}
+                onChange={(e) => toggleMasterVisibility(row.key, e.target.checked)}
+                className="w-4 h-4" />
+            </td>
+            <td className="py-2 text-center text-gray-400 text-xs">
+              (bundle below)
+            </td>
+          </tr>
+        ))}
+        <tr className="border-b">
+          <td className="py-2">Quotes</td>
+          <td className="py-2 text-center">
+            <input type="checkbox"
+              checked={companyMasterVisibility.includes('quotes')}
+              onChange={(e) => toggleMasterVisibility('quotes', e.target.checked)}
+              className="w-4 h-4" />
+          </td>
+          <td className="py-2 text-center">
+            <button onClick={importQuotesFromDefault} disabled={importingQuotes}
+              className="px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700 disabled:opacity-50">
+              {importingQuotes ? 'Importing...' : 'Import'}
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div className="mt-3 pt-3 border-t">
+      <p className="text-xs text-gray-500 mb-2">Employees, See What Others Did, Top 3, Key Insights, Practices and Categories are linked together (synthetic examples reference each other), so they're imported as one bundle:</p>
+      <button onClick={importDefaultBundle} disabled={importingBundle}
+        className="px-3 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 disabled:opacity-50">
+        {importingBundle ? 'Importing...' : 'Import starter content from Default'}
+      </button>
+    </div>
+  </div>
+)}
+
 {isAdmin && isDefaultAdmin && (
   <div className="mt-4 bg-indigo-50 border-2 border-indigo-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
@@ -4300,8 +4516,10 @@ autoComplete="off"
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 <MessageCircle size={20} />
                 Manage Inspirational Quotes
+                {isReadOnlyView && <span className="text-xs font-normal text-blue-600">(read-only — Sample)</span>}
               </h3>
 
+              <div className={isReadOnlyView ? 'pointer-events-none opacity-60' : ''}>
       {/* Show Marquee */}
       <div className="flex items-center gap-3">
         <input type="checkbox" id="showMarquee" checked={appSettings.showMarquee}
@@ -4441,6 +4659,7 @@ autoComplete="off"
                     ))}
                   </div>
                 )}
+              </div>
               </div>
             </div>
           )}
@@ -5043,8 +5262,10 @@ autoComplete="off"
   <div className="mt-4 bg-teal-50 border-2 border-teal-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
       🗂️ Manage Problem Categories
+      {isReadOnlyView && <span className="text-xs font-normal text-blue-600">(read-only — Sample)</span>}
     </h3>
 
+    <div className={isReadOnlyView ? 'pointer-events-none opacity-60' : ''}>
     {/* Practice selector + New Practice */}
     <div className="bg-white rounded p-4 mb-4">
       <div className="flex items-center gap-3 mb-4">
@@ -5345,6 +5566,7 @@ for (const row of rows) {
           </div>
         ))}
       </div>
+    </div>
     </div>
   </div>
 )}
