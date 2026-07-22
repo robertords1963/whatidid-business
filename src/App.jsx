@@ -3810,113 +3810,6 @@ autoComplete="off"
             </div>
           )}
 
-          {isAdmin && (
-            <div className="mt-4 bg-yellow-50 border-2 border-yellow-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
-              <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                <Search size={20} />
-                Admin Keyword Filter
-              </h3>
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Keywords (separate with commas)
-                  </label>
-                  <input
-                    type="text"
-                    value={adminKeywords}
-                    onChange={(e) => setAdminKeywords(e.target.value)}
-                    placeholder="e.g., spam, scam, inappropriate, viagra"
-                    className="w-full p-2 border-2 border-gray-300 rounded-lg"
-                  />
-                  <p className="text-xs text-gray-600 mt-1">
-                    Will search in problems, solutions, results, and comments
-                  </p>
-                </div>
-                {adminKeywords && (
-                  <div className="bg-white rounded p-3">
-                    <p className="text-sm font-semibold mb-2">
-                      Found {getKeywordMatches().length} matches
-                    </p>
-                    {getKeywordMatches().length === 0 ? (
-                      <p className="text-sm text-gray-500">No matches found</p>
-                    ) : (
-                      <div className="space-y-2 max-h-96 overflow-y-auto">
-                        {getKeywordMatches().map((match, idx) => (
-                          <div key={idx} className="border border-red-300 bg-red-50 rounded p-3">
-                            <div className="flex justify-between items-start mb-2">
-                              <div>
-                                <span className="text-xs font-semibold text-red-700 uppercase bg-red-200 px-2 py-1 rounded">
-                                  {match.type}
-                                </span>
-                                {match.type === 'comment' && (
-                                  <span className="text-xs text-gray-600 ml-2">
-                                    on experience #{match.expId}
-                                  </span>
-                                )}
-                              </div>
-                              {(() => {
-                                const confirmKey = match.type === 'comment' 
-                                  ? `comment-${match.expId}-${match.commentId}`
-                                  : `exp-${match.expId}`;
-                                const isConfirming = confirmDelete === confirmKey;
-                                return (
-                                  <div className="flex gap-2">
-                                    <button
-                                      onClick={async () => {
-                                        const confirmKey = match.type === 'comment' 
-                                          ? `comment-${match.expId}-${match.commentId}`
-                                          : `exp-${match.expId}`;
-                                        const isConfirming = confirmDelete === confirmKey;
-                                        if (isConfirming) {
-                                          if (match.type === 'comment') {
-                                            handleDeleteComment(match.expId, match.commentId);
-                                          } else {
-                                            await deleteExperienceFromSupabase(match.expId);
-                                          }
-                                          setConfirmDelete(null);
-                                        } else {
-                                          setConfirmDelete(confirmKey);
-                                        }
-                                      }}
-                                      className={`px-3 py-1 text-white text-xs rounded flex items-center gap-1 ${
-                                        isConfirming ? 'bg-orange-600 hover:bg-orange-700 animate-pulse' : 'bg-red-600 hover:bg-red-700'
-                                      }`}
-                                    >
-                                      <Trash2 size={12} />
-                                      {isConfirming ? 'Confirm!' : 'Delete'}
-                                    </button>
-                                    {isConfirming && (
-                                      <button
-                                        onClick={() => setConfirmDelete(null)}
-                                        className="px-3 py-1 bg-gray-500 text-white text-xs rounded hover:bg-gray-600"
-                                      >
-                                        Cancel
-                                      </button>
-                                    )}
-                                  </div>
-                                );
-                              })()}
-                            </div>
-                            <p className="text-sm text-gray-700 mb-1">
-                              <span className="font-medium">Keyword found:</span>{' '}
-                              <span className="bg-yellow-300 px-1 rounded font-semibold">{match.keyword}</span>
-                            </p>
-                            {match.author && (
-                              <p className="text-xs text-gray-600 mb-1">By: {match.author}</p>
-                            )}
-                            <p className="text-sm text-gray-600 italic border-l-4 border-yellow-400 pl-2">
-                              "{match.text.substring(0, 200)}{match.text.length > 200 ? '...' : ''}"
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-          
 {isAdmin && (
   <div className="mt-4 bg-indigo-50 border-2 border-indigo-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
@@ -4093,15 +3986,6 @@ autoComplete="off"
         </div>
       )}
 
-      {/* Show Marquee */}
-      <div className="flex items-center gap-3">
-        <input type="checkbox" id="showMarquee" checked={appSettings.showMarquee}
-          onChange={async (e) => {
-            setAppSettings({...appSettings, showMarquee: e.target.checked});
-            await supabase.from('app_settings').update({ show_marquee: e.target.checked }).eq('id', 1);
-          }} className="w-5 h-5" />
-        <label htmlFor="showMarquee" className="text-sm font-medium text-gray-700 cursor-pointer">Show Inspirational Quotes (Marquee)</label>
-      </div>
 
       {/* 🏢 Company Branding */}
       <div className="border-t pt-4 mt-2">
@@ -4209,6 +4093,16 @@ autoComplete="off"
                 <MessageCircle size={20} />
                 Manage Inspirational Quotes
               </h3>
+
+      {/* Show Marquee */}
+      <div className="flex items-center gap-3">
+        <input type="checkbox" id="showMarquee" checked={appSettings.showMarquee}
+          onChange={async (e) => {
+            setAppSettings({...appSettings, showMarquee: e.target.checked});
+            await supabase.from('app_settings').update({ show_marquee: e.target.checked }).eq('id', 1);
+          }} className="w-5 h-5" />
+        <label htmlFor="showMarquee" className="text-sm font-medium text-gray-700 cursor-pointer">Show Inspirational Quotes (Marquee)</label>
+      </div>
               
               <div className="bg-white rounded p-4 mb-4">
                 <h4 className="font-medium text-gray-700 mb-3">Add New Quote</h4>
@@ -5742,6 +5636,113 @@ onClick={() => {
         })()}
 
 {/* Tabs estilo fichário — substitui os botões de navegação */}
+          {isAdmin && (
+            <div className="mt-4 bg-yellow-50 border-2 border-yellow-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
+              <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                <Search size={20} />
+                Admin Keyword Filter
+              </h3>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Keywords (separate with commas)
+                  </label>
+                  <input
+                    type="text"
+                    value={adminKeywords}
+                    onChange={(e) => setAdminKeywords(e.target.value)}
+                    placeholder="e.g., spam, scam, inappropriate, viagra"
+                    className="w-full p-2 border-2 border-gray-300 rounded-lg"
+                  />
+                  <p className="text-xs text-gray-600 mt-1">
+                    Will search in problems, solutions, results, and comments
+                  </p>
+                </div>
+                {adminKeywords && (
+                  <div className="bg-white rounded p-3">
+                    <p className="text-sm font-semibold mb-2">
+                      Found {getKeywordMatches().length} matches
+                    </p>
+                    {getKeywordMatches().length === 0 ? (
+                      <p className="text-sm text-gray-500">No matches found</p>
+                    ) : (
+                      <div className="space-y-2 max-h-96 overflow-y-auto">
+                        {getKeywordMatches().map((match, idx) => (
+                          <div key={idx} className="border border-red-300 bg-red-50 rounded p-3">
+                            <div className="flex justify-between items-start mb-2">
+                              <div>
+                                <span className="text-xs font-semibold text-red-700 uppercase bg-red-200 px-2 py-1 rounded">
+                                  {match.type}
+                                </span>
+                                {match.type === 'comment' && (
+                                  <span className="text-xs text-gray-600 ml-2">
+                                    on experience #{match.expId}
+                                  </span>
+                                )}
+                              </div>
+                              {(() => {
+                                const confirmKey = match.type === 'comment' 
+                                  ? `comment-${match.expId}-${match.commentId}`
+                                  : `exp-${match.expId}`;
+                                const isConfirming = confirmDelete === confirmKey;
+                                return (
+                                  <div className="flex gap-2">
+                                    <button
+                                      onClick={async () => {
+                                        const confirmKey = match.type === 'comment' 
+                                          ? `comment-${match.expId}-${match.commentId}`
+                                          : `exp-${match.expId}`;
+                                        const isConfirming = confirmDelete === confirmKey;
+                                        if (isConfirming) {
+                                          if (match.type === 'comment') {
+                                            handleDeleteComment(match.expId, match.commentId);
+                                          } else {
+                                            await deleteExperienceFromSupabase(match.expId);
+                                          }
+                                          setConfirmDelete(null);
+                                        } else {
+                                          setConfirmDelete(confirmKey);
+                                        }
+                                      }}
+                                      className={`px-3 py-1 text-white text-xs rounded flex items-center gap-1 ${
+                                        isConfirming ? 'bg-orange-600 hover:bg-orange-700 animate-pulse' : 'bg-red-600 hover:bg-red-700'
+                                      }`}
+                                    >
+                                      <Trash2 size={12} />
+                                      {isConfirming ? 'Confirm!' : 'Delete'}
+                                    </button>
+                                    {isConfirming && (
+                                      <button
+                                        onClick={() => setConfirmDelete(null)}
+                                        className="px-3 py-1 bg-gray-500 text-white text-xs rounded hover:bg-gray-600"
+                                      >
+                                        Cancel
+                                      </button>
+                                    )}
+                                  </div>
+                                );
+                              })()}
+                            </div>
+                            <p className="text-sm text-gray-700 mb-1">
+                              <span className="font-medium">Keyword found:</span>{' '}
+                              <span className="bg-yellow-300 px-1 rounded font-semibold">{match.keyword}</span>
+                            </p>
+                            {match.author && (
+                              <p className="text-xs text-gray-600 mb-1">By: {match.author}</p>
+                            )}
+                            <p className="text-sm text-gray-600 italic border-l-4 border-yellow-400 pl-2">
+                              "{match.text.substring(0, 200)}{match.text.length > 200 ? '...' : ''}"
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          
 <div className="mt-5 mb-8">
 <div id="main-tabs-anchor" className="flex justify-center mb-0 relative">
   <div className="flex w-full">
