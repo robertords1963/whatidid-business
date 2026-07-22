@@ -228,6 +228,10 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   
   // Employee Management states
   const [employees, setEmployees] = useState([]);
+  // Multi-empresa: lista de empresas cadastradas, formulário de nova empresa
+  const [companies, setCompanies] = useState([]);
+  const [newCompany, setNewCompany] = useState({ name: '', code: '' });
+  const [companiesLoaded, setCompaniesLoaded] = useState(false);
   const [employeeSearch, setEmployeeSearch] = useState('');
   const [newEmployee, setNewEmployee] = useState({ employee_id: '', name: '', country: '', email: '', is_admin: false });
   const [editingEmployee, setEditingEmployee] = useState(null);
@@ -296,6 +300,7 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   loadEmployees();
   loadPractices();
   loadDemoGroups();
+  loadCompanies();
 }, []);
 
 // ⭐ PWA Install — detectar plataforma (mobile/desktop), estado de instalação,
@@ -796,6 +801,54 @@ const loadEmployees = async () => {
     console.error('Error loading employees:', error);
   }
 };
+
+// ==================== MULTI-EMPRESA ====================
+const loadCompanies = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('companies')
+      .select('*')
+      .order('created_at', { ascending: true });
+    if (error) throw error;
+    setCompanies(data || []);
+    setCompaniesLoaded(true);
+  } catch (error) {
+    console.error('Error loading companies:', error);
+  }
+};
+
+const addCompany = async () => {
+  if (!newCompany.name.trim()) {
+    alert('Company name is required');
+    return;
+  }
+  const code = newCompany.code.trim() || newCompany.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  try {
+    const { error } = await supabase.from('companies').insert([{
+      name: newCompany.name.trim(),
+      code: code,
+      active: true
+    }]);
+    if (error) throw error;
+    setNewCompany({ name: '', code: '' });
+    await loadCompanies();
+    alert('Company added successfully!');
+  } catch (error) {
+    console.error('Error adding company:', error);
+    alert('Error adding company. Code may already exist.');
+  }
+};
+
+const toggleCompanyActive = async (companyId, active) => {
+  try {
+    const { error } = await supabase.from('companies').update({ active }).eq('id', companyId);
+    if (error) throw error;
+    await loadCompanies();
+  } catch (error) {
+    console.error('Error updating company:', error);
+  }
+};
+// ==================== FIM MULTI-EMPRESA ====================
 
 const addEmployee = async () => {
   if (!newEmployee.employee_id.trim() || !newEmployee.name.trim()) {
@@ -4673,6 +4726,54 @@ autoComplete="off"
   </div>
 )}
        
+{isAdmin && (
+  <div className="mt-4 bg-indigo-50 border-2 border-indigo-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
+    <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+      🏢 Manage Companies
+    </h3>
+
+    {/* Add Company */}
+    <div className="bg-white rounded p-4 mb-4">
+      <h4 className="font-medium text-gray-700 mb-3">Add Company</h4>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+        <input type="text" value={newCompany.name} onChange={(e) => setNewCompany({...newCompany, name: e.target.value})}
+          placeholder="Company Name *" className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
+        <input type="text" value={newCompany.code} onChange={(e) => setNewCompany({...newCompany, code: e.target.value})}
+          placeholder="Company Code (optional, auto-generated if blank)" className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
+      </div>
+      <button onClick={addCompany} className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700">
+        + Add Company
+      </button>
+    </div>
+
+    {/* Company List */}
+    <div className="bg-white rounded p-4">
+      <h4 className="font-medium text-gray-700 mb-3">Registered Companies ({companies.length})</h4>
+      {!companiesLoaded ? (
+        <p className="text-sm text-gray-400">Loading...</p>
+      ) : companies.length === 0 ? (
+        <p className="text-sm text-gray-400">No companies yet.</p>
+      ) : (
+        <div className="space-y-2">
+          {companies.map(c => (
+            <div key={c.id} className="flex items-center gap-3 p-2 border border-gray-200 rounded-lg flex-wrap">
+              <span className="text-sm font-medium text-gray-800 flex-1 min-w-32">{c.name}</span>
+              <span className="text-xs text-gray-500 font-mono">{c.code}</span>
+              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${c.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                {c.active ? 'Active' : 'Inactive'}
+              </span>
+              <button onClick={() => toggleCompanyActive(c.id, !c.active)}
+                className={`px-2 py-1 rounded text-xs ${c.active ? 'bg-gray-400 hover:bg-gray-500 text-white' : 'bg-green-600 hover:bg-green-700 text-white'}`}>
+                {c.active ? 'Deactivate' : 'Activate'}
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  </div>
+)}
+
 {isAdmin && (
   <div className="mt-4 bg-slate-50 border-2 border-slate-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
