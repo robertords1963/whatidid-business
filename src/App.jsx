@@ -3964,7 +3964,8 @@ autoComplete="off"
     </h3>
     
     <div className="bg-white rounded p-4 space-y-4">
-      {/* 1. Nome da Edição */}
+      {/* 1. Nome da Edição — sempre "Corp" pra empresas, escondido fora do Default */}
+      {!adminCompanyContext && (
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Edition Name
@@ -3993,7 +3994,10 @@ autoComplete="off"
           <option value="corp">Corp</option>
         </select>
       </div>
+      )}
       
+      {!adminCompanyContext && (
+      <>
       {/* 2. Employee Login */}
       <div className="flex items-center gap-3">
         <input
@@ -4110,6 +4114,8 @@ autoComplete="off"
           </div>
         )}
       </div>
+      </>
+      )}
 
       {/* Show Top 3 */}
       <div className="flex items-center gap-3">
@@ -4672,7 +4678,7 @@ autoComplete="off"
           )}
         </div>
 
-{isAdmin && (
+{isAdmin && !adminCompanyContext && (
   <div className="mt-4 bg-pink-50 border-2 border-pink-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
       🎯 Manage Demo Groups
@@ -5282,7 +5288,7 @@ for (const row of rows) {
   </div>
 )}
 
-{isAdmin && (
+{isAdmin && !adminCompanyContext && (
   <div className="mt-4 bg-orange-50 border-2 border-orange-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
       ⭐ Assign Ratings to Experiences
