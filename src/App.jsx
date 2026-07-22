@@ -1051,6 +1051,83 @@ const importQuotesFromDefault = async () => {
     setImportingQuotes(false);
   }
 };
+
+const BUNDLE_TABLES = ['practices', 'problem_categories', 'employees', 'experiences'];
+
+const deleteLastBundleImport = async () => {
+  if (!effectiveCompanyId) return;
+  try {
+    let batches = [];
+    for (const t of BUNDLE_TABLES) {
+      const { data } = await supabase.from(t).select('import_batch_id')
+        .eq('company_id', effectiveCompanyId).not('import_batch_id', 'is', null);
+      if (data) batches.push(...data.map(r => r.import_batch_id));
+    }
+    const uniqueBatches = [...new Set(batches)].sort();
+    const lastBatch = uniqueBatches[uniqueBatches.length - 1];
+    if (!lastBatch) { alert('No imports found to undo.'); return; }
+    if (!window.confirm(`Delete the last import (batch ${lastBatch})? This removes everything brought in during that specific import.`)) return;
+    for (const t of BUNDLE_TABLES) {
+      await supabase.from(t).delete().eq('company_id', effectiveCompanyId).eq('import_batch_id', lastBatch);
+    }
+    await loadPractices();
+    await loadProblemCategories();
+    await loadEmployees(effectiveCompanyId);
+    alert('Last import removed.');
+  } catch (error) {
+    console.error('Error deleting last import:', error);
+    alert('Error deleting last import: ' + error.message);
+  }
+};
+
+const deleteAllBundleImport = async () => {
+  if (!effectiveCompanyId) return;
+  if (!window.confirm('Delete ALL imported content (Employees, Experiences, Key Insights, Practices, Categories) from this company? Items you created yourself are not affected. This cannot be undone.')) return;
+  try {
+    for (const t of BUNDLE_TABLES) {
+      await supabase.from(t).delete().eq('company_id', effectiveCompanyId).not('imported_from_id', 'is', null);
+    }
+    await loadPractices();
+    await loadProblemCategories();
+    await loadEmployees(effectiveCompanyId);
+    alert('All imported content removed.');
+  } catch (error) {
+    console.error('Error deleting imported content:', error);
+    alert('Error deleting imported content: ' + error.message);
+  }
+};
+
+const deleteLastQuotesImport = async () => {
+  if (!effectiveCompanyId) return;
+  try {
+    const { data } = await supabase.from('quotes').select('import_batch_id')
+      .eq('company_id', effectiveCompanyId).not('import_batch_id', 'is', null);
+    const uniqueBatches = [...new Set((data || []).map(r => r.import_batch_id))].sort();
+    const lastBatch = uniqueBatches[uniqueBatches.length - 1];
+    if (!lastBatch) { alert('No Quotes imports found to undo.'); return; }
+    if (!window.confirm('Delete the last Quotes import?')) return;
+    await supabase.from('quotes').delete().eq('company_id', effectiveCompanyId).eq('import_batch_id', lastBatch);
+    await loadQuotes();
+    alert('Last Quotes import removed.');
+  } catch (error) {
+    console.error('Error deleting last quotes import:', error);
+    alert('Error: ' + error.message);
+  }
+};
+
+const deleteAllQuotesImport = async () => {
+  if (!effectiveCompanyId) return;
+  if (!window.confirm('Delete ALL imported Quotes from this company? Quotes you created yourself are not affected.')) return;
+  try {
+    await supabase.from('quotes').delete().eq('company_id', effectiveCompanyId).not('imported_from_id', 'is', null);
+    await loadQuotes();
+    alert('All imported Quotes removed.');
+  } catch (error) {
+    console.error('Error deleting imported quotes:', error);
+    alert('Error: ' + error.message);
+  }
+};
+
 // ==================== FIM MULTI-EMPRESA ====================
 
 const addEmployee = async () => {
@@ -4121,16 +4198,73 @@ autoComplete="off"
 {isAdmin && !isDefaultAdmin && companyViewMode === 'own' && (
   <div className="mt-4 bg-white border-2 border-gray-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-1">Section Settings</h3>
-    <p className="text-xs text-gray-500 mb-3">Column 1 — let the ADM Master view & edit this section for support. Column 2 — bring starter content from Default (synthetic examples, not real people).</p>
-    <table className="w-full text-sm">
+    <p className="text-xs text-gray-500 mb-3">"View & Edit access for ADM Master" lets the Master see/edit that section for support. The last 3 columns bring starter content from Default (synthetic examples, not real people) — items linked to each other (Employees, See What Others Did, Top 3, Key Insights, Practices, Categories) are imported/removed together as one bundle.</p>
+    <table className="w-full text-sm border-collapse">
       <thead>
         <tr className="text-left text-gray-600 border-b">
           <th className="py-1">Section</th>
           <th className="py-1 text-center">View & Edit access for ADM Master</th>
-          <th className="py-1 text-center">Import from Default</th>
+          <th className="py-1 text-center">Import/Update</th>
+          <th className="py-1 text-center">Delete Last</th>
+          <th className="py-1 text-center">Delete All</th>
         </tr>
       </thead>
       <tbody>
+        <tr className="border-b">
+          <td className="py-2">App Configuration</td>
+          <td className="py-2 text-center">
+            <input type="checkbox" checked={companyMasterVisibility.includes('app_config')}
+              onChange={(e) => toggleMasterVisibility('app_config', e.target.checked)} className="w-4 h-4" />
+          </td>
+          <td className="py-2 text-center text-gray-300" colSpan={3}>—</td>
+        </tr>
+
+        <tr className="border-b">
+          <td className="py-2">Quotes</td>
+          <td className="py-2 text-center">
+            <input type="checkbox" checked={companyMasterVisibility.includes('quotes')}
+              onChange={(e) => toggleMasterVisibility('quotes', e.target.checked)} className="w-4 h-4" />
+          </td>
+          <td className="py-2 text-center">
+            <button onClick={importQuotesFromDefault} disabled={importingQuotes}
+              className="px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700 disabled:opacity-50">
+              {importingQuotes ? '...' : 'Import/Update'}
+            </button>
+          </td>
+          <td className="py-2 text-center">
+            <button onClick={deleteLastQuotesImport}
+              className="px-2 py-1 bg-orange-600 text-white rounded text-xs hover:bg-orange-700">
+              Delete Last
+            </button>
+          </td>
+          <td className="py-2 text-center">
+            <button onClick={deleteAllQuotesImport}
+              className="px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700">
+              Delete All
+            </button>
+          </td>
+        </tr>
+
+        <tr className="border-b">
+          <td className="py-2">Promotional Videos</td>
+          <td className="py-2 text-center">
+            <input type="checkbox" checked={companyMasterVisibility.includes('promotional_videos')}
+              onChange={(e) => toggleMasterVisibility('promotional_videos', e.target.checked)} className="w-4 h-4" />
+          </td>
+          <td className="py-2 text-center text-gray-300" colSpan={3}>—</td>
+        </tr>
+
+        <tr className="border-b">
+          <td className="py-2">Content Pages</td>
+          <td className="py-2 text-center">
+            <input type="checkbox" checked={companyMasterVisibility.includes('content_pages')}
+              onChange={(e) => toggleMasterVisibility('content_pages', e.target.checked)} className="w-4 h-4" />
+          </td>
+          <td className="py-2 text-center text-gray-300" colSpan={3}>—</td>
+        </tr>
+
+        {/* Pacote ligado: Employees, See What Others Did, Top 3, Key Insights, Practices, Categories.
+            As 3 colunas de ação ficam mescladas numa célula só (rowSpan), cobrindo essas 6 linhas. */}
         {[
           { key: 'employees', label: 'Employees' },
           { key: 'experiences', label: 'See What Others Did' },
@@ -4138,8 +4272,8 @@ autoComplete="off"
           { key: 'key_insights', label: 'Key Insights' },
           { key: 'practices', label: 'Practices' },
           { key: 'categories', label: 'Categories' },
-        ].map(row => (
-          <tr key={row.key} className="border-b last:border-b-0">
+        ].map((row, i) => (
+          <tr key={row.key} className={i === 5 ? 'border-b' : ''}>
             <td className="py-2">{row.label}</td>
             <td className="py-2 text-center">
               <input type="checkbox"
@@ -4147,35 +4281,37 @@ autoComplete="off"
                 onChange={(e) => toggleMasterVisibility(row.key, e.target.checked)}
                 className="w-4 h-4" />
             </td>
-            <td className="py-2 text-center text-gray-400 text-xs">
-              (bundle below)
-            </td>
+            {i === 0 && (
+              <td className="py-2 text-center border-l-4 border-gray-300 align-middle" colSpan={3} rowSpan={6}>
+                <div className="flex flex-col items-center justify-center gap-2 h-full">
+                  <button onClick={importDefaultBundle} disabled={importingBundle}
+                    className="px-3 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 disabled:opacity-50 w-48">
+                    {importingBundle ? 'Importing...' : 'Import/Update'}
+                  </button>
+                  <button onClick={deleteLastBundleImport}
+                    className="px-3 py-2 bg-orange-600 text-white rounded-lg text-sm hover:bg-orange-700 w-48">
+                    Delete Last
+                  </button>
+                  <button onClick={deleteAllBundleImport}
+                    className="px-3 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 w-48">
+                    Delete All
+                  </button>
+                </div>
+              </td>
+            )}
           </tr>
         ))}
-        <tr className="border-b">
-          <td className="py-2">Quotes</td>
+
+        <tr>
+          <td className="py-2">Admin Keyword Filter</td>
           <td className="py-2 text-center">
-            <input type="checkbox"
-              checked={companyMasterVisibility.includes('quotes')}
-              onChange={(e) => toggleMasterVisibility('quotes', e.target.checked)}
-              className="w-4 h-4" />
+            <input type="checkbox" checked={companyMasterVisibility.includes('keyword_filter')}
+              onChange={(e) => toggleMasterVisibility('keyword_filter', e.target.checked)} className="w-4 h-4" />
           </td>
-          <td className="py-2 text-center">
-            <button onClick={importQuotesFromDefault} disabled={importingQuotes}
-              className="px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700 disabled:opacity-50">
-              {importingQuotes ? 'Importing...' : 'Import'}
-            </button>
-          </td>
+          <td className="py-2 text-center text-gray-300" colSpan={3}>—</td>
         </tr>
       </tbody>
     </table>
-    <div className="mt-3 pt-3 border-t">
-      <p className="text-xs text-gray-500 mb-2">Employees, See What Others Did, Top 3, Key Insights, Practices and Categories are linked together (synthetic examples reference each other), so they're imported as one bundle:</p>
-      <button onClick={importDefaultBundle} disabled={importingBundle}
-        className="px-3 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 disabled:opacity-50">
-        {importingBundle ? 'Importing...' : 'Import starter content from Default'}
-      </button>
-    </div>
   </div>
 )}
 
@@ -6248,7 +6384,7 @@ onClick={() => {
   />
 </div>
 
-<div id="share-section" className={`bg-white p-8 rounded-b-2xl border-2 border-t-0 border-blue-300 ${activeMainTab !== 'share' ? 'hidden' : ''}`}>
+<div id="share-section" className={`bg-white p-8 rounded-b-2xl border-2 border-t-0 border-blue-300 ${activeMainTab !== 'share' ? 'hidden' : ''} ${isReadOnlyView ? 'pointer-events-none opacity-60' : ''}`}>
 
   {/* Clear All — limpa só o que o usuário digitou */}
   <div className="flex justify-end mb-3">
@@ -6640,7 +6776,7 @@ onClick={() => {
 )}
         </div>
         
-<div className={`space-y-6 ${activeMainTab !== 'see' ? 'hidden' : ''} p-4 rounded-b-2xl border-2 border-t-0 border-purple-300`} id="experiences-section">
+<div className={`space-y-6 ${activeMainTab !== 'see' ? 'hidden' : ''} p-4 rounded-b-2xl border-2 border-t-0 border-purple-300 ${isReadOnlyView ? 'pointer-events-none opacity-60' : ''}`} id="experiences-section">
           
           
           
