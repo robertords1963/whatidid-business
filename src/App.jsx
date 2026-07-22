@@ -232,6 +232,16 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   const [companies, setCompanies] = useState([]);
   const [newCompany, setNewCompany] = useState({ name: '', code: '' });
   const [companiesLoaded, setCompaniesLoaded] = useState(false);
+  // Contexto de navegação do ADM Master: null = Default; caso contrário, id da empresa sendo gerenciada.
+  // Sempre reseta pra null (Default) a cada reload da página, por segurança.
+  const [adminCompanyContext, setAdminCompanyContext] = useState(null);
+  // O company_id que as operações do Admin devem usar agora: a empresa selecionada
+  // no dropdown, ou a Default se nenhuma estiver selecionada.
+  const defaultCompanyId = companies.find(c => c.code === 'default')?.id || null;
+  const effectiveCompanyId = adminCompanyContext || defaultCompanyId;
+  const effectiveCompanyName = adminCompanyContext
+    ? (companies.find(c => c.id === adminCompanyContext)?.name || 'Unknown')
+    : 'Default';
   const [employeeSearch, setEmployeeSearch] = useState('');
   const [newEmployee, setNewEmployee] = useState({ employee_id: '', name: '', country: '', email: '', is_admin: false });
   const [editingEmployee, setEditingEmployee] = useState(null);
@@ -297,11 +307,19 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   loadContentPages();
   loadPromotionalVideos();
   loadProblemCategories();
-  loadEmployees();
   loadPractices();
   loadDemoGroups();
   loadCompanies();
 }, []);
+
+// Carrega/recarrega os employees sempre que já soubermos qual empresa usar
+// (Default assim que companies terminar de carregar, ou a empresa selecionada
+// no dropdown do ADM Master).
+useEffect(() => {
+  if (effectiveCompanyId) {
+    loadEmployees(effectiveCompanyId);
+  }
+}, [effectiveCompanyId]);
 
 // ⭐ PWA Install — detectar plataforma (mobile/desktop), estado de instalação,
 // e capturar o prompt nativo do Chrome/Edge (funciona em Android E desktop)
@@ -789,11 +807,14 @@ const loadAdminCategories = async (practiceId) => {
   
 // ==================== EMPLOYEE MANAGEMENT ====================
 
-const loadEmployees = async () => {
+const loadEmployees = async (companyIdOverride) => {
+  const cid = companyIdOverride ?? effectiveCompanyId;
+  if (!cid) return; // ainda não sabemos qual empresa (companies não carregou ainda)
   try {
     const { data, error } = await supabase
       .from('employees')
       .select('*')
+      .eq('company_id', cid)
       .order('employee_id', { ascending: true });
     if (error) throw error;
     setEmployees(data || []);
@@ -862,13 +883,14 @@ const addEmployee = async () => {
       country: newEmployee.country.trim(),
       email: newEmployee.email.trim(),
       is_admin: newEmployee.is_admin,
+      company_id: effectiveCompanyId,
       status: 'pending',
       active: true
     }]);
     if (error) throw error;
     setNewEmployee({ employee_id: '', name: '', country: '', email: '', is_admin: false });
     await loadEmployees();
-    alert('Employee added successfully!');
+    alert(`Employee added successfully to ${effectiveCompanyName}!`);
   } catch (error) {
     console.error('Error adding employee:', error);
     alert('Error adding employee. ID may already exist.');
@@ -3864,6 +3886,78 @@ autoComplete="off"
           )}
 
 {isAdmin && (
+  <div className={`mt-4 rounded-lg shadow-md p-4 max-w-4xl mx-auto border-2 ${adminCompanyContext ? 'bg-amber-50 border-amber-400' : 'bg-gray-50 border-gray-300'}`}>
+    <div className="flex items-center gap-3 flex-wrap">
+      <label className="text-sm font-medium text-gray-700">Managing:</label>
+      <select
+        value={adminCompanyContext || ''}
+        onChange={(e) => setAdminCompanyContext(e.target.value ? parseInt(e.target.value) : null)}
+        className="p-2 border-2 border-gray-300 rounded-lg text-sm font-medium"
+      >
+        <option value="">Default</option>
+        {companies.filter(c => c.code !== 'default').map(c => (
+          <option key={c.id} value={c.id}>{c.name}</option>
+        ))}
+      </select>
+      {adminCompanyContext && (
+        <span className="text-sm font-semibold text-amber-700 flex items-center gap-1">
+          ⚠️ You are viewing/editing <strong>{effectiveCompanyName}</strong>'s data, not Default's.
+        </span>
+      )}
+    </div>
+  </div>
+)}
+
+{isAdmin && (
+  <div className="mt-4 bg-indigo-50 border-2 border-indigo-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
+    <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+      🏢 Manage Companies
+    </h3>
+
+    {/* Add Company */}
+    <div className="bg-white rounded p-4 mb-4">
+      <h4 className="font-medium text-gray-700 mb-3">Add Company</h4>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+        <input type="text" value={newCompany.name} onChange={(e) => setNewCompany({...newCompany, name: e.target.value})}
+          placeholder="Company Name *" className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
+        <input type="text" value={newCompany.code} onChange={(e) => setNewCompany({...newCompany, code: e.target.value})}
+          placeholder="Company Code (optional, auto-generated if blank)" className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
+      </div>
+      <button onClick={addCompany} className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700">
+        + Add Company
+      </button>
+    </div>
+
+    {/* Company List */}
+    <div className="bg-white rounded p-4">
+      <h4 className="font-medium text-gray-700 mb-3">Registered Companies ({companies.length})</h4>
+      {!companiesLoaded ? (
+        <p className="text-sm text-gray-400">Loading...</p>
+      ) : companies.length === 0 ? (
+        <p className="text-sm text-gray-400">No companies yet.</p>
+      ) : (
+        <div className="space-y-2">
+          {companies.map(c => (
+            <div key={c.id} className="flex items-center gap-3 p-2 border border-gray-200 rounded-lg flex-wrap">
+              <span className="text-sm font-medium text-gray-800 flex-1 min-w-32">{c.name}</span>
+              <span className="text-xs text-gray-500 font-mono">{c.code}</span>
+              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${c.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                {c.active ? 'Active' : 'Inactive'}
+              </span>
+              <button onClick={() => toggleCompanyActive(c.id, !c.active)}
+                className={`px-2 py-1 rounded text-xs ${c.active ? 'bg-gray-400 hover:bg-gray-500 text-white' : 'bg-green-600 hover:bg-green-700 text-white'}`}>
+                {c.active ? 'Deactivate' : 'Activate'}
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  </div>
+)}
+
+
+{isAdmin && (
   <div className="mt-4 bg-indigo-50 border-2 border-indigo-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
       ⚙️ App Configuration
@@ -4726,53 +4820,6 @@ autoComplete="off"
   </div>
 )}
        
-{isAdmin && (
-  <div className="mt-4 bg-indigo-50 border-2 border-indigo-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
-    <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
-      🏢 Manage Companies
-    </h3>
-
-    {/* Add Company */}
-    <div className="bg-white rounded p-4 mb-4">
-      <h4 className="font-medium text-gray-700 mb-3">Add Company</h4>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-        <input type="text" value={newCompany.name} onChange={(e) => setNewCompany({...newCompany, name: e.target.value})}
-          placeholder="Company Name *" className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
-        <input type="text" value={newCompany.code} onChange={(e) => setNewCompany({...newCompany, code: e.target.value})}
-          placeholder="Company Code (optional, auto-generated if blank)" className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
-      </div>
-      <button onClick={addCompany} className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700">
-        + Add Company
-      </button>
-    </div>
-
-    {/* Company List */}
-    <div className="bg-white rounded p-4">
-      <h4 className="font-medium text-gray-700 mb-3">Registered Companies ({companies.length})</h4>
-      {!companiesLoaded ? (
-        <p className="text-sm text-gray-400">Loading...</p>
-      ) : companies.length === 0 ? (
-        <p className="text-sm text-gray-400">No companies yet.</p>
-      ) : (
-        <div className="space-y-2">
-          {companies.map(c => (
-            <div key={c.id} className="flex items-center gap-3 p-2 border border-gray-200 rounded-lg flex-wrap">
-              <span className="text-sm font-medium text-gray-800 flex-1 min-w-32">{c.name}</span>
-              <span className="text-xs text-gray-500 font-mono">{c.code}</span>
-              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${c.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                {c.active ? 'Active' : 'Inactive'}
-              </span>
-              <button onClick={() => toggleCompanyActive(c.id, !c.active)}
-                className={`px-2 py-1 rounded text-xs ${c.active ? 'bg-gray-400 hover:bg-gray-500 text-white' : 'bg-green-600 hover:bg-green-700 text-white'}`}>
-                {c.active ? 'Deactivate' : 'Activate'}
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  </div>
-)}
 
 {isAdmin && (
   <div className="mt-4 bg-slate-50 border-2 border-slate-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
