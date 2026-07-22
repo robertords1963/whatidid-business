@@ -240,20 +240,31 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
     const stored = localStorage.getItem('loggedInEmployeeCompanyId');
     return stored ? parseInt(stored) : null;
   });
+  // Pro Admin de uma empresa (não Default): 'own' (visão normal, editável) ou
+  // 'sample' (conteúdo do Default, somente leitura, pra decidir o que importar).
+  const [companyViewMode, setCompanyViewMode] = useState('own');
   const defaultCompanyId = companies.find(c => c.code === 'default')?.id || null;
   // Só o Admin do Default pode navegar entre empresas pelo dropdown — qualquer
   // outra empresa só vê e opera sobre os próprios dados, sempre.
   const isDefaultAdmin = !!loggedInEmployeeCompanyId && loggedInEmployeeCompanyId === defaultCompanyId;
   // O company_id que as operações do Admin devem usar agora: se for o Admin do
-  // Default navegando pra outra empresa via dropdown, usa essa; senão, usa
-  // sempre o company_id da própria conta logada.
-  const effectiveCompanyId = (isDefaultAdmin && adminCompanyContext) ? adminCompanyContext : (loggedInEmployeeCompanyId || defaultCompanyId);
+  // Default navegando pra outra empresa via dropdown, usa essa; se for o Admin
+  // de uma empresa olhando o "Sample", usa a Default (mas em modo leitura); senão,
+  // usa sempre o company_id da própria conta logada.
+  const effectiveCompanyId = (isDefaultAdmin && adminCompanyContext)
+    ? adminCompanyContext
+    : (!isDefaultAdmin && companyViewMode === 'sample')
+      ? defaultCompanyId
+      : (loggedInEmployeeCompanyId || defaultCompanyId);
   const effectiveCompanyName = (isDefaultAdmin && adminCompanyContext)
     ? (companies.find(c => c.id === adminCompanyContext)?.name || 'Unknown')
     : (companies.find(c => c.id === effectiveCompanyId)?.name || 'Default');
   // true quando o contexto ativo (seja por login direto, seja pelo dropdown do
   // Master) é o Default — usado pra decidir se mostra as 5 seções exclusivas.
   const isViewingDefault = effectiveCompanyId === defaultCompanyId;
+  // true quando um Admin de empresa (não Default) está no modo "Sample" — nesse
+  // caso, tudo que ele vê é somente leitura (não pode editar o conteúdo do Default).
+  const isReadOnlyView = !isDefaultAdmin && companyViewMode === 'sample';
   const [employeeSearch, setEmployeeSearch] = useState('');
   const [newEmployee, setNewEmployee] = useState({ employee_id: '', name: '', country: '', email: '', is_admin: false });
   const [editingEmployee, setEditingEmployee] = useState(null);
@@ -3927,6 +3938,27 @@ autoComplete="off"
   </div>
 )}
 
+{isAdmin && !isDefaultAdmin && (
+  <div className={`mt-4 rounded-lg shadow-md p-4 max-w-4xl mx-auto border-2 ${companyViewMode === 'sample' ? 'bg-blue-50 border-blue-400' : 'bg-gray-50 border-gray-300'}`}>
+    <div className="flex items-center gap-3 flex-wrap">
+      <label className="text-sm font-medium text-gray-700">Viewing:</label>
+      <select
+        value={companyViewMode}
+        onChange={(e) => setCompanyViewMode(e.target.value)}
+        className="p-2 border-2 border-gray-300 rounded-lg text-sm font-medium"
+      >
+        <option value="own">My Company</option>
+        <option value="sample">Sample (Default's content)</option>
+      </select>
+      {companyViewMode === 'sample' && (
+        <span className="text-sm font-semibold text-blue-700 flex items-center gap-1">
+          👁️ Read-only preview — browse Default's content to decide what to import.
+        </span>
+      )}
+    </div>
+  </div>
+)}
+
 {isAdmin && isDefaultAdmin && (
   <div className="mt-4 bg-indigo-50 border-2 border-indigo-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
@@ -4853,6 +4885,7 @@ autoComplete="off"
     </h3>
 
     {/* Add Employee */}
+    {!isReadOnlyView && (
     <div className="bg-white rounded p-4 mb-4">
       <h4 className="font-medium text-gray-700 mb-3">Add Employee</h4>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
@@ -4902,6 +4935,7 @@ autoComplete="off"
         <span className="text-xs text-gray-500 self-center">Excel columns: Employee ID, Name, Country, Email</span>
       </div>
     </div>
+    )}
 
     {/* Search + List */}
     <div className="bg-white rounded p-4">
@@ -4946,6 +4980,8 @@ autoComplete="off"
                 <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${emp.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
                   {emp.status === 'active' ? '✓ Active' : '⏳ Pending'}
                 </span>
+                {!isReadOnlyView && (
+                <>
                 <button onClick={() => { setEditingEmployee(emp.employee_id); setEditingEmployeeData({ name: emp.name, country: emp.country, email: emp.email, is_admin: emp.is_admin }); }}
                   className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700">Edit</button>
                 <button onClick={async () => {
@@ -4987,6 +5023,8 @@ autoComplete="off"
                 }} className="px-2 py-1 bg-orange-600 text-white rounded text-xs hover:bg-orange-700">Clear Data</button>
                 <button onClick={() => deleteEmployee(emp.employee_id)}
                   className="px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700">Delete</button>
+                </>
+                )}
               </>
             )}
           </div>
