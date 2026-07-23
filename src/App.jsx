@@ -247,6 +247,12 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   const [companyMasterVisibility, setCompanyMasterVisibility] = useState([]);
   const [importingBundle, setImportingBundle] = useState(false);
   const [importingQuotes, setImportingQuotes] = useState(false);
+  // Seleção de linhas (por seção) marcadas em cada uma das 3 colunas de ação da
+  // tabela "Section Settings" — o botão no título de cada coluna age sobre as
+  // linhas marcadas nela.
+  const [selectedForImport, setSelectedForImport] = useState(['quotes']);
+  const [selectedForDeleteLast, setSelectedForDeleteLast] = useState(['quotes']);
+  const [selectedForDeleteAll, setSelectedForDeleteAll] = useState(['quotes']);
   const defaultCompanyId = companies.find(c => c.code === 'default')?.id || null;
   // Só o Admin do Default pode navegar entre empresas pelo dropdown — qualquer
   // outra empresa só vê e opera sobre os próprios dados, sempre.
@@ -1126,6 +1132,20 @@ const deleteAllQuotesImport = async () => {
     console.error('Error deleting imported quotes:', error);
     alert('Error: ' + error.message);
   }
+};
+
+// Botões no cabeçalho da tabela — agem sobre todas as linhas marcadas naquela coluna.
+// Por enquanto só "Quotes" é uma seção avulsa importável; outras seções avulsas
+// (App Configuration, Promotional Videos, Content Pages, Admin Keyword Filter)
+// ainda não têm import próprio, então não fazem parte dessa seleção.
+const runImportForSelected = async () => {
+  if (selectedForImport.includes('quotes')) await importQuotesFromDefault();
+};
+const runDeleteLastForSelected = async () => {
+  if (selectedForDeleteLast.includes('quotes')) await deleteLastQuotesImport();
+};
+const runDeleteAllForSelected = async () => {
+  if (selectedForDeleteAll.includes('quotes')) await deleteAllQuotesImport();
 };
 
 // ==================== FIM MULTI-EMPRESA ====================
@@ -4198,15 +4218,30 @@ autoComplete="off"
 {isAdmin && !isDefaultAdmin && companyViewMode === 'own' && (
   <div className="mt-4 bg-white border-2 border-gray-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-1">Section Settings</h3>
-    <p className="text-xs text-gray-500 mb-3">"View & Edit access for ADM Master" lets the Master see/edit that section for support. The last 3 columns bring starter content from Default (synthetic examples, not real people) — items linked to each other (Employees, See What Others Did, Top 3, Key Insights, Practices, Categories) are imported/removed together as one bundle.</p>
+    <p className="text-xs text-gray-500 mb-3">"View & Edit access for ADM Master" lets the Master see/edit that section for support. The 3 buttons below bring starter content from Default (synthetic examples, not real people) — check the rows you want each button to act on. Items linked to each other (Employees, See What Others Did, Top 3, Key Insights, Practices, Categories) are always imported/removed together as one bundle.</p>
     <table className="w-full text-sm border-collapse">
       <thead>
         <tr className="text-left text-gray-600 border-b">
-          <th className="py-1">Section</th>
-          <th className="py-1 text-center">View & Edit access for ADM Master</th>
-          <th className="py-1 text-center">Import/Update</th>
-          <th className="py-1 text-center">Delete Last</th>
-          <th className="py-1 text-center">Delete All</th>
+          <th className="py-1 align-bottom">Section</th>
+          <th className="py-1 text-center align-bottom">View & Edit access<br/>for ADM Master</th>
+          <th className="py-2 text-center">
+            <button onClick={runImportForSelected} disabled={importingQuotes}
+              className="px-3 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 disabled:opacity-50 w-40">
+              Import/Update
+            </button>
+          </th>
+          <th className="py-2 text-center">
+            <button onClick={runDeleteLastForSelected}
+              className="px-3 py-2 bg-orange-600 text-white rounded-lg text-sm hover:bg-orange-700 w-40">
+              Delete Last Import
+            </button>
+          </th>
+          <th className="py-2 text-center">
+            <button onClick={runDeleteAllForSelected}
+              className="px-3 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 w-40">
+              Delete All Imports
+            </button>
+          </th>
         </tr>
       </thead>
       <tbody>
@@ -4226,22 +4261,19 @@ autoComplete="off"
               onChange={(e) => toggleMasterVisibility('quotes', e.target.checked)} className="w-4 h-4" />
           </td>
           <td className="py-2 text-center">
-            <button onClick={importQuotesFromDefault} disabled={importingQuotes}
-              className="px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700 disabled:opacity-50">
-              {importingQuotes ? '...' : 'Import/Update'}
-            </button>
+            <input type="checkbox" checked={selectedForImport.includes('quotes')}
+              onChange={(e) => setSelectedForImport(e.target.checked ? [...selectedForImport, 'quotes'] : selectedForImport.filter(k => k !== 'quotes'))}
+              className="w-4 h-4" />
           </td>
           <td className="py-2 text-center">
-            <button onClick={deleteLastQuotesImport}
-              className="px-2 py-1 bg-orange-600 text-white rounded text-xs hover:bg-orange-700">
-              Delete Last
-            </button>
+            <input type="checkbox" checked={selectedForDeleteLast.includes('quotes')}
+              onChange={(e) => setSelectedForDeleteLast(e.target.checked ? [...selectedForDeleteLast, 'quotes'] : selectedForDeleteLast.filter(k => k !== 'quotes'))}
+              className="w-4 h-4" />
           </td>
           <td className="py-2 text-center">
-            <button onClick={deleteAllQuotesImport}
-              className="px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700">
-              Delete All
-            </button>
+            <input type="checkbox" checked={selectedForDeleteAll.includes('quotes')}
+              onChange={(e) => setSelectedForDeleteAll(e.target.checked ? [...selectedForDeleteAll, 'quotes'] : selectedForDeleteAll.filter(k => k !== 'quotes'))}
+              className="w-4 h-4" />
           </td>
         </tr>
 
@@ -4264,7 +4296,8 @@ autoComplete="off"
         </tr>
 
         {/* Pacote ligado: Employees, See What Others Did, Top 3, Key Insights, Practices, Categories.
-            As 3 colunas de ação ficam mescladas numa célula só (rowSpan), cobrindo essas 6 linhas. */}
+            As 3 colunas de ação viram um colchete "}" só, cobrindo essas 6 linhas — o pacote é
+            sempre tudo-ou-nada, por isso não tem checkbox individual, só os botões dele mesmo. */}
         {[
           { key: 'employees', label: 'Employees' },
           { key: 'experiences', label: 'See What Others Did' },
@@ -4282,20 +4315,23 @@ autoComplete="off"
                 className="w-4 h-4" />
             </td>
             {i === 0 && (
-              <td className="py-2 text-center border-l-4 border-gray-300 align-middle" colSpan={3} rowSpan={6}>
-                <div className="flex flex-col items-center justify-center gap-2 h-full">
-                  <button onClick={importDefaultBundle} disabled={importingBundle}
-                    className="px-3 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 disabled:opacity-50 w-48">
-                    {importingBundle ? 'Importing...' : 'Import/Update'}
-                  </button>
-                  <button onClick={deleteLastBundleImport}
-                    className="px-3 py-2 bg-orange-600 text-white rounded-lg text-sm hover:bg-orange-700 w-48">
-                    Delete Last
-                  </button>
-                  <button onClick={deleteAllBundleImport}
-                    className="px-3 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 w-48">
-                    Delete All
-                  </button>
+              <td className="py-2 text-center align-middle" colSpan={3} rowSpan={6}>
+                <div className="flex items-center justify-center gap-3 h-full">
+                  <span className="text-gray-400 select-none" style={{ fontSize: '64px', lineHeight: 1, transform: 'scaleY(1.6)', fontWeight: 300 }}>{'}'}</span>
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <button onClick={importDefaultBundle} disabled={importingBundle}
+                      className="px-3 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 disabled:opacity-50 w-40">
+                      {importingBundle ? 'Importing...' : 'Import/Update'}
+                    </button>
+                    <button onClick={deleteLastBundleImport}
+                      className="px-3 py-2 bg-orange-600 text-white rounded-lg text-sm hover:bg-orange-700 w-40">
+                      Delete Last Import
+                    </button>
+                    <button onClick={deleteAllBundleImport}
+                      className="px-3 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 w-40">
+                      Delete All Imports
+                    </button>
+                  </div>
                 </div>
               </td>
             )}
@@ -4368,9 +4404,10 @@ autoComplete="off"
   <div className="mt-4 bg-indigo-50 border-2 border-indigo-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
       ⚙️ App Configuration
+      {isReadOnlyView && <span className="text-xs font-normal text-blue-600">(read-only — Sample)</span>}
     </h3>
     
-    <div className="bg-white rounded p-4 space-y-4">
+    <div className={`bg-white rounded p-4 space-y-4 ${isReadOnlyView ? 'pointer-events-none opacity-60' : ''}`}>
       {/* 1. Nome da Edição — sempre "Corp" pra empresas, escondido fora do Default */}
       {showDefaultOnlyTools && (
       <div>
@@ -4804,9 +4841,10 @@ autoComplete="off"
             <div className="mt-4 bg-purple-50 border-2 border-purple-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 🎬 Manage Promotional Videos
+                {isReadOnlyView && <span className="text-xs font-normal text-blue-600">(read-only — Sample)</span>}
               </h3>
               
-              <div className="bg-white rounded p-4 mb-4">
+              <div className={`bg-white rounded p-4 mb-4 ${isReadOnlyView ? "pointer-events-none opacity-60" : ""}`}>
                 <h4 className="font-medium text-gray-700 mb-3">Add New Item</h4>
                 <div className="space-y-3">
                   {/* Type selector */}
@@ -4909,7 +4947,7 @@ autoComplete="off"
                 </div>
               </div>
 
-              <div className="bg-white rounded p-4">
+              <div className={`bg-white rounded p-4 ${isReadOnlyView ? "pointer-events-none opacity-60" : ""}`}>
                 <h4 className="font-medium text-gray-700 mb-3">Promotional Videos ({promotionalVideos.length})</h4>
                 {promotionalVideos.length === 0 ? (
                   <p className="text-sm text-gray-500">No videos yet</p>
@@ -5029,9 +5067,10 @@ autoComplete="off"
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 <MessageCircle size={20} />
                 Manage Content Pages
+                {isReadOnlyView && <span className="text-xs font-normal text-blue-600">(read-only — Sample)</span>}
               </h3>
               
-              <div className="space-y-4">
+              <div className={`space-y-4 ${isReadOnlyView ? 'pointer-events-none opacity-60' : ''}`}>
                 {['community_guidelines', 'how_it_works', 'about'].map(pageKey => {
                   const page = contentPages[pageKey];
                   if (!page) return null;
