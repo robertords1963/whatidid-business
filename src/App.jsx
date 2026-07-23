@@ -153,6 +153,12 @@ export default function WhatIDid() {
   const [employeeIsAdmin, setEmployeeIsAdmin] = useState(() => localStorage.getItem('employeeIsAdmin') === 'true');
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [adminKeywords, setAdminKeywords] = useState('');
+  // Filtros extras da seção "Manage Deletion" — Function/Practice e Category,
+  // usados junto (ou no lugar) da keyword pra selecionar o que apagar.
+  const [deletionPracticeId, setDeletionPracticeId] = useState(null);
+  const [deletionCategory, setDeletionCategory] = useState('');
+  const [deletionCategoriesForPractice, setDeletionCategoriesForPractice] = useState([]);
+  const [confirmDeleteAll, setConfirmDeleteAll] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [loading, setLoading] = useState(true);
   const [experiences, setExperiences] = useState([]);
@@ -3251,37 +3257,79 @@ if (appSettings.requireEmployeeLogin && !isAdmin && comment.employeeId !== emplo
 
 
   const getKeywordMatches = () => {
-  if (!adminKeywords.trim()) return [];
-  const keywords = adminKeywords.toLowerCase().split(',').map(k => k.trim()).filter(k => k);
+  const hasKeyword = !!adminKeywords.trim();
+  const hasPracticeOrCategory = !!deletionPracticeId || !!deletionCategory;
+  if (!hasKeyword && !hasPracticeOrCategory) return [];
+  const keywords = hasKeyword ? adminKeywords.toLowerCase().split(',').map(k => k.trim()).filter(k => k) : [];
   const matches = [];
   experiences.forEach(exp => {
-    const searchText = `${exp.problem} ${exp.solution} ${exp.result} ${exp.author} ${exp.employeeId || ''}`.toLowerCase();
-    keywords.forEach(keyword => {
-      if (searchText.includes(keyword)) {
-        matches.push({
-          type: 'experience',
-          expId: exp.id,
-          keyword: keyword,
-          text: `Problem: ${exp.problem}. Solution: ${exp.solution}. Result: ${exp.result}`
-        });
-      }
-    });
-    exp.comments.forEach(comment => {
+    // Filtro de Practice/Category — se marcado, a experience precisa bater
+    if (deletionPracticeId && exp.practiceId !== deletionPracticeId) return;
+    if (deletionCategory && exp.problemCategory !== deletionCategory) return;
+
+    if (hasKeyword) {
+      const searchText = `${exp.problem} ${exp.solution} ${exp.result} ${exp.author} ${exp.employeeId || ''}`.toLowerCase();
       keywords.forEach(keyword => {
-        if (comment.text.toLowerCase().includes(keyword)) {
+        if (searchText.includes(keyword)) {
           matches.push({
-            type: 'comment',
+            type: 'experience',
             expId: exp.id,
-            commentId: comment.id,
             keyword: keyword,
-            text: comment.text,
-            author: comment.author
+            text: `Problem: ${exp.problem}. Solution: ${exp.solution}. Result: ${exp.result}`
           });
         }
       });
-    });
+      exp.comments.forEach(comment => {
+        keywords.forEach(keyword => {
+          if (comment.text.toLowerCase().includes(keyword)) {
+            matches.push({
+              type: 'comment',
+              expId: exp.id,
+              commentId: comment.id,
+              keyword: keyword,
+              text: comment.text,
+              author: comment.author
+            });
+          }
+        });
+      });
+    } else {
+      // Sem keyword — só Practice/Category marcados: toda experience que bater entra na lista
+      matches.push({
+        type: 'experience',
+        expId: exp.id,
+        keyword: null,
+        text: `Problem: ${exp.problem}. Solution: ${exp.solution}. Result: ${exp.result}`
+      });
+    }
   });
   return matches;
+};
+
+// Apaga tudo que estiver batendo com o filtro atual (keyword e/ou Practice/Category)
+const handleDeleteAllMatches = async () => {
+  const matches = getKeywordMatches();
+  const expIds = [...new Set(matches.filter(m => m.type === 'experience').map(m => m.expId))];
+  const commentMatches = matches.filter(m => m.type === 'comment');
+  if (expIds.length === 0 && commentMatches.length === 0) return;
+
+  if (!confirmDeleteAll) {
+    setConfirmDeleteAll(true);
+    return;
+  }
+  setConfirmDeleteAll(false);
+  try {
+    for (const c of commentMatches) {
+      await handleDeleteComment(c.expId, c.commentId);
+    }
+    for (const expId of expIds) {
+      await deleteExperienceFromSupabase(expId);
+    }
+    alert(`Deleted ${expIds.length} experience(s) and ${commentMatches.length} comment(s).`);
+  } catch (error) {
+    console.error('Error deleting matches:', error);
+    alert('Error deleting some items: ' + error.message);
+  }
 };
 
   const getResultColor = (category) => resultCategories.find(r => r.value === category)?.color || '';
@@ -4510,7 +4558,7 @@ autoComplete="off"
         </tr>
 
         <tr>
-          <td className="py-2">Admin Keyword Filter</td>
+          <td className="py-2">Manage Deletion</td>
           <td className="py-2 text-center">
             <input type="checkbox" checked={companyMasterVisibility.includes('keyword_filter')}
               onChange={(e) => toggleMasterVisibility('keyword_filter', e.target.checked)} className="w-4 h-4" />
@@ -6420,9 +6468,52 @@ onClick={() => {
             <div className="mt-4 bg-yellow-50 border-2 border-yellow-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 <Search size={20} />
-                Admin Keyword Filter
+                Manage Deletion
               </h3>
               <div className="space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-2">Function / Practice</label>
+                    <div className="relative">
+                      <select
+                        value={deletionPracticeId || ''}
+                        onChange={async (e) => {
+                          const id = e.target.value ? parseInt(e.target.value) : null;
+                          setDeletionPracticeId(id);
+                          setDeletionCategory('');
+                          if (!id) { setDeletionCategoriesForPractice([]); return; }
+                          const { data } = await supabase.from('problem_categories').select('*')
+                            .eq('practice_id', id).eq('company_id', effectiveCompanyId).eq('active', true);
+                          setDeletionCategoriesForPractice(data || []);
+                        }}
+                        className="w-full h-9 px-2 py-1 pr-8 border-2 border-gray-300 rounded-lg appearance-none bg-white"
+                      >
+                        <option value="">All</option>
+                        {uiPractices.map(p => (
+                          <option key={p.id} value={p.id}>{p.name}</option>
+                        ))}
+                      </select>
+                      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500" style={{ fontSize: '10px' }}>▼</span>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-2">Category</label>
+                    <div className="relative">
+                      <select
+                        value={deletionCategory}
+                        onChange={(e) => setDeletionCategory(e.target.value)}
+                        disabled={!deletionPracticeId}
+                        className="w-full h-9 px-2 py-1 pr-8 border-2 border-gray-300 rounded-lg appearance-none bg-white disabled:bg-gray-100"
+                      >
+                        <option value="">All</option>
+                        {deletionCategoriesForPractice.map(c => (
+                          <option key={c.id} value={c.name}>{c.name}</option>
+                        ))}
+                      </select>
+                      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500" style={{ fontSize: '10px' }}>▼</span>
+                    </div>
+                  </div>
+                </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Keywords (separate with commas)
@@ -6431,18 +6522,28 @@ onClick={() => {
                     type="text"
                     value={adminKeywords}
                     onChange={(e) => setAdminKeywords(e.target.value)}
-                    placeholder="e.g., spam, scam, inappropriate, viagra"
+                    placeholder="e.g., spam, scam, inappropriate, viagra, Curator"
                     className="w-full p-2 border-2 border-gray-300 rounded-lg"
                   />
                   <p className="text-xs text-gray-600 mt-1">
-                    Will search in problems, solutions, results, and comments
+                    Will search in problems, solutions, results, and comments. Combine with Function/Practice and Category above to narrow down further.
                   </p>
                 </div>
-                {adminKeywords && (
+                {(adminKeywords || deletionPracticeId || deletionCategory) && (
                   <div className="bg-white rounded p-3">
-                    <p className="text-sm font-semibold mb-2">
-                      Found {getKeywordMatches().length} matches
-                    </p>
+                    <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
+                      <p className="text-sm font-semibold">
+                        Found {getKeywordMatches().length} matches
+                      </p>
+                      {getKeywordMatches().length > 0 && (
+                        <button
+                          onClick={handleDeleteAllMatches}
+                          className={`px-3 py-1.5 rounded text-sm text-white ${confirmDeleteAll ? 'bg-red-800' : 'bg-red-600 hover:bg-red-700'}`}
+                        >
+                          {confirmDeleteAll ? `Confirm delete ${getKeywordMatches().length} item(s)?` : 'Delete All'}
+                        </button>
+                      )}
+                    </div>
                     {getKeywordMatches().length === 0 ? (
                       <p className="text-sm text-gray-500">No matches found</p>
                     ) : (
