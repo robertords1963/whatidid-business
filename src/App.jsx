@@ -250,9 +250,7 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   // Seleção de linhas (por seção) marcadas em cada uma das 3 colunas de ação da
   // tabela "Section Settings" — o botão no título de cada coluna age sobre as
   // linhas marcadas nela.
-  const [selectedForImport, setSelectedForImport] = useState(['quotes']);
-  const [selectedForDeleteLast, setSelectedForDeleteLast] = useState(['quotes']);
-  const [selectedForDeleteAll, setSelectedForDeleteAll] = useState(['quotes']);
+  const [selectedForImport, setSelectedForImport] = useState(['metadata', 'synthetic', 'quotes']);
   const defaultCompanyId = companies.find(c => c.code === 'default')?.id || null;
   // Só o Admin do Default pode navegar entre empresas pelo dropdown — qualquer
   // outra empresa só vê e opera sobre os próprios dados, sempre.
@@ -950,47 +948,102 @@ const toggleMasterVisibility = async (sectionKey, checked) => {
 // Importa o "pacote" ligado: Practices + Categories + Employees sintéticos +
 // Experiences sintéticas (inclui Key Insights, já que são experiences com
 // author = 'key_insights'). São importados juntos porque um depende do outro.
-const importDefaultBundle = async () => {
+// Grupo 1: Metadata Model (Practices + Categories). Pula o que já foi
+// importado antes (checa imported_from_id), então rodar de novo só traz
+// itens novos do Default — não duplica, não mexe no que a empresa já criou.
+const importMetadataModel = async () => {
   if (!effectiveCompanyId || effectiveCompanyId === defaultCompanyId) return;
-  if (!window.confirm("Import Practices, Categories, Employees and Experiences (including Key Insights) from Default? This adds new items on top of what you already have.")) return;
   setImportingBundle(true);
-  const batchId = `bundle-${Date.now()}`;
-  const companyCode = companies.find(c => c.id === effectiveCompanyId)?.code || String(effectiveCompanyId);
+  const batchId = `metadata-${Date.now()}`;
   try {
-    // 1. Practices
+    const { data: alreadyImportedPractices } = await supabase
+      .from('practices').select('imported_from_id').eq('company_id', effectiveCompanyId).not('imported_from_id', 'is', null);
+    const importedPracticeIds = new Set((alreadyImportedPractices || []).map(r => r.imported_from_id));
+
     const { data: defaultPractices, error: pErr } = await supabase
       .from('practices').select('*').eq('company_id', defaultCompanyId);
     if (pErr) throw pErr;
-    const practiceIdMap = {};
+
+    let addedPractices = 0;
     for (const p of (defaultPractices || [])) {
-      const { data: inserted, error } = await supabase.from('practices').insert([{
+      if (importedPracticeIds.has(p.id)) continue; // já importado antes, pula
+      const { error } = await supabase.from('practices').insert([{
         name: p.name, show_in_ui: p.show_in_ui, display_order: p.display_order, active: p.active,
         company_id: effectiveCompanyId, imported_from_id: p.id, import_batch_id: batchId
-      }]).select().single();
+      }]);
       if (error) throw error;
-      practiceIdMap[p.id] = inserted.id;
+      addedPractices++;
     }
 
-    // 2. Categories
+    const { data: alreadyImportedCategories } = await supabase
+      .from('problem_categories').select('imported_from_id').eq('company_id', effectiveCompanyId).not('imported_from_id', 'is', null);
+    const importedCategoryIds = new Set((alreadyImportedCategories || []).map(r => r.imported_from_id));
+
+    // Recarrega practices já com as novas, pra achar o practice_id correto no destino
+    const { data: targetPractices } = await supabase.from('practices').select('*').eq('company_id', effectiveCompanyId);
+    const practiceIdByImportedFrom = {};
+    (targetPractices || []).forEach(p => { if (p.imported_from_id) practiceIdByImportedFrom[p.imported_from_id] = p.id; });
+
     const { data: defaultCategories, error: cErr } = await supabase
       .from('problem_categories').select('*').eq('company_id', defaultCompanyId);
     if (cErr) throw cErr;
+
+    let addedCategories = 0;
     for (const c of (defaultCategories || [])) {
+      if (importedCategoryIds.has(c.id)) continue;
       const { error } = await supabase.from('problem_categories').insert([{
         name: c.name, description: c.description, tags: c.tags,
-        display_order: c.display_order, active: c.active, practice_id: practiceIdMap[c.practice_id] || null,
+        display_order: c.display_order, active: c.active,
+        practice_id: practiceIdByImportedFrom[c.practice_id] || null,
         company_id: effectiveCompanyId, imported_from_id: c.id, import_batch_id: batchId
       }]);
       if (error) throw error;
+      addedCategories++;
     }
 
-    // 3. Employees sintéticos (is_demo = true). Novo employee_id gerado pra
-    //    evitar colisão, já que employee_id precisa ser único no banco inteiro.
+    await loadPractices();
+    await loadProblemCategories();
+    alert(`Metadata Model updated — ${addedPractices} new Practice(s), ${addedCategories} new Categor${addedCategories === 1 ? 'y' : 'ies'}.`);
+  } catch (error) {
+    console.error('Error importing Metadata Model:', error);
+    alert('Error during import: ' + error.message);
+  } finally {
+    setImportingBundle(false);
+  }
+};
+
+// Grupo 2: Synthetic/Curated Content (Employees + Individual Experiences +
+// Top 3 + Key Insights). Depende do Metadata Model já existir (practices e
+// categories, importadas antes ou criadas pela própria empresa) — acha o
+// destino pelo NOME, não exige que tenha vindo do mesmo import.
+const importSyntheticContent = async () => {
+  if (!effectiveCompanyId || effectiveCompanyId === defaultCompanyId) return;
+  setImportingBundle(true);
+  const batchId = `content-${Date.now()}`;
+  const companyCode = companies.find(c => c.id === effectiveCompanyId)?.code || String(effectiveCompanyId);
+  try {
+    // Practices/Categories já existentes no destino (por nome, não por import_from)
+    const { data: targetPractices } = await supabase.from('practices').select('*').eq('company_id', effectiveCompanyId);
+    const practiceIdByName = {};
+    (targetPractices || []).forEach(p => { practiceIdByName[p.name] = p.id; });
+
+    const { data: defaultPractices } = await supabase.from('practices').select('*').eq('company_id', defaultCompanyId);
+    const defaultPracticeNameById = {};
+    (defaultPractices || []).forEach(p => { defaultPracticeNameById[p.id] = p.name; });
+
+    // Employees: pula quem já foi importado antes
+    const { data: alreadyImportedEmployees } = await supabase
+      .from('employees').select('imported_from_id').eq('company_id', effectiveCompanyId).not('imported_from_id', 'is', null);
+    const importedEmployeeIds = new Set((alreadyImportedEmployees || []).map(r => r.imported_from_id));
+
     const { data: defaultEmployees, error: eErr } = await supabase
       .from('employees').select('*').eq('company_id', defaultCompanyId).eq('is_demo', true);
     if (eErr) throw eErr;
+
     const employeeIdMap = {};
+    let addedEmployees = 0;
     for (const emp of (defaultEmployees || [])) {
+      if (importedEmployeeIds.has(emp.id)) continue;
       const newEmployeeId = `${emp.employee_id}-${companyCode}`;
       const { error } = await supabase.from('employees').insert([{
         employee_id: newEmployeeId, name: emp.name, country: emp.country,
@@ -999,57 +1052,104 @@ const importDefaultBundle = async () => {
       }]);
       if (error) throw error;
       employeeIdMap[emp.employee_id] = newEmployeeId;
+      addedEmployees++;
+    }
+    // Employees já importados antes também precisam entrar no mapa, pra ligar as experiences novas a eles
+    if (importedEmployeeIds.size > 0) {
+      const { data: existingImported } = await supabase
+        .from('employees').select('employee_id, imported_from_id').eq('company_id', effectiveCompanyId).not('imported_from_id', 'is', null);
+      const { data: defaultEmployeesAll } = await supabase.from('employees').select('id, employee_id').eq('company_id', defaultCompanyId);
+      const defaultEmpIdById = {};
+      (defaultEmployeesAll || []).forEach(e => { defaultEmpIdById[e.id] = e.employee_id; });
+      (existingImported || []).forEach(row => {
+        const originalEmployeeId = defaultEmpIdById[row.imported_from_id];
+        if (originalEmployeeId) employeeIdMap[originalEmployeeId] = row.employee_id;
+      });
     }
 
-    // 4. Experiences sintéticas (source != 'app'), incluindo Key Insights
+    // Experiences (incluindo Key Insights): pula o que já foi importado antes
+    const { data: alreadyImportedExps } = await supabase
+      .from('experiences').select('imported_from_id').eq('company_id', effectiveCompanyId).not('imported_from_id', 'is', null);
+    const importedExpIds = new Set((alreadyImportedExps || []).map(r => r.imported_from_id));
+
     const { data: defaultExperiences, error: xErr } = await supabase
       .from('experiences').select('*').eq('company_id', defaultCompanyId).neq('source', 'app');
     if (xErr) throw xErr;
+
+    let addedExperiences = 0;
+    const expIdMap = {};
     for (const exp of (defaultExperiences || [])) {
-      const { error } = await supabase.from('experiences').insert([{
+      if (importedExpIds.has(exp.id)) continue;
+      const practiceName = defaultPracticeNameById[exp.practice_id];
+      const { data: inserted, error } = await supabase.from('experiences').insert([{
         problem: exp.problem, problem_category: exp.problem_category, solution: exp.solution,
         result: exp.result, result_category: exp.result_category, industry_sector: exp.industry_sector,
         author: exp.author, gender: exp.gender, age: exp.age, country: exp.country,
         employee_id: employeeIdMap[exp.employee_id] || null,
-        practice_id: practiceIdMap[exp.practice_id] || null,
+        practice_id: practiceName ? (practiceIdByName[practiceName] || null) : null,
         tags: exp.tags, avg_rating: exp.avg_rating, total_ratings: exp.total_ratings,
         source: exp.source,
         company_id: effectiveCompanyId, imported_from_id: exp.id, import_batch_id: batchId
-      }]);
+      }]).select().single();
       if (error) throw error;
+      expIdMap[exp.id] = inserted.id;
+      addedExperiences++;
     }
 
-    await loadPractices();
-    await loadProblemCategories();
+    // Top 3
+    const { data: alreadyImportedTop3 } = await supabase
+      .from('top_experiences').select('imported_from_id').eq('company_id', effectiveCompanyId).not('imported_from_id', 'is', null);
+    const importedTop3Ids = new Set((alreadyImportedTop3 || []).map(r => r.imported_from_id));
+
+    const { data: defaultTop3 } = await supabase.from('top_experiences').select('*').eq('company_id', defaultCompanyId);
+    let addedTop3 = 0;
+    for (const t of (defaultTop3 || [])) {
+      if (importedTop3Ids.has(t.id)) continue;
+      const newExpId = expIdMap[t.experience_id];
+      if (!newExpId) continue; // a experience correspondente não foi importada (talvez já existisse)
+      const { error } = await supabase.from('top_experiences').insert([{
+        experience_id: newExpId, company_id: effectiveCompanyId, imported_from_id: t.id, import_batch_id: batchId
+      }]);
+      if (error) throw error;
+      addedTop3++;
+    }
+
     await loadEmployees(effectiveCompanyId);
-    alert('Import complete!');
+    alert(`Synthetic/Curated Content updated — ${addedEmployees} new Employee(s), ${addedExperiences} new Experience(s)/Key Insight(s), ${addedTop3} new Top 3 item(s).`);
   } catch (error) {
-    console.error('Error importing bundle:', error);
+    console.error('Error importing Synthetic Content:', error);
     alert('Error during import: ' + error.message);
   } finally {
     setImportingBundle(false);
   }
 };
 
-// Importa Quotes do Default (independente do resto, não tem a mesma cadeia de dependência)
+// Importa Quotes do Default — também pula o que já foi importado antes.
 const importQuotesFromDefault = async () => {
   if (!effectiveCompanyId || effectiveCompanyId === defaultCompanyId) return;
-  if (!window.confirm('Import Quotes from Default?')) return;
   setImportingQuotes(true);
   const batchId = `quotes-${Date.now()}`;
   try {
+    const { data: alreadyImported } = await supabase
+      .from('quotes').select('imported_from_id').eq('company_id', effectiveCompanyId).not('imported_from_id', 'is', null);
+    const importedIds = new Set((alreadyImported || []).map(r => r.imported_from_id));
+
     const { data: defaultQuotes, error } = await supabase
       .from('quotes').select('*').eq('company_id', defaultCompanyId);
     if (error) throw error;
+
+    let added = 0;
     for (const q of (defaultQuotes || [])) {
+      if (importedIds.has(q.id)) continue;
       const { error: insErr } = await supabase.from('quotes').insert([{
         text: q.text, author: q.author, position: q.position, active: q.active,
         company_id: effectiveCompanyId, imported_from_id: q.id, import_batch_id: batchId
       }]);
       if (insErr) throw insErr;
+      added++;
     }
     await loadQuotes();
-    alert('Quotes imported!');
+    alert(`Quotes updated — ${added} new item(s).`);
   } catch (error) {
     console.error('Error importing quotes:', error);
     alert('Error importing quotes: ' + error.message);
@@ -1058,94 +1158,60 @@ const importQuotesFromDefault = async () => {
   }
 };
 
-const BUNDLE_TABLES = ['practices', 'problem_categories', 'employees', 'experiences'];
 
-const deleteLastBundleImport = async () => {
-  if (!effectiveCompanyId) return;
-  try {
-    let batches = [];
-    for (const t of BUNDLE_TABLES) {
-      const { data } = await supabase.from(t).select('import_batch_id')
-        .eq('company_id', effectiveCompanyId).not('import_batch_id', 'is', null);
-      if (data) batches.push(...data.map(r => r.import_batch_id));
-    }
-    const uniqueBatches = [...new Set(batches)].sort();
-    const lastBatch = uniqueBatches[uniqueBatches.length - 1];
-    if (!lastBatch) { alert('No imports found to undo.'); return; }
-    if (!window.confirm(`Delete the last import (batch ${lastBatch})? This removes everything brought in during that specific import.`)) return;
-    for (const t of BUNDLE_TABLES) {
-      await supabase.from(t).delete().eq('company_id', effectiveCompanyId).eq('import_batch_id', lastBatch);
-    }
-    await loadPractices();
-    await loadProblemCategories();
-    await loadEmployees(effectiveCompanyId);
-    alert('Last import removed.');
-  } catch (error) {
-    console.error('Error deleting last import:', error);
-    alert('Error deleting last import: ' + error.message);
-  }
-};
-
-const deleteAllBundleImport = async () => {
-  if (!effectiveCompanyId) return;
-  if (!window.confirm('Delete ALL imported content (Employees, Experiences, Key Insights, Practices, Categories) from this company? Items you created yourself are not affected. This cannot be undone.')) return;
-  try {
-    for (const t of BUNDLE_TABLES) {
-      await supabase.from(t).delete().eq('company_id', effectiveCompanyId).not('imported_from_id', 'is', null);
-    }
-    await loadPractices();
-    await loadProblemCategories();
-    await loadEmployees(effectiveCompanyId);
-    alert('All imported content removed.');
-  } catch (error) {
-    console.error('Error deleting imported content:', error);
-    alert('Error deleting imported content: ' + error.message);
-  }
-};
-
-const deleteLastQuotesImport = async () => {
-  if (!effectiveCompanyId) return;
-  try {
-    const { data } = await supabase.from('quotes').select('import_batch_id')
-      .eq('company_id', effectiveCompanyId).not('import_batch_id', 'is', null);
-    const uniqueBatches = [...new Set((data || []).map(r => r.import_batch_id))].sort();
-    const lastBatch = uniqueBatches[uniqueBatches.length - 1];
-    if (!lastBatch) { alert('No Quotes imports found to undo.'); return; }
-    if (!window.confirm('Delete the last Quotes import?')) return;
-    await supabase.from('quotes').delete().eq('company_id', effectiveCompanyId).eq('import_batch_id', lastBatch);
-    await loadQuotes();
-    alert('Last Quotes import removed.');
-  } catch (error) {
-    console.error('Error deleting last quotes import:', error);
-    alert('Error: ' + error.message);
-  }
-};
-
-const deleteAllQuotesImport = async () => {
-  if (!effectiveCompanyId) return;
-  if (!window.confirm('Delete ALL imported Quotes from this company? Quotes you created yourself are not affected.')) return;
-  try {
-    await supabase.from('quotes').delete().eq('company_id', effectiveCompanyId).not('imported_from_id', 'is', null);
-    await loadQuotes();
-    alert('All imported Quotes removed.');
-  } catch (error) {
-    console.error('Error deleting imported quotes:', error);
-    alert('Error: ' + error.message);
-  }
-};
-
-// Botões no cabeçalho da tabela — agem sobre todas as linhas marcadas naquela coluna.
-// Por enquanto só "Quotes" é uma seção avulsa importável; outras seções avulsas
-// (App Configuration, Promotional Videos, Content Pages, Admin Keyword Filter)
-// ainda não têm import próprio, então não fazem parte dessa seleção.
+// Botão único de import da tabela — age sobre todas as linhas marcadas.
 const runImportForSelected = async () => {
+  if (selectedForImport.includes('metadata')) await importMetadataModel();
+  if (selectedForImport.includes('synthetic')) await importSyntheticContent();
   if (selectedForImport.includes('quotes')) await importQuotesFromDefault();
 };
-const runDeleteLastForSelected = async () => {
-  if (selectedForDeleteLast.includes('quotes')) await deleteLastQuotesImport();
-};
-const runDeleteAllForSelected = async () => {
-  if (selectedForDeleteAll.includes('quotes')) await deleteAllQuotesImport();
+
+// Apaga uma Category e, em cascata, as Experiences/Key Insights ligadas a ela
+// (mesmo nome de categoria), os comentários delas, e o Employee autor — mas só
+// se esse Employee não tiver mais nenhuma outra experience sobrando.
+const deleteCategoryCascade = async (cat) => {
+  if (!window.confirm(`Delete "${cat.name}"? This will also delete all Experiences, Key Insights and comments linked to this category, and any employee left with no other content. This cannot be undone.`)) return;
+  try {
+    const { data: exps, error: expErr } = await supabase
+      .from('experiences').select('id, employee_id')
+      .eq('problem_category', cat.name)
+      .eq('company_id', effectiveCompanyId);
+    if (expErr) throw expErr;
+
+    const expIds = (exps || []).map(e => e.id);
+    const employeeIds = [...new Set((exps || []).map(e => e.employee_id).filter(Boolean))];
+
+    if (expIds.length > 0) {
+      // Comments ligados a essas experiences (reactions caem em cascata sozinhas, via FK)
+      await supabase.from('comments').delete().in('experience_id', expIds);
+      // top_experiences ligadas
+      await supabase.from('top_experiences').delete().in('experience_id', expIds);
+      // As experiences em si
+      await supabase.from('experiences').delete().in('id', expIds);
+    }
+
+    // Employees que ficaram sem nenhuma experience sobrando (nessa empresa)
+    for (const empId of employeeIds) {
+      const { count } = await supabase
+        .from('experiences').select('id', { count: 'exact', head: true })
+        .eq('employee_id', empId).eq('company_id', effectiveCompanyId);
+      if (!count || count === 0) {
+        await supabase.from('employees').delete().eq('employee_id', empId).eq('company_id', effectiveCompanyId);
+      }
+    }
+
+    // A category em si (soft delete, como já era)
+    const { error } = await supabase.from('problem_categories').update({ active: false }).eq('id', cat.id);
+    if (error) throw error;
+
+    await loadAdminCategories(selectedPracticeId);
+    await loadProblemCategories(selectedPracticeId);
+    await loadEmployees(effectiveCompanyId);
+    await loadExperiences(false, null);
+  } catch (error) {
+    console.error('Error deleting category (cascade):', error);
+    alert('Error deleting category: ' + error.message);
+  }
 };
 
 // ==================== FIM MULTI-EMPRESA ====================
@@ -4218,28 +4284,16 @@ autoComplete="off"
 {isAdmin && !isDefaultAdmin && companyViewMode === 'own' && (
   <div className="mt-4 bg-white border-2 border-gray-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-1">Section Settings</h3>
-    <p className="text-xs text-gray-500 mb-3">"View & Edit access for ADM Master" lets the Master see/edit that section for support. The 3 buttons below bring starter content from Default (synthetic examples, not real people) — check the rows you want each button to act on. Items linked to each other (Employees, See What Others Did, Top 3, Key Insights, Practices, Categories) are always imported/removed together as one bundle.</p>
+    <p className="text-xs text-gray-500 mb-3">"View & Edit access for ADM Master" lets the Master see/edit that section for support. "Import" brings starter content from Default (synthetic examples, not real people) — check the rows you want the button to act on. Running it again only brings new items, it never duplicates or overwrites what you already have. To remove something, delete it directly in its own section (Manage Employees, Manage Categories, etc.) — deleting a Category also removes its linked Experiences, Key Insights and comments.</p>
     <table className="w-full text-sm border-collapse">
       <thead>
         <tr className="text-left text-gray-600 border-b">
           <th className="py-1 align-bottom">Section</th>
           <th className="py-1 text-center align-bottom">View & Edit access<br/>for ADM Master</th>
           <th className="py-2 text-center">
-            <button onClick={runImportForSelected} disabled={importingQuotes}
+            <button onClick={runImportForSelected} disabled={importingBundle || importingQuotes}
               className="px-3 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 disabled:opacity-50 w-40">
-              Import/Update
-            </button>
-          </th>
-          <th className="py-2 text-center">
-            <button onClick={runDeleteLastForSelected}
-              className="px-3 py-2 bg-orange-600 text-white rounded-lg text-sm hover:bg-orange-700 w-40">
-              Delete Last Import
-            </button>
-          </th>
-          <th className="py-2 text-center">
-            <button onClick={runDeleteAllForSelected}
-              className="px-3 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 w-40">
-              Delete All Imports
+              {(importingBundle || importingQuotes) ? 'Importing...' : 'Import/Update'}
             </button>
           </th>
         </tr>
@@ -4251,7 +4305,7 @@ autoComplete="off"
             <input type="checkbox" checked={companyMasterVisibility.includes('app_config')}
               onChange={(e) => toggleMasterVisibility('app_config', e.target.checked)} className="w-4 h-4" />
           </td>
-          <td className="py-2 text-center text-gray-300" colSpan={3}>—</td>
+          <td className="py-2 text-center text-gray-300">—</td>
         </tr>
 
         <tr className="border-b">
@@ -4265,16 +4319,6 @@ autoComplete="off"
               onChange={(e) => setSelectedForImport(e.target.checked ? [...selectedForImport, 'quotes'] : selectedForImport.filter(k => k !== 'quotes'))}
               className="w-4 h-4" />
           </td>
-          <td className="py-2 text-center">
-            <input type="checkbox" checked={selectedForDeleteLast.includes('quotes')}
-              onChange={(e) => setSelectedForDeleteLast(e.target.checked ? [...selectedForDeleteLast, 'quotes'] : selectedForDeleteLast.filter(k => k !== 'quotes'))}
-              className="w-4 h-4" />
-          </td>
-          <td className="py-2 text-center">
-            <input type="checkbox" checked={selectedForDeleteAll.includes('quotes')}
-              onChange={(e) => setSelectedForDeleteAll(e.target.checked ? [...selectedForDeleteAll, 'quotes'] : selectedForDeleteAll.filter(k => k !== 'quotes'))}
-              className="w-4 h-4" />
-          </td>
         </tr>
 
         <tr className="border-b">
@@ -4283,7 +4327,7 @@ autoComplete="off"
             <input type="checkbox" checked={companyMasterVisibility.includes('promotional_videos')}
               onChange={(e) => toggleMasterVisibility('promotional_videos', e.target.checked)} className="w-4 h-4" />
           </td>
-          <td className="py-2 text-center text-gray-300" colSpan={3}>—</td>
+          <td className="py-2 text-center text-gray-300">—</td>
         </tr>
 
         <tr className="border-b">
@@ -4292,51 +4336,40 @@ autoComplete="off"
             <input type="checkbox" checked={companyMasterVisibility.includes('content_pages')}
               onChange={(e) => toggleMasterVisibility('content_pages', e.target.checked)} className="w-4 h-4" />
           </td>
-          <td className="py-2 text-center text-gray-300" colSpan={3}>—</td>
+          <td className="py-2 text-center text-gray-300">—</td>
         </tr>
 
-        {/* Pacote ligado: Employees, See What Others Did, Top 3, Key Insights, Practices, Categories.
-            As 3 colunas de ação viram um colchete "}" só, cobrindo essas 6 linhas — o pacote é
-            sempre tudo-ou-nada, por isso não tem checkbox individual, só os botões dele mesmo. */}
-        {[
-          { key: 'employees', label: 'Employees' },
-          { key: 'experiences', label: 'See What Others Did' },
-          { key: 'top3', label: 'Top 3' },
-          { key: 'key_insights', label: 'Key Insights' },
-          { key: 'practices', label: 'Practices' },
-          { key: 'categories', label: 'Categories' },
-        ].map((row, i) => (
-          <tr key={row.key} className={i === 5 ? 'border-b' : ''}>
-            <td className="py-2">{row.label}</td>
-            <td className="py-2 text-center">
-              <input type="checkbox"
-                checked={companyMasterVisibility.includes(row.key)}
-                onChange={(e) => toggleMasterVisibility(row.key, e.target.checked)}
-                className="w-4 h-4" />
-            </td>
-            {i === 0 && (
-              <td className="py-2 text-center align-middle" colSpan={3} rowSpan={6}>
-                <div className="flex items-center justify-center gap-3 h-full">
-                  <span className="text-gray-400 select-none" style={{ fontSize: '64px', lineHeight: 1, transform: 'scaleY(1.6)', fontWeight: 300 }}>{'}'}</span>
-                  <div className="flex flex-col items-center justify-center gap-2">
-                    <button onClick={importDefaultBundle} disabled={importingBundle}
-                      className="px-3 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 disabled:opacity-50 w-40">
-                      {importingBundle ? 'Importing...' : 'Import/Update'}
-                    </button>
-                    <button onClick={deleteLastBundleImport}
-                      className="px-3 py-2 bg-orange-600 text-white rounded-lg text-sm hover:bg-orange-700 w-40">
-                      Delete Last Import
-                    </button>
-                    <button onClick={deleteAllBundleImport}
-                      className="px-3 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 w-40">
-                      Delete All Imports
-                    </button>
-                  </div>
-                </div>
-              </td>
-            )}
-          </tr>
-        ))}
+        <tr className="border-b">
+          <td className="py-2">
+            <p>Metadata Model</p>
+            <p className="text-xs text-gray-400 font-normal">Functions/Practices, Categories, Descriptions, Tags</p>
+          </td>
+          <td className="py-2 text-center">
+            <input type="checkbox" checked={companyMasterVisibility.includes('metadata')}
+              onChange={(e) => toggleMasterVisibility('metadata', e.target.checked)} className="w-4 h-4" />
+          </td>
+          <td className="py-2 text-center">
+            <input type="checkbox" checked={selectedForImport.includes('metadata')}
+              onChange={(e) => setSelectedForImport(e.target.checked ? [...selectedForImport, 'metadata'] : selectedForImport.filter(k => k !== 'metadata'))}
+              className="w-4 h-4" />
+          </td>
+        </tr>
+
+        <tr className="border-b">
+          <td className="py-2">
+            <p>Synthetic/Curated Content</p>
+            <p className="text-xs text-gray-400 font-normal">Individual Experiences, Top 3, Employees, Key Insights</p>
+          </td>
+          <td className="py-2 text-center">
+            <input type="checkbox" checked={companyMasterVisibility.includes('synthetic')}
+              onChange={(e) => toggleMasterVisibility('synthetic', e.target.checked)} className="w-4 h-4" />
+          </td>
+          <td className="py-2 text-center">
+            <input type="checkbox" checked={selectedForImport.includes('synthetic')}
+              onChange={(e) => setSelectedForImport(e.target.checked ? [...selectedForImport, 'synthetic'] : selectedForImport.filter(k => k !== 'synthetic'))}
+              className="w-4 h-4" />
+          </td>
+        </tr>
 
         <tr>
           <td className="py-2">Admin Keyword Filter</td>
@@ -4344,7 +4377,7 @@ autoComplete="off"
             <input type="checkbox" checked={companyMasterVisibility.includes('keyword_filter')}
               onChange={(e) => toggleMasterVisibility('keyword_filter', e.target.checked)} className="w-4 h-4" />
           </td>
-          <td className="py-2 text-center text-gray-300" colSpan={3}>—</td>
+          <td className="py-2 text-center text-gray-300">—</td>
         </tr>
       </tbody>
     </table>
@@ -5728,12 +5761,7 @@ for (const row of rows) {
                 </div>
                 <button onClick={() => setEditingCategory(index)} className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 flex-shrink-0">Edit</button>
                 <button
-                  onClick={async () => {
-                    if (!window.confirm(`Delete "${cat.name}"? Existing experiences with this category will keep it.`)) return;
-                    const { error } = await supabase.from('problem_categories').update({ active: false }).eq('id', cat.id);
-                    if (!error) { await loadAdminCategories(selectedPracticeId); await loadProblemCategories(selectedPracticeId); }
-                    else alert('Error deleting category');
-                  }}
+                  onClick={() => deleteCategoryCascade(cat)}
                   className="px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 flex-shrink-0"
                 >Delete</button>
               </>
