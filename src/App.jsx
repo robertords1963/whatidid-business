@@ -335,7 +335,6 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   
   useEffect(() => {
   detectUserCountry();
-  loadAppSettings();
   loadDemoGroups();
   loadCompanies();
 }, []);
@@ -353,6 +352,7 @@ useEffect(() => {
     loadPromotionalVideos();
     loadProblemCategories();
     loadPractices();
+    loadAppSettings();
   }
 }, [effectiveCompanyId]);
 
@@ -714,11 +714,13 @@ const loadTopExperiences = async () => {
 
 // ⭐ ADICIONAR AQUI ⭐
 const loadAppSettings = async () => {
+  if (!effectiveCompanyId) return;
   try {
     const { data, error } = await supabase
       .from('app_settings')
       .select('*')
-      .single();
+      .eq('company_id', effectiveCompanyId)
+      .maybeSingle();
     
     if (error) throw error;
     
@@ -737,6 +739,30 @@ const loadAppSettings = async () => {
   setCompanyNameSize(data.company_name_size || 'medium');
   setCompanyLogoSize(data.company_logo_size || 'medium');
   setTop3VisibleInSession(data.top3_start_visible !== false);
+} else {
+  // Essa empresa ainda não tem uma linha de app_settings — cria uma com
+  // valores padrão, pra não quebrar os updates (que dependem de já existir
+  // uma linha pra dar .eq('company_id', ...) e achar algo).
+  const { error: insertError } = await supabase.from('app_settings').insert([{
+    company_id: effectiveCompanyId,
+    require_employee_login: true,
+    edition_name: 'corp',
+    allow_cv_upload: true,
+    show_top3: false,
+    top3_start_visible: true,
+    show_marquee: false
+  }]);
+  if (!insertError) {
+    setAppSettings({
+      requireEmployeeLogin: true, editionName: 'corp', allowCvUpload: true,
+      documentType: 'cv', showTop3: false, top3StartVisible: true, showMarquee: false
+    });
+    setCompanyName('');
+    setCompanyLogoUrl('');
+    setCompanyNameSize('medium');
+    setCompanyLogoSize('medium');
+    setTop3VisibleInSession(true);
+  }
 }
   } catch (error) {
     console.error('Error loading app settings:', error);
@@ -4559,7 +4585,7 @@ autoComplete="off"
             const { error } = await supabase
               .from('app_settings')
               .update({ edition_name: e.target.value })
-              .eq('id', 1);
+              .eq('company_id', effectiveCompanyId);
             
             if (error) {
               alert('Error updating setting');
@@ -4591,7 +4617,7 @@ autoComplete="off"
             const { error } = await supabase
               .from('app_settings')
               .update({ require_employee_login: e.target.checked })
-              .eq('id', 1);
+              .eq('company_id', effectiveCompanyId);
             
             if (error) {
               alert('Error updating setting');
@@ -4621,7 +4647,7 @@ autoComplete="off"
               const { error } = await supabase
                 .from('app_settings')
                 .update({ allow_cv_upload: e.target.checked })
-                .eq('id', 1);
+                .eq('company_id', effectiveCompanyId);
               
               if (error) {
                 alert('Error updating setting');
@@ -4655,7 +4681,7 @@ autoComplete="off"
                   const { error } = await supabase
                     .from('app_settings')
                     .update({ document_type: 'cv' })
-                    .eq('id', 1);
+                    .eq('company_id', effectiveCompanyId);
                   
                   if (error) {
                     alert('Error updating document type');
@@ -4680,7 +4706,7 @@ autoComplete="off"
                   const { error } = await supabase
                     .from('app_settings')
                     .update({ document_type: 'other' })
-                    .eq('id', 1);
+                    .eq('company_id', effectiveCompanyId);
                   
                   if (error) {
                     alert('Error updating document type');
@@ -4702,7 +4728,7 @@ autoComplete="off"
         <input type="checkbox" id="showTop3" checked={appSettings.showTop3}
           onChange={async (e) => {
             setAppSettings({...appSettings, showTop3: e.target.checked});
-            await supabase.from('app_settings').update({ show_top3: e.target.checked }).eq('id', 1);
+            await supabase.from('app_settings').update({ show_top3: e.target.checked }).eq('company_id', effectiveCompanyId);
           }} className="w-5 h-5" />
         <label htmlFor="showTop3" className="text-sm font-medium text-gray-700 cursor-pointer">Show Top 3 Experiences</label>
       </div>
@@ -4713,7 +4739,7 @@ autoComplete="off"
             onChange={async (e) => {
               setAppSettings({...appSettings, top3StartVisible: e.target.checked});
               setTop3VisibleInSession(e.target.checked);
-              await supabase.from('app_settings').update({ top3_start_visible: e.target.checked }).eq('id', 1);
+              await supabase.from('app_settings').update({ top3_start_visible: e.target.checked }).eq('company_id', effectiveCompanyId);
             }} className="w-4 h-4" />
           <label htmlFor="top3StartVisible" className="text-xs text-gray-600 cursor-pointer">Start visible (users can still hide/show it)</label>
         </div>
@@ -4732,14 +4758,14 @@ autoComplete="off"
               placeholder="e.g. XYZ Financial Services"
               className="flex-1 p-2 border-2 border-gray-300 rounded-lg text-sm" maxLength={60} />
             <button onClick={async () => {
-              const { error } = await supabase.from('app_settings').update({ company_name: companyName }).eq('id', 1);
+              const { error } = await supabase.from('app_settings').update({ company_name: companyName }).eq('company_id', effectiveCompanyId);
               if (error) alert('Error: ' + error.message);
               else alert('Company name saved!');
             }} className="px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700">Save</button>
             {companyName && (
               <button onClick={async () => {
                 setCompanyName('');
-                await supabase.from('app_settings').update({ company_name: null }).eq('id', 1);
+                await supabase.from('app_settings').update({ company_name: null }).eq('company_id', effectiveCompanyId);
               }} className="px-3 py-2 bg-gray-400 text-white rounded-lg text-sm hover:bg-gray-500">Clear</button>
             )}
           </div>
@@ -4751,7 +4777,7 @@ autoComplete="off"
                   checked={companyNameSize === size}
                   onChange={async () => {
                     setCompanyNameSize(size);
-                    await supabase.from('app_settings').update({ company_name_size: size }).eq('id', 1);
+                    await supabase.from('app_settings').update({ company_name_size: size }).eq('company_id', effectiveCompanyId);
                   }}
                   className="w-3 h-3" />
                 <span className="text-xs capitalize">{size}</span>
@@ -4768,7 +4794,7 @@ autoComplete="off"
               <img src={companyLogoUrl} alt="logo" className="h-10 object-contain border border-gray-200 rounded p-1 bg-white" />
               <span className="text-xs text-gray-500 flex-1">Logo active</span>
               <button onClick={async () => {
-                const { error } = await supabase.from('app_settings').update({ company_logo_url: null }).eq('id', 1);
+                const { error } = await supabase.from('app_settings').update({ company_logo_url: null }).eq('company_id', effectiveCompanyId);
                 if (!error) { setCompanyLogoUrl(''); alert('Logo removed!'); }
               }} className="text-xs text-red-600 hover:text-red-800 font-medium">✕ Remove</button>
             </div>
@@ -4785,7 +4811,7 @@ autoComplete="off"
                   const { error: upErr } = await supabase.storage.from('cvs').upload(path, file);
                   if (upErr) throw upErr;
                   const { data: { publicUrl } } = supabase.storage.from('cvs').getPublicUrl(path);
-                  const { error: dbErr } = await supabase.from('app_settings').update({ company_logo_url: publicUrl }).eq('id', 1);
+                  const { error: dbErr } = await supabase.from('app_settings').update({ company_logo_url: publicUrl }).eq('company_id', effectiveCompanyId);
                   if (dbErr) throw dbErr;
                   setCompanyLogoUrl(publicUrl);
                   alert('Logo uploaded!');
@@ -4804,7 +4830,7 @@ autoComplete="off"
                   checked={companyLogoSize === size}
                   onChange={async () => {
                     setCompanyLogoSize(size);
-                    await supabase.from('app_settings').update({ company_logo_size: size }).eq('id', 1);
+                    await supabase.from('app_settings').update({ company_logo_size: size }).eq('company_id', effectiveCompanyId);
                   }}
                   className="w-3 h-3" />
                 <span className="text-xs capitalize">{size}</span>
@@ -4834,7 +4860,7 @@ autoComplete="off"
         <input type="checkbox" id="showMarquee" checked={appSettings.showMarquee}
           onChange={async (e) => {
             setAppSettings({...appSettings, showMarquee: e.target.checked});
-            await supabase.from('app_settings').update({ show_marquee: e.target.checked }).eq('id', 1);
+            await supabase.from('app_settings').update({ show_marquee: e.target.checked }).eq('company_id', effectiveCompanyId);
           }} className="w-5 h-5" />
         <label htmlFor="showMarquee" className="text-sm font-medium text-gray-700 cursor-pointer">Show Inspirational Quotes (Marquee)</label>
       </div>
