@@ -250,7 +250,7 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   // Seleção de linhas (por seção) marcadas em cada uma das 3 colunas de ação da
   // tabela "Section Settings" — o botão no título de cada coluna age sobre as
   // linhas marcadas nela.
-  const [selectedForImport, setSelectedForImport] = useState(['metadata', 'synthetic', 'quotes']);
+  const [selectedForImport, setSelectedForImport] = useState([]);
   const defaultCompanyId = companies.find(c => c.code === 'default')?.id || null;
   // Só o Admin do Default pode navegar entre empresas pelo dropdown — qualquer
   // outra empresa só vê e opera sobre os próprios dados, sempre.
@@ -335,24 +335,24 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   
   useEffect(() => {
   detectUserCountry();
-  loadExperiences();
-  loadTopExperiences();
   loadAppSettings();
-  loadQuotes();
-  loadContentPages();
-  loadPromotionalVideos();
-  loadProblemCategories();
-  loadPractices();
   loadDemoGroups();
   loadCompanies();
 }, []);
 
-// Carrega/recarrega os employees sempre que já soubermos qual empresa usar
-// (Default assim que companies terminar de carregar, ou a empresa selecionada
-// no dropdown do ADM Master).
+// Carrega/recarrega tudo que depende de qual empresa estamos usando, sempre
+// que já soubermos isso (Default assim que companies terminar de carregar,
+// ou quando o contexto mudar — dropdown do Master ou modo Sample da empresa).
 useEffect(() => {
   if (effectiveCompanyId) {
     loadEmployees(effectiveCompanyId);
+    loadExperiences();
+    loadTopExperiences();
+    loadQuotes();
+    loadContentPages();
+    loadPromotionalVideos();
+    loadProblemCategories();
+    loadPractices();
   }
 }, [effectiveCompanyId]);
 
@@ -510,6 +510,7 @@ useEffect(() => {
   };
   
 const loadExperiences = async (skipLoading = false, loggedEmpId = null) => {
+  if (!effectiveCompanyId) return; // ainda não sabemos qual empresa usar
   try {
     if (!skipLoading) {
       setLoading(true);
@@ -519,6 +520,7 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null) => {
     const { data: batch1, error: error1 } = await supabase
       .from('experiences')
       .select('*')
+      .eq('company_id', effectiveCompanyId)
       .order('source', { ascending: true })
       .order('id', { ascending: false })
       .range(0, 999);
@@ -529,6 +531,7 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null) => {
     const { data: batch2, error: error2 } = await supabase
       .from('experiences')
       .select('*')
+      .eq('company_id', effectiveCompanyId)
       .order('source', { ascending: true })
       .order('id', { ascending: false })
       .range(1000, 1999);
@@ -562,6 +565,7 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null) => {
       practiceId: exp.practice_id || null,
       tags: exp.tags || [],
       parentExperienceId: exp.parent_experience_id || null,
+      createdAt: exp.created_at || null,
       comments: []
     }));
     
@@ -685,10 +689,12 @@ if (lastCommentIds.length > 0) {
 };
 
 const loadTopExperiences = async () => {
+    if (!effectiveCompanyId) return;
     try {
       const { data, error } = await supabase
         .from('top_experiences')
-        .select('position, experience_id');
+        .select('position, experience_id')
+        .eq('company_id', effectiveCompanyId);
       
       if (error) throw error;
       
@@ -738,11 +744,13 @@ const loadAppSettings = async () => {
 };
 
 const loadProblemCategories = async (practiceId = null) => {
+  if (!effectiveCompanyId) return;
   try {
     let query = supabase
       .from('problem_categories')
       .select('*')
       .eq('active', true)
+      .eq('company_id', effectiveCompanyId)
       .order('display_order', { ascending: true });
 
     if (practiceId) {
@@ -802,11 +810,13 @@ const loadCurrentEmployeeGroup = async (empId) => {
 };
  
 const loadPractices = async () => {
+  if (!effectiveCompanyId) return;
   try {
     const { data, error } = await supabase
       .from('practices')
       .select('*')
       .eq('active', true)
+      .eq('company_id', effectiveCompanyId)
       .order('display_order', { ascending: true });
     if (error) throw error;
     // Para o Admin: todas as practices ativas
@@ -1158,12 +1168,86 @@ const importQuotesFromDefault = async () => {
   }
 };
 
+// Importa Promotional Videos/Links do Default — reaproveita o mesmo arquivo já
+// hospedado (não faz upload de novo, só copia a linha do banco apontando pra
+// mesma URL), e pula o que já foi importado antes.
+const importPromotionalVideos = async () => {
+  if (!effectiveCompanyId || effectiveCompanyId === defaultCompanyId) return;
+  setImportingBundle(true);
+  const batchId = `promo-${Date.now()}`;
+  try {
+    const { data: alreadyImported } = await supabase
+      .from('promotional_videos').select('imported_from_id').eq('company_id', effectiveCompanyId).not('imported_from_id', 'is', null);
+    const importedIds = new Set((alreadyImported || []).map(r => r.imported_from_id));
+
+    const { data: defaultItems, error } = await supabase
+      .from('promotional_videos').select('*').eq('company_id', defaultCompanyId);
+    if (error) throw error;
+
+    let added = 0;
+    for (const v of (defaultItems || [])) {
+      if (importedIds.has(v.id)) continue;
+      const { error: insErr } = await supabase.from('promotional_videos').insert([{
+        video_url: v.video_url, duration: v.duration, display_order: v.display_order,
+        file_type: v.file_type, link_url: v.link_url, link_label: v.link_label,
+        company_id: effectiveCompanyId, imported_from_id: v.id, import_batch_id: batchId
+      }]);
+      if (insErr) throw insErr;
+      added++;
+    }
+    await loadPromotionalVideos();
+    alert(`Promotional Videos updated — ${added} new item(s).`);
+  } catch (error) {
+    console.error('Error importing promotional videos:', error);
+    alert('Error: ' + error.message);
+  } finally {
+    setImportingBundle(false);
+  }
+};
+
+// Importa Content Pages do Default — como cada página é identificada por
+// page_key (um conjunto fixo, tipo "about", "terms"), só copia as que a
+// empresa ainda não tem, sem duplicar chaves.
+const importContentPages = async () => {
+  if (!effectiveCompanyId || effectiveCompanyId === defaultCompanyId) return;
+  setImportingBundle(true);
+  try {
+    const { data: existing } = await supabase
+      .from('content_pages').select('page_key').eq('company_id', effectiveCompanyId);
+    const existingKeys = new Set((existing || []).map(r => r.page_key));
+
+    const { data: defaultPages, error } = await supabase
+      .from('content_pages').select('*').eq('company_id', defaultCompanyId);
+    if (error) throw error;
+
+    let added = 0;
+    for (const p of (defaultPages || [])) {
+      if (existingKeys.has(p.page_key)) continue;
+      const { error: insErr } = await supabase.from('content_pages').insert([{
+        page_key: p.page_key, title: p.title, content: p.content,
+        company_id: effectiveCompanyId, imported_from_id: p.id
+      }]);
+      if (insErr) throw insErr;
+      added++;
+    }
+    await loadContentPages();
+    alert(`Content Pages updated — ${added} new item(s).`);
+  } catch (error) {
+    console.error('Error importing content pages:', error);
+    alert('Error: ' + error.message);
+  } finally {
+    setImportingBundle(false);
+  }
+};
+
 
 // Botão único de import da tabela — age sobre todas as linhas marcadas.
 const runImportForSelected = async () => {
   if (selectedForImport.includes('metadata')) await importMetadataModel();
   if (selectedForImport.includes('synthetic')) await importSyntheticContent();
   if (selectedForImport.includes('quotes')) await importQuotesFromDefault();
+  if (selectedForImport.includes('promotional_videos')) await importPromotionalVideos();
+  if (selectedForImport.includes('content_pages')) await importContentPages();
 };
 
 // Apaga uma Category e, em cascata, as Experiences/Key Insights ligadas a ela
@@ -1910,7 +1994,9 @@ setTimeout(() => {
         total_ratings: 0,
         source: 'app',
         cv_url: cvUrl,
-        cv_filename: cvFilename
+        cv_filename: cvFilename,
+        company_id: effectiveCompanyId,
+        created_at: new Date().toISOString()
       }])
       .select();
     
@@ -2708,11 +2794,13 @@ useEffect(() => {
   }, [videoModalOpen]);
 
   const loadQuotes = async () => {
+    if (!effectiveCompanyId) return;
     try {
       const { data, error } = await supabase
         .from('quotes')
         .select('*')
         .eq('active', true)
+        .eq('company_id', effectiveCompanyId)
         .order('id', { ascending: true });
       
       if (error) throw error;
@@ -2790,10 +2878,12 @@ useEffect(() => {
   };
 
   const loadContentPages = async () => {
+    if (!effectiveCompanyId) return;
     try {
       const { data, error } = await supabase
         .from('content_pages')
-        .select('*');
+        .select('*')
+        .eq('company_id', effectiveCompanyId);
       
       if (error) throw error;
       
@@ -2828,10 +2918,12 @@ useEffect(() => {
   // ==================== FUNÇÕES PARA GERENCIAR VÍDEOS PROMOCIONAIS ====================
   
   const loadPromotionalVideos = async () => {
+    if (!effectiveCompanyId) return;
     try {
       const { data, error } = await supabase
         .from('promotional_videos')
         .select('*')
+        .eq('company_id', effectiveCompanyId)
         .order('display_order', { ascending: true });
       
       if (error) throw error;
@@ -4284,7 +4376,7 @@ autoComplete="off"
 {isAdmin && !isDefaultAdmin && companyViewMode === 'own' && (
   <div className="mt-4 bg-white border-2 border-gray-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-1">Section Settings</h3>
-    <p className="text-xs text-gray-500 mb-3">"View & Edit access for ADM Master" lets the Master see/edit that section for support. "Import" brings starter content from Default (synthetic examples, not real people) — check the rows you want the button to act on. Running it again only brings new items, it never duplicates or overwrites what you already have. To remove something, delete it directly in its own section (Manage Employees, Manage Categories, etc.) — deleting a Category also removes its linked Experiences, Key Insights and comments.</p>
+    <p className="text-xs text-gray-500 mb-3">"View & Edit access for ADM Master" lets the Master see/edit that section for support. Check a row and click "Import/Update" to bring starter content from Default (synthetic examples, not real people) — running it again only brings new items, it never duplicates or overwrites what you already have. To remove something, delete it directly in its own section (Manage Employees, Manage Categories, etc.) — deleting a Category also removes its linked Experiences, Key Insights and comments.</p>
     <table className="w-full text-sm border-collapse">
       <thead>
         <tr className="text-left text-gray-600 border-b">
@@ -4322,12 +4414,19 @@ autoComplete="off"
         </tr>
 
         <tr className="border-b">
-          <td className="py-2">Promotional Videos</td>
+          <td className="py-2">
+            <p>Promotional Videos</p>
+            <p className="text-xs text-gray-400 font-normal">Useful for internal trainings — bring Default's presentations as a starting point</p>
+          </td>
           <td className="py-2 text-center">
             <input type="checkbox" checked={companyMasterVisibility.includes('promotional_videos')}
               onChange={(e) => toggleMasterVisibility('promotional_videos', e.target.checked)} className="w-4 h-4" />
           </td>
-          <td className="py-2 text-center text-gray-300">—</td>
+          <td className="py-2 text-center">
+            <input type="checkbox" checked={selectedForImport.includes('promotional_videos')}
+              onChange={(e) => setSelectedForImport(e.target.checked ? [...selectedForImport, 'promotional_videos'] : selectedForImport.filter(k => k !== 'promotional_videos'))}
+              className="w-4 h-4" />
+          </td>
         </tr>
 
         <tr className="border-b">
@@ -4336,7 +4435,11 @@ autoComplete="off"
             <input type="checkbox" checked={companyMasterVisibility.includes('content_pages')}
               onChange={(e) => toggleMasterVisibility('content_pages', e.target.checked)} className="w-4 h-4" />
           </td>
-          <td className="py-2 text-center text-gray-300">—</td>
+          <td className="py-2 text-center">
+            <input type="checkbox" checked={selectedForImport.includes('content_pages')}
+              onChange={(e) => setSelectedForImport(e.target.checked ? [...selectedForImport, 'content_pages'] : selectedForImport.filter(k => k !== 'content_pages'))}
+              className="w-4 h-4" />
+          </td>
         </tr>
 
         <tr className="border-b">
@@ -7816,6 +7919,11 @@ onClick={() => {
                : [exp.author, exp.gender, exp.age, exp.country].filter(Boolean).join(', ')
             }
       </span>
+      {exp.source === 'app' && exp.createdAt && (
+        <span className="text-xs text-gray-400 block">
+          {new Date(exp.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+        </span>
+      )}
       
       {/* Ícone Document - linha separada */}
 {exp.cvUrl && exp.author !== 'key_insights' && (
