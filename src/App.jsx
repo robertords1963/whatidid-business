@@ -5498,7 +5498,7 @@ autoComplete="off"
        
 
 {isAdmin && (
-  <div className="mt-4 bg-slate-50 border-2 border-slate-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
+  <div className={`${showDefaultOnlyTools ? 'mt-4' : '-mt-4'} bg-slate-50 border-2 border-slate-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto`}>
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
       👥 Manage Employees
     </h3>
