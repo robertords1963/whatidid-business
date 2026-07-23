@@ -6523,7 +6523,7 @@ onClick={() => {
                     value={adminKeywords}
                     onChange={(e) => setAdminKeywords(e.target.value)}
                     placeholder="e.g., spam, scam, inappropriate, viagra, Curator"
-                    className="w-full p-2 border-2 border-gray-300 rounded-lg"
+                    className="w-full h-9 px-2 py-1 border-2 border-gray-300 rounded-lg"
                   />
                   <p className="text-xs text-gray-600 mt-1">
                     Will search in problems, solutions, results, and comments. Combine with Function/Practice and Category above to narrow down further.
