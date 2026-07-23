@@ -3268,7 +3268,7 @@ if (appSettings.requireEmployeeLogin && !isAdmin && comment.employeeId !== emplo
     if (deletionCategory && exp.problemCategory !== deletionCategory) return;
 
     if (hasKeyword) {
-      const searchText = `${exp.problem} ${exp.solution} ${exp.result} ${exp.author} ${exp.employeeId || ''}`.toLowerCase();
+      const searchText = `${exp.problem} ${exp.solution} ${exp.result} ${exp.author} ${exp.employeeId || ''} ${exp.source !== 'app' ? 'Curator' : ''}`.toLowerCase();
       keywords.forEach(keyword => {
         if (searchText.includes(keyword)) {
           matches.push({
@@ -8057,6 +8057,11 @@ onClick={() => {
                : [exp.author, exp.gender, exp.age, exp.country].filter(Boolean).join(', ')
             }
       </span>
+      {exp.source !== 'app' && (
+        <span className="inline-block text-[10px] font-semibold uppercase bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full mt-1">
+          Curator
+        </span>
+      )}
       {exp.source === 'app' && exp.createdAt && (
         <span className="text-xs text-gray-400 block">
           {new Date(exp.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
