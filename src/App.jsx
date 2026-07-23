@@ -2903,6 +2903,12 @@ useEffect(() => {
     }
   };
 
+  const CONTENT_PAGE_DEFAULTS = {
+    community_guidelines: 'Community Guidelines',
+    how_it_works: 'How It Works',
+    about: 'About'
+  };
+
   const loadContentPages = async () => {
     if (!effectiveCompanyId) return;
     try {
@@ -2925,10 +2931,13 @@ useEffect(() => {
 
   const updateContentPage = async (pageKey, content) => {
     try {
+      const title = CONTENT_PAGE_DEFAULTS[pageKey] || contentPages[pageKey]?.title || pageKey;
       const { error } = await supabase
         .from('content_pages')
-        .update({ content, updated_at: new Date().toISOString() })
-        .eq('page_key', pageKey);
+        .upsert({
+          page_key: pageKey, content, title,
+          company_id: effectiveCompanyId, updated_at: new Date().toISOString()
+        }, { onConflict: 'company_id,page_key' });
       
       if (error) throw error;
       
@@ -5234,8 +5243,7 @@ autoComplete="off"
               
               <div className={`space-y-4 ${isReadOnlyView ? 'pointer-events-none opacity-60' : ''}`}>
                 {['community_guidelines', 'how_it_works', 'about'].map(pageKey => {
-                  const page = contentPages[pageKey];
-                  if (!page) return null;
+                  const page = contentPages[pageKey] || { title: CONTENT_PAGE_DEFAULTS[pageKey], content: '' };
                   
                   return (
                     <div key={pageKey} className="bg-white rounded p-4">
@@ -5248,6 +5256,9 @@ autoComplete="off"
                           Edit Content
                         </button>
                       </div>
+                      {!contentPages[pageKey] && editingContent.key !== pageKey && (
+                        <p className="text-sm text-gray-400 italic">Not set up yet — write your own above, or import from Default in Section Settings.</p>
+                      )}
                       
                       {editingContent.key === pageKey ? (
                         <div className="space-y-3">
