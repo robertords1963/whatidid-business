@@ -1424,13 +1424,20 @@ const addEmployee = async () => {
 
 const updateEmployee = async (empId) => {
   try {
+    const updatePayload = {
+      name: editingEmployeeData.name,
+      country: editingEmployeeData.country,
+      email: editingEmployeeData.email,
+      is_admin: editingEmployeeData.is_admin,
+      status: editingEmployeeData.status
+    };
+    // Se o Admin está reabrindo pra "pending" (ex: desbloqueando), limpa a
+    // senha antiga — a pessoa passa pelo 1st Access de novo, do zero.
+    if (editingEmployeeData.status === 'pending') {
+      updatePayload.password = null;
+    }
     const { error } = await supabase.from('employees')
-      .update({
-        name: editingEmployeeData.name,
-        country: editingEmployeeData.country,
-        email: editingEmployeeData.email,
-        is_admin: editingEmployeeData.is_admin
-      })
+      .update(updatePayload)
       .eq('employee_id', empId);
     if (error) throw error;
     setEditingEmployee(null);
@@ -1529,14 +1536,19 @@ const handleAccountAccessLookup = async () => {
       setAccountAccessError('No account found with that email and Employee ID. Check with your company Admin.');
       return;
     }
-    if (data.length > 1) {
-      setAccountAccessMatches(data);
+    const usableMatches = data.filter(r => r.status !== 'blocked');
+    if (usableMatches.length === 0) {
+      setAccountAccessError('This account has been blocked for security reasons. Please contact your company\'s HR or Admin.');
+      return;
+    }
+    if (usableMatches.length > 1) {
+      setAccountAccessMatches(usableMatches);
       setAccountAccessStep('choose-match');
       return;
     }
     // Só um resultado — ainda assim, pede confirmação explícita da empresa
     // antes de mandar o código, em vez de avançar direto.
-    setAccountAccessRecord(data[0]);
+    setAccountAccessRecord(usableMatches[0]);
     setAccountAccessStep('confirm-company');
   } catch (err) {
     console.error('Account access lookup error:', err);
@@ -4178,7 +4190,6 @@ autoComplete="off"
                       <input type="checkbox" checked={false} readOnly onClick={() => handleChooseAccountAccessMatch(m)} className="w-4 h-4" />
                       <div>
                         <p className="text-sm font-medium text-gray-800">{m.companies?.name || 'Company'}</p>
-                        <p className="text-xs text-gray-500">{m.name} · {m.country}</p>
                       </div>
                     </label>
                   ))}
@@ -4193,10 +4204,9 @@ autoComplete="off"
               {/* Passo 1c: confirmação explícita da empresa (mesmo com um único resultado) */}
               {accountAccessStep === 'confirm-company' && (
                 <div className="space-y-4">
-                  <p className="text-sm text-gray-600">We found an account under this name:</p>
+                  <p className="text-sm text-gray-600">We found you at:</p>
                   <div className="bg-purple-50 border-2 border-purple-200 rounded-lg p-4 text-center">
                     <p className="text-lg font-semibold text-purple-800">{accountAccessRecord?.companies?.name || 'Unknown Company'}</p>
-                    <p className="text-sm text-gray-600 mt-1">{accountAccessRecord?.name}</p>
                   </div>
                   <p className="text-sm text-gray-600">Is this your company?</p>
                   {accountAccessError && (
@@ -4205,10 +4215,15 @@ autoComplete="off"
                     </div>
                   )}
                   <div className="flex gap-3">
-                    <button onClick={() => {
+                    <button onClick={async () => {
+                        try {
+                          await supabase.from('employees').update({ status: 'blocked' }).eq('id', accountAccessRecord.id);
+                        } catch (err) {
+                          console.error('Error blocking account:', err);
+                        }
                         setAccountAccessStep('lookup');
                         setAccountAccessRecord(null);
-                        setAccountAccessError("No problem — if you believe this is an error, please contact your company's HR or Admin before trying again.");
+                        setAccountAccessError("No problem — for your security, this account has been blocked until your Admin reviews it. Please contact your company's HR or Admin.");
                       }}
                       className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 font-semibold transition-colors">
                       No, that's not me
@@ -5703,6 +5718,12 @@ autoComplete="off"
                   <input type="checkbox" defaultChecked={emp.is_admin} onChange={(e) => setEditingEmployeeData({...editingEmployeeData, is_admin: e.target.checked})} />
                   Admin
                 </label>
+                <select defaultValue={emp.status || 'pending'} onChange={(e) => setEditingEmployeeData({...editingEmployeeData, status: e.target.value})}
+                  className="text-xs p-1 border border-gray-300 rounded shrink-0">
+                  <option value="pending">Pending</option>
+                  <option value="active">Active</option>
+                  <option value="blocked">Blocked</option>
+                </select>
                 <button onClick={() => updateEmployee(emp.employee_id)} className="px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700">Save</button>
                 <button onClick={() => { setEditingEmployee(null); setEditingEmployeeData({}); }} className="px-2 py-1 bg-gray-400 text-white rounded text-xs">Cancel</button>
               </>
@@ -5717,12 +5738,12 @@ autoComplete="off"
                     🛡️ Admin
                   </span>
                 )}
-                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${emp.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                  {emp.status === 'active' ? '✓ Active' : '⏳ Pending'}
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${emp.status === 'active' ? 'bg-green-100 text-green-700' : emp.status === 'blocked' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                  {emp.status === 'active' ? '✓ Active' : emp.status === 'blocked' ? '🚫 Blocked' : '⏳ Pending'}
                 </span>
                 {!isReadOnlyOrMasterManaging && (
                 <>
-                <button onClick={() => { setEditingEmployee(emp.employee_id); setEditingEmployeeData({ name: emp.name, country: emp.country, email: emp.email, is_admin: emp.is_admin }); }}
+                <button onClick={() => { setEditingEmployee(emp.employee_id); setEditingEmployeeData({ name: emp.name, country: emp.country, email: emp.email, is_admin: emp.is_admin, status: emp.status || 'pending' }); }}
                   className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700">Edit</button>
                 <button onClick={async () => {
                   if (!window.confirm(`Delete all experiences and comments by ${emp.employee_id}? This cannot be undone.`)) return;
