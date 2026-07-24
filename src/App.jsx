@@ -5694,11 +5694,11 @@ autoComplete="off"
       {isReadOnlyView && <span className="text-xs font-normal text-blue-600">(read-only — Sample)</span>}
     </h3>
 
-    <div className={isReadOnlyView ? 'pointer-events-none opacity-60' : ''}>
+    <div className="">
     {/* Practice selector + New Practice */}
     <div className="bg-white rounded p-4 mb-4">
       <div className="flex items-center gap-3 mb-4">
-        <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Practice:</label>
+        <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Function/Practice:</label>
         <select
           value={selectedPracticeId || ''}
           onChange={(e) => {
@@ -5718,6 +5718,7 @@ autoComplete="off"
             <input
               type="checkbox"
               checked={practices.find(p => p.id === selectedPracticeId)?.show_in_ui || false}
+              disabled={isReadOnlyView}
               onChange={async (e) => {
                 const { error } = await supabase
                   .from('practices')
@@ -5748,7 +5749,8 @@ autoComplete="off"
             }
             alert(`Practice "${name.trim()}" created!`);
           }}
-          className="px-3 py-2 bg-teal-600 text-white rounded-lg text-sm hover:bg-teal-700 whitespace-nowrap"
+          disabled={isReadOnlyView}
+          className={`px-3 py-2 bg-teal-600 text-white rounded-lg text-sm hover:bg-teal-700 whitespace-nowrap ${isReadOnlyView ? 'opacity-40 cursor-not-allowed' : ''}`}
         >+ New Practice</button>
         {selectedPracticeId && practices.find(p => p.id === selectedPracticeId)?.name !== 'General' && (
           <button
@@ -5764,13 +5766,14 @@ autoComplete="off"
               setSelectedPracticeId(practices[0]?.id || null);
               loadProblemCategories(practices[0]?.id || null);
             }}
-            className="px-3 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 whitespace-nowrap"
+            disabled={isReadOnlyView}
+            className={`px-3 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 whitespace-nowrap ${isReadOnlyView ? 'opacity-40 cursor-not-allowed' : ''}`}
           >Delete Practice</button>
         )}
       </div>
     </div>
 
-    <div className="bg-white rounded p-4 mb-4">
+    <div className={`bg-white rounded p-4 mb-4 ${isReadOnlyView ? 'pointer-events-none opacity-40' : ''}`}>
       <h4 className="font-medium text-gray-700 mb-3">Add New Category</h4>
       <div className="flex gap-2 mb-3">
         <input
@@ -5980,10 +5983,12 @@ for (const row of rows) {
                     </div>
                   )}
                 </div>
-                <button onClick={() => setEditingCategory(index)} className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 flex-shrink-0">Edit</button>
+                <button onClick={() => !isReadOnlyView && setEditingCategory(index)} disabled={isReadOnlyView}
+                  className={`px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 flex-shrink-0 ${isReadOnlyView ? 'opacity-40 cursor-not-allowed' : ''}`}>Edit</button>
                 <button
-                  onClick={() => deleteCategoryCascade(cat)}
-                  className="px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 flex-shrink-0"
+                  onClick={() => !isReadOnlyView && deleteCategoryCascade(cat)}
+                  disabled={isReadOnlyView}
+                  className={`px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 flex-shrink-0 ${isReadOnlyView ? 'opacity-40 cursor-not-allowed' : ''}`}
                 >Delete</button>
               </>
             )}
