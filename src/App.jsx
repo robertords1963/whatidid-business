@@ -1620,6 +1620,10 @@ const handleEmployeeLogin = async () => {
   localStorage.setItem('employeeLoggedIn', 'true');
   localStorage.setItem('employeeId', employeeId);
   setEmployeePassword('');
+  // Todo login novo começa limpo — nunca herda o contexto de navegação
+  // (Managing/Viewing) de uma sessão anterior no mesmo navegador.
+  setAdminCompanyContext(null);
+  setCompanyViewMode('own');
   await loadCurrentEmployeeGroup(employeeId);
   await loadExperiences(false, employeeId);
 
@@ -4445,6 +4449,10 @@ autoComplete="off"
                     localStorage.removeItem('isAdmin');
                     setAdminKeywords(''); 
                     setShowAdminLogin(false);
+                    // Ao sair do Admin, sempre volta pro próprio contexto da
+                    // pessoa — não deixa "preso" navegando como outra empresa.
+                    setAdminCompanyContext(null);
+                    setCompanyViewMode('own');
                   }}
                   className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors"
                 >
@@ -9409,6 +9417,10 @@ onClick={() => {
                         setIsAdmin(false);
                         localStorage.removeItem('isAdmin');
                         setAdminKeywords('');
+                        // Ao sair do Admin, sempre volta pro próprio contexto
+                        // da pessoa — não deixa "preso" navegando como outra empresa.
+                        setAdminCompanyContext(null);
+                        setCompanyViewMode('own');
                       } else {
                         setIsAdmin(true);
                         localStorage.setItem('isAdmin', 'true');
