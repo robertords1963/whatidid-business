@@ -8140,7 +8140,7 @@ onClick={() => {
 </div>
 
  {/* Delete Experience - só para o dono */}
-{appSettings.requireEmployeeLogin && exp.employeeId === employeeId && exp.author !== 'key_insights' && (
+{!isReadOnlyView && appSettings.requireEmployeeLogin && exp.employeeId === employeeId && exp.author !== 'key_insights' && (
   <button
     onClick={async () => {
       if (window.confirm('Delete this experience? All comments will also be deleted.')) {
@@ -8381,7 +8381,7 @@ onClick={() => {
 
 
                   
-                  {isAdmin && (() => {
+                  {isAdmin && !isReadOnlyView && (() => {
                     const confirmKey = `exp-${exp.id}`;
                     const isConfirming = confirmDelete === confirmKey;
                     return (
