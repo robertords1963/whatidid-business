@@ -1539,6 +1539,7 @@ const handleAccountAccessLookup = async () => {
     }
     const usableMatches = data.filter(r => r.status !== 'blocked');
     if (usableMatches.length === 0) {
+      setAccountAccessJustBlocked(true);
       setAccountAccessError('This account has been blocked for security reasons. Please contact your company\'s HR or Admin.');
       return;
     }
