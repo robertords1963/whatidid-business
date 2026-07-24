@@ -524,7 +524,11 @@ useEffect(() => {
   };
   
 const loadExperiences = async (skipLoading = false, loggedEmpId = null) => {
-  if (!effectiveCompanyId) return; // ainda não sabemos qual empresa usar
+  console.log('🟡 loadExperiences CHAMADA — effectiveCompanyId:', effectiveCompanyId, 'defaultCompanyId:', defaultCompanyId, 'loggedInEmployeeCompanyId:', loggedInEmployeeCompanyId, 'companies.length:', companies.length);
+  if (!effectiveCompanyId) {
+    console.log('🔴 loadExperiences ABORTOU — effectiveCompanyId está vazio/nulo');
+    return;
+  }
   try {
     if (!skipLoading) {
       setLoading(true);
@@ -539,7 +543,10 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null) => {
       .order('id', { ascending: false })
       .range(0, 999);
     
-    if (error1) throw error1;
+    if (error1) {
+      console.log('🔴 ERRO no batch1:', error1);
+      throw error1;
+    }
     
     // Buscar segundo lote (1000-1999) - pega as 53 restantes
     const { data: batch2, error: error2 } = await supabase
@@ -550,12 +557,15 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null) => {
       .order('id', { ascending: false })
       .range(1000, 1999);
     
-    if (error2) throw error2;
+    if (error2) {
+      console.log('🔴 ERRO no batch2:', error2);
+      throw error2;
+    }
     
     // Combinar os 2 lotes
     const data = [...(batch1 || []), ...(batch2 || [])];
     
-    console.log('🔍 DEBUG - Total experiências carregadas:', data.length);
+    console.log('🔍 DEBUG - Total experiências carregadas:', data.length, '| batch1:', (batch1 || []).length, '| batch2:', (batch2 || []).length);
     
     const transformedData = data.map(exp => ({
       id: exp.id,
@@ -615,11 +625,12 @@ const keyInsights = transformedData.filter(e => e.author === 'key_insights');
 
   // Lógica de visibilidade por grupo
   const resolvedEmpId = loggedEmpId || localStorage.getItem('employeeId');
-  const { data: empData } = await supabase
+  const { data: empData, error: empError } = await supabase
     .from('employees')
     .select('group_id, is_demo')
     .eq('employee_id', resolvedEmpId || '')
-    .single();
+    .maybeSingle();
+  if (empError) console.log('🔴 ERRO ao buscar empData:', empError);
 
   const currentGroupId = empData?.group_id || null;
 
@@ -841,7 +852,7 @@ const loadCurrentEmployeeGroup = async (empId) => {
       .from('employees')
       .select('group_id, is_demo')
       .eq('employee_id', empId)
-      .single();
+      .maybeSingle();
     if (error) throw error;
     setCurrentEmployeeGroup(data?.group_id || null);
   } catch (error) {
@@ -1676,7 +1687,7 @@ const getEmployeeCountry = async (employeeId) => {
       .from('employees')
       .select('country')
       .eq('employee_id', employeeId)
-      .single();
+      .maybeSingle();
     
     if (error) throw error;
     return data?.country || '';
@@ -1692,7 +1703,7 @@ const getEmployeeName = async (employeeId) => {
       .from('employees')
       .select('name')
       .eq('employee_id', employeeId)
-      .single();
+      .maybeSingle();
     
     if (error) throw error;
     return data?.name || '';
