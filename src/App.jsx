@@ -297,7 +297,7 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   const [editingEmployeeData, setEditingEmployeeData] = useState({});
   // Fluxo unificado "1st Access or Set / Reset Password" (substitui First Access e Forgot Password separados)
   const [showAccountAccess, setShowAccountAccess] = useState(false);
-  const [accountAccessStep, setAccountAccessStep] = useState('lookup'); // 'lookup' | 'choose-match' | 'verify' | 'set-password' | 'done'
+  const [accountAccessStep, setAccountAccessStep] = useState('lookup'); // 'lookup' | 'choose-match' | 'confirm-company' | 'verify' | 'set-password' | 'done'
   const [accountAccessEmail, setAccountAccessEmail] = useState('');
   const [accountAccessEmployeeId, setAccountAccessEmployeeId] = useState('');
   const [accountAccessMatches, setAccountAccessMatches] = useState([]);
@@ -857,6 +857,11 @@ const loadProblemCategories = async (practiceId = null) => {
         };
       });
       setCategoryData(catMap);
+    } else {
+      // Sem categorias pra essa empresa/practice — limpa qualquer resíduo de
+      // uma empresa anterior, não deixa "herdado" na tela.
+      setProblemCategories([]);
+      setCategoryData({});
     }
   } catch (error) {
     console.error('Error loading problem categories:', error);
@@ -1515,7 +1520,7 @@ const handleAccountAccessLookup = async () => {
   try {
     const { data, error } = await supabase
       .from('employees')
-      .select('*')
+      .select('*, companies(name)')
       .eq('email', accountAccessEmail.trim().toLowerCase())
       .eq('employee_id', accountAccessEmployeeId.trim())
       .eq('active', true);
@@ -1524,22 +1529,29 @@ const handleAccountAccessLookup = async () => {
       setAccountAccessError('No account found with that email and Employee ID. Check with your company Admin.');
       return;
     }
-    // Com company_id no futuro, esse array pode ter mais de 1 (mesmo email+ID em empresas diferentes).
-    // Por enquanto (só Default), sempre vai ter no máximo 1.
     if (data.length > 1) {
       setAccountAccessMatches(data);
       setAccountAccessStep('choose-match');
       return;
     }
-    await proceedWithAccountAccessRecord(data[0]);
+    // Só um resultado — ainda assim, pede confirmação explícita da empresa
+    // antes de mandar o código, em vez de avançar direto.
+    setAccountAccessRecord(data[0]);
+    setAccountAccessStep('confirm-company');
   } catch (err) {
     console.error('Account access lookup error:', err);
     setAccountAccessError('Something went wrong. Please try again.');
   }
 };
 
+// Quando há mais de uma opção, a própria escolha já é a confirmação — segue direto.
 const handleChooseAccountAccessMatch = async (record) => {
   await proceedWithAccountAccessRecord(record);
+};
+
+// Confirmação explícita (caso de match único) — só agora o código é enviado de verdade.
+const handleConfirmCompany = async () => {
+  await proceedWithAccountAccessRecord(accountAccessRecord);
 };
 
 const proceedWithAccountAccessRecord = async (record) => {
@@ -4175,6 +4187,38 @@ autoComplete="off"
                       <p className="text-red-700 text-sm">{accountAccessError}</p>
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* Passo 1c: confirmação explícita da empresa (mesmo com um único resultado) */}
+              {accountAccessStep === 'confirm-company' && (
+                <div className="space-y-4">
+                  <p className="text-sm text-gray-600">We found an account under this name:</p>
+                  <div className="bg-purple-50 border-2 border-purple-200 rounded-lg p-4 text-center">
+                    <p className="text-lg font-semibold text-purple-800">{accountAccessRecord?.companies?.name || 'Unknown Company'}</p>
+                    <p className="text-sm text-gray-600 mt-1">{accountAccessRecord?.name}</p>
+                  </div>
+                  <p className="text-sm text-gray-600">Is this your company?</p>
+                  {accountAccessError && (
+                    <div className="bg-red-50 border-2 border-red-200 rounded-lg p-3">
+                      <p className="text-red-700 text-sm">{accountAccessError}</p>
+                    </div>
+                  )}
+                  <div className="flex gap-3">
+                    <button onClick={() => {
+                        setAccountAccessStep('lookup');
+                        setAccountAccessRecord(null);
+                        setAccountAccessError("No problem — if you believe this is an error, please contact your company's HR or Admin before trying again.");
+                      }}
+                      className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 font-semibold transition-colors">
+                      No, that's not me
+                    </button>
+                    <button onClick={handleConfirmCompany}
+                      className="flex-1 bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 font-semibold transition-colors">
+                      Yes, that's me
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-500 text-center">If this doesn't look right, contact your company's HR or Admin instead of continuing.</p>
                 </div>
               )}
 
@@ -6817,9 +6861,8 @@ onClick={() => {
                 <h3 className="text-lg font-semibold text-gray-800">Problem</h3>
               </div>
               
-              {/* Practice dropdown - só aparece se 2+ practices ativas, ou se 1 prática com nome diferente de General */}
-              {uiPractices.length > 1 || (uiPractices.length === 1 && uiPractices[0].name !== 'General') ? (
-  <div className="mb-2 relative">
+              {/* Practice dropdown - sempre aparece, mesmo vazio, pra dar noção da estrutura */}
+              <div className="mb-2 relative">
     <select
       value={(uiPractices.length === 1 ? uiPractices[0].id : shareFormPracticeId) || ''}
       onChange={(e) => {
@@ -6839,7 +6882,6 @@ onClick={() => {
     </select>
     <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500" style={{ fontSize: '10px' }}>▼</span>
   </div>
-) : null}
 
               {/* ⭐ CATEGORY SELECT + DESCRIPTION */}
               {(() => {
