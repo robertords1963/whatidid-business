@@ -3444,6 +3444,12 @@ if (wasInteractedInSession) return true;
 return matchesPractice && matchesProblemCategory && matchesSearchText && matchesResultCategory && matchesRating && matchesGender && matchesAge && matchesCountry && matchesIndustrySector && matchesTags;
 });
 
+console.log('🟣 RENDER-TIME:', {
+  isReadOnlyView, companyViewMode, effectiveCompanyId, filterMode,
+  experiencesStateLength: experiences.length,
+  filteredExperiencesLength: filteredExperiences.length
+});
+
 // ⭐ Quando um Follow-On bate no filtro, garantir que a raiz do thread apareça no feed
 const filteredWithRoots = (() => {
   const hasAnyFilter = filters.searchText || filters.problemCategory || filters.resultCategory ||
