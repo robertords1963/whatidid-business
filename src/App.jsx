@@ -371,11 +371,21 @@ useEffect(() => {
 }, [effectiveCompanyId]);
 
 // Carrega a visibilidade que a própria empresa (não Default) liberou pro ADM Master
+// — usada tanto pra ela mesma configurar (seus próprios checkboxes) quanto pro
+// Master consultar, quando ele está "Managing" essa empresa especificamente.
 useEffect(() => {
   if (loggedInEmployeeCompanyId && !isDefaultAdmin) {
     loadCompanyMasterVisibility(loggedInEmployeeCompanyId);
+  } else if (isDefaultAdmin && adminCompanyContext) {
+    loadCompanyMasterVisibility(adminCompanyContext);
+  } else {
+    setCompanyMasterVisibility([]);
   }
-}, [loggedInEmployeeCompanyId, isDefaultAdmin]);
+}, [loggedInEmployeeCompanyId, isDefaultAdmin, adminCompanyContext]);
+
+// true quando o Master está navegando o Admin de OUTRA empresa (não o próprio
+// Default) — nesse caso, as seções ficam limitadas ao que essa empresa autorizou.
+const masterMustRespectVisibility = isDefaultAdmin && !!adminCompanyContext;
 
 // Se entrar em modo Sample enquanto estava na aba "Share Your Experience"
 // (que não existe mais nesse modo), volta pra "See What Others Did".
@@ -898,6 +908,11 @@ const loadPractices = async () => {
     if (data && data.length > 0) {
       setSelectedPracticeId(data[0].id);
       loadAdminCategories(data[0].id);
+    } else {
+      // Empresa sem nenhuma Practice ainda (nada importado) — limpa qualquer
+      // resíduo de uma empresa anterior, não deixa "herdado" na tela.
+      setSelectedPracticeId(null);
+      setAdminCategories([]);
     }
   } catch (error) {
     console.error('Error loading practices:', error);
@@ -905,11 +920,13 @@ const loadPractices = async () => {
 };
 
 const loadAdminCategories = async (practiceId) => {
+  if (!effectiveCompanyId) return;
   try {
     let query = supabase
       .from('problem_categories')
       .select('*')
       .eq('active', true)
+      .eq('company_id', effectiveCompanyId)
       .order('display_order', { ascending: true });
     if (practiceId) {
       query = query.eq('practice_id', practiceId);
@@ -4670,7 +4687,7 @@ autoComplete="off"
 )}
 
 
-{isAdmin && (
+{isAdmin && (!masterMustRespectVisibility || companyMasterVisibility.includes('app_config')) && (
   <div className="mt-4 bg-indigo-50 border-2 border-indigo-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
       ⚙️ App Configuration
@@ -4954,7 +4971,7 @@ autoComplete="off"
           
 
 
-          {isAdmin && (
+          {isAdmin && (!masterMustRespectVisibility || companyMasterVisibility.includes('quotes')) && (
             <div className="mt-4 bg-green-50 border-2 border-green-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 <MessageCircle size={20} />
@@ -5107,7 +5124,7 @@ autoComplete="off"
             </div>
           )}
 
-          {isAdmin && (
+          {isAdmin && (!masterMustRespectVisibility || companyMasterVisibility.includes('promotional_videos')) && (
             <div className="mt-4 bg-purple-50 border-2 border-purple-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 🎬 Manage Promotional Videos
@@ -5332,7 +5349,7 @@ autoComplete="off"
             </div>
           )}
 
-          {isAdmin && (
+          {isAdmin && (!masterMustRespectVisibility || companyMasterVisibility.includes('content_pages')) && (
             <div className="mt-4 bg-blue-50 border-2 border-blue-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 <MessageCircle size={20} />
@@ -5548,7 +5565,7 @@ autoComplete="off"
 )}
        
 
-{isAdmin && (
+{isAdmin && (!masterMustRespectVisibility || companyMasterVisibility.includes('synthetic')) && (
   <div className={`${showDefaultOnlyTools ? 'mt-4' : '-mt-4'} bg-slate-50 border-2 border-slate-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto`}>
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
       👥 Manage Employees
@@ -5705,7 +5722,7 @@ autoComplete="off"
   </div>
 )}
 
-{isAdmin && (
+{isAdmin && (!masterMustRespectVisibility || companyMasterVisibility.includes('metadata')) && (
   <div className="mt-4 bg-teal-50 border-2 border-teal-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
       🗂️ Manage Problem Categories
@@ -6520,7 +6537,7 @@ onClick={() => {
         })()}
 
 {/* Tabs estilo fichário — substitui os botões de navegação */}
-          {isAdmin && !isReadOnlyView && (
+          {isAdmin && !isReadOnlyView && (!masterMustRespectVisibility || companyMasterVisibility.includes('keyword_filter')) && (
             <div className="mt-4 bg-yellow-50 border-2 border-yellow-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 <Search size={20} />
