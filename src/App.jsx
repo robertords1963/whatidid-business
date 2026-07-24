@@ -3444,11 +3444,7 @@ if (wasInteractedInSession) return true;
 return matchesPractice && matchesProblemCategory && matchesSearchText && matchesResultCategory && matchesRating && matchesGender && matchesAge && matchesCountry && matchesIndustrySector && matchesTags;
 });
 
-console.log('🟣 RENDER-TIME:', {
-  isReadOnlyView, companyViewMode, effectiveCompanyId, filterMode,
-  experiencesStateLength: experiences.length,
-  filteredExperiencesLength: filteredExperiences.length
-});
+console.log(`🟣 RENDER-TIME: isReadOnlyView=${isReadOnlyView} companyViewMode=${companyViewMode} effectiveCompanyId=${effectiveCompanyId} filterMode=${filterMode} experiencesStateLength=${experiences.length} filteredExperiencesLength=${filteredExperiences.length}`);
 
 // ⭐ Quando um Follow-On bate no filtro, garantir que a raiz do thread apareça no feed
 const filteredWithRoots = (() => {
