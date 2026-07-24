@@ -3411,6 +3411,17 @@ if (wasInteractedInSession) return true;
 return matchesPractice && matchesProblemCategory && matchesSearchText && matchesResultCategory && matchesRating && matchesGender && matchesAge && matchesCountry && matchesIndustrySector && matchesTags;
 });
 
+console.log('🔎 DIAGNÓSTICO:', {
+  filterMode,
+  totalExperiences: experiences.length,
+  filteredExperiencesLength: filteredExperiences.length,
+  filterPracticeId,
+  filtersProblemCategory: filters.problemCategory,
+  sampleAuthors: experiences.slice(0, 5).map(e => e.author),
+  countKeyInsights: experiences.filter(e => e.author === 'key_insights').length,
+  countNonKeyInsights: experiences.filter(e => e.author !== 'key_insights').length
+});
+
 // ⭐ Quando um Follow-On bate no filtro, garantir que a raiz do thread apareça no feed
 const filteredWithRoots = (() => {
   const hasAnyFilter = filters.searchText || filters.problemCategory || filters.resultCategory ||
