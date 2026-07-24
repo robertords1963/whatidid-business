@@ -298,6 +298,7 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   // Fluxo unificado "1st Access or Set / Reset Password" (substitui First Access e Forgot Password separados)
   const [showAccountAccess, setShowAccountAccess] = useState(false);
   const [accountAccessStep, setAccountAccessStep] = useState('lookup'); // 'lookup' | 'choose-match' | 'confirm-company' | 'verify' | 'set-password' | 'done'
+  const [accountAccessJustBlocked, setAccountAccessJustBlocked] = useState(false);
   const [accountAccessEmail, setAccountAccessEmail] = useState('');
   const [accountAccessEmployeeId, setAccountAccessEmployeeId] = useState('');
   const [accountAccessMatches, setAccountAccessMatches] = useState([]);
@@ -1633,6 +1634,7 @@ const resetAccountAccessFlow = () => {
   setAccountAccessPassword('');
   setAccountAccessConfirmPassword('');
   setAccountAccessError('');
+  setAccountAccessJustBlocked(false);
 };
 
 // ==================== END EMPLOYEE MANAGEMENT ====================
@@ -4158,14 +4160,14 @@ autoComplete="off"
                   <p className="text-sm text-gray-600">Enter your email and Employee ID. We'll send a verification code to confirm it's you.</p>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                    <input type="email" value={accountAccessEmail} onChange={(e) => setAccountAccessEmail(e.target.value)}
+                    <input type="email" value={accountAccessEmail} onChange={(e) => { setAccountAccessEmail(e.target.value); setAccountAccessJustBlocked(false); }}
                       className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
                       placeholder="Enter your email" autoComplete="off" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Employee ID</label>
-                    <input type="text" value={accountAccessEmployeeId} onChange={(e) => setAccountAccessEmployeeId(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && handleAccountAccessLookup()}
+                    <input type="text" value={accountAccessEmployeeId} onChange={(e) => { setAccountAccessEmployeeId(e.target.value); setAccountAccessJustBlocked(false); }}
+                      onKeyPress={(e) => e.key === 'Enter' && !accountAccessJustBlocked && handleAccountAccessLookup()}
                       className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
                       placeholder="Enter your Employee ID" autoComplete="off" />
                   </div>
@@ -4174,10 +4176,12 @@ autoComplete="off"
                       <p className="text-red-700 text-sm">{accountAccessError}</p>
                     </div>
                   )}
+                  {!accountAccessJustBlocked && (
                   <button onClick={handleAccountAccessLookup}
                     className="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 font-semibold transition-colors">
                     Send Verification Code
                   </button>
+                  )}
                 </div>
               )}
 
@@ -4223,6 +4227,7 @@ autoComplete="off"
                         }
                         setAccountAccessStep('lookup');
                         setAccountAccessRecord(null);
+                        setAccountAccessJustBlocked(true);
                         setAccountAccessError("No problem — for your security, this account has been blocked until your Admin reviews it. Please contact your company's HR or Admin.");
                       }}
                       className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 font-semibold transition-colors">
