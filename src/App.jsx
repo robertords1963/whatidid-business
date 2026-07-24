@@ -5952,22 +5952,22 @@ for (const row of rows) {
               <>
                 <button
                     onClick={async () => {
-                      if (index === 0) return;
+                      if (isReadOnlyView || index === 0) return;
                       await supabase.from('problem_categories').update({ display_order: index }).eq('name', cat.name);
                       await supabase.from('problem_categories').update({ display_order: index + 1 }).eq('name', adminCategories[index - 1].name);
                       await loadAdminCategories(selectedPracticeId);
                     }}
-                    disabled={index === 0}
+                    disabled={isReadOnlyView || index === 0}
                     className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 disabled:opacity-30 disabled:cursor-not-allowed"
                   >↑ Up</button>
                   <button
                     onClick={async () => {
-                      if (index === adminCategories.length - 1) return;
+                      if (isReadOnlyView || index === adminCategories.length - 1) return;
                       await supabase.from('problem_categories').update({ display_order: index + 2 }).eq('name', cat.name);
                       await supabase.from('problem_categories').update({ display_order: index + 1 }).eq('name', adminCategories[index + 1].name);
                       await loadAdminCategories(selectedPracticeId);
                     }}
-                    disabled={index === adminCategories.length - 1}
+                    disabled={isReadOnlyView || index === adminCategories.length - 1}
                     className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 disabled:opacity-30 disabled:cursor-not-allowed"
                   >↓ Down</button>
                 <div className="flex-1 min-w-0">
