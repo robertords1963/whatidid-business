@@ -163,6 +163,10 @@ export default function WhatIDid() {
   const [loading, setLoading] = useState(true);
   const [experiences, setExperiences] = useState([]);
   const shuffleOrderRef = useRef(null);
+  // Lembra de qual empresa era o embaralhamento salvo — se a empresa mudar,
+  // o embaralhamento precisa ser refeito (senão fica "travado" na primeira
+  // empresa que carregou, mesmo trocando de empresa depois).
+  const shuffleOrderCompanyRef = useRef(null);
   // Protege contra condição de corrida: se duas chamadas de loadExperiences
   // estiverem em andamento, só a resposta da MAIS RECENTE deve realmente
   // atualizar a tela — mesmo que ela termine primeiro.
@@ -668,12 +672,13 @@ const keyInsights = transformedData.filter(e => e.author === 'key_insights');
     );
   }
 
-if (!shuffleOrderRef.current) {
+if (!shuffleOrderRef.current || shuffleOrderCompanyRef.current !== effectiveCompanyId) {
   for (let i = syntheticExps.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [syntheticExps[i], syntheticExps[j]] = [syntheticExps[j], syntheticExps[i]];
   }
   shuffleOrderRef.current = syntheticExps.map(e => e.id);
+  shuffleOrderCompanyRef.current = effectiveCompanyId;
 }
 
 const orderedSynthetic = shuffleOrderRef.current
