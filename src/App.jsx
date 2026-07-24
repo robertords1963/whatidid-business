@@ -163,6 +163,10 @@ export default function WhatIDid() {
   const [loading, setLoading] = useState(true);
   const [experiences, setExperiences] = useState([]);
   const shuffleOrderRef = useRef(null);
+  // Protege contra condição de corrida: se duas chamadas de loadExperiences
+  // estiverem em andamento, só a resposta da MAIS RECENTE deve realmente
+  // atualizar a tela — mesmo que ela termine primeiro.
+  const latestExperiencesRequestRef = useRef(0);
 
   // ⭐ ADICIONAR AQUI (junto com os outros useState) ⭐
   const [appSettings, setAppSettings] = useState({
@@ -529,6 +533,9 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null) => {
     console.log('🔴 loadExperiences ABORTOU — effectiveCompanyId está vazio/nulo');
     return;
   }
+  // Marca essa chamada como a mais recente.
+  latestExperiencesRequestRef.current += 1;
+  const thisRequestId = latestExperiencesRequestRef.current;
   try {
     if (!skipLoading) {
       setLoading(true);
@@ -674,6 +681,10 @@ const orderedSynthetic = shuffleOrderRef.current
   .filter(Boolean);
 
 const allExps = [...keyInsights, ...userExps, ...orderedSynthetic];
+if (latestExperiencesRequestRef.current !== thisRequestId) {
+  console.log('🟠 loadExperiences IGNOROU resultado desatualizado — request #', thisRequestId, 'mas o mais recente agora é #', latestExperiencesRequestRef.current);
+  return;
+}
 setExperiences(allExps);
 
 // Carregar reações dos últimos comentários visíveis (bloco default)
