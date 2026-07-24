@@ -532,7 +532,6 @@ useEffect(() => {
   };
   
 const loadExperiences = async (skipLoading = false, loggedEmpId = null) => {
-  console.log('🟡 loadExperiences CHAMADA — effectiveCompanyId:', effectiveCompanyId, 'defaultCompanyId:', defaultCompanyId, 'loggedInEmployeeCompanyId:', loggedInEmployeeCompanyId, 'companies.length:', companies.length);
   if (!effectiveCompanyId) {
     console.log('🔴 loadExperiences ABORTOU — effectiveCompanyId está vazio/nulo');
     return;
@@ -575,8 +574,6 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null) => {
     
     // Combinar os 2 lotes
     const data = [...(batch1 || []), ...(batch2 || [])];
-    
-    console.log('🔍 DEBUG - Total experiências carregadas:', data.length, '| batch1:', (batch1 || []).length, '| batch2:', (batch2 || []).length);
     
     const transformedData = data.map(exp => ({
       id: exp.id,
@@ -622,7 +619,8 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null) => {
       employeeId: c.employee_id || null,
       country: c.country,
       cvUrl: c.cv_url || null,
-      cvFilename: c.cv_filename || null
+      cvFilename: c.cv_filename || null,
+      createdAt: c.created_at || null
     });
       });
       
@@ -2202,7 +2200,9 @@ if (appSettings.requireEmployeeLogin && !isAdmin && exp.employeeId !== employeeI
         employee_id: appSettings.requireEmployeeLogin ? employeeId : null,
         country: userCountryName || '',
         cv_url: cvUrl,
-        cv_filename: cvFilename
+        cv_filename: cvFilename,
+        company_id: effectiveCompanyId,
+        created_at: new Date().toISOString()
       }]);
     
     if (error) throw error;
@@ -3449,8 +3449,6 @@ if (wasInteractedInSession) return true;
 return matchesPractice && matchesProblemCategory && matchesSearchText && matchesResultCategory && matchesRating && matchesGender && matchesAge && matchesCountry && matchesIndustrySector && matchesTags;
 });
 
-console.log(`🟣 RENDER-TIME: isReadOnlyView=${isReadOnlyView} companyViewMode=${companyViewMode} effectiveCompanyId=${effectiveCompanyId} filterMode=${filterMode} experiencesStateLength=${experiences.length} filteredExperiencesLength=${filteredExperiences.length}`);
-
 // ⭐ Quando um Follow-On bate no filtro, garantir que a raiz do thread apareça no feed
 const filteredWithRoots = (() => {
   const hasAnyFilter = filters.searchText || filters.problemCategory || filters.resultCategory ||
@@ -3777,9 +3775,14 @@ useEffect(() => {
                           {/* Autor */}
                           {appSettings.requireEmployeeLogin && (comment.author || comment.employeeId || comment.country) && (
                             <div className="mb-1">
-                              <span className="text-xs text-gray-500">
+                              <span className="text-xs text-gray-500 block">
                                 By: {[comment.author, comment.country].filter(Boolean).join(', ')}
                               </span>
+                              {comment.createdAt && (
+                                <span className="text-xs text-gray-400 block">
+                                  {new Date(comment.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                                </span>
+                              )}
                             </div>
                           )}
                           <p className="text-sm text-gray-700">{comment.text}</p>
@@ -8584,6 +8587,11 @@ onClick={() => {
             <span className="text-xs text-gray-600 block">
               By: {[comment.author, comment.employeeId, comment.country].filter(Boolean).join(', ')}
             </span>
+            {comment.createdAt && (
+              <span className="text-xs text-gray-400 block">
+                {new Date(comment.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+              </span>
+            )}
             
             {/* Ícone Document - linha separada */}
 {comment.cvUrl && (
@@ -9976,5 +9984,5 @@ if (selected.length === 0) {
         )}
      
     </>
-  ); 
+  );
 }
