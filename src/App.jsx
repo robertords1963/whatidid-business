@@ -386,14 +386,23 @@ useEffect(() => {
 // true quando o Master está navegando o Admin de OUTRA empresa (não o próprio
 // Default) — nesse caso, as seções ficam limitadas ao que essa empresa autorizou.
 const masterMustRespectVisibility = isDefaultAdmin && !!adminCompanyContext;
+// true quando o Master, gerenciando outra empresa, ainda não foi autorizado a
+// ver as abas públicas (See What Others Did / Share Your Experience) — a
+// empresa precisa ter liberado "Synthetic/Curated Content" pra isso aparecer.
+const masterBlockedFromPublicTabs = masterMustRespectVisibility && !companyMasterVisibility.includes('synthetic');
+// true quando escrever (Share Your Experience, comentar, avaliar) deve ficar
+// bloqueado — inclui o modo Sample de sempre, e também o Master "Managing"
+// outra empresa (mesmo com visibilidade concedida, ele nunca deve poder
+// escrever de verdade nos dados reais de outra empresa por ali).
+const isReadOnlyOrMasterManaging = isReadOnlyView || masterMustRespectVisibility;
 
 // Se entrar em modo Sample enquanto estava na aba "Share Your Experience"
 // (que não existe mais nesse modo), volta pra "See What Others Did".
 useEffect(() => {
-  if (isReadOnlyView && activeMainTab === 'share') {
+  if (isReadOnlyOrMasterManaging && activeMainTab === 'share') {
     setActiveMainTab('see');
   }
-}, [isReadOnlyView]);
+}, [isReadOnlyOrMasterManaging]);
 
 // ⭐ PWA Install — detectar plataforma (mobile/desktop), estado de instalação,
 // e capturar o prompt nativo do Chrome/Edge (funciona em Android E desktop)
@@ -2195,7 +2204,7 @@ if (appSettings.requireEmployeeLogin && !isAdmin && exp.employeeId !== employeeI
 };
 
   const handleAddComment = async (experienceId) => {
-    if (isReadOnlyView) return;
+    if (isReadOnlyOrMasterManaging) return;
   if (!newComment[experienceId]?.trim()) {
     alert('Please enter a comment!');
     return;
@@ -2274,7 +2283,7 @@ if (appSettings.requireEmployeeLogin && !isAdmin && exp.employeeId !== employeeI
   };
 
   const toggleReaction = async (commentId, emoji) => {
-    if (isReadOnlyView) return;
+    if (isReadOnlyOrMasterManaging) return;
     if (!employeeId) return;
     const existing = reactions[commentId]?.[emoji] || [];
     const hasReacted = existing.includes(employeeId);
@@ -2469,7 +2478,7 @@ const industrySectors = [
 };
 
   const handleUserRating = async (expId, rating) => {
-  if (isReadOnlyView) return;
+  if (isReadOnlyOrMasterManaging) return;
   if (userRatings[expId]) {
     console.log('🔍 Rating:', { expId, rating, filterMode });
     alert('You have already rated this experience in this session!');
@@ -4691,10 +4700,10 @@ autoComplete="off"
   <div className="mt-4 bg-indigo-50 border-2 border-indigo-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
       ⚙️ App Configuration
-      {isReadOnlyView && <span className="text-xs font-normal text-blue-600">(read-only — Sample)</span>}
+      {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">(read-only — Sample)</span>}
     </h3>
     
-    <div className={`bg-white rounded p-4 space-y-4 ${isReadOnlyView ? 'pointer-events-none opacity-60' : ''}`}>
+    <div className={`bg-white rounded p-4 space-y-4 ${isReadOnlyOrMasterManaging ? 'pointer-events-none opacity-60' : ''}`}>
       {/* 1. Nome da Edição — sempre "Corp" pra empresas, escondido fora do Default */}
       {showDefaultOnlyTools && (
       <div>
@@ -4976,10 +4985,10 @@ autoComplete="off"
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 <MessageCircle size={20} />
                 Manage Inspirational Quotes
-                {isReadOnlyView && <span className="text-xs font-normal text-blue-600">(read-only — Sample)</span>}
+                {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">(read-only — Sample)</span>}
               </h3>
 
-              <div className={isReadOnlyView ? 'pointer-events-none opacity-60' : ''}>
+              <div className={isReadOnlyOrMasterManaging ? 'pointer-events-none opacity-60' : ''}>
       {/* Show Marquee */}
       <div className="flex items-center gap-3">
         <input type="checkbox" id="showMarquee" checked={appSettings.showMarquee}
@@ -5128,10 +5137,10 @@ autoComplete="off"
             <div className="mt-4 bg-purple-50 border-2 border-purple-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 🎬 Manage Promotional Videos
-                {isReadOnlyView && <span className="text-xs font-normal text-blue-600">(read-only — Sample)</span>}
+                {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">(read-only — Sample)</span>}
               </h3>
               
-              <div className={`bg-white rounded p-4 mb-4 ${isReadOnlyView ? "pointer-events-none opacity-60" : ""}`}>
+              <div className={`bg-white rounded p-4 mb-4 ${isReadOnlyOrMasterManaging ? "pointer-events-none opacity-60" : ""}`}>
                 <h4 className="font-medium text-gray-700 mb-3">Add New Item</h4>
                 <div className="space-y-3">
                   {/* Type selector */}
@@ -5234,7 +5243,7 @@ autoComplete="off"
                 </div>
               </div>
 
-              <div className={`bg-white rounded p-4 ${isReadOnlyView ? "pointer-events-none opacity-60" : ""}`}>
+              <div className={`bg-white rounded p-4 ${isReadOnlyOrMasterManaging ? "pointer-events-none opacity-60" : ""}`}>
                 <h4 className="font-medium text-gray-700 mb-3">Promotional Videos ({promotionalVideos.length})</h4>
                 {promotionalVideos.length === 0 ? (
                   <p className="text-sm text-gray-500">No videos yet</p>
@@ -5354,10 +5363,10 @@ autoComplete="off"
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 <MessageCircle size={20} />
                 Manage Content Pages
-                {isReadOnlyView && <span className="text-xs font-normal text-blue-600">(read-only — Sample)</span>}
+                {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">(read-only — Sample)</span>}
               </h3>
               
-              <div className={`space-y-4 ${isReadOnlyView ? 'pointer-events-none opacity-60' : ''}`}>
+              <div className={`space-y-4 ${isReadOnlyOrMasterManaging ? 'pointer-events-none opacity-60' : ''}`}>
                 {['community_guidelines', 'how_it_works', 'about'].map(pageKey => {
                   const page = contentPages[pageKey] || { title: CONTENT_PAGE_DEFAULTS[pageKey], content: '' };
                   
@@ -5572,7 +5581,7 @@ autoComplete="off"
     </h3>
 
     {/* Add Employee */}
-    {!isReadOnlyView && (
+    {!isReadOnlyOrMasterManaging && (
     <div className="bg-white rounded p-4 mb-4">
       <h4 className="font-medium text-gray-700 mb-3">Add Employee</h4>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
@@ -5667,7 +5676,7 @@ autoComplete="off"
                 <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${emp.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
                   {emp.status === 'active' ? '✓ Active' : '⏳ Pending'}
                 </span>
-                {!isReadOnlyView && (
+                {!isReadOnlyOrMasterManaging && (
                 <>
                 <button onClick={() => { setEditingEmployee(emp.employee_id); setEditingEmployeeData({ name: emp.name, country: emp.country, email: emp.email, is_admin: emp.is_admin }); }}
                   className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700">Edit</button>
@@ -5726,7 +5735,7 @@ autoComplete="off"
   <div className="mt-4 bg-teal-50 border-2 border-teal-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
       🗂️ Manage Problem Categories
-      {isReadOnlyView && <span className="text-xs font-normal text-blue-600">(read-only — Sample)</span>}
+      {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">(read-only — Sample)</span>}
     </h3>
 
     <div className="">
@@ -5753,7 +5762,7 @@ autoComplete="off"
             <input
               type="checkbox"
               checked={practices.find(p => p.id === selectedPracticeId)?.show_in_ui || false}
-              disabled={isReadOnlyView}
+              disabled={isReadOnlyOrMasterManaging}
               onChange={async (e) => {
                 const { error } = await supabase
                   .from('practices')
@@ -5784,8 +5793,8 @@ autoComplete="off"
             }
             alert(`Practice "${name.trim()}" created!`);
           }}
-          disabled={isReadOnlyView}
-          className={`px-3 py-2 bg-teal-600 text-white rounded-lg text-sm hover:bg-teal-700 whitespace-nowrap ${isReadOnlyView ? 'opacity-40 cursor-not-allowed' : ''}`}
+          disabled={isReadOnlyOrMasterManaging}
+          className={`px-3 py-2 bg-teal-600 text-white rounded-lg text-sm hover:bg-teal-700 whitespace-nowrap ${isReadOnlyOrMasterManaging ? 'opacity-40 cursor-not-allowed' : ''}`}
         >+ New Practice</button>
         {selectedPracticeId && practices.find(p => p.id === selectedPracticeId)?.name !== 'General' && (
           <button
@@ -5801,14 +5810,14 @@ autoComplete="off"
               setSelectedPracticeId(practices[0]?.id || null);
               loadProblemCategories(practices[0]?.id || null);
             }}
-            disabled={isReadOnlyView}
-            className={`px-3 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 whitespace-nowrap ${isReadOnlyView ? 'opacity-40 cursor-not-allowed' : ''}`}
+            disabled={isReadOnlyOrMasterManaging}
+            className={`px-3 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 whitespace-nowrap ${isReadOnlyOrMasterManaging ? 'opacity-40 cursor-not-allowed' : ''}`}
           >Delete Practice</button>
         )}
       </div>
     </div>
 
-    <div className={`bg-white rounded p-4 mb-4 ${isReadOnlyView ? 'pointer-events-none opacity-40' : ''}`}>
+    <div className={`bg-white rounded p-4 mb-4 ${isReadOnlyOrMasterManaging ? 'pointer-events-none opacity-40' : ''}`}>
       <h4 className="font-medium text-gray-700 mb-3">Add New Category</h4>
       <div className="flex gap-2 mb-3">
         <input
@@ -5987,22 +5996,22 @@ for (const row of rows) {
               <>
                 <button
                     onClick={async () => {
-                      if (isReadOnlyView || index === 0) return;
+                      if (isReadOnlyOrMasterManaging || index === 0) return;
                       await supabase.from('problem_categories').update({ display_order: index }).eq('name', cat.name);
                       await supabase.from('problem_categories').update({ display_order: index + 1 }).eq('name', adminCategories[index - 1].name);
                       await loadAdminCategories(selectedPracticeId);
                     }}
-                    disabled={isReadOnlyView || index === 0}
+                    disabled={isReadOnlyOrMasterManaging || index === 0}
                     className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 disabled:opacity-30 disabled:cursor-not-allowed"
                   >↑ Up</button>
                   <button
                     onClick={async () => {
-                      if (isReadOnlyView || index === adminCategories.length - 1) return;
+                      if (isReadOnlyOrMasterManaging || index === adminCategories.length - 1) return;
                       await supabase.from('problem_categories').update({ display_order: index + 2 }).eq('name', cat.name);
                       await supabase.from('problem_categories').update({ display_order: index + 1 }).eq('name', adminCategories[index + 1].name);
                       await loadAdminCategories(selectedPracticeId);
                     }}
-                    disabled={isReadOnlyView || index === adminCategories.length - 1}
+                    disabled={isReadOnlyOrMasterManaging || index === adminCategories.length - 1}
                     className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 disabled:opacity-30 disabled:cursor-not-allowed"
                   >↓ Down</button>
                 <div className="flex-1 min-w-0">
@@ -6018,12 +6027,12 @@ for (const row of rows) {
                     </div>
                   )}
                 </div>
-                <button onClick={() => !isReadOnlyView && setEditingCategory(index)} disabled={isReadOnlyView}
-                  className={`px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 flex-shrink-0 ${isReadOnlyView ? 'opacity-40 cursor-not-allowed' : ''}`}>Edit</button>
+                <button onClick={() => !isReadOnlyOrMasterManaging && setEditingCategory(index)} disabled={isReadOnlyOrMasterManaging}
+                  className={`px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 flex-shrink-0 ${isReadOnlyOrMasterManaging ? 'opacity-40 cursor-not-allowed' : ''}`}>Edit</button>
                 <button
-                  onClick={() => !isReadOnlyView && deleteCategoryCascade(cat)}
-                  disabled={isReadOnlyView}
-                  className={`px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 flex-shrink-0 ${isReadOnlyView ? 'opacity-40 cursor-not-allowed' : ''}`}
+                  onClick={() => !isReadOnlyOrMasterManaging && deleteCategoryCascade(cat)}
+                  disabled={isReadOnlyOrMasterManaging}
+                  className={`px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 flex-shrink-0 ${isReadOnlyOrMasterManaging ? 'opacity-40 cursor-not-allowed' : ''}`}
                 >Delete</button>
               </>
             )}
@@ -6537,7 +6546,7 @@ onClick={() => {
         })()}
 
 {/* Tabs estilo fichário — substitui os botões de navegação */}
-          {isAdmin && !isReadOnlyView && (!masterMustRespectVisibility || companyMasterVisibility.includes('keyword_filter')) && (
+          {isAdmin && !isReadOnlyOrMasterManaging && (!masterMustRespectVisibility || companyMasterVisibility.includes('keyword_filter')) && (
             <div className="mt-4 bg-yellow-50 border-2 border-yellow-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 <Search size={20} />
@@ -6697,7 +6706,14 @@ onClick={() => {
             </div>
           )}
           
-<div className="mt-5 mb-8">
+{masterBlockedFromPublicTabs && (
+  <div className="mt-5 mb-8 max-w-2xl mx-auto bg-amber-50 border-2 border-amber-300 rounded-2xl p-6 text-center">
+    <p className="text-amber-800 font-medium">🔒 {effectiveCompanyName} hasn't authorized ADM Master to view "Synthetic/Curated Content" yet.</p>
+    <p className="text-amber-700 text-sm mt-1">Ask the company to check that box in their own "Section Settings" if you need to preview this.</p>
+  </div>
+)}
+
+<div className={`mt-5 mb-8 ${masterBlockedFromPublicTabs ? 'hidden' : ''}`}>
 <div id="main-tabs-anchor" className="flex justify-center mb-0 relative">
   <div className="flex w-full">
     <button
@@ -6731,13 +6747,13 @@ onClick={() => {
     </button>
     <button
       onClick={() => {
-        if (isReadOnlyView) return;
+        if (isReadOnlyOrMasterManaging) return;
         setActiveMainTab('share');
         scrollToTabs();
       }}
-      disabled={isReadOnlyView}
+      disabled={isReadOnlyOrMasterManaging}
       className={`flex-1 px-4 py-3 font-bold text-base md:text-xl transition-all rounded-t-2xl border-2 border-b-0 -ml-px relative ${
-        isReadOnlyView
+        isReadOnlyOrMasterManaging
           ? 'bg-gray-50 text-gray-300 border-gray-200 cursor-not-allowed'
           : activeMainTab === 'share'
           ? 'bg-white text-blue-700 border-blue-300 relative z-10'
@@ -6769,7 +6785,7 @@ onClick={() => {
   />
 </div>
 
-<div id="share-section" className={`bg-white p-8 rounded-b-2xl border-2 border-t-0 border-blue-300 ${activeMainTab !== 'share' ? 'hidden' : ''} ${isReadOnlyView ? 'pointer-events-none opacity-60' : ''}`}>
+<div id="share-section" className={`bg-white p-8 rounded-b-2xl border-2 border-t-0 border-blue-300 ${activeMainTab !== 'share' ? 'hidden' : ''} ${isReadOnlyOrMasterManaging ? 'pointer-events-none opacity-60' : ''}`}>
 
   {/* Clear All — limpa só o que o usuário digitou */}
   <div className="flex justify-end mb-3">
@@ -7346,8 +7362,7 @@ onClick={() => {
                 {/* Filtros principais */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                   {/* Practice filter - só aparece se 2+ practices ativas, ou se 1 com nome diferente de General */}
-                  {uiPractices.length > 1 || (uiPractices.length === 1 && uiPractices[0].name !== 'General') ? (
-  <div>
+                  <div>
     <label className="block text-sm font-medium text-gray-600 mb-2">Function / Practice</label>
     <div className="relative">
     <select
@@ -7369,7 +7384,6 @@ onClick={() => {
     <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500" style={{ fontSize: '10px' }}>▼</span>
     </div>
   </div>
-) : null}
 
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-2">Category</label>
@@ -7634,8 +7648,7 @@ onClick={() => {
     {/* Filtros principais - mesma largura de coluna da aba Individual Experiences */}
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-3">
       {/* Practice filter - mesma lógica dos outros lugares */}
-      {uiPractices.length > 1 || (uiPractices.length === 1 && uiPractices[0].name !== 'General') ? (
-  <div>
+      <div>
     <label className="block text-sm font-medium text-gray-700 mb-2">Function / Practice:</label>
     <div className="relative">
     <select
@@ -7658,7 +7671,6 @@ onClick={() => {
     <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500" style={{ fontSize: '10px' }}>▼</span>
     </div>
   </div>
-) : null}
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">Category:</label>
@@ -8191,7 +8203,7 @@ onClick={() => {
 </div>
 
  {/* Delete Experience - só para o dono */}
-{!isReadOnlyView && appSettings.requireEmployeeLogin && exp.employeeId === employeeId && exp.author !== 'key_insights' && (
+{!isReadOnlyOrMasterManaging && appSettings.requireEmployeeLogin && exp.employeeId === employeeId && exp.author !== 'key_insights' && (
   <button
     onClick={async () => {
       if (window.confirm('Delete this experience? All comments will also be deleted.')) {
@@ -8241,11 +8253,11 @@ onClick={() => {
           {[1, 2, 3, 4, 5].map(star => (
             <button
               key={star}
-              onClick={() => !isReadOnlyView && handleUserRating(exp.id, star)}
-              onMouseEnter={() => !isReadOnlyView && setHoverRating({...hoverRating, [exp.id]: star})}
-              onMouseLeave={() => !isReadOnlyView && setHoverRating({...hoverRating, [exp.id]: 0})}
-              disabled={isReadOnlyView}
-              className={`transition-transform ${isReadOnlyView ? 'cursor-not-allowed opacity-60' : 'hover:scale-110'}`}
+              onClick={() => !isReadOnlyOrMasterManaging && handleUserRating(exp.id, star)}
+              onMouseEnter={() => !isReadOnlyOrMasterManaging && setHoverRating({...hoverRating, [exp.id]: star})}
+              onMouseLeave={() => !isReadOnlyOrMasterManaging && setHoverRating({...hoverRating, [exp.id]: 0})}
+              disabled={isReadOnlyOrMasterManaging}
+              className={`transition-transform ${isReadOnlyOrMasterManaging ? 'cursor-not-allowed opacity-60' : 'hover:scale-110'}`}
             >
               <Star
                 size={20}
@@ -8432,7 +8444,7 @@ onClick={() => {
 
 
                   
-                  {isAdmin && !isReadOnlyView && (() => {
+                  {isAdmin && !isReadOnlyOrMasterManaging && (() => {
                     const confirmKey = `exp-${exp.id}`;
                     const isConfirming = confirmDelete === confirmKey;
                     return (
@@ -8497,7 +8509,7 @@ onClick={() => {
                   })()}
 
                   <div className="border-t pt-4 mt-4">
-                    {!isReadOnlyView && (
+                    {!isReadOnlyOrMasterManaging && (
                     <div className="mb-4">
                       <h4 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
                         <MessageCircle size={18} />
