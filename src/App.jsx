@@ -8134,6 +8134,11 @@ onClick={() => {
                 )}
                 <div>
                 <div id={`exp-${exp.id}`} className="bg-white rounded-2xl shadow-lg p-6">
+                  {exp.source !== 'app' && (
+                    <span className="inline-block text-[8px] font-semibold uppercase bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full mb-2">
+                      Curator
+                    </span>
+                  )}
                   <div className="mb-4">
 {/* Linha 1: By à esquerda */}
 <div className="mb-3">
@@ -8146,11 +8151,6 @@ onClick={() => {
                : [exp.author, exp.gender, exp.age, exp.country].filter(Boolean).join(', ')
             }
       </span>
-      {exp.source !== 'app' && (
-        <span className="inline-block text-[10px] font-semibold uppercase bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full mt-1">
-          Curator
-        </span>
-      )}
       {exp.source === 'app' && exp.createdAt && (
         <span className="text-xs text-gray-400 block">
           {new Date(exp.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
