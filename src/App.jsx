@@ -1540,7 +1540,25 @@ const handleAccountAccessLookup = async () => {
     const usableMatches = data.filter(r => r.status !== 'blocked');
     if (usableMatches.length === 0) {
       setAccountAccessJustBlocked(true);
-      setAccountAccessError('This account has been blocked for security reasons. Please contact your company\'s HR or Admin.');
+      let adminEmailsText = '';
+      try {
+        const { data: admins } = await supabase
+          .from('employees')
+          .select('email')
+          .eq('company_id', data[0].company_id)
+          .eq('is_admin', true)
+          .not('email', 'is', null);
+        const emails = (admins || []).map(a => a.email).filter(Boolean);
+        if (emails.length > 0) {
+          adminEmailsText = ` at:\n${emails.join('\n')}`;
+        } else {
+          adminEmailsText = '.';
+        }
+      } catch (err) {
+        console.error('Error fetching company admins:', err);
+        adminEmailsText = '.';
+      }
+      setAccountAccessError(`This account has been blocked for security reasons. Please contact your company's HR or Admin${adminEmailsText}`);
       return;
     }
     if (usableMatches.length > 1) {
@@ -4174,7 +4192,7 @@ autoComplete="off"
                   </div>
                   {accountAccessError && (
                     <div className="bg-red-50 border-2 border-red-200 rounded-lg p-3">
-                      <p className="text-red-700 text-sm">{accountAccessError}</p>
+                      <p className="text-red-700 text-sm whitespace-pre-line">{accountAccessError}</p>
                     </div>
                   )}
                   {!accountAccessJustBlocked && (
@@ -4200,7 +4218,7 @@ autoComplete="off"
                   ))}
                   {accountAccessError && (
                     <div className="bg-red-50 border-2 border-red-200 rounded-lg p-3">
-                      <p className="text-red-700 text-sm">{accountAccessError}</p>
+                      <p className="text-red-700 text-sm whitespace-pre-line">{accountAccessError}</p>
                     </div>
                   )}
                 </div>
@@ -4216,11 +4234,26 @@ autoComplete="off"
                   <p className="text-sm text-gray-600">Is this your company?</p>
                   {accountAccessError && (
                     <div className="bg-red-50 border-2 border-red-200 rounded-lg p-3">
-                      <p className="text-red-700 text-sm">{accountAccessError}</p>
+                      <p className="text-red-700 text-sm whitespace-pre-line">{accountAccessError}</p>
                     </div>
                   )}
                   <div className="flex gap-3">
                     <button onClick={async () => {
+                        let adminEmailsText = '.';
+                        try {
+                          const { data: admins } = await supabase
+                            .from('employees')
+                            .select('email')
+                            .eq('company_id', accountAccessRecord.company_id)
+                            .eq('is_admin', true)
+                            .not('email', 'is', null);
+                          const emails = (admins || []).map(a => a.email).filter(Boolean);
+                          if (emails.length > 0) {
+                            adminEmailsText = ` at:\n${emails.join('\n')}`;
+                          }
+                        } catch (err) {
+                          console.error('Error fetching company admins:', err);
+                        }
                         try {
                           await supabase.from('employees').update({ status: 'blocked' }).eq('id', accountAccessRecord.id);
                         } catch (err) {
@@ -4229,7 +4262,7 @@ autoComplete="off"
                         setAccountAccessStep('lookup');
                         setAccountAccessRecord(null);
                         setAccountAccessJustBlocked(true);
-                        setAccountAccessError("No problem — for your security, this account has been blocked until your Admin reviews it. Please contact your company's HR or Admin.");
+                        setAccountAccessError(`No problem — for your security, this account has been blocked until your Admin reviews it. Please contact your company's HR or Admin${adminEmailsText}`);
                       }}
                       className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 font-semibold transition-colors">
                       No, that's not me
@@ -4262,7 +4295,7 @@ autoComplete="off"
                   </div>
                   {accountAccessError && (
                     <div className="bg-red-50 border-2 border-red-200 rounded-lg p-3">
-                      <p className="text-red-700 text-sm">{accountAccessError}</p>
+                      <p className="text-red-700 text-sm whitespace-pre-line">{accountAccessError}</p>
                     </div>
                   )}
                   <button onClick={handleVerifyAccountAccessCode}
@@ -4301,7 +4334,7 @@ autoComplete="off"
                   </div>
                   {accountAccessError && (
                     <div className="bg-red-50 border-2 border-red-200 rounded-lg p-3">
-                      <p className="text-red-700 text-sm">{accountAccessError}</p>
+                      <p className="text-red-700 text-sm whitespace-pre-line">{accountAccessError}</p>
                     </div>
                   )}
                   <button onClick={handleSetAccountAccessPassword}
