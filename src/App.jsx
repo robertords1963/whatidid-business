@@ -369,6 +369,14 @@ useEffect(() => {
   }
 }, [loggedInEmployeeCompanyId, isDefaultAdmin]);
 
+// Se entrar em modo Sample enquanto estava na aba "Share Your Experience"
+// (que não existe mais nesse modo), volta pra "See What Others Did".
+useEffect(() => {
+  if (isReadOnlyView && activeMainTab === 'share') {
+    setActiveMainTab('see');
+  }
+}, [isReadOnlyView]);
+
 // ⭐ PWA Install — detectar plataforma (mobile/desktop), estado de instalação,
 // e capturar o prompt nativo do Chrome/Edge (funciona em Android E desktop)
 useEffect(() => {
@@ -2141,6 +2149,7 @@ if (appSettings.requireEmployeeLogin && !isAdmin && exp.employeeId !== employeeI
 };
 
   const handleAddComment = async (experienceId) => {
+    if (isReadOnlyView) return;
   if (!newComment[experienceId]?.trim()) {
     alert('Please enter a comment!');
     return;
@@ -2217,6 +2226,7 @@ if (appSettings.requireEmployeeLogin && !isAdmin && exp.employeeId !== employeeI
   };
 
   const toggleReaction = async (commentId, emoji) => {
+    if (isReadOnlyView) return;
     if (!employeeId) return;
     const existing = reactions[commentId]?.[emoji] || [];
     const hasReacted = existing.includes(employeeId);
@@ -2411,6 +2421,7 @@ const industrySectors = [
 };
 
   const handleUserRating = async (expId, rating) => {
+  if (isReadOnlyView) return;
   if (userRatings[expId]) {
     console.log('🔍 Rating:', { expId, rating, filterMode });
     alert('You have already rated this experience in this session!');
@@ -3409,17 +3420,6 @@ if (wasInteractedInSession) return true;
 
 
 return matchesPractice && matchesProblemCategory && matchesSearchText && matchesResultCategory && matchesRating && matchesGender && matchesAge && matchesCountry && matchesIndustrySector && matchesTags;
-});
-
-console.log('🔎 DIAGNÓSTICO:', {
-  filterMode,
-  totalExperiences: experiences.length,
-  filteredExperiencesLength: filteredExperiences.length,
-  filterPracticeId,
-  filtersProblemCategory: filters.problemCategory,
-  sampleAuthors: experiences.slice(0, 5).map(e => e.author),
-  countKeyInsights: experiences.filter(e => e.author === 'key_insights').length,
-  countNonKeyInsights: experiences.filter(e => e.author !== 'key_insights').length
 });
 
 // ⭐ Quando um Follow-On bate no filtro, garantir que a raiz do thread apareça no feed
@@ -6475,7 +6475,7 @@ onClick={() => {
         })()}
 
 {/* Tabs estilo fichário — substitui os botões de navegação */}
-          {isAdmin && (
+          {isAdmin && !isReadOnlyView && (
             <div className="mt-4 bg-yellow-50 border-2 border-yellow-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 <Search size={20} />
@@ -6669,11 +6669,15 @@ onClick={() => {
     </button>
     <button
       onClick={() => {
+        if (isReadOnlyView) return;
         setActiveMainTab('share');
         scrollToTabs();
       }}
+      disabled={isReadOnlyView}
       className={`flex-1 px-4 py-3 font-bold text-base md:text-xl transition-all rounded-t-2xl border-2 border-b-0 -ml-px relative ${
-        activeMainTab === 'share'
+        isReadOnlyView
+          ? 'bg-gray-50 text-gray-300 border-gray-200 cursor-not-allowed'
+          : activeMainTab === 'share'
           ? 'bg-white text-blue-700 border-blue-300 relative z-10'
           : 'bg-gray-100 text-gray-400 border-gray-200 hover:bg-gray-200'
       }`}
@@ -7095,7 +7099,7 @@ onClick={() => {
 )}
         </div>
         
-<div className={`space-y-6 ${activeMainTab !== 'see' ? 'hidden' : ''} p-4 rounded-b-2xl border-2 border-t-0 border-purple-300 ${isReadOnlyView ? 'pointer-events-none opacity-60' : ''}`} id="experiences-section">
+<div className={`space-y-6 ${activeMainTab !== 'see' ? 'hidden' : ''} p-4 rounded-b-2xl border-2 border-t-0 border-purple-300`} id="experiences-section">
           
           
           
@@ -8175,10 +8179,11 @@ onClick={() => {
           {[1, 2, 3, 4, 5].map(star => (
             <button
               key={star}
-              onClick={() => handleUserRating(exp.id, star)}
-              onMouseEnter={() => setHoverRating({...hoverRating, [exp.id]: star})}
-              onMouseLeave={() => setHoverRating({...hoverRating, [exp.id]: 0})}
-              className="transition-transform hover:scale-110"
+              onClick={() => !isReadOnlyView && handleUserRating(exp.id, star)}
+              onMouseEnter={() => !isReadOnlyView && setHoverRating({...hoverRating, [exp.id]: star})}
+              onMouseLeave={() => !isReadOnlyView && setHoverRating({...hoverRating, [exp.id]: 0})}
+              disabled={isReadOnlyView}
+              className={`transition-transform ${isReadOnlyView ? 'cursor-not-allowed opacity-60' : 'hover:scale-110'}`}
             >
               <Star
                 size={20}
@@ -8430,6 +8435,7 @@ onClick={() => {
                   })()}
 
                   <div className="border-t pt-4 mt-4">
+                    {!isReadOnlyView && (
                     <div className="mb-4">
                       <h4 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
                         <MessageCircle size={18} />
@@ -8508,6 +8514,7 @@ onClick={() => {
                         {(newComment[exp.id] || '').length}/{maxChars.comment}
                       </div>
                     </div>
+                  )}
 
                     {exp.comments.length > 0 && (
   <div>
