@@ -2894,6 +2894,11 @@ useEffect(() => {
       const currentItem = promotionalVideos[currentVideoIndex];
       if (currentItem?.fileType === 'presentation') return;
 
+      // No desktop, sair do fullscreen só deve voltar pro tamanho reduzido
+      // dentro do modal — não fechar tudo. Só no mobile (onde o fullscreen é
+      // forçado ao abrir) que "sair do fullscreen" significa "terminei".
+      if (window.innerWidth > 640) return;
+
       if (!isFullscreen) {
         console.log('Closing modal automatically...');
         setTimeout(() => {
@@ -9803,7 +9808,7 @@ if (selected.length === 0) {
             )}
           </div>
           
-          <div className={`flex justify-between items-center mt-0 sm:mt-4 px-4 py-3 sm:py-0 sm:px-0 bg-black sm:bg-transparent absolute sm:relative bottom-4 sm:bottom-auto left-0 right-0 sm:left-auto sm:right-auto z-10 ${promotionalVideos[currentVideoIndex]?.fileType === 'presentation' ? 'hidden' : ''}`}>
+          <div className="hidden">
             <button
               onClick={(e) => {
                 e.stopPropagation();
