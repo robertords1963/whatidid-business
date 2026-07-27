@@ -265,6 +265,9 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   // tabela "Section Settings" — o botão no título de cada coluna age sobre as
   // linhas marcadas nela.
   const [selectedForImport, setSelectedForImport] = useState([]);
+  // Idioma escolhido pra importar o conteúdo do Default (Metadata Model,
+  // Synthetic Content, Quotes). Padrão inglês.
+  const [importLanguage, setImportLanguage] = useState('en');
   const defaultCompanyId = companies.find(c => c.code === 'default')?.id || null;
   // Só o Admin do Default pode navegar entre empresas pelo dropdown — qualquer
   // outra empresa só vê e opera sobre os próprios dados, sempre.
@@ -618,6 +621,7 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null) => {
       tags: exp.tags || [],
       parentExperienceId: exp.parent_experience_id || null,
       createdAt: exp.created_at || null,
+      language: exp.language || 'en',
       comments: []
     }));
     
@@ -1068,7 +1072,7 @@ const importMetadataModel = async () => {
     const importedPracticeIds = new Set((alreadyImportedPractices || []).map(r => r.imported_from_id));
 
     const { data: defaultPractices, error: pErr } = await supabase
-      .from('practices').select('*').eq('company_id', defaultCompanyId);
+      .from('practices').select('*').eq('company_id', defaultCompanyId).eq('language', importLanguage);
     if (pErr) throw pErr;
 
     let addedPractices = 0;
@@ -1092,7 +1096,7 @@ const importMetadataModel = async () => {
     (targetPractices || []).forEach(p => { if (p.imported_from_id) practiceIdByImportedFrom[p.imported_from_id] = p.id; });
 
     const { data: defaultCategories, error: cErr } = await supabase
-      .from('problem_categories').select('*').eq('company_id', defaultCompanyId);
+      .from('problem_categories').select('*').eq('company_id', defaultCompanyId).eq('language', importLanguage);
     if (cErr) throw cErr;
 
     let addedCategories = 0;
@@ -1134,7 +1138,7 @@ const importSyntheticContent = async () => {
     const practiceIdByName = {};
     (targetPractices || []).forEach(p => { practiceIdByName[p.name] = p.id; });
 
-    const { data: defaultPractices } = await supabase.from('practices').select('*').eq('company_id', defaultCompanyId);
+    const { data: defaultPractices } = await supabase.from('practices').select('*').eq('company_id', defaultCompanyId).eq('language', importLanguage);
     const defaultPracticeNameById = {};
     (defaultPractices || []).forEach(p => { defaultPracticeNameById[p.id] = p.name; });
 
@@ -1144,7 +1148,7 @@ const importSyntheticContent = async () => {
     const importedEmployeeIds = new Set((alreadyImportedEmployees || []).map(r => r.imported_from_id));
 
     const { data: defaultEmployees, error: eErr } = await supabase
-      .from('employees').select('*').eq('company_id', defaultCompanyId).eq('is_demo', true);
+      .from('employees').select('*').eq('company_id', defaultCompanyId).eq('is_demo', true).eq('language', importLanguage);
     if (eErr) throw eErr;
 
     const employeeIdMap = {};
@@ -1180,7 +1184,7 @@ const importSyntheticContent = async () => {
     const importedExpIds = new Set((alreadyImportedExps || []).map(r => r.imported_from_id));
 
     const { data: defaultExperiences, error: xErr } = await supabase
-      .from('experiences').select('*').eq('company_id', defaultCompanyId).neq('source', 'app');
+      .from('experiences').select('*').eq('company_id', defaultCompanyId).neq('source', 'app').eq('language', importLanguage);
     if (xErr) throw xErr;
 
     let addedExperiences = 0;
@@ -1196,6 +1200,7 @@ const importSyntheticContent = async () => {
         practice_id: practiceName ? (practiceIdByName[practiceName] || null) : null,
         tags: exp.tags, avg_rating: exp.avg_rating, total_ratings: exp.total_ratings,
         source: exp.source,
+        language: exp.language,
         company_id: effectiveCompanyId, imported_from_id: exp.id, import_batch_id: batchId
       }]).select().single();
       if (error) throw error;
@@ -1242,14 +1247,14 @@ const importQuotesFromDefault = async () => {
     const importedIds = new Set((alreadyImported || []).map(r => r.imported_from_id));
 
     const { data: defaultQuotes, error } = await supabase
-      .from('quotes').select('*').eq('company_id', defaultCompanyId);
+      .from('quotes').select('*').eq('company_id', defaultCompanyId).eq('language', importLanguage);
     if (error) throw error;
 
     let added = 0;
     for (const q of (defaultQuotes || [])) {
       if (importedIds.has(q.id)) continue;
       const { error: insErr } = await supabase.from('quotes').insert([{
-        text: q.text, author: q.author, position: q.position, active: q.active,
+        text: q.text, author: q.author, position: q.position, active: q.active, language: q.language,
         company_id: effectiveCompanyId, imported_from_id: q.id, import_batch_id: batchId
       }]);
       if (insErr) throw insErr;
@@ -4640,6 +4645,16 @@ autoComplete="off"
   <div className="mt-4 bg-white border-2 border-gray-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-1">Section Settings</h3>
     <p className="text-xs text-gray-500 mb-3">"View & Edit access for ADM Master" lets the Master see/edit that section for support. Check a row and click "Import/Update" to bring starter content from Default (synthetic examples, not real people) — running it again only brings new items, it never duplicates or overwrites what you already have. To remove something, delete it directly in its own section (Manage Employees, Manage Categories, etc.) — deleting a Category also removes its linked Experiences, Key Insights and comments.</p>
+    <div className="flex items-center gap-2 mb-3">
+      <label className="text-sm font-medium text-gray-700">Import content in:</label>
+      <select value={importLanguage} onChange={(e) => setImportLanguage(e.target.value)}
+        className="p-1.5 border-2 border-gray-300 rounded-lg text-sm">
+        <option value="en">English</option>
+        <option value="es">Español</option>
+        <option value="pt">Português</option>
+        <option value="zh">中文 (Chinese)</option>
+      </select>
+    </div>
     <table className="w-full text-sm border-collapse">
       <thead>
         <tr className="text-left text-gray-600 border-b">
@@ -8242,8 +8257,17 @@ onClick={() => {
                 <div>
                 <div id={`exp-${exp.id}`} className="bg-white rounded-2xl shadow-lg p-6">
                   {exp.source !== 'app' && (
-                    <span className="inline-block text-[8px] font-semibold uppercase bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full mb-2">
-                      Curator
+                    <span className="inline-flex items-center gap-1 mb-2">
+                      <span className="text-[8px] font-semibold uppercase bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">
+                        Curator
+                      </span>
+                      {exp.language && exp.language !== 'en' && (
+                        <span className="text-[8px] text-gray-400 italic">
+                          {exp.language === 'es' && '(Traducido del inglés)'}
+                          {exp.language === 'pt' && '(Traduzido do inglês)'}
+                          {exp.language === 'zh' && '(从英语翻译)'}
+                        </span>
+                      )}
                     </span>
                   )}
                   <div className="mb-4">
