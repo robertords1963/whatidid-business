@@ -268,6 +268,11 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   // Idioma escolhido pra importar o conteúdo do Default (Metadata Model,
   // Synthetic Content, Quotes). Padrão inglês.
   const [importLanguage, setImportLanguage] = useState('en');
+  // Idioma em que o Default é EXIBIDO quando alguém está navegando o próprio
+  // Default (Admin do Default olhando pra ele mesmo, ou uma empresa em modo
+  // Sample) — não afeta empresas vendo os próprios dados (cada uma só tem o
+  // idioma que escolheu importar). Padrão inglês.
+  const [viewingLanguage, setViewingLanguage] = useState('en');
   const defaultCompanyId = companies.find(c => c.code === 'default')?.id || null;
   // Só o Admin do Default pode navegar entre empresas pelo dropdown — qualquer
   // outra empresa só vê e opera sobre os próprios dados, sempre.
@@ -372,7 +377,7 @@ useEffect(() => {
     loadPractices();
     loadAppSettings();
   }
-}, [effectiveCompanyId]);
+}, [effectiveCompanyId, viewingLanguage]);
 
 // Carrega a visibilidade que a própria empresa (não Default) liberou pro ADM Master
 // — usada tanto pra ela mesma configurar (seus próprios checkboxes) quanto pro
@@ -568,10 +573,14 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null) => {
     }
     
     // Buscar primeiro lote (0-999) - Supabase limita em 1000
-    const { data: batch1, error: error1 } = await supabase
+    let query1 = supabase
       .from('experiences')
       .select('*')
-      .eq('company_id', effectiveCompanyId)
+      .eq('company_id', effectiveCompanyId);
+    if (isViewingDefault) {
+      query1 = query1.eq('language', viewingLanguage);
+    }
+    const { data: batch1, error: error1 } = await query1
       .order('source', { ascending: true })
       .order('id', { ascending: false })
       .range(0, 999);
@@ -582,10 +591,14 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null) => {
     }
     
     // Buscar segundo lote (1000-1999) - pega as 53 restantes
-    const { data: batch2, error: error2 } = await supabase
+    let query2 = supabase
       .from('experiences')
       .select('*')
-      .eq('company_id', effectiveCompanyId)
+      .eq('company_id', effectiveCompanyId);
+    if (isViewingDefault) {
+      query2 = query2.eq('language', viewingLanguage);
+    }
+    const { data: batch2, error: error2 } = await query2
       .order('source', { ascending: true })
       .order('id', { ascending: false })
       .range(1000, 1999);
@@ -841,6 +854,9 @@ const loadProblemCategories = async (practiceId = null) => {
       .eq('active', true)
       .eq('company_id', effectiveCompanyId)
       .order('display_order', { ascending: true });
+    if (isViewingDefault) {
+      query = query.eq('language', viewingLanguage);
+    }
 
     if (practiceId) {
       query = query.eq('practice_id', practiceId);
@@ -906,12 +922,15 @@ const loadCurrentEmployeeGroup = async (empId) => {
 const loadPractices = async () => {
   if (!effectiveCompanyId) return;
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from('practices')
       .select('*')
       .eq('active', true)
-      .eq('company_id', effectiveCompanyId)
-      .order('display_order', { ascending: true });
+      .eq('company_id', effectiveCompanyId);
+    if (isViewingDefault) {
+      query = query.eq('language', viewingLanguage);
+    }
+    const { data, error } = await query.order('display_order', { ascending: true });
     if (error) throw error;
     // Para o Admin: todas as practices ativas
     // Para o UI: só as com show_in_ui = true
@@ -947,6 +966,9 @@ const loadAdminCategories = async (practiceId) => {
       .eq('active', true)
       .eq('company_id', effectiveCompanyId)
       .order('display_order', { ascending: true });
+    if (isViewingDefault) {
+      query = query.eq('language', viewingLanguage);
+    }
     if (practiceId) {
       query = query.eq('practice_id', practiceId);
     }
@@ -2951,12 +2973,16 @@ useEffect(() => {
   const loadQuotes = async () => {
     if (!effectiveCompanyId) return;
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('quotes')
         .select('*')
         .eq('active', true)
         .eq('company_id', effectiveCompanyId)
         .order('id', { ascending: true });
+      if (isViewingDefault) {
+        query = query.eq('language', viewingLanguage);
+      }
+      const { data, error } = await query;
       
       if (error) throw error;
       
@@ -4616,6 +4642,21 @@ autoComplete="off"
           ⚠️ You are viewing/editing <strong>{effectiveCompanyName}</strong>'s data, not Default's.
         </span>
       )}
+      {!adminCompanyContext && (
+        <>
+          <label className="text-sm font-medium text-gray-700 ml-2">Viewing language:</label>
+          <select
+            value={viewingLanguage}
+            onChange={(e) => setViewingLanguage(e.target.value)}
+            className="p-2 border-2 border-gray-300 rounded-lg text-sm font-medium"
+          >
+            <option value="en">English</option>
+            <option value="es">Español</option>
+            <option value="pt">Português</option>
+            <option value="zh">中文 (Chinese)</option>
+          </select>
+        </>
+      )}
     </div>
   </div>
 )}
@@ -4633,9 +4674,22 @@ autoComplete="off"
         <option value="sample">Sample (Default's content)</option>
       </select>
       {companyViewMode === 'sample' && (
-        <span className="text-sm font-semibold text-blue-700 flex items-center gap-1">
-          👁️ Read-only preview — browse Default's content to decide what to import.
-        </span>
+        <>
+          <span className="text-sm font-semibold text-blue-700 flex items-center gap-1">
+            👁️ Read-only preview — browse Default's content to decide what to import.
+          </span>
+          <label className="text-sm font-medium text-gray-700 ml-2">Language:</label>
+          <select
+            value={viewingLanguage}
+            onChange={(e) => setViewingLanguage(e.target.value)}
+            className="p-2 border-2 border-gray-300 rounded-lg text-sm font-medium"
+          >
+            <option value="en">English</option>
+            <option value="es">Español</option>
+            <option value="pt">Português</option>
+            <option value="zh">中文 (Chinese)</option>
+          </select>
+        </>
       )}
     </div>
   </div>
