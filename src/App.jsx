@@ -297,15 +297,16 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   // escopada só ao que ele mesmo criou.
   const isSeller = !!loggedInSellerId;
   // O company_id que as operações do Admin devem usar agora: se for o Admin do
-  // Default navegando pra outra empresa via dropdown, usa essa; se for o Admin
-  // de uma empresa olhando o "Sample", usa a Default (mas em modo leitura); senão,
-  // usa sempre o company_id da própria conta logada.
-  const effectiveCompanyId = (isDefaultAdmin && adminCompanyContext)
+  // Default (ou um seller) navegando pra outra empresa via dropdown, usa essa;
+  // se for o Admin de uma empresa olhando o "Sample", usa a Default (mas em
+  // modo leitura); senão, usa sempre o company_id da própria conta logada —
+  // que pro seller já É o Default, dando a ele leitura/escrita completa nele.
+  const effectiveCompanyId = ((isDefaultAdmin || isSeller) && adminCompanyContext)
     ? adminCompanyContext
-    : (!isDefaultAdmin && companyViewMode === 'sample')
+    : (!isDefaultAdmin && !isSeller && companyViewMode === 'sample')
       ? defaultCompanyId
       : (loggedInEmployeeCompanyId || defaultCompanyId);
-  const effectiveCompanyName = (isDefaultAdmin && adminCompanyContext)
+  const effectiveCompanyName = ((isDefaultAdmin || isSeller) && adminCompanyContext)
     ? (companies.find(c => c.id === adminCompanyContext)?.name || 'Unknown')
     : (companies.find(c => c.id === effectiveCompanyId)?.name || 'Default');
   // true quando o contexto ativo (seja por login direto, seja pelo dropdown do
@@ -315,9 +316,11 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   // (não um Admin de empresa espiando o Sample, que também usa dados do Default,
   // mas não deve ver as 5 seções exclusivas do Default).
   const showDefaultOnlyTools = isDefaultAdmin && isViewingDefault;
-  // true quando um Admin de empresa (não Default) está no modo "Sample" — nesse
-  // caso, tudo que ele vê é somente leitura (não pode editar o conteúdo do Default).
-  const isReadOnlyView = !isDefaultAdmin && companyViewMode === 'sample';
+  // true quando um Admin de empresa (não Default, não seller) está no modo
+  // "Sample" — nesse caso, tudo que ele vê é somente leitura (não pode editar
+  // o conteúdo do Default). Sellers nunca caem aqui — eles sempre têm
+  // leitura/escrita completa no que estão vendo (Default ou empresa própria).
+  const isReadOnlyView = !isDefaultAdmin && !isSeller && companyViewMode === 'sample';
   const [employeeSearch, setEmployeeSearch] = useState('');
   const [newEmployee, setNewEmployee] = useState({ employee_id: '', name: '', country: '', email: '', is_admin: false });
   const [editingEmployee, setEditingEmployee] = useState(null);
@@ -377,9 +380,12 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   
   useEffect(() => {
   detectUserCountry();
-  loadDemoGroups();
   loadCompanies();
   loadSellers();
+  (async () => {
+    await runExpiredDemoCleanup();
+    await loadDemoGroups();
+  })();
 }, []);
 
 // Carrega/recarrega tudo que depende de qual empresa estamos usando, sempre
@@ -915,7 +921,7 @@ const loadDemoGroups = async () => {
       .from('demo_groups')
       .select(`
         *,
-        employees (employee_id, name, is_demo, group_id)
+        employees (employee_id, name, is_demo, group_id, demo_expires_at)
       `)
       .order('created_at', { ascending: false });
     // Se quem está logado é um seller (não o Default Admin), só vê os grupos
@@ -1015,6 +1021,35 @@ const toggleSellerActive = async (sellerRowId, active) => {
   } catch (error) {
     console.error('Error updating seller:', error);
     alert('Error updating seller');
+  }
+};
+
+// Checagem "preguiçosa" de expiração de Demo IDs: roda uma vez por carregamento
+// de página, disparada por QUALQUER usuário (não só sellers/Admin) — sem cron,
+// sem Edge Function. Libera o ID de volta pro pool (não apaga o employee, ele
+// é reutilizável), limpando as experiences/comments que ele gerou na demo.
+const runExpiredDemoCleanup = async () => {
+  try {
+    const { data: expired, error } = await supabase
+      .from('employees')
+      .select('employee_id')
+      .eq('is_demo', true)
+      .not('demo_expires_at', 'is', null)
+      .lt('demo_expires_at', new Date().toISOString());
+    if (error || !expired || expired.length === 0) return;
+
+    for (const emp of expired) {
+      await supabase.from('comments').delete().eq('employee_id', emp.employee_id);
+      const { data: exps } = await supabase.from('experiences').select('id, cv_url').eq('employee_id', emp.employee_id);
+      for (const exp of exps || []) {
+        if (exp.cv_url) await deleteFileFromStorage(exp.cv_url);
+      }
+      await supabase.from('experiences').delete().eq('employee_id', emp.employee_id);
+      await supabase.from('employees').update({ group_id: null, demo_expires_at: null }).eq('employee_id', emp.employee_id);
+    }
+  } catch (error) {
+    // Silencioso de propósito — não deve travar a navegação de ninguém.
+    console.error('Error in expired demo cleanup:', error);
   }
 };
 
@@ -1136,7 +1171,8 @@ const addCompany = async () => {
     const { error } = await supabase.from('companies').insert([{
       name: newCompany.name.trim(),
       code: code,
-      active: true
+      active: true,
+      created_by_seller_id: isSeller ? loggedInSellerId : null
     }]);
     if (error) throw error;
     setNewCompany({ name: '', code: '' });
@@ -4786,7 +4822,30 @@ autoComplete="off"
   </div>
 )}
 
-{isAdmin && !isDefaultAdmin && (
+{isAdmin && isSeller && (
+  <div className={`mt-4 rounded-lg shadow-md p-4 max-w-4xl mx-auto border-2 ${adminCompanyContext ? 'bg-amber-50 border-amber-400' : 'bg-gray-50 border-gray-300'}`}>
+    <div className="flex items-center gap-3 flex-wrap">
+      <label className="text-sm font-medium text-gray-700">Managing:</label>
+      <select
+        value={adminCompanyContext || ''}
+        onChange={(e) => setAdminCompanyContext(e.target.value ? parseInt(e.target.value) : null)}
+        className="p-2 border-2 border-gray-300 rounded-lg text-sm font-medium"
+      >
+        <option value="">Default (browsing/demoing)</option>
+        {companies.filter(c => c.created_by_seller_id === loggedInSellerId).map(c => (
+          <option key={c.id} value={c.id}>{c.name}</option>
+        ))}
+      </select>
+      {adminCompanyContext && (
+        <span className="text-sm font-semibold text-amber-700 flex items-center gap-1">
+          ⚠️ You are viewing/editing <strong>{effectiveCompanyName}</strong>'s data, not Default's.
+        </span>
+      )}
+    </div>
+  </div>
+)}
+
+{isAdmin && !isDefaultAdmin && !isSeller && (
   <div className={`mt-4 rounded-lg shadow-md p-4 max-w-4xl mx-auto border-2 ${companyViewMode === 'sample' ? 'bg-blue-50 border-blue-400' : 'bg-gray-50 border-gray-300'}`}>
     <div className="flex items-center gap-3 flex-wrap">
       <label className="text-sm font-medium text-gray-700">Viewing:</label>
@@ -4820,7 +4879,7 @@ autoComplete="off"
   </div>
 )}
 
-{isAdmin && !isDefaultAdmin && companyViewMode === 'own' && (
+{isAdmin && !isDefaultAdmin && !isSeller && companyViewMode === 'own' && (
   <div className="mt-4 bg-white border-2 border-gray-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-1">Section Settings</h3>
     <p className="text-xs text-gray-500 mb-3">"View & Edit access for ADM Master" lets the Master see/edit that section for support. Check a row and click "Import/Update" to bring starter content from Default (synthetic examples, not real people) — running it again only brings new items, it never duplicates or overwrites what you already have. To remove something, delete it directly in its own section (Manage Employees, Manage Categories, etc.) — deleting a Category also removes its linked Experiences, Key Insights and comments.</p>
@@ -4941,6 +5000,54 @@ autoComplete="off"
         </tr>
       </tbody>
     </table>
+  </div>
+)}
+
+{isAdmin && isSeller && (
+  <div className="mt-4 bg-indigo-50 border-2 border-indigo-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
+    <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+      🏢 Manage Companies
+    </h3>
+
+    {/* Add Company */}
+    <div className="bg-white rounded p-4 mb-4">
+      <h4 className="font-medium text-gray-700 mb-3">Add Company</h4>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+        <input type="text" value={newCompany.name} onChange={(e) => setNewCompany({...newCompany, name: e.target.value})}
+          placeholder="Company Name *" className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
+        <input type="text" value={newCompany.code} onChange={(e) => setNewCompany({...newCompany, code: e.target.value})}
+          placeholder="Company Code (optional, auto-generated if blank)" className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
+      </div>
+      <button onClick={addCompany} className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700">
+        + Add Company
+      </button>
+    </div>
+
+    {/* Company List — só as que esse seller criou */}
+    <div className="bg-white rounded p-4">
+      <h4 className="font-medium text-gray-700 mb-3">
+        My Companies ({companies.filter(c => c.created_by_seller_id === loggedInSellerId).length})
+      </h4>
+      {companies.filter(c => c.created_by_seller_id === loggedInSellerId).length === 0 ? (
+        <p className="text-sm text-gray-400">No companies yet.</p>
+      ) : (
+        <div className="space-y-2">
+          {companies.filter(c => c.created_by_seller_id === loggedInSellerId).map(c => (
+            <div key={c.id} className="flex items-center gap-3 p-2 border border-gray-200 rounded-lg flex-wrap">
+              <span className="text-sm font-medium text-gray-800 flex-1 min-w-32">{c.name}</span>
+              <span className="text-xs text-gray-500 font-mono">{c.code}</span>
+              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${c.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                {c.active ? 'Active' : 'Inactive'}
+              </span>
+              <button onClick={() => toggleCompanyActive(c.id, !c.active)}
+                className={`px-2 py-1 rounded text-xs ${c.active ? 'bg-gray-400 hover:bg-gray-500 text-white' : 'bg-green-600 hover:bg-green-700 text-white'}`}>
+                {c.active ? 'Deactivate' : 'Activate'}
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   </div>
 )}
 
@@ -5786,7 +5893,7 @@ autoComplete="off"
           )}
         </div>
 
-{isAdmin && showDefaultOnlyTools && (
+{isAdmin && (showDefaultOnlyTools || isSeller) && (
   <div className="mt-4 bg-pink-50 border-2 border-pink-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
       🎯 Manage Demo Groups
@@ -5808,7 +5915,7 @@ autoComplete="off"
             if (!name) { alert('Please enter a group name'); return; }
             const { data, error } = await supabase
               .from('demo_groups')
-              .insert([{ name }])
+              .insert([{ name, created_by_seller_id: isSeller ? loggedInSellerId : null }])
               .select();
             if (error) { alert('Error creating group: ' + error.message); return; }
             document.getElementById('new-group-name').value = '';
@@ -5820,31 +5927,34 @@ autoComplete="off"
       </div>
     </div>
 
-    {/* Available Demo IDs */}
+    {/* Available Demo IDs — pro seller, só o pool próprio dele */}
     <div className="bg-white rounded p-4 mb-4">
       <h4 className="font-medium text-gray-700 mb-3">
-        Available Demo IDs ({employees.filter(e => e.is_demo && !e.group_id).length})
+        Available Demo IDs ({employees.filter(e => e.is_demo && !e.group_id && (!isSeller || e.created_by_seller_id === loggedInSellerId)).length})
       </h4>
       <div className="flex flex-wrap gap-2">
-        {employees.filter(e => e.is_demo && !e.group_id).map(emp => (
+        {employees.filter(e => e.is_demo && !e.group_id && (!isSeller || e.created_by_seller_id === loggedInSellerId)).map(emp => (
           <span key={emp.employee_id} className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
             {emp.employee_id}
           </span>
         ))}
-        {employees.filter(e => e.is_demo && !e.group_id).length === 0 && (
+        {employees.filter(e => e.is_demo && !e.group_id && (!isSeller || e.created_by_seller_id === loggedInSellerId)).length === 0 && (
           <p className="text-sm text-gray-500">No available IDs — all in use</p>
         )}
       </div>
     </div>
 
-    {/* Existing Groups */}
+    {/* Existing Groups — pro seller, só os que ele criou (loadDemoGroups já filtra) */}
     <div className="bg-white rounded p-4">
       <h4 className="font-medium text-gray-700 mb-3">Active Groups ({demoGroups.length})</h4>
       {demoGroups.length === 0 ? (
         <p className="text-sm text-gray-500">No groups yet</p>
       ) : (
         <div className="space-y-4">
-          {demoGroups.map(group => (
+          {demoGroups.map(group => {
+            const memberCount = (group.employees || []).length;
+            const atLimit = memberCount >= 2;
+            return (
             <div key={group.id} className="border border-gray-200 rounded-lg p-4">
               <div className="flex items-center justify-between mb-3">
                 <h5 className="font-semibold text-gray-800">{group.name}</h5>
@@ -5869,7 +5979,7 @@ autoComplete="off"
                         // Delete experiences
                         await supabase.from('experiences').delete().eq('employee_id', member.employee_id);
                         // Release ID from group
-                        await supabase.from('employees').update({ group_id: null }).eq('employee_id', member.employee_id);
+                        await supabase.from('employees').update({ group_id: null, demo_expires_at: null }).eq('employee_id', member.employee_id);
                       }
                       // Delete group
                       await supabase.from('demo_groups').delete().eq('id', group.id);
@@ -5887,11 +5997,16 @@ autoComplete="off"
 
               {/* Members */}
               <div className="mb-3">
-                <p className="text-xs font-medium text-gray-600 mb-2">Members:</p>
+                <p className="text-xs font-medium text-gray-600 mb-2">Members ({memberCount}/2):</p>
                 <div className="flex flex-wrap gap-2">
                   {(group.employees || []).map(emp => (
                     <span key={emp.employee_id} className="px-3 py-1 bg-pink-100 text-pink-800 rounded-full text-xs font-medium">
                       {emp.employee_id}
+                      {emp.demo_expires_at && (
+                        <span className="text-pink-500 ml-1">
+                          (Exp {new Date(emp.demo_expires_at).toLocaleDateString()})
+                        </span>
+                      )}
                     </span>
                   ))}
                   {(group.employees || []).length === 0 && (
@@ -5900,24 +6015,34 @@ autoComplete="off"
                 </div>
               </div>
 
-              {/* Add member */}
-              <div className="flex gap-2">
+              {/* Add member — desabilitado ao atingir o limite de 2 */}
+              {atLimit ? (
+                <p className="text-xs text-amber-600 font-medium">Maximum of 2 IDs per group reached.</p>
+              ) : (
+              <div className="flex gap-2 items-center flex-wrap">
                 <select
                   id={`add-member-${group.id}`}
                   className="flex-1 p-2 border-2 border-gray-200 rounded-lg text-sm"
                 >
                   <option value="">Add available ID...</option>
-                  {employees.filter(e => e.is_demo && !e.group_id).map(emp => (
+                  {employees.filter(e => e.is_demo && !e.group_id && (!isSeller || e.created_by_seller_id === loggedInSellerId)).map(emp => (
                     <option key={emp.employee_id} value={emp.employee_id}>{emp.employee_id}</option>
                   ))}
                 </select>
+                <input
+                  type="date"
+                  id={`add-member-expiry-${group.id}`}
+                  title="Expiration date (optional)"
+                  className="p-2 border-2 border-gray-200 rounded-lg text-sm"
+                />
                 <button
                   onClick={async () => {
                     const empId = document.getElementById(`add-member-${group.id}`).value;
+                    const expiryVal = document.getElementById(`add-member-expiry-${group.id}`).value;
                     if (!empId) { alert('Please select an ID'); return; }
                     const { error } = await supabase
                       .from('employees')
-                      .update({ group_id: group.id })
+                      .update({ group_id: group.id, demo_expires_at: expiryVal ? new Date(expiryVal).toISOString() : null })
                       .eq('employee_id', empId);
                     if (error) { alert('Error adding member: ' + error.message); return; }
                     await loadDemoGroups();
@@ -5926,8 +6051,10 @@ autoComplete="off"
                   className="px-3 py-2 bg-pink-600 text-white rounded-lg text-sm hover:bg-pink-700"
                 >Add</button>
               </div>
+              )}
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
