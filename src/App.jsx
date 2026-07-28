@@ -194,6 +194,11 @@ const [filterPracticeId, setFilterPracticeId] = useState(null);
 const [adminCategories, setAdminCategories] = useState([]);
 const [uiPractices, setUiPractices] = useState([]);
 const [demoGroups, setDemoGroups] = useState([]);
+// Vendedores (Sellers): lista de contas com is_seller=true, e estado do form de criação.
+const [sellers, setSellers] = useState([]);
+const [sellersLoaded, setSellersLoaded] = useState(false);
+const [newSeller, setNewSeller] = useState({ employee_id: '', name: '', email: '' });
+const [creatingSeller, setCreatingSeller] = useState(false);
 const [currentEmployeeGroup, setCurrentEmployeeGroup] = useState(null);
 
 // ⭐ CATEGORY DESCRIPTIONS + TAGS
@@ -254,6 +259,14 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
     const stored = localStorage.getItem('loggedInEmployeeCompanyId');
     return stored ? parseInt(stored) : null;
   });
+  // id (não employee_id) da conta de seller que logou, se for o caso — usado
+  // pra escopar "Manage Companies" e "Manage Demo Groups" só ao que esse
+  // seller específico criou. null = não é um seller (Default Admin normal,
+  // ou employee comum).
+  const [loggedInSellerId, setLoggedInSellerId] = useState(() => {
+    const stored = localStorage.getItem('loggedInSellerId');
+    return stored ? parseInt(stored) : null;
+  });
   // Pro Admin de uma empresa (não Default): 'own' (visão normal, editável) ou
   // 'sample' (conteúdo do Default, somente leitura, pra decidir o que importar).
   const [companyViewMode, setCompanyViewMode] = useState('own');
@@ -276,7 +289,13 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   const defaultCompanyId = companies.find(c => c.code === 'default')?.id || null;
   // Só o Admin do Default pode navegar entre empresas pelo dropdown — qualquer
   // outra empresa só vê e opera sobre os próprios dados, sempre.
-  const isDefaultAdmin = !!loggedInEmployeeCompanyId && loggedInEmployeeCompanyId === defaultCompanyId;
+  // Sellers ficam com company_id = Default (pra herdar o conteúdo público dele),
+  // mas NÃO são o Default Admin de verdade — por isso o "&& !loggedInSellerId".
+  const isDefaultAdmin = !!loggedInEmployeeCompanyId && loggedInEmployeeCompanyId === defaultCompanyId && !loggedInSellerId;
+  // true quando quem logou é uma conta de seller (vendedor) — usado pra dar a
+  // ele uma versão enxuta do "Managing"/"Manage Companies"/"Manage Demo Groups",
+  // escopada só ao que ele mesmo criou.
+  const isSeller = !!loggedInSellerId;
   // O company_id que as operações do Admin devem usar agora: se for o Admin do
   // Default navegando pra outra empresa via dropdown, usa essa; se for o Admin
   // de uma empresa olhando o "Sample", usa a Default (mas em modo leitura); senão,
@@ -360,6 +379,7 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   detectUserCountry();
   loadDemoGroups();
   loadCompanies();
+  loadSellers();
 }, []);
 
 // Carrega/recarrega tudo que depende de qual empresa estamos usando, sempre
@@ -891,17 +911,110 @@ const loadProblemCategories = async (practiceId = null) => {
 
 const loadDemoGroups = async () => {
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from('demo_groups')
       .select(`
         *,
         employees (employee_id, name, is_demo, group_id)
       `)
       .order('created_at', { ascending: false });
+    // Se quem está logado é um seller (não o Default Admin), só vê os grupos
+    // que ele mesmo criou.
+    if (loggedInSellerId) {
+      query = query.eq('created_by_seller_id', loggedInSellerId);
+    }
+    const { data, error } = await query;
     if (error) throw error;
     setDemoGroups(data || []);
   } catch (error) {
     console.error('Error loading demo groups:', error);
+  }
+};
+
+// ==================== VENDEDORES (SELLERS) ====================
+
+// Carrega todas as contas de seller (Default-Admin-only — visão geral pra
+// supervisão). Traz também a contagem de empresas e grupos de cada um.
+const loadSellers = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('employees')
+      .select('*')
+      .eq('is_seller', true)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    setSellers(data || []);
+    setSellersLoaded(true);
+  } catch (error) {
+    console.error('Error loading sellers:', error);
+  }
+};
+
+// Cria a conta do seller (passa pelo 1st Access normal) + os 10 Demo IDs
+// dele, já prontos com senha simples (pw001..pw010) — são descartáveis, o
+// seller reusa entre demos diferentes.
+const createSeller = async () => {
+  const sellerId = newSeller.employee_id.trim();
+  const sellerName = newSeller.name.trim();
+  if (!sellerId || !sellerName) {
+    alert('Employee ID and Name are required');
+    return;
+  }
+  setCreatingSeller(true);
+  try {
+    const { data: sellerRow, error: sellerError } = await supabase
+      .from('employees')
+      .insert([{
+        employee_id: sellerId,
+        name: sellerName,
+        email: newSeller.email.trim(),
+        company_id: defaultCompanyId,
+        is_seller: true,
+        is_admin: false,
+        status: 'pending',
+        active: true
+      }])
+      .select()
+      .single();
+    if (sellerError) throw sellerError;
+
+    // 10 Demo IDs prefixados pelo ID do seller: vend01-01 .. vend01-10
+    const demoRows = Array.from({ length: 10 }, (_, i) => {
+      const n = String(i + 1).padStart(2, '0');
+      return {
+        employee_id: `${sellerId}-${n}`,
+        name: `${sellerName} Demo ${n}`,
+        company_id: defaultCompanyId,
+        is_demo: true,
+        password: `pw0${n}`,
+        status: 'active',
+        active: true,
+        language: 'en',
+        created_by_seller_id: sellerRow.id
+      };
+    });
+    const { error: demoError } = await supabase.from('employees').insert(demoRows);
+    if (demoError) throw demoError;
+
+    setNewSeller({ employee_id: '', name: '', email: '' });
+    await loadSellers();
+    alert(`Seller "${sellerName}" created with 10 demo IDs (${sellerId}-01 to ${sellerId}-10, password pw001-pw010).`);
+  } catch (error) {
+    console.error('Error creating seller:', error);
+    alert('Error creating seller. ID may already exist.');
+  } finally {
+    setCreatingSeller(false);
+  }
+};
+
+const toggleSellerActive = async (sellerRowId, active) => {
+  try {
+    const { error } = await supabase.from('employees').update({ active }).eq('id', sellerRowId);
+    if (error) throw error;
+    await loadSellers();
+  } catch (error) {
+    console.error('Error updating seller:', error);
+    alert('Error updating seller');
   }
 };
 
@@ -1729,6 +1842,16 @@ const handleEmployeeLogin = async () => {
   setLoggedInEmployeeCompanyId(data.company_id || null);
   localStorage.setItem('loggedInEmployeeCompanyId', data.company_id || '');
 
+  // Se essa conta é um seller, guarda o id dela pra escopar Manage Companies
+  // e Manage Demo Groups só ao que ele mesmo criou.
+  if (data.is_seller) {
+    setLoggedInSellerId(data.id);
+    localStorage.setItem('loggedInSellerId', data.id);
+  } else {
+    setLoggedInSellerId(null);
+    localStorage.removeItem('loggedInSellerId');
+  }
+
   // Se esse employee é marcado como Admin, libera o modo Admin também
   if (data.is_admin) {
     setEmployeeIsAdmin(true);
@@ -1759,6 +1882,8 @@ const handleEmployeeLogin = async () => {
   localStorage.removeItem('employeeIsAdmin');
   setLoggedInEmployeeCompanyId(null);
   localStorage.removeItem('loggedInEmployeeCompanyId');
+  setLoggedInSellerId(null);
+  localStorage.removeItem('loggedInSellerId');
   setAdminCompanyContext(null);
   // Reset filters
   setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '', industrySector: '' });
@@ -4861,6 +4986,70 @@ autoComplete="off"
               </button>
             </div>
           ))}
+        </div>
+      )}
+    </div>
+  </div>
+)}
+
+{isAdmin && isDefaultAdmin && (
+  <div className="mt-4 bg-teal-50 border-2 border-teal-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
+    <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+      🧑‍💼 Manage Sellers
+    </h3>
+
+    {/* Add Seller */}
+    <div className="bg-white rounded p-4 mb-4">
+      <h4 className="font-medium text-gray-700 mb-3">Add Seller</h4>
+      <p className="text-xs text-gray-500 mb-3">Creates the seller's own account (goes through 1st Access like any employee) plus 10 ready-to-use demo IDs, prefixed with their Employee ID (e.g. <span className="font-mono">acme-01</span> to <span className="font-mono">acme-10</span>), password <span className="font-mono">pw001</span>-<span className="font-mono">pw010</span>.</p>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+        <input type="text" value={newSeller.employee_id} onChange={(e) => setNewSeller({...newSeller, employee_id: e.target.value})}
+          placeholder="Employee ID *" className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
+        <input type="text" value={newSeller.name} onChange={(e) => setNewSeller({...newSeller, name: e.target.value})}
+          placeholder="Name *" className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
+        <input type="email" value={newSeller.email} onChange={(e) => setNewSeller({...newSeller, email: e.target.value})}
+          placeholder="Email (optional)" className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
+      </div>
+      <button onClick={createSeller} disabled={creatingSeller}
+        className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm hover:bg-teal-700 disabled:opacity-50">
+        {creatingSeller ? 'Creating...' : '+ Add Seller'}
+      </button>
+    </div>
+
+    {/* Seller List */}
+    <div className="bg-white rounded p-4">
+      <h4 className="font-medium text-gray-700 mb-3">Registered Sellers ({sellers.length})</h4>
+      {!sellersLoaded ? (
+        <p className="text-sm text-gray-400">Loading...</p>
+      ) : sellers.length === 0 ? (
+        <p className="text-sm text-gray-400">No sellers yet.</p>
+      ) : (
+        <div className="space-y-2">
+          {sellers.map(s => {
+            const companiesCreated = companies.filter(c => c.created_by_seller_id === s.id).length;
+            const groupsCreated = demoGroups.filter(g => g.created_by_seller_id === s.id).length;
+            return (
+              <div key={s.id} className="flex items-center gap-3 p-2 border border-gray-200 rounded-lg flex-wrap">
+                <span className="text-sm font-medium text-gray-800 flex-1 min-w-32">{s.name}</span>
+                <span className="text-xs text-gray-500 font-mono">{s.employee_id}</span>
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                  s.status === 'active' ? 'bg-green-100 text-green-700'
+                  : s.status === 'blocked' ? 'bg-red-100 text-red-700'
+                  : 'bg-yellow-100 text-yellow-700'
+                }`}>
+                  {s.status === 'active' ? 'Active' : s.status === 'blocked' ? 'Blocked' : 'Pending 1st Access'}
+                </span>
+                <span className="text-xs text-gray-500">{companiesCreated} companies · {groupsCreated} groups</span>
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${s.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                  {s.active ? 'Enabled' : 'Disabled'}
+                </span>
+                <button onClick={() => toggleSellerActive(s.id, !s.active)}
+                  className={`px-2 py-1 rounded text-xs ${s.active ? 'bg-gray-400 hover:bg-gray-500 text-white' : 'bg-green-600 hover:bg-green-700 text-white'}`}>
+                  {s.active ? 'Disable' : 'Enable'}
+                </button>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
