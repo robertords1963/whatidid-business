@@ -5927,15 +5927,30 @@ autoComplete="off"
       </div>
     </div>
 
-    {/* Available Demo IDs — pro seller, só o pool próprio dele */}
+    {/* Available Demo IDs — pro seller, só o pool próprio dele; pro Default
+        Admin, todos os pools misturados, mas com etiqueta de quem é cada um
+        (pool da casa = id001-id010 clássicos, sem seller; ou o nome do seller
+        dono daquele pool). */}
     <div className="bg-white rounded p-4 mb-4">
       <h4 className="font-medium text-gray-700 mb-3">
         Available Demo IDs ({employees.filter(e => e.is_demo && !e.group_id && (!isSeller || e.created_by_seller_id === loggedInSellerId)).length})
       </h4>
+      {isSeller && (
+        <p className="text-xs text-gray-500 mb-2">
+          Password for your IDs follows the number: <span className="font-mono">{employeeId || '{id}'}-01</span> → <span className="font-mono">pw001</span>, <span className="font-mono">-02</span> → <span className="font-mono">pw002</span>, and so on through <span className="font-mono">pw010</span>.
+        </p>
+      )}
       <div className="flex flex-wrap gap-2">
         {employees.filter(e => e.is_demo && !e.group_id && (!isSeller || e.created_by_seller_id === loggedInSellerId)).map(emp => (
           <span key={emp.employee_id} className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
             {emp.employee_id}
+            {!isSeller && (
+              <span className="text-green-600 ml-1 font-normal">
+                ({emp.created_by_seller_id
+                  ? (sellers.find(s => s.id === emp.created_by_seller_id)?.name || 'seller')
+                  : 'house pool'})
+              </span>
+            )}
           </span>
         ))}
         {employees.filter(e => e.is_demo && !e.group_id && (!isSeller || e.created_by_seller_id === loggedInSellerId)).length === 0 && (
@@ -6026,7 +6041,9 @@ autoComplete="off"
                 >
                   <option value="">Add available ID...</option>
                   {employees.filter(e => e.is_demo && !e.group_id && (!isSeller || e.created_by_seller_id === loggedInSellerId)).map(emp => (
-                    <option key={emp.employee_id} value={emp.employee_id}>{emp.employee_id}</option>
+                    <option key={emp.employee_id} value={emp.employee_id}>
+                      {emp.employee_id}{!isSeller ? ` (${emp.created_by_seller_id ? (sellers.find(s => s.id === emp.created_by_seller_id)?.name || 'seller') : 'house pool'})` : ''}
+                    </option>
                   ))}
                 </select>
                 <input
