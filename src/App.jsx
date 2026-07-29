@@ -199,6 +199,9 @@ const [sellers, setSellers] = useState([]);
 const [sellersLoaded, setSellersLoaded] = useState(false);
 const [newSeller, setNewSeller] = useState({ employee_id: '', name: '', email: '' });
 const [creatingSeller, setCreatingSeller] = useState(false);
+// Janela de tempo usada no painel "Sellers & Demo Activity Overview" pra
+// calcular quantos IDs ativos estão "expirando em breve".
+const [sellersOverviewWindow, setSellersOverviewWindow] = useState('30');
 const [currentEmployeeGroup, setCurrentEmployeeGroup] = useState(null);
 
 // ⭐ CATEGORY DESCRIPTIONS + TAGS
@@ -299,10 +302,16 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   // Sellers ficam com company_id = Default (pra herdar o conteúdo público dele),
   // mas NÃO são o Default Admin de verdade — por isso o "&& !loggedInSellerId".
   const isDefaultAdmin = !!loggedInEmployeeCompanyId && loggedInEmployeeCompanyId === defaultCompanyId && !loggedInSellerId;
-  // true quando quem logou é uma conta de seller (vendedor) — usado pra dar a
-  // ele uma versão enxuta do "Managing"/"Manage Companies"/"Manage Demo Groups",
-  // escopada só ao que ele mesmo criou.
+  // true quando quem logou é uma conta de seller (vendedor). "Um só conceito,
+  // não dois": a própria conta do seller circula pelo Default com acesso de
+  // leitura/escrita completo, igual um ID de demo — não existe modo travado
+  // separado. O seller também pode usar "Managing" (reaproveitando
+  // adminCompanyContext) pra entrar numa das PRÓPRIAS empresas e geri-la
+  // por completo (necessário pra cadastrar o primeiro ADM dela).
   const isSeller = !!loggedInSellerId;
+  // true quando o seller selecionou uma das próprias empresas no "Managing"
+  // (em vez de estar navegando o Default puro).
+  const isSellerManagingOwnCompany = isSeller && !!adminCompanyContext;
   // O company_id que as operações do Admin devem usar agora: se for o Admin do
   // Default (ou um seller) navegando pra outra empresa via dropdown, usa essa;
   // se for o Admin de uma empresa olhando o "Sample", usa a Default (mas em
@@ -330,8 +339,9 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   const showDefaultOnlyTools = isDefaultAdmin && isViewingDefault;
   // true quando um Admin de empresa (não Default, não seller) está no modo
   // "Sample" — nesse caso, tudo que ele vê é somente leitura (não pode editar
-  // o conteúdo do Default). Sellers nunca caem aqui — eles sempre têm
-  // leitura/escrita completa no que estão vendo (Default ou empresa própria).
+  // o conteúdo do Default). Sellers NUNCA caem aqui — eles sempre têm
+  // leitura/escrita completa no que estão vendo (Default ou empresa própria),
+  // igual um ID de demo.
   const isReadOnlyView = !isDefaultAdmin && !isSeller && companyViewMode === 'sample';
   const [employeeSearch, setEmployeeSearch] = useState('');
   const [newEmployee, setNewEmployee] = useState({ employee_id: '', name: '', country: '', email: '', is_admin: false });
@@ -436,6 +446,8 @@ const masterMustRespectVisibility = isDefaultAdmin && !!adminCompanyContext;
 // true quando o Master, gerenciando outra empresa, ainda não foi autorizado a
 // ver as abas públicas (See What Others Did / Share Your Experience) — a
 // empresa precisa ter liberado "Synthetic/Curated Content" pra isso aparecer.
+// Sellers NUNCA caem aqui — a navegação pública deles fica sempre aberta,
+// com leitura/escrita completa, igual um ID de demo.
 const masterBlockedFromPublicTabs = masterMustRespectVisibility && !companyMasterVisibility.includes('synthetic');
 // true quando escrever (Share Your Experience, comentar, avaliar) deve ficar
 // bloqueado — inclui o modo Sample de sempre, e também o Master "Managing"
@@ -444,9 +456,19 @@ const masterBlockedFromPublicTabs = masterMustRespectVisibility && !companyMaste
 const isReadOnlyOrMasterManaging = isReadOnlyView || masterMustRespectVisibility;
 // Exceção pro problema do ovo-e-galinha: uma empresa recém-criada não tem
 // nenhum ADM ainda pra liberar visibilidade pro Master/seller — então, se ela
-// não tem NENHUM employee, quem está gerenciando (Default Admin ou seller)
-// pode cadastrar o primeiro ADM independente das permissões de visibilidade.
+// não tem NENHUM employee, quem está gerenciando (Default Admin OU seller,
+// ambos via "Managing") pode cadastrar o primeiro ADM independente das
+// permissões de visibilidade.
 const canBootstrapFirstAdmin = !!adminCompanyContext && employees.length === 0;
+// true só quando dá pra gerenciar de verdade os dados de UMA empresa (Manage
+// Employees, Manage Categories/Practices, Quotes, Content Pages, App Config,
+// etc.). Verdadeiro pra todo mundo (Default Admin, Admin de empresa comum)
+// EXCETO um seller navegando o Default puro (sem ter escolhido, via
+// "Managing", uma das próprias empresas) — ali ele só tem leitura/escrita nas
+// abas públicas (See What Others Did / Share Your Experience) e as ferramentas
+// "Manage Companies" / "Manage Demo Groups", nunca as seções administrativas
+// exclusivas do Default de verdade.
+const canManageThisCompany = !isSeller || isSellerManagingOwnCompany;
 
 // Se entrar em modo Sample enquanto estava na aba "Share Your Experience"
 // (que não existe mais nesse modo), volta pra "See What Others Did".
@@ -4932,7 +4954,7 @@ autoComplete="off"
 )}
 
 {isAdmin && isSeller && (
-  <div className={`mt-4 rounded-lg shadow-md p-4 max-w-4xl mx-auto border-2 ${adminCompanyContext ? 'bg-amber-50 border-amber-400' : 'bg-gray-50 border-gray-300'}`}>
+  <div className={`mt-4 rounded-lg shadow-md p-4 max-w-4xl mx-auto border-2 ${isSellerManagingOwnCompany ? 'bg-amber-50 border-amber-400' : 'bg-gray-50 border-gray-300'}`}>
     <div className="flex items-center gap-3 flex-wrap">
       <label className="text-sm font-medium text-gray-700">Managing:</label>
       <select
@@ -4945,10 +4967,25 @@ autoComplete="off"
           <option key={c.id} value={c.id}>{c.name}</option>
         ))}
       </select>
-      {adminCompanyContext && (
+      {isSellerManagingOwnCompany && (
         <span className="text-sm font-semibold text-amber-700 flex items-center gap-1">
           ⚠️ You are viewing/editing <strong>{effectiveCompanyName}</strong>'s data, not Default's.
         </span>
+      )}
+      {!isSellerManagingOwnCompany && (
+        <>
+          <label className="text-sm font-medium text-gray-700 ml-2">Viewing language:</label>
+          <select
+            value={viewingLanguage}
+            onChange={(e) => setViewingLanguage(e.target.value)}
+            className="p-2 border-2 border-gray-300 rounded-lg text-sm font-medium"
+          >
+            <option value="en">English</option>
+            <option value="es">Español</option>
+            <option value="pt">Português</option>
+            <option value="zh">中文 (Chinese)</option>
+          </select>
+        </>
       )}
     </div>
   </div>
@@ -5284,8 +5321,88 @@ autoComplete="off"
   </div>
 )}
 
+{isAdmin && showDefaultOnlyTools && (
+  <div className="mt-4 bg-cyan-50 border-2 border-cyan-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
+    <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+      📊 Sellers & Demo Activity Overview
+    </h3>
+    <div className="bg-white rounded p-4">
+      <div className="flex items-center gap-2 mb-3 flex-wrap">
+        <label className="text-xs font-medium text-gray-600">Expiring within:</label>
+        <select
+          value={sellersOverviewWindow}
+          onChange={(e) => setSellersOverviewWindow(e.target.value)}
+          className="p-1.5 border-2 border-gray-200 rounded-lg text-xs"
+        >
+          <option value="7">Next 7 days</option>
+          <option value="30">Next 30 days</option>
+          <option value="90">Next 90 days</option>
+          <option value="all">Any time</option>
+        </select>
+        <span className="text-xs text-gray-400">— "Expired" IDs auto-clear the next time anyone loads the app.</span>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-xs">
+          <thead>
+            <tr className="border-b-2 border-gray-200 text-left text-gray-500">
+              <th className="py-2 pr-2">Seller</th>
+              <th className="py-2 pr-2">Companies</th>
+              <th className="py-2 pr-2">Groups</th>
+              <th className="py-2 pr-2">Active IDs</th>
+              <th className="py-2 pr-2">Expiring soon</th>
+              <th className="py-2 pr-2">Expired (pending cleanup)</th>
+              <th className="py-2 pr-2">Available (unassigned)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(() => {
+              const now = new Date();
+              const windowMs = sellersOverviewWindow === 'all' ? null : parseInt(sellersOverviewWindow) * 24 * 60 * 60 * 1000;
+              const rows = sellers.map(s => {
+                const sellerCompanies = companies.filter(c => c.created_by_seller_id === s.id);
+                const sellerGroups = demoGroups.filter(g => g.created_by_seller_id === s.id);
+                const sellerDemoIds = employees.filter(e => e.is_demo && e.created_by_seller_id === s.id);
+                const assigned = sellerDemoIds.filter(e => !!e.group_id);
+                const expired = assigned.filter(e => e.demo_expires_at && new Date(e.demo_expires_at) < now);
+                const active = assigned.filter(e => !e.demo_expires_at || new Date(e.demo_expires_at) >= now);
+                const expiringSoon = active.filter(e => e.demo_expires_at && windowMs !== null && (new Date(e.demo_expires_at) - now) <= windowMs);
+                const available = sellerDemoIds.filter(e => !e.group_id);
+                return {
+                  seller: s,
+                  companiesCount: sellerCompanies.length,
+                  groupsCount: sellerGroups.length,
+                  activeCount: active.length,
+                  expiringSoonCount: expiringSoon.length,
+                  expiredCount: expired.length,
+                  availableCount: available.length
+                };
+              });
+              if (rows.length === 0) {
+                return (
+                  <tr><td colSpan="7" className="py-4 text-center text-gray-400">No sellers yet.</td></tr>
+                );
+              }
+              return rows.map(r => (
+                <tr key={r.seller.id} className="border-b border-gray-100">
+                  <td className="py-2 pr-2 font-medium text-gray-800">{r.seller.name}</td>
+                  <td className="py-2 pr-2">{r.companiesCount}</td>
+                  <td className="py-2 pr-2">{r.groupsCount}</td>
+                  <td className="py-2 pr-2 text-green-700 font-medium">{r.activeCount}</td>
+                  <td className="py-2 pr-2 text-amber-700 font-medium">{r.expiringSoonCount}</td>
+                  <td className="py-2 pr-2 text-red-700 font-medium">{r.expiredCount}</td>
+                  <td className="py-2 pr-2 text-gray-500">{r.availableCount}</td>
+                </tr>
+              ));
+            })()}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+)}
 
-{isAdmin && (!masterMustRespectVisibility || companyMasterVisibility.includes('app_config')) && (
+
+{isAdmin && canManageThisCompany && (!masterMustRespectVisibility || companyMasterVisibility.includes('app_config')) && (
   <div className="mt-4 bg-indigo-50 border-2 border-indigo-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
       ⚙️ App Configuration
@@ -5569,7 +5686,7 @@ autoComplete="off"
           
 
 
-          {isAdmin && (!masterMustRespectVisibility || companyMasterVisibility.includes('quotes')) && (
+          {isAdmin && canManageThisCompany && (!masterMustRespectVisibility || companyMasterVisibility.includes('quotes')) && (
             <div className="mt-4 bg-green-50 border-2 border-green-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 <MessageCircle size={20} />
@@ -5722,7 +5839,7 @@ autoComplete="off"
             </div>
           )}
 
-          {isAdmin && (!masterMustRespectVisibility || companyMasterVisibility.includes('promotional_videos')) && (
+          {isAdmin && canManageThisCompany && (!masterMustRespectVisibility || companyMasterVisibility.includes('promotional_videos')) && (
             <div className="mt-4 bg-purple-50 border-2 border-purple-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 🎬 Manage Promotional Videos
@@ -5947,7 +6064,7 @@ autoComplete="off"
             </div>
           )}
 
-          {isAdmin && (!masterMustRespectVisibility || companyMasterVisibility.includes('content_pages')) && (
+          {isAdmin && canManageThisCompany && (!masterMustRespectVisibility || companyMasterVisibility.includes('content_pages')) && (
             <div className="mt-4 bg-blue-50 border-2 border-blue-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 <MessageCircle size={20} />
@@ -6217,7 +6334,7 @@ autoComplete="off"
 )}
        
 
-{isAdmin && (!masterMustRespectVisibility || companyMasterVisibility.includes('synthetic') || canBootstrapFirstAdmin) && (
+{isAdmin && canManageThisCompany && (!masterMustRespectVisibility || companyMasterVisibility.includes('synthetic') || canBootstrapFirstAdmin) && (
   <div className={`${showDefaultOnlyTools ? 'mt-4' : '-mt-4'} bg-slate-50 border-2 border-slate-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto`}>
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
       👥 Manage Employees
@@ -6380,7 +6497,7 @@ autoComplete="off"
   </div>
 )}
 
-{isAdmin && (!masterMustRespectVisibility || companyMasterVisibility.includes('metadata')) && (
+{isAdmin && canManageThisCompany && (!masterMustRespectVisibility || companyMasterVisibility.includes('metadata')) && (
   <div className="mt-4 bg-teal-50 border-2 border-teal-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
       🗂️ Manage Problem Categories
@@ -7195,7 +7312,7 @@ onClick={() => {
         })()}
 
 {/* Tabs estilo fichário — substitui os botões de navegação */}
-          {isAdmin && !isReadOnlyOrMasterManaging && (!masterMustRespectVisibility || companyMasterVisibility.includes('keyword_filter')) && (
+          {isAdmin && canManageThisCompany && !isReadOnlyOrMasterManaging && (!masterMustRespectVisibility || companyMasterVisibility.includes('keyword_filter')) && (
             <div className="mt-4 bg-yellow-50 border-2 border-yellow-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 <Search size={20} />
