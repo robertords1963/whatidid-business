@@ -267,6 +267,13 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
     const stored = localStorage.getItem('loggedInSellerId');
     return stored ? parseInt(stored) : null;
   });
+  // Idioma da PRÓPRIA conta que logou (employee comum ou Demo ID) — usado pra
+  // decidir em que idioma o Default aparece pra ela, sem precisar do seletor
+  // manual (esse é só pro Admin/seller navegando). Ex: um Demo ID marcado como
+  // 'es' vê o Default inteiro em espanhol automaticamente ao logar.
+  const [loggedInEmployeeLanguage, setLoggedInEmployeeLanguage] = useState(() => {
+    return localStorage.getItem('loggedInEmployeeLanguage') || null;
+  });
   // Pro Admin de uma empresa (não Default): 'own' (visão normal, editável) ou
   // 'sample' (conteúdo do Default, somente leitura, pra decidir o que importar).
   const [companyViewMode, setCompanyViewMode] = useState('own');
@@ -312,6 +319,11 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   // true quando o contexto ativo (seja por login direto, seja pelo dropdown do
   // Master) é o Default — usado só pra saber QUAL DADO está sendo mostrado.
   const isViewingDefault = effectiveCompanyId === defaultCompanyId;
+  // Idioma que efetivamente filtra o conteúdo do Default: se quem está
+  // navegando é Admin (Default Admin de verdade ou um seller), usa o seletor
+  // manual "Viewing language"; senão (Demo ID, employee comum) usa o idioma
+  // da própria conta que logou, automaticamente — sem precisar de seletor.
+  const effectiveViewingLanguage = isAdmin ? viewingLanguage : (loggedInEmployeeLanguage || 'en');
   // true só quando é o Admin do Default DE VERDADE, olhando pro próprio Default
   // (não um Admin de empresa espiando o Sample, que também usa dados do Default,
   // mas não deve ver as 5 seções exclusivas do Default).
@@ -403,7 +415,7 @@ useEffect(() => {
     loadPractices();
     loadAppSettings();
   }
-}, [effectiveCompanyId, viewingLanguage]);
+}, [effectiveCompanyId, effectiveViewingLanguage]);
 
 // Carrega a visibilidade que a própria empresa (não Default) liberou pro ADM Master
 // — usada tanto pra ela mesma configurar (seus próprios checkboxes) quanto pro
@@ -604,7 +616,7 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null) => {
       .select('*')
       .eq('company_id', effectiveCompanyId);
     if (isViewingDefault) {
-      query1 = query1.eq('language', viewingLanguage);
+      query1 = query1.eq('language', effectiveViewingLanguage);
     }
     const { data: batch1, error: error1 } = await query1
       .order('source', { ascending: true })
@@ -622,7 +634,7 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null) => {
       .select('*')
       .eq('company_id', effectiveCompanyId);
     if (isViewingDefault) {
-      query2 = query2.eq('language', viewingLanguage);
+      query2 = query2.eq('language', effectiveViewingLanguage);
     }
     const { data: batch2, error: error2 } = await query2
       .order('source', { ascending: true })
@@ -881,7 +893,7 @@ const loadProblemCategories = async (practiceId = null) => {
       .eq('company_id', effectiveCompanyId)
       .order('display_order', { ascending: true });
     if (isViewingDefault) {
-      query = query.eq('language', viewingLanguage);
+      query = query.eq('language', effectiveViewingLanguage);
     }
 
     if (practiceId) {
@@ -921,7 +933,7 @@ const loadDemoGroups = async () => {
       .from('demo_groups')
       .select(`
         *,
-        employees (employee_id, name, is_demo, group_id, demo_expires_at)
+        employees (employee_id, name, is_demo, group_id, demo_expires_at, language)
       `)
       .order('created_at', { ascending: false });
     // Se quem está logado é um seller (não o Default Admin), só vê os grupos
@@ -976,7 +988,11 @@ const createSeller = async () => {
         email: newSeller.email.trim(),
         company_id: defaultCompanyId,
         is_seller: true,
-        is_admin: false,
+        // Precisa ser true — todos os painéis do seller (Managing, Manage
+        // Companies, Manage Demo Groups) são condicionados a "isAdmin &&
+        // isSeller". isDefaultAdmin já exclui sellers separadamente, então
+        // isso não dá a ele acesso de Default Admin de verdade.
+        is_admin: true,
         status: 'pending',
         active: true
       }])
@@ -1076,7 +1092,7 @@ const loadPractices = async () => {
       .eq('active', true)
       .eq('company_id', effectiveCompanyId);
     if (isViewingDefault) {
-      query = query.eq('language', viewingLanguage);
+      query = query.eq('language', effectiveViewingLanguage);
     }
     const { data, error } = await query.order('display_order', { ascending: true });
     if (error) throw error;
@@ -1115,7 +1131,7 @@ const loadAdminCategories = async (practiceId) => {
       .eq('company_id', effectiveCompanyId)
       .order('display_order', { ascending: true });
     if (isViewingDefault) {
-      query = query.eq('language', viewingLanguage);
+      query = query.eq('language', effectiveViewingLanguage);
     }
     if (practiceId) {
       query = query.eq('practice_id', practiceId);
@@ -1888,6 +1904,11 @@ const handleEmployeeLogin = async () => {
     localStorage.removeItem('loggedInSellerId');
   }
 
+  // Guarda o idioma da própria conta (usado pra Demo IDs e employees comuns
+  // verem o Default automaticamente no idioma certo, sem precisar de seletor).
+  setLoggedInEmployeeLanguage(data.language || 'en');
+  localStorage.setItem('loggedInEmployeeLanguage', data.language || 'en');
+
   // Se esse employee é marcado como Admin, libera o modo Admin também
   if (data.is_admin) {
     setEmployeeIsAdmin(true);
@@ -1920,6 +1941,8 @@ const handleEmployeeLogin = async () => {
   localStorage.removeItem('loggedInEmployeeCompanyId');
   setLoggedInSellerId(null);
   localStorage.removeItem('loggedInSellerId');
+  setLoggedInEmployeeLanguage(null);
+  localStorage.removeItem('loggedInEmployeeLanguage');
   setAdminCompanyContext(null);
   // Reset filters
   setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '', industrySector: '' });
@@ -3141,7 +3164,7 @@ useEffect(() => {
         .eq('company_id', effectiveCompanyId)
         .order('id', { ascending: true });
       if (isViewingDefault) {
-        query = query.eq('language', viewingLanguage);
+        query = query.eq('language', effectiveViewingLanguage);
       }
       const { data, error } = await query;
       
@@ -6017,6 +6040,7 @@ autoComplete="off"
                   {(group.employees || []).map(emp => (
                     <span key={emp.employee_id} className="px-3 py-1 bg-pink-100 text-pink-800 rounded-full text-xs font-medium">
                       {emp.employee_id}
+                      <span className="text-pink-500 ml-1 uppercase">[{emp.language || 'en'}]</span>
                       {emp.demo_expires_at && (
                         <span className="text-pink-500 ml-1">
                           (Exp {new Date(emp.demo_expires_at).toLocaleDateString()})
@@ -6046,6 +6070,17 @@ autoComplete="off"
                     </option>
                   ))}
                 </select>
+                <select
+                  id={`add-member-lang-${group.id}`}
+                  title="Language the demo will show"
+                  defaultValue="en"
+                  className="p-2 border-2 border-gray-200 rounded-lg text-sm"
+                >
+                  <option value="en">English</option>
+                  <option value="es">Español</option>
+                  <option value="pt">Português</option>
+                  <option value="zh">中文</option>
+                </select>
                 <input
                   type="date"
                   id={`add-member-expiry-${group.id}`}
@@ -6056,10 +6091,15 @@ autoComplete="off"
                   onClick={async () => {
                     const empId = document.getElementById(`add-member-${group.id}`).value;
                     const expiryVal = document.getElementById(`add-member-expiry-${group.id}`).value;
+                    const langVal = document.getElementById(`add-member-lang-${group.id}`).value;
                     if (!empId) { alert('Please select an ID'); return; }
                     const { error } = await supabase
                       .from('employees')
-                      .update({ group_id: group.id, demo_expires_at: expiryVal ? new Date(expiryVal).toISOString() : null })
+                      .update({
+                        group_id: group.id,
+                        demo_expires_at: expiryVal ? new Date(expiryVal).toISOString() : null,
+                        language: langVal
+                      })
                       .eq('employee_id', empId);
                     if (error) { alert('Error adding member: ' + error.message); return; }
                     await loadDemoGroups();
