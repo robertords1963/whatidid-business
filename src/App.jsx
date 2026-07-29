@@ -442,6 +442,11 @@ const masterBlockedFromPublicTabs = masterMustRespectVisibility && !companyMaste
 // outra empresa (mesmo com visibilidade concedida, ele nunca deve poder
 // escrever de verdade nos dados reais de outra empresa por ali).
 const isReadOnlyOrMasterManaging = isReadOnlyView || masterMustRespectVisibility;
+// Exceção pro problema do ovo-e-galinha: uma empresa recém-criada não tem
+// nenhum ADM ainda pra liberar visibilidade pro Master/seller — então, se ela
+// não tem NENHUM employee, quem está gerenciando (Default Admin ou seller)
+// pode cadastrar o primeiro ADM independente das permissões de visibilidade.
+const canBootstrapFirstAdmin = !!adminCompanyContext && employees.length === 0;
 
 // Se entrar em modo Sample enquanto estava na aba "Share Your Experience"
 // (que não existe mais nesse modo), volta pra "See What Others Did".
@@ -974,8 +979,16 @@ const loadSellers = async () => {
 const createSeller = async () => {
   const sellerId = newSeller.employee_id.trim();
   const sellerName = newSeller.name.trim();
+  const sellerEmail = newSeller.email.trim().toLowerCase();
   if (!sellerId || !sellerName) {
     alert('Employee ID and Name are required');
+    return;
+  }
+  // Email é obrigatório aqui — o fluxo de "1st Access" busca por email +
+  // Employee ID juntos, então sem email o seller nunca consegue completar o
+  // cadastro (a busca não encontra nada e a tela trava sem enviar o código).
+  if (!sellerEmail) {
+    alert('Email is required — the seller needs it to complete 1st Access.');
     return;
   }
   setCreatingSeller(true);
@@ -985,7 +998,7 @@ const createSeller = async () => {
       .insert([{
         employee_id: sellerId,
         name: sellerName,
-        email: newSeller.email.trim(),
+        email: sellerEmail,
         company_id: defaultCompanyId,
         is_seller: true,
         // Precisa ser true — todos os painéis do seller (Managing, Manage
@@ -1037,6 +1050,38 @@ const toggleSellerActive = async (sellerRowId, active) => {
   } catch (error) {
     console.error('Error updating seller:', error);
     alert('Error updating seller');
+  }
+};
+
+// Apaga um seller: solta as referências em companies/demo_groups que ele
+// criou (viram "sem dono", não são apagadas — o trabalho de venda fica de
+// pé), limpa e apaga o pool de 10 Demo IDs dele, e por fim apaga a própria
+// conta do seller.
+const deleteSeller = async (sellerRowId, sellerName) => {
+  if (!window.confirm(`Delete seller "${sellerName}"? Their 10 demo IDs will be removed. Companies/groups they created will stay, just unlinked from them.`)) return;
+  try {
+    await supabase.from('companies').update({ created_by_seller_id: null }).eq('created_by_seller_id', sellerRowId);
+    await supabase.from('demo_groups').update({ created_by_seller_id: null }).eq('created_by_seller_id', sellerRowId);
+
+    const { data: demoEmps } = await supabase.from('employees').select('employee_id').eq('created_by_seller_id', sellerRowId);
+    for (const emp of demoEmps || []) {
+      await supabase.from('comments').delete().eq('employee_id', emp.employee_id);
+      const { data: exps } = await supabase.from('experiences').select('id, cv_url').eq('employee_id', emp.employee_id);
+      for (const exp of exps || []) {
+        if (exp.cv_url) await deleteFileFromStorage(exp.cv_url);
+      }
+      await supabase.from('experiences').delete().eq('employee_id', emp.employee_id);
+    }
+    await supabase.from('employees').delete().eq('created_by_seller_id', sellerRowId);
+    await supabase.from('employees').delete().eq('id', sellerRowId);
+
+    await loadSellers();
+    await loadCompanies();
+    await loadDemoGroups();
+    alert(`Seller "${sellerName}" deleted.`);
+  } catch (error) {
+    console.error('Error deleting seller:', error);
+    alert('Error deleting seller: ' + error.message);
   }
 };
 
@@ -1207,6 +1252,43 @@ const toggleCompanyActive = async (companyId, active) => {
     await loadCompanies();
   } catch (error) {
     console.error('Error updating company:', error);
+  }
+};
+
+// Apaga uma empresa e tudo que pertence só a ela: employees, experiences
+// (e os arquivos de CV no storage), comments, practices/categories/quotes
+// próprias (não as do Default), content pages, promotional videos, e a
+// entrada de visibilidade do Master. Nunca mexe no Default.
+const deleteCompany = async (companyId, companyName) => {
+  if (companyId === defaultCompanyId) {
+    alert('The Default company cannot be deleted.');
+    return;
+  }
+  if (!window.confirm(`Delete "${companyName}" permanently? This removes ALL its employees, experiences, comments and settings. This cannot be undone.`)) return;
+  try {
+    const { data: emps } = await supabase.from('employees').select('employee_id').eq('company_id', companyId);
+    for (const emp of emps || []) {
+      await supabase.from('comments').delete().eq('employee_id', emp.employee_id);
+      const { data: exps } = await supabase.from('experiences').select('id, cv_url').eq('employee_id', emp.employee_id);
+      for (const exp of exps || []) {
+        if (exp.cv_url) await deleteFileFromStorage(exp.cv_url);
+      }
+    }
+    await supabase.from('experiences').delete().eq('company_id', companyId);
+    await supabase.from('employees').delete().eq('company_id', companyId);
+    await supabase.from('practices').delete().eq('company_id', companyId);
+    await supabase.from('problem_categories').delete().eq('company_id', companyId);
+    await supabase.from('quotes').delete().eq('company_id', companyId);
+    await supabase.from('content_pages').delete().eq('company_id', companyId);
+    await supabase.from('promotional_videos').delete().eq('company_id', companyId);
+    await supabase.from('company_master_visibility').delete().eq('company_id', companyId);
+    await supabase.from('companies').delete().eq('id', companyId);
+    await loadCompanies();
+    if (adminCompanyContext === companyId) setAdminCompanyContext(null);
+    alert(`"${companyName}" deleted.`);
+  } catch (error) {
+    console.error('Error deleting company:', error);
+    alert('Error deleting company: ' + error.message);
   }
 };
 
@@ -5066,6 +5148,10 @@ autoComplete="off"
                 className={`px-2 py-1 rounded text-xs ${c.active ? 'bg-gray-400 hover:bg-gray-500 text-white' : 'bg-green-600 hover:bg-green-700 text-white'}`}>
                 {c.active ? 'Deactivate' : 'Activate'}
               </button>
+              <button onClick={() => deleteCompany(c.id, c.name)}
+                className="px-2 py-1 rounded text-xs bg-red-600 hover:bg-red-700 text-white">
+                🗑️ Delete
+              </button>
             </div>
           ))}
         </div>
@@ -5114,6 +5200,10 @@ autoComplete="off"
                 className={`px-2 py-1 rounded text-xs ${c.active ? 'bg-gray-400 hover:bg-gray-500 text-white' : 'bg-green-600 hover:bg-green-700 text-white'}`}>
                 {c.active ? 'Deactivate' : 'Activate'}
               </button>
+              <button onClick={() => deleteCompany(c.id, c.name)}
+                className="px-2 py-1 rounded text-xs bg-red-600 hover:bg-red-700 text-white">
+                🗑️ Delete
+              </button>
             </div>
           ))}
         </div>
@@ -5138,7 +5228,7 @@ autoComplete="off"
         <input type="text" value={newSeller.name} onChange={(e) => setNewSeller({...newSeller, name: e.target.value})}
           placeholder="Name *" className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
         <input type="email" value={newSeller.email} onChange={(e) => setNewSeller({...newSeller, email: e.target.value})}
-          placeholder="Email (optional)" className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
+          placeholder="Email *" className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
       </div>
       <button onClick={createSeller} disabled={creatingSeller}
         className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm hover:bg-teal-700 disabled:opacity-50">
@@ -5176,6 +5266,10 @@ autoComplete="off"
                 <button onClick={() => toggleSellerActive(s.id, !s.active)}
                   className={`px-2 py-1 rounded text-xs ${s.active ? 'bg-gray-400 hover:bg-gray-500 text-white' : 'bg-green-600 hover:bg-green-700 text-white'}`}>
                   {s.active ? 'Disable' : 'Enable'}
+                </button>
+                <button onClick={() => deleteSeller(s.id, s.name)}
+                  className="px-2 py-1 rounded text-xs bg-red-600 hover:bg-red-700 text-white">
+                  🗑️ Delete
                 </button>
               </div>
             );
@@ -6119,14 +6213,14 @@ autoComplete="off"
 )}
        
 
-{isAdmin && (!masterMustRespectVisibility || companyMasterVisibility.includes('synthetic')) && (
+{isAdmin && (!masterMustRespectVisibility || companyMasterVisibility.includes('synthetic') || canBootstrapFirstAdmin) && (
   <div className={`${showDefaultOnlyTools ? 'mt-4' : '-mt-4'} bg-slate-50 border-2 border-slate-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto`}>
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
       👥 Manage Employees
     </h3>
 
     {/* Add Employee */}
-    {!isReadOnlyOrMasterManaging && (
+    {(!isReadOnlyOrMasterManaging || canBootstrapFirstAdmin) && (
     <div className="bg-white rounded p-4 mb-4">
       <h4 className="font-medium text-gray-700 mb-3">Add Employee</h4>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
