@@ -1289,17 +1289,27 @@ const deleteCompany = async (companyId, companyName) => {
   }
   if (!window.confirm(`Delete "${companyName}" permanently? This removes ALL its employees, experiences, comments and settings. This cannot be undone.`)) return;
   try {
-    const { data: emps } = await supabase.from('employees').select('employee_id').eq('company_id', companyId);
-    for (const emp of emps || []) {
-      await supabase.from('comments').delete().eq('employee_id', emp.employee_id);
-      const { data: exps } = await supabase.from('experiences').select('id, cv_url').eq('employee_id', emp.employee_id);
-      for (const exp of exps || []) {
+    // Pega todas as experiences dessa empresa PRIMEIRO, pra poder limpar
+    // comments e top_experiences por experience_id antes de apagar as
+    // experiences em si — apagar as experiences antes quebra a constraint de
+    // chave estrangeira de quem ainda as referencia (esse era o bug real).
+    const { data: exps, error: expsError } = await supabase
+      .from('experiences').select('id, cv_url').eq('company_id', companyId);
+    if (expsError) throw expsError;
+    const expIds = (exps || []).map(e => e.id);
+
+    if (expIds.length > 0) {
+      await supabase.from('comments').delete().in('experience_id', expIds);
+      await supabase.from('top_experiences').delete().in('experience_id', expIds);
+      for (const exp of exps) {
         if (exp.cv_url) await deleteFileFromStorage(exp.cv_url);
       }
+      const { error: expDeleteError } = await supabase.from('experiences').delete().in('id', expIds);
+      if (expDeleteError) throw expDeleteError;
     }
-    await supabase.from('experiences').delete().eq('company_id', companyId);
-    await supabase.from('top_experiences').delete().eq('company_id', companyId);
-    await supabase.from('employees').delete().eq('company_id', companyId);
+
+    const { error: empDeleteError } = await supabase.from('employees').delete().eq('company_id', companyId);
+    if (empDeleteError) throw empDeleteError;
     await supabase.from('practices').delete().eq('company_id', companyId);
     await supabase.from('problem_categories').delete().eq('company_id', companyId);
     await supabase.from('quotes').delete().eq('company_id', companyId);
@@ -1307,8 +1317,11 @@ const deleteCompany = async (companyId, companyName) => {
     await supabase.from('promotional_videos').delete().eq('company_id', companyId);
     await supabase.from('company_master_visibility').delete().eq('company_id', companyId);
     await supabase.from('app_settings').delete().eq('company_id', companyId);
-    const { error: deleteError } = await supabase.from('companies').delete().eq('id', companyId);
+    const { error: deleteError, count } = await supabase.from('companies').delete({ count: 'exact' }).eq('id', companyId);
     if (deleteError) throw deleteError;
+    if (!count) {
+      throw new Error('Delete returned no rows affected — check RLS policies on the "companies" table (the anon key may not have DELETE permission).');
+    }
     await loadCompanies();
     if (adminCompanyContext === companyId) setAdminCompanyContext(null);
     alert(`"${companyName}" deleted.`);
