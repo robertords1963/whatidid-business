@@ -938,7 +938,7 @@ const loadDemoGroups = async () => {
       .from('demo_groups')
       .select(`
         *,
-        employees (employee_id, name, is_demo, group_id, demo_expires_at, language)
+        employees!group_id (employee_id, name, is_demo, group_id, demo_expires_at, language)
       `)
       .order('created_at', { ascending: false });
     // Se quem está logado é um seller (não o Default Admin), só vê os grupos
@@ -1073,7 +1073,8 @@ const deleteSeller = async (sellerRowId, sellerName) => {
       await supabase.from('experiences').delete().eq('employee_id', emp.employee_id);
     }
     await supabase.from('employees').delete().eq('created_by_seller_id', sellerRowId);
-    await supabase.from('employees').delete().eq('id', sellerRowId);
+    const { error: deleteError } = await supabase.from('employees').delete().eq('id', sellerRowId);
+    if (deleteError) throw deleteError;
 
     await loadSellers();
     await loadCompanies();
@@ -1275,6 +1276,7 @@ const deleteCompany = async (companyId, companyName) => {
       }
     }
     await supabase.from('experiences').delete().eq('company_id', companyId);
+    await supabase.from('top_experiences').delete().eq('company_id', companyId);
     await supabase.from('employees').delete().eq('company_id', companyId);
     await supabase.from('practices').delete().eq('company_id', companyId);
     await supabase.from('problem_categories').delete().eq('company_id', companyId);
@@ -1282,7 +1284,9 @@ const deleteCompany = async (companyId, companyName) => {
     await supabase.from('content_pages').delete().eq('company_id', companyId);
     await supabase.from('promotional_videos').delete().eq('company_id', companyId);
     await supabase.from('company_master_visibility').delete().eq('company_id', companyId);
-    await supabase.from('companies').delete().eq('id', companyId);
+    await supabase.from('app_settings').delete().eq('company_id', companyId);
+    const { error: deleteError } = await supabase.from('companies').delete().eq('id', companyId);
+    if (deleteError) throw deleteError;
     await loadCompanies();
     if (adminCompanyContext === companyId) setAdminCompanyContext(null);
     alert(`"${companyName}" deleted.`);
@@ -1802,7 +1806,7 @@ const handleAccountAccessLookup = async () => {
   try {
     const { data, error } = await supabase
       .from('employees')
-      .select('*, companies(name)')
+      .select('*, companies!company_id(name)')
       .eq('email', accountAccessEmail.trim().toLowerCase())
       .eq('employee_id', accountAccessEmployeeId.trim())
       .eq('active', true);
