@@ -455,11 +455,14 @@ const masterBlockedFromPublicTabs = masterMustRespectVisibility && !companyMaste
 // escrever de verdade nos dados reais de outra empresa por ali).
 const isReadOnlyOrMasterManaging = isReadOnlyView || masterMustRespectVisibility;
 // Exceção pro problema do ovo-e-galinha: uma empresa recém-criada não tem
-// nenhum ADM ainda pra liberar visibilidade pro Master/seller — então, se ela
-// não tem NENHUM employee, quem está gerenciando (Default Admin OU seller,
-// ambos via "Managing") pode cadastrar o primeiro ADM independente das
-// permissões de visibilidade.
-const canBootstrapFirstAdmin = !!adminCompanyContext && employees.length === 0;
+// nenhum ADM ainda pra liberar visibilidade pro Master/seller — então, enquanto
+// ela não tiver NENHUM employee com is_admin=true, quem está gerenciando
+// (Default Admin OU seller, ambos via "Managing") pode continuar usando Manage
+// Employees independente das permissões de visibilidade. Importante: o
+// critério é "sem ADM ainda", não "sem employees" — senão a seção sumiria
+// assim que o primeiro employee comum (não-admin) fosse cadastrado, antes
+// mesmo do ADM em si existir.
+const canBootstrapFirstAdmin = !!adminCompanyContext && !employees.some(e => e.is_admin);
 // true só quando dá pra gerenciar de verdade os dados de UMA empresa (Manage
 // Employees, Manage Categories/Practices, Quotes, Content Pages, App Config,
 // etc.). Verdadeiro pra todo mundo (Default Admin, Admin de empresa comum)
@@ -1443,6 +1446,11 @@ const importSyntheticContent = async () => {
   try {
     // Practices/Categories já existentes no destino (por nome, não por import_from)
     const { data: targetPractices } = await supabase.from('practices').select('*').eq('company_id', effectiveCompanyId);
+    if (!targetPractices || targetPractices.length === 0) {
+      alert('Import Metadata first — Synthetic/Curated Content links to Practices/Categories, which this company doesn\'t have yet.');
+      setImportingBundle(false);
+      return;
+    }
     const practiceIdByName = {};
     (targetPractices || []).forEach(p => { practiceIdByName[p.name] = p.id; });
 
@@ -2718,6 +2726,20 @@ const [currentCvUrl, setCurrentCvUrl] = useState(null);
   const [showKeyInsights, setShowKeyInsights] = useState(false);
   const [keyInsightCategory, setKeyInsightCategory] = useState('');
   const [filterMode, setFilterMode] = useState('individual');
+
+  // Categoria, practice e tags são texto específico do idioma (o nome muda
+  // por idioma, já que cada tradução é uma linha própria) — se o idioma de
+  // visualização mudar com um desses filtros ainda selecionado, o valor
+  // antigo nunca vai bater com nada na lista nova, zerando os resultados em
+  // silêncio (foi exatamente o bug que zerava "Individual Experiences" ao
+  // trocar pra chinês, enquanto "Key Insights" — que usa outro filtro — ficava
+  // ok). Resetar tudo isso sempre que o idioma efetivo mudar.
+  useEffect(() => {
+    setFilters(prev => ({ ...prev, problemCategory: '' }));
+    setFilterPracticeId(null);
+    setFilterTags([]);
+    setKeyInsightCategory('');
+  }, [effectiveViewingLanguage]);
   
   const [userRatings, setUserRatings] = useState({});
   const [ratedInSession, setRatedInSession] = useState(new Set());
@@ -4918,6 +4940,11 @@ autoComplete="off"
                     // pessoa — não deixa "preso" navegando como outra empresa.
                     setAdminCompanyContext(null);
                     setCompanyViewMode('own');
+                    // Herda o idioma que estava selecionado no seletor manual,
+                    // pra não voltar de supetão pro inglês só porque saiu do
+                    // modo Admin — mantém a navegação contínua no mesmo idioma.
+                    setLoggedInEmployeeLanguage(viewingLanguage);
+                    localStorage.setItem('loggedInEmployeeLanguage', viewingLanguage);
                   }}
                   className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors"
                 >
@@ -5137,6 +5164,9 @@ autoComplete="off"
           <td className="py-2">
             <p>Synthetic/Curated Content</p>
             <p className="text-xs text-gray-400 font-normal">Individual Experiences, Top 3, Employees, Key Insights</p>
+            {practices.length === 0 && !selectedForImport.includes('metadata') && (
+              <p className="text-xs text-amber-600 font-normal">⚠️ Import Metadata first (or check it together) — Content links to it.</p>
+            )}
           </td>
           <td className="py-2 text-center">
             <input type="checkbox" checked={companyMasterVisibility.includes('synthetic')}
@@ -5144,8 +5174,9 @@ autoComplete="off"
           </td>
           <td className="py-2 text-center">
             <input type="checkbox" checked={selectedForImport.includes('synthetic')}
+              disabled={practices.length === 0 && !selectedForImport.includes('metadata')}
               onChange={(e) => setSelectedForImport(e.target.checked ? [...selectedForImport, 'synthetic'] : selectedForImport.filter(k => k !== 'synthetic'))}
-              className="w-4 h-4" />
+              className="w-4 h-4 disabled:opacity-30" />
           </td>
         </tr>
 
@@ -5214,7 +5245,7 @@ autoComplete="off"
   </div>
 )}
 
-{isAdmin && isDefaultAdmin && (
+{isAdmin && showDefaultOnlyTools && (
   <div className="mt-4 bg-indigo-50 border-2 border-indigo-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
       🏢 Manage Companies
@@ -5247,6 +5278,11 @@ autoComplete="off"
             <div key={c.id} className="flex items-center gap-3 p-2 border border-gray-200 rounded-lg flex-wrap">
               <span className="text-sm font-medium text-gray-800 flex-1 min-w-32">{c.name}</span>
               <span className="text-xs text-gray-500 font-mono">{c.code}</span>
+              <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-slate-100 text-slate-600">
+                By: {c.created_by_seller_id
+                  ? (sellers.find(s => s.id === c.created_by_seller_id)?.name || 'Unknown seller')
+                  : 'Default Admin'}
+              </span>
               <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${c.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
                 {c.active ? 'Active' : 'Inactive'}
               </span>
@@ -5266,7 +5302,7 @@ autoComplete="off"
   </div>
 )}
 
-{isAdmin && isDefaultAdmin && (
+{isAdmin && showDefaultOnlyTools && (
   <div className="mt-4 bg-teal-50 border-2 border-teal-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
       🧑‍💼 Manage Sellers
