@@ -159,6 +159,12 @@ export default function WhatIDid() {
   const [deletionCategory, setDeletionCategory] = useState('');
   const [deletionCategoriesForPractice, setDeletionCategoriesForPractice] = useState([]);
   const [confirmDeleteAll, setConfirmDeleteAll] = useState(false);
+  const [confirmDeleteAllExperiences, setConfirmDeleteAllExperiences] = useState(false);
+  // Empresa marcada via radio button no "Manage Companies" — é o que a opção
+  // "Company"/"Companies" do dropdown de contexto aponta, tanto pro Default
+  // Admin quanto pro Seller. Existe separado de adminCompanyContext pra
+  // "lembrar" a escolha mesmo quando o dropdown está em "Default".
+  const [selectedCompanyForContext, setSelectedCompanyForContext] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [loading, setLoading] = useState(true);
   const [experiences, setExperiences] = useState([]);
@@ -684,7 +690,7 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null) => {
   // Marca essa chamada como a mais recente.
   latestExperiencesRequestRef.current += 1;
   const thisRequestId = latestExperiencesRequestRef.current;
-  console.log(`🔵 loadExperiences #${thisRequestId} INICIOU — company=${effectiveCompanyId}, lang=${effectiveViewingLanguage}, isViewingDefault=${isViewingDefault}, demoSession=${currentDemoSessionId}`);
+  console.log(`🔵 loadExperiences #${thisRequestId} INICIOU — company=${effectiveCompanyId}, lang=${effectiveViewingLanguage}, isViewingDefault=${isViewingDefault}, demoSession=${currentDemoSessionId}, skipLoading=${skipLoading}`);
   try {
     if (!skipLoading) {
       setLoading(true);
@@ -852,7 +858,13 @@ const orderedSynthetic = shuffleOrderRef.current
   .filter(Boolean);
 
 const allExps = [...keyInsights, ...userExps, ...orderedSynthetic];
-if (latestExperiencesRequestRef.current !== thisRequestId) {
+// Chamadas explícitas (skipLoading=true — sempre disparadas manualmente logo
+// depois de uma ação concluída, tipo import, delete, editar) NUNCA são
+// descartadas por essa checagem: elas representam "acabei de mudar dados,
+// recarregue agora" e têm que vencer sempre, mesmo que outra chamada
+// automática (do useEffect) tenha corrido em paralelo. Só as automáticas
+// (skipLoading=false) competem entre si por essa checagem.
+if (!skipLoading && latestExperiencesRequestRef.current !== thisRequestId) {
   console.log('🟠 loadExperiences IGNOROU resultado desatualizado — request #', thisRequestId, 'mas o mais recente agora é #', latestExperiencesRequestRef.current);
   return;
 }
@@ -1179,6 +1191,27 @@ const deleteSeller = async (sellerRowId, sellerName) => {
 // de página, disparada por QUALQUER usuário (não só sellers/Admin) — sem cron,
 // sem Edge Function. Libera o ID de volta pro pool (não apaga o employee, ele
 // é reutilizável), limpando as experiences/comments que ele gerou na demo.
+// Sai do modo Admin — usado tanto pelo botão "Logout ADM" quanto pelo link
+// "Admin Mode" do rodapé. Compartilhado de propósito: os dois precisam se
+// comportar EXATAMENTE igual, senão um deles fica com o bug de reverter o
+// idioma pro inglês (foi exatamente isso que aconteceu quando só um dos dois
+// tinha a correção).
+const exitAdminMode = () => {
+  setIsAdmin(false);
+  localStorage.removeItem('isAdmin');
+  setAdminKeywords('');
+  setShowAdminLogin(false);
+  // Ao sair do Admin, sempre volta pro próprio contexto da pessoa — não deixa
+  // "preso" navegando como outra empresa.
+  setAdminCompanyContext(null);
+  setCompanyViewMode('own');
+  // Herda o idioma que estava selecionado no seletor manual, pra não voltar de
+  // supetão pro inglês só porque saiu do modo Admin — mantém a navegação
+  // contínua no mesmo idioma.
+  setLoggedInEmployeeLanguage(viewingLanguage);
+  localStorage.setItem('loggedInEmployeeLanguage', viewingLanguage);
+};
+
 const runExpiredDemoCleanup = async () => {
   try {
     const { data: expired, error } = await supabase
@@ -1367,15 +1400,19 @@ const addCompany = async () => {
   }
   const code = newCompany.code.trim() || newCompany.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-');
   try {
-    const { error } = await supabase.from('companies').insert([{
+    const { data, error } = await supabase.from('companies').insert([{
       name: newCompany.name.trim(),
       code: code,
       active: true,
       created_by_seller_id: isSeller ? loggedInSellerId : null
-    }]);
+    }]).select().single();
     if (error) throw error;
     setNewCompany({ name: '', code: '' });
     await loadCompanies();
+    // A empresa recém-criada vira o default de "Company" no dropdown de
+    // contexto — não muda o contexto sozinho, só fica pronta caso escolham
+    // "Company" a seguir.
+    if (data) setSelectedCompanyForContext(data.id);
     alert('Company added successfully!');
   } catch (error) {
     console.error('Error adding company:', error);
@@ -1785,6 +1822,9 @@ const runImportForSelected = async () => {
   if (selectedForImport.includes('quotes')) await importQuotesFromDefault();
   if (selectedForImport.includes('promotional_videos')) await importPromotionalVideos();
   if (selectedForImport.includes('content_pages')) await importContentPages();
+  // Reseta os checkboxes depois de concluído — sem isso ficam "grudados" com
+  // a seleção anterior, dando a impressão de que só uma parte ficou disponível.
+  setSelectedForImport([]);
 };
 
 // Apaga uma Category e, em cascata, as Experiences/Key Insights ligadas a ela
@@ -3949,6 +3989,29 @@ const handleDeleteAllMatches = async () => {
   }
 };
 
+// Botão explícito e separado pra "Function/Practice = All, Category = All,
+// sem keyword" — o getKeywordMatches() de propósito NÃO trata "tudo em
+// branco" como "apagar tudo" (evita acidente), então essa ação precisa ser
+// deliberada, com o próprio botão dizendo claramente o que vai fazer.
+const handleDeleteAllExperiences = async () => {
+  const allIds = experiences.map(e => e.id);
+  if (allIds.length === 0) { alert('No experiences to delete.'); return; }
+  if (!confirmDeleteAllExperiences) {
+    setConfirmDeleteAllExperiences(true);
+    return;
+  }
+  setConfirmDeleteAllExperiences(false);
+  try {
+    for (const expId of allIds) {
+      await deleteExperienceFromSupabase(expId);
+    }
+    alert(`Deleted all ${allIds.length} experience(s).`);
+  } catch (error) {
+    console.error('Error deleting all experiences:', error);
+    alert('Error deleting some items: ' + error.message);
+  }
+};
+
   const getResultColor = (category) => resultCategories.find(r => r.value === category)?.color || '';
   const getResultLabel = (category) => resultCategories.find(r => r.value === category)?.label || '';
 
@@ -5072,21 +5135,7 @@ autoComplete="off"
                   <h3 className="font-semibold text-purple-800">Admin Mode Active</h3>
                 </div>
                 <button
-                  onClick={() => { 
-                    setIsAdmin(false);
-                    localStorage.removeItem('isAdmin');
-                    setAdminKeywords(''); 
-                    setShowAdminLogin(false);
-                    // Ao sair do Admin, sempre volta pro próprio contexto da
-                    // pessoa — não deixa "preso" navegando como outra empresa.
-                    setAdminCompanyContext(null);
-                    setCompanyViewMode('own');
-                    // Herda o idioma que estava selecionado no seletor manual,
-                    // pra não voltar de supetão pro inglês só porque saiu do
-                    // modo Admin — mantém a navegação contínua no mesmo idioma.
-                    setLoggedInEmployeeLanguage(viewingLanguage);
-                    localStorage.setItem('loggedInEmployeeLanguage', viewingLanguage);
-                  }}
+                  onClick={exitAdminMode}
                   className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors"
                 >
                   Logout ADM
@@ -5101,34 +5150,17 @@ autoComplete="off"
     <div className="flex items-center gap-3 flex-wrap">
       <label className="text-sm font-medium text-gray-700">Managing:</label>
       <select
-        value={adminCompanyContext || ''}
-        onChange={(e) => setAdminCompanyContext(e.target.value ? parseInt(e.target.value) : null)}
+        value={adminCompanyContext ? 'company' : 'default'}
+        onChange={(e) => setAdminCompanyContext(e.target.value === 'company' ? (selectedCompanyForContext || companies.filter(c => c.code !== 'default').slice(-1)[0]?.id || null) : null)}
         className="p-2 border-2 border-gray-300 rounded-lg text-sm font-medium"
       >
-        <option value="">Default</option>
-        {companies.filter(c => c.code !== 'default').map(c => (
-          <option key={c.id} value={c.id}>{c.name}</option>
-        ))}
+        <option value="default">Default</option>
+        <option value="company">Company</option>
       </select>
       {adminCompanyContext && (
         <span className="text-sm font-semibold text-amber-700 flex items-center gap-1">
-          ⚠️ You are viewing/editing <strong>{effectiveCompanyName}</strong>'s data, not Default's.
+          ⚠️ You are viewing/editing <strong>{effectiveCompanyName}</strong>'s data, not Default's. Pick which one in "Manage Companies" below.
         </span>
-      )}
-      {!adminCompanyContext && (
-        <>
-          <label className="text-sm font-medium text-gray-700 ml-2">Viewing language:</label>
-          <select
-            value={viewingLanguage}
-            onChange={(e) => setViewingLanguage(e.target.value)}
-            className="p-2 border-2 border-gray-300 rounded-lg text-sm font-medium"
-          >
-            <option value="en">English</option>
-            <option value="es">Español</option>
-            <option value="pt">Português</option>
-            <option value="zh">中文 (Chinese)</option>
-          </select>
-        </>
       )}
     </div>
   </div>
@@ -5137,36 +5169,19 @@ autoComplete="off"
 {isAdmin && isSeller && (
   <div className={`mt-4 rounded-lg shadow-md p-4 max-w-4xl mx-auto border-2 ${isSellerManagingOwnCompany ? 'bg-amber-50 border-amber-400' : 'bg-gray-50 border-gray-300'}`}>
     <div className="flex items-center gap-3 flex-wrap">
-      <label className="text-sm font-medium text-gray-700">Managing:</label>
+      <label className="text-sm font-medium text-gray-700">Context:</label>
       <select
-        value={adminCompanyContext || ''}
-        onChange={(e) => setAdminCompanyContext(e.target.value ? parseInt(e.target.value) : null)}
+        value={adminCompanyContext ? 'company' : 'seller'}
+        onChange={(e) => setAdminCompanyContext(e.target.value === 'company' ? (selectedCompanyForContext || companies.filter(c => c.created_by_seller_id === loggedInSellerId).slice(-1)[0]?.id || null) : null)}
         className="p-2 border-2 border-gray-300 rounded-lg text-sm font-medium"
       >
-        <option value="">Default (browsing/demoing)</option>
-        {companies.filter(c => c.created_by_seller_id === loggedInSellerId).map(c => (
-          <option key={c.id} value={c.id}>{c.name}</option>
-        ))}
+        <option value="seller">My Seller View</option>
+        <option value="company">Company</option>
       </select>
       {isSellerManagingOwnCompany && (
         <span className="text-sm font-semibold text-amber-700 flex items-center gap-1">
-          ⚠️ You are viewing/editing <strong>{effectiveCompanyName}</strong>'s data, not Default's.
+          ⚠️ You are viewing/editing <strong>{effectiveCompanyName}</strong>'s data. Pick which one in "Manage Companies" below.
         </span>
-      )}
-      {!isSellerManagingOwnCompany && (
-        <>
-          <label className="text-sm font-medium text-gray-700 ml-2">Viewing language:</label>
-          <select
-            value={viewingLanguage}
-            onChange={(e) => setViewingLanguage(e.target.value)}
-            className="p-2 border-2 border-gray-300 rounded-lg text-sm font-medium"
-          >
-            <option value="en">English</option>
-            <option value="es">Español</option>
-            <option value="pt">Português</option>
-            <option value="zh">中文 (Chinese)</option>
-          </select>
-        </>
       )}
     </div>
   </div>
@@ -5299,9 +5314,8 @@ autoComplete="off"
           </td>
           <td className="py-2 text-center">
             <input type="checkbox" checked={selectedForImport.includes('metadata')}
-              disabled={practices.length > 0}
               onChange={(e) => setSelectedForImport(e.target.checked ? [...selectedForImport, 'metadata'] : selectedForImport.filter(k => k !== 'metadata'))}
-              className="w-4 h-4 disabled:opacity-30" />
+              className="w-4 h-4" />
           </td>
         </tr>
 
@@ -5369,6 +5383,9 @@ autoComplete="off"
         <div className="space-y-2">
           {companies.filter(c => c.created_by_seller_id === loggedInSellerId).map(c => (
             <div key={c.id} className="flex items-center gap-3 p-2 border border-gray-200 rounded-lg flex-wrap">
+              <input type="radio" name="context-company" checked={selectedCompanyForContext === c.id}
+                onChange={() => { setSelectedCompanyForContext(c.id); setAdminCompanyContext(c.id); }}
+                title="Set as the 'Company' the context dropdown points to" className="w-4 h-4" />
               <span className="text-sm font-medium text-gray-800 flex-1 min-w-32">{c.name}</span>
               <span className="text-xs text-gray-500 font-mono">{c.code}</span>
               <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${c.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
@@ -5419,8 +5436,11 @@ autoComplete="off"
         <p className="text-sm text-gray-400">No companies yet.</p>
       ) : (
         <div className="space-y-2">
-          {companies.map(c => (
+          {companies.filter(c => c.code !== 'default').map(c => (
             <div key={c.id} className="flex items-center gap-3 p-2 border border-gray-200 rounded-lg flex-wrap">
+              <input type="radio" name="context-company" checked={selectedCompanyForContext === c.id}
+                onChange={() => { setSelectedCompanyForContext(c.id); setAdminCompanyContext(c.id); }}
+                title="Set as the 'Company' the context dropdown points to" className="w-4 h-4" />
               <span className="text-sm font-medium text-gray-800 flex-1 min-w-32">{c.name}</span>
               <span className="text-xs text-gray-500 font-mono">{c.code}</span>
               <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-slate-100 text-slate-600">
@@ -7513,6 +7533,17 @@ onClick={() => {
                 Manage Deletion
               </h3>
               <div className="space-y-3">
+                <div className="bg-red-50 border-2 border-red-300 rounded p-3 flex items-center justify-between flex-wrap gap-2">
+                  <p className="text-sm text-red-800">
+                    ⚠️ Ignores every filter above — deletes <strong>all {experiences.length}</strong> experience(s) in this company.
+                  </p>
+                  <button
+                    onClick={handleDeleteAllExperiences}
+                    className={`px-3 py-1.5 rounded text-sm text-white whitespace-nowrap ${confirmDeleteAllExperiences ? 'bg-red-900' : 'bg-red-700 hover:bg-red-800'}`}
+                  >
+                    {confirmDeleteAllExperiences ? `Confirm delete ALL ${experiences.length} experience(s)?` : '🗑️ Delete ALL Experiences'}
+                  </button>
+                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-2">Function / Practice</label>
@@ -7671,14 +7702,27 @@ onClick={() => {
     <p className="text-purple-800 text-sm font-medium">
       🎬 Demo Mode — anything you add here is invisible to everyone else and gets deleted automatically when you leave.
     </p>
-    {currentDemoSessionId && (
-      <button
-        onClick={() => { if (window.confirm('Delete everything added in this demo session?')) deleteDemoSession(currentDemoSessionId); }}
-        className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-medium whitespace-nowrap"
+    <div className="flex items-center gap-2">
+      <select
+        value={viewingLanguage}
+        onChange={(e) => setViewingLanguage(e.target.value)}
+        className="p-1.5 border-2 border-purple-300 rounded-lg text-xs font-medium bg-white"
+        title="Language"
       >
-        🗑️ Delete Last Demo
-      </button>
-    )}
+        <option value="en">English</option>
+        <option value="es">Español</option>
+        <option value="pt">Português</option>
+        <option value="zh">中文 (Chinese)</option>
+      </select>
+      {currentDemoSessionId && (
+        <button
+          onClick={() => { if (window.confirm('Delete everything added in this demo session?')) deleteDemoSession(currentDemoSessionId); }}
+          className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-medium whitespace-nowrap"
+        >
+          🗑️ Delete Last Demo
+        </button>
+      )}
+    </div>
   </div>
 )}
 
@@ -10426,13 +10470,7 @@ onClick={() => {
                   <button
                     onClick={() => {
                       if (isAdmin) {
-                        setIsAdmin(false);
-                        localStorage.removeItem('isAdmin');
-                        setAdminKeywords('');
-                        // Ao sair do Admin, sempre volta pro próprio contexto
-                        // da pessoa — não deixa "preso" navegando como outra empresa.
-                        setAdminCompanyContext(null);
-                        setCompanyViewMode('own');
+                        exitAdminMode();
                       } else {
                         setIsAdmin(true);
                         localStorage.setItem('isAdmin', 'true');
