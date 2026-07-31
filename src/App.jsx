@@ -160,6 +160,8 @@ export default function WhatIDid() {
   const [deletionCategoriesForPractice, setDeletionCategoriesForPractice] = useState([]);
   const [confirmDeleteAll, setConfirmDeleteAll] = useState(false);
   const [confirmDeleteAllExperiences, setConfirmDeleteAllExperiences] = useState(false);
+  const [deletionDataType, setDeletionDataType] = useState('all');
+  const [deletionSource, setDeletionSource] = useState('all');
   // Empresa marcada via radio button no "Manage Companies" — é o que a opção
   // "Company"/"Companies" do dropdown de contexto aponta, tanto pro Default
   // Admin quanto pro Seller. Existe separado de adminCompanyContext pra
@@ -283,14 +285,6 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   const [loggedInEmployeeLanguage, setLoggedInEmployeeLanguage] = useState(() => {
     return localStorage.getItem('loggedInEmployeeLanguage') || null;
   });
-  // ID da "sessão demo" ativa do Master/Seller — qualquer Experience/Comment
-  // criado enquanto isMasterOrSellerDirectDefaultSession for true leva essa
-  // marca, fica visível só pra essa própria sessão, e é apagado ao sair (ou
-  // manualmente via "Delete Last Demo"). Persistido em localStorage pra
-  // sobreviver a um refresh de página no meio da demo.
-  const [demoSessionId, setDemoSessionId] = useState(() => {
-    return localStorage.getItem('demoSessionId') || null;
-  });
   // Pro Admin de uma empresa (não Default): 'own' (visão normal, editável) ou
   // 'sample' (conteúdo do Default, somente leitura, pra decidir o que importar).
   const [companyViewMode, setCompanyViewMode] = useState('own');
@@ -310,7 +304,12 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   // Default (Admin do Default olhando pra ele mesmo, ou uma empresa em modo
   // Sample) — não afeta empresas vendo os próprios dados (cada uma só tem o
   // idioma que escolheu importar). Padrão inglês.
-  const [viewingLanguage, setViewingLanguage] = useState('en');
+  const [viewingLanguage, setViewingLanguage] = useState(() => {
+    return localStorage.getItem('viewingLanguage') || 'en';
+  });
+  useEffect(() => {
+    localStorage.setItem('viewingLanguage', viewingLanguage);
+  }, [viewingLanguage]);
   const defaultCompanyId = companies.find(c => c.code === 'default')?.id || null;
   // Só o Admin do Default pode navegar entre empresas pelo dropdown — qualquer
   // outra empresa só vê e opera sobre os próprios dados, sempre.
@@ -348,13 +347,16 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   // login direto (signin cai aqui por padrão, sem adminCompanyContext) e saída
   // do ADM ("Logout ADM" zera adminCompanyContext). Em qualquer desses casos,
   // tudo que for criado é tratado como demo: efêmero, invisível pra mais
-  // ninguém, apagado ao sair.
-  const isMasterOrSellerDirectDefaultSession = (isDefaultAdmin || isSeller) && effectiveCompanyId === defaultCompanyId && !adminCompanyContext;
+  // ninguém, apagado ao sair. Precisa vir ANTES de effectiveViewingLanguage,
+  // que depende dela.
+  const isDemoModeActive = (isDefaultAdmin || isSeller) && isViewingDefault;
   // Idioma que efetivamente filtra o conteúdo do Default: se quem está
-  // navegando é Admin (Default Admin de verdade ou um seller), usa o seletor
-  // manual "Viewing language"; senão (Demo ID, employee comum) usa o idioma
-  // da própria conta que logou, automaticamente — sem precisar de seletor.
-  const effectiveViewingLanguage = isAdmin ? viewingLanguage : (loggedInEmployeeLanguage || 'en');
+  // navegando é Master/Seller em modo demo (dentro OU fora do painel Admin —
+  // por isso "isDemoModeActive" e não "isAdmin", já que o seletor manual
+  // agora vive na faixa "Demo Mode", visível mesmo depois de sair do Admin),
+  // usa o seletor manual "Viewing language"; senão (Demo ID, employee comum)
+  // usa o idioma da própria conta que logou, automaticamente.
+  const effectiveViewingLanguage = isDemoModeActive ? viewingLanguage : (loggedInEmployeeLanguage || 'en');
   // true só quando é o Admin do Default DE VERDADE, olhando pro próprio Default
   // (não um Admin de empresa espiando o Sample, que também usa dados do Default,
   // mas não deve ver as 5 seções exclusivas do Default).
@@ -365,13 +367,6 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   // leitura/escrita completa no que estão vendo (Default ou empresa própria),
   // igual um ID de demo.
   const isReadOnlyView = !isDefaultAdmin && !isSeller && companyViewMode === 'sample';
-  // true quando quem está navegando é Master ou Seller, olhando o Default
-  // DIRETO (fora de "Managing uma empresa real") — nesse caso, TUDO que for
-  // criado (Experience, comentário) é tratado como demo: efêmero, e invisível
-  // pra qualquer outra pessoa até ser apagado. Vale tanto entrando direto pelo
-  // sign-in quanto navegando pra lá depois de sair do ADM — é sempre assim,
-  // sem exceção, pra não ter ambiguidade sobre quando a limpeza se aplica.
-  const isDemoModeActive = (isDefaultAdmin || isSeller) && isViewingDefault;
   // Sessão de demo "atual" da própria conta (Master ou Seller) — carregada do
   // banco no login, gerada na hora se ainda não existir quando o primeiro
   // conteúdo for criado. Tudo que essa conta cria em modo demo leva essa marca.
@@ -460,7 +455,7 @@ useEffect(() => {
     loadPractices();
     loadAppSettings();
   }
-}, [effectiveCompanyId, effectiveViewingLanguage, currentDemoSessionId]);
+}, [effectiveCompanyId, effectiveViewingLanguage, currentDemoSessionId, defaultCompanyId]);
 
 // Limpeza automática: assim que o Master/Seller troca o "Managing" pra uma
 // empresa real (saindo do Default direto), qualquer sessão de demo ativa é
@@ -3989,13 +3984,11 @@ const handleDeleteAllMatches = async () => {
   }
 };
 
-// Botão explícito e separado pra "Function/Practice = All, Category = All,
-// sem keyword" — o getKeywordMatches() de propósito NÃO trata "tudo em
-// branco" como "apagar tudo" (evita acidente), então essa ação precisa ser
-// deliberada, com o próprio botão dizendo claramente o que vai fazer.
-const handleDeleteAllExperiences = async () => {
-  const allIds = experiences.map(e => e.id);
-  if (allIds.length === 0) { alert('No experiences to delete.'); return; }
+// Apaga um lote de experiences já filtrado por Data Type + Source (chamado
+// pelo painel "Manage Deletion") — confirmação dupla antes de executar.
+const handleDeleteAllExperiences = async (matchedExperiences) => {
+  const allIds = matchedExperiences.map(e => e.id);
+  if (allIds.length === 0) { alert('No experiences match.'); return; }
   if (!confirmDeleteAllExperiences) {
     setConfirmDeleteAllExperiences(true);
     return;
@@ -4005,7 +3998,7 @@ const handleDeleteAllExperiences = async () => {
     for (const expId of allIds) {
       await deleteExperienceFromSupabase(expId);
     }
-    alert(`Deleted all ${allIds.length} experience(s).`);
+    alert(`Deleted ${allIds.length} experience(s).`);
   } catch (error) {
     console.error('Error deleting all experiences:', error);
     alert('Error deleting some items: ' + error.message);
@@ -5122,10 +5115,35 @@ autoComplete="off"
   )}
 </div>
           
+{isDemoModeActive && (
+  <div className="mt-4 max-w-2xl mx-auto bg-purple-50 border-2 border-purple-300 rounded-2xl p-3 flex items-center justify-between flex-wrap gap-2">
+    <p className="text-purple-800 text-sm font-medium">
+      🎬 Demo Mode — anything you add here is invisible to everyone else and gets deleted automatically when you leave.
+    </p>
+    <div className="flex items-center gap-2">
+      <select
+        value={viewingLanguage}
+        onChange={(e) => setViewingLanguage(e.target.value)}
+        className="p-1.5 border-2 border-purple-300 rounded-lg text-xs font-medium bg-white"
+        title="Language"
+      >
+        <option value="en">English</option>
+        <option value="es">Español</option>
+        <option value="pt">Português</option>
+        <option value="zh">中文 (Chinese)</option>
+      </select>
+      {currentDemoSessionId && (
+        <button
+          onClick={() => { if (window.confirm('Delete everything added in this demo session?')) deleteDemoSession(currentDemoSessionId); }}
+          className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-medium whitespace-nowrap"
+        >
+          🗑️ Delete Last Demo
+        </button>
+      )}
+    </div>
+  </div>
+)}
 
-
-          
-          
 
           {isAdmin && (
             <div className="mt-4 bg-purple-50 border-2 border-purple-300 rounded-lg shadow-md p-4 max-w-md mx-auto">
@@ -5326,6 +5344,9 @@ autoComplete="off"
             {practices.length === 0 && !selectedForImport.includes('metadata') && (
               <p className="text-xs text-amber-600 font-normal">⚠️ Import Metadata first (or check it together) — Content links to it.</p>
             )}
+            {practices.length > 0 && (
+              <p className="text-xs text-amber-600 font-normal">⚠️ Already imported. Re-importing in a different language would mix languages together — delete existing Categories first if you need to switch.</p>
+            )}
           </td>
           <td className="py-2 text-center">
             <input type="checkbox" checked={companyMasterVisibility.includes('synthetic')}
@@ -5374,9 +5395,10 @@ autoComplete="off"
 
     {/* Company List — só as que esse seller criou */}
     <div className="bg-white rounded p-4">
-      <h4 className="font-medium text-gray-700 mb-3">
+      <h4 className="font-medium text-gray-700 mb-1">
         My Companies ({companies.filter(c => c.created_by_seller_id === loggedInSellerId).length})
       </h4>
+      <p className="text-xs text-gray-400 mb-3">The ⚪ marks which company "Company" in the context dropdown points to.</p>
       {companies.filter(c => c.created_by_seller_id === loggedInSellerId).length === 0 ? (
         <p className="text-sm text-gray-400">No companies yet.</p>
       ) : (
@@ -5384,7 +5406,7 @@ autoComplete="off"
           {companies.filter(c => c.created_by_seller_id === loggedInSellerId).map(c => (
             <div key={c.id} className="flex items-center gap-3 p-2 border border-gray-200 rounded-lg flex-wrap">
               <input type="radio" name="context-company" checked={selectedCompanyForContext === c.id}
-                onChange={() => { setSelectedCompanyForContext(c.id); setAdminCompanyContext(c.id); }}
+                onChange={() => { setSelectedCompanyForContext(c.id); if (adminCompanyContext) setAdminCompanyContext(c.id); }}
                 title="Set as the 'Company' the context dropdown points to" className="w-4 h-4" />
               <span className="text-sm font-medium text-gray-800 flex-1 min-w-32">{c.name}</span>
               <span className="text-xs text-gray-500 font-mono">{c.code}</span>
@@ -5429,7 +5451,8 @@ autoComplete="off"
 
     {/* Company List */}
     <div className="bg-white rounded p-4">
-      <h4 className="font-medium text-gray-700 mb-3">Registered Companies ({companies.length})</h4>
+      <h4 className="font-medium text-gray-700 mb-1">Registered Companies ({companies.length})</h4>
+      <p className="text-xs text-gray-400 mb-3">The ⚪ marks which company "Company" in the Managing dropdown points to.</p>
       {!companiesLoaded ? (
         <p className="text-sm text-gray-400">Loading...</p>
       ) : companies.length === 0 ? (
@@ -5439,7 +5462,7 @@ autoComplete="off"
           {companies.filter(c => c.code !== 'default').map(c => (
             <div key={c.id} className="flex items-center gap-3 p-2 border border-gray-200 rounded-lg flex-wrap">
               <input type="radio" name="context-company" checked={selectedCompanyForContext === c.id}
-                onChange={() => { setSelectedCompanyForContext(c.id); setAdminCompanyContext(c.id); }}
+                onChange={() => { setSelectedCompanyForContext(c.id); if (adminCompanyContext) setAdminCompanyContext(c.id); }}
                 title="Set as the 'Company' the context dropdown points to" className="w-4 h-4" />
               <span className="text-sm font-medium text-gray-800 flex-1 min-w-32">{c.name}</span>
               <span className="text-xs text-gray-500 font-mono">{c.code}</span>
@@ -7533,17 +7556,62 @@ onClick={() => {
                 Manage Deletion
               </h3>
               <div className="space-y-3">
-                <div className="bg-red-50 border-2 border-red-300 rounded p-3 flex items-center justify-between flex-wrap gap-2">
-                  <p className="text-sm text-red-800">
-                    ⚠️ Ignores every filter above — deletes <strong>all {experiences.length}</strong> experience(s) in this company.
-                  </p>
-                  <button
-                    onClick={handleDeleteAllExperiences}
-                    className={`px-3 py-1.5 rounded text-sm text-white whitespace-nowrap ${confirmDeleteAllExperiences ? 'bg-red-900' : 'bg-red-700 hover:bg-red-800'}`}
-                  >
-                    {confirmDeleteAllExperiences ? `Confirm delete ALL ${experiences.length} experience(s)?` : '🗑️ Delete ALL Experiences'}
-                  </button>
+                {(() => {
+                  const dataTypeMatches = (exp) => {
+                    if (deletionDataType === 'individual') return exp.author !== 'key_insights';
+                    if (deletionDataType === 'key_insights') return exp.author === 'key_insights';
+                    return true;
+                  };
+                  const sourceMatches = (exp) => {
+                    if (deletionSource === 'curated') return exp.source !== 'app';
+                    if (deletionSource === 'users') return exp.source === 'app';
+                    return true;
+                  };
+                  const bulkMatches = experiences.filter(e => dataTypeMatches(e) && sourceMatches(e));
+                  return (
+                <div className="bg-red-50 border-2 border-red-300 rounded p-3 space-y-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Data Type</label>
+                      <select
+                        value={deletionDataType}
+                        onChange={(e) => { setDeletionDataType(e.target.value); setConfirmDeleteAllExperiences(false); }}
+                        className="w-full h-9 px-2 py-1 border-2 border-gray-300 rounded-lg bg-white text-sm"
+                      >
+                        <option value="all">All</option>
+                        <option value="individual">Individual Experiences</option>
+                        <option value="key_insights">Common Cases / Key Insights</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Source</label>
+                      <select
+                        value={deletionSource}
+                        onChange={(e) => { setDeletionSource(e.target.value); setConfirmDeleteAllExperiences(false); }}
+                        className="w-full h-9 px-2 py-1 border-2 border-gray-300 rounded-lg bg-white text-sm"
+                      >
+                        <option value="all">All</option>
+                        <option value="curated">Curated / Sample</option>
+                        <option value="users">Entered by Users</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <p className="text-sm text-red-800">
+                      ⚠️ Matches <strong>{bulkMatches.length}</strong> experience(s) with the selections above.
+                    </p>
+                    {bulkMatches.length > 0 && (
+                      <button
+                        onClick={() => handleDeleteAllExperiences(bulkMatches)}
+                        className={`px-3 py-1.5 rounded text-sm text-white whitespace-nowrap ${confirmDeleteAllExperiences ? 'bg-red-900' : 'bg-red-700 hover:bg-red-800'}`}
+                      >
+                        {confirmDeleteAllExperiences ? `Confirm delete ${bulkMatches.length} item(s)?` : '🗑️ Delete Matching'}
+                      </button>
+                    )}
+                  </div>
                 </div>
+                  );
+                })()}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-2">Function / Practice</label>
@@ -7697,35 +7765,6 @@ onClick={() => {
             </div>
           )}
           
-{isDemoModeActive && (
-  <div className="mt-5 max-w-2xl mx-auto bg-purple-50 border-2 border-purple-300 rounded-2xl p-3 flex items-center justify-between flex-wrap gap-2">
-    <p className="text-purple-800 text-sm font-medium">
-      🎬 Demo Mode — anything you add here is invisible to everyone else and gets deleted automatically when you leave.
-    </p>
-    <div className="flex items-center gap-2">
-      <select
-        value={viewingLanguage}
-        onChange={(e) => setViewingLanguage(e.target.value)}
-        className="p-1.5 border-2 border-purple-300 rounded-lg text-xs font-medium bg-white"
-        title="Language"
-      >
-        <option value="en">English</option>
-        <option value="es">Español</option>
-        <option value="pt">Português</option>
-        <option value="zh">中文 (Chinese)</option>
-      </select>
-      {currentDemoSessionId && (
-        <button
-          onClick={() => { if (window.confirm('Delete everything added in this demo session?')) deleteDemoSession(currentDemoSessionId); }}
-          className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-medium whitespace-nowrap"
-        >
-          🗑️ Delete Last Demo
-        </button>
-      )}
-    </div>
-  </div>
-)}
-
 {masterBlockedFromPublicTabs && (
   <div className="mt-5 mb-8 max-w-2xl mx-auto bg-amber-50 border-2 border-amber-300 rounded-2xl p-6 text-center">
     <p className="text-amber-800 font-medium">🔒 {effectiveCompanyName} hasn't authorized ADM Master to view "Synthetic/Curated Content" yet.</p>
