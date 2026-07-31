@@ -277,11 +277,20 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   const [loggedInEmployeeLanguage, setLoggedInEmployeeLanguage] = useState(() => {
     return localStorage.getItem('loggedInEmployeeLanguage') || null;
   });
+  // ID da "sessão demo" ativa do Master/Seller — qualquer Experience/Comment
+  // criado enquanto isMasterOrSellerDirectDefaultSession for true leva essa
+  // marca, fica visível só pra essa própria sessão, e é apagado ao sair (ou
+  // manualmente via "Delete Last Demo"). Persistido em localStorage pra
+  // sobreviver a um refresh de página no meio da demo.
+  const [demoSessionId, setDemoSessionId] = useState(() => {
+    return localStorage.getItem('demoSessionId') || null;
+  });
   // Pro Admin de uma empresa (não Default): 'own' (visão normal, editável) ou
   // 'sample' (conteúdo do Default, somente leitura, pra decidir o que importar).
   const [companyViewMode, setCompanyViewMode] = useState('own');
   // Visibilidade das seções pro ADM Master (lista de chaves liberadas) + estado de importação
   const [companyMasterVisibility, setCompanyMasterVisibility] = useState([]);
+  const [companyMasterVisibilityRowExists, setCompanyMasterVisibilityRowExists] = useState(false);
   const [importingBundle, setImportingBundle] = useState(false);
   const [importingQuotes, setImportingQuotes] = useState(false);
   // Seleção de linhas (por seção) marcadas em cada uma das 3 colunas de ação da
@@ -328,6 +337,13 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   // true quando o contexto ativo (seja por login direto, seja pelo dropdown do
   // Master) é o Default — usado só pra saber QUAL DADO está sendo mostrado.
   const isViewingDefault = effectiveCompanyId === defaultCompanyId;
+  // true quando o Master ou um Seller está navegando o Default DIRETAMENTE —
+  // não "Managing" nenhuma empresa real. Cobre os dois caminhos de entrada:
+  // login direto (signin cai aqui por padrão, sem adminCompanyContext) e saída
+  // do ADM ("Logout ADM" zera adminCompanyContext). Em qualquer desses casos,
+  // tudo que for criado é tratado como demo: efêmero, invisível pra mais
+  // ninguém, apagado ao sair.
+  const isMasterOrSellerDirectDefaultSession = (isDefaultAdmin || isSeller) && effectiveCompanyId === defaultCompanyId && !adminCompanyContext;
   // Idioma que efetivamente filtra o conteúdo do Default: se quem está
   // navegando é Admin (Default Admin de verdade ou um seller), usa o seletor
   // manual "Viewing language"; senão (Demo ID, employee comum) usa o idioma
@@ -343,6 +359,19 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   // leitura/escrita completa no que estão vendo (Default ou empresa própria),
   // igual um ID de demo.
   const isReadOnlyView = !isDefaultAdmin && !isSeller && companyViewMode === 'sample';
+  // true quando quem está navegando é Master ou Seller, olhando o Default
+  // DIRETO (fora de "Managing uma empresa real") — nesse caso, TUDO que for
+  // criado (Experience, comentário) é tratado como demo: efêmero, e invisível
+  // pra qualquer outra pessoa até ser apagado. Vale tanto entrando direto pelo
+  // sign-in quanto navegando pra lá depois de sair do ADM — é sempre assim,
+  // sem exceção, pra não ter ambiguidade sobre quando a limpeza se aplica.
+  const isDemoModeActive = (isDefaultAdmin || isSeller) && isViewingDefault;
+  // Sessão de demo "atual" da própria conta (Master ou Seller) — carregada do
+  // banco no login, gerada na hora se ainda não existir quando o primeiro
+  // conteúdo for criado. Tudo que essa conta cria em modo demo leva essa marca.
+  const [currentDemoSessionId, setCurrentDemoSessionId] = useState(() => {
+    return localStorage.getItem('currentDemoSessionId') || null;
+  });
   const [employeeSearch, setEmployeeSearch] = useState('');
   const [newEmployee, setNewEmployee] = useState({ employee_id: '', name: '', country: '', email: '', is_admin: false });
   const [editingEmployee, setEditingEmployee] = useState(null);
@@ -425,44 +454,64 @@ useEffect(() => {
     loadPractices();
     loadAppSettings();
   }
-}, [effectiveCompanyId, effectiveViewingLanguage]);
+}, [effectiveCompanyId, effectiveViewingLanguage, currentDemoSessionId]);
+
+// Limpeza automática: assim que o Master/Seller troca o "Managing" pra uma
+// empresa real (saindo do Default direto), qualquer sessão de demo ativa é
+// apagada — o modo demo só existe enquanto se está navegando o Default puro.
+useEffect(() => {
+  if (adminCompanyContext && currentDemoSessionId) {
+    deleteDemoSession(currentDemoSessionId, { silent: true });
+  }
+}, [adminCompanyContext]);
 
 // Carrega a visibilidade que a própria empresa (não Default) liberou pro ADM Master
 // — usada tanto pra ela mesma configurar (seus próprios checkboxes) quanto pro
-// Master consultar, quando ele está "Managing" essa empresa especificamente.
+// Master ou Seller consultar, quando está "Managing" essa empresa especificamente.
 useEffect(() => {
-  if (loggedInEmployeeCompanyId && !isDefaultAdmin) {
-    loadCompanyMasterVisibility(loggedInEmployeeCompanyId);
-  } else if (isDefaultAdmin && adminCompanyContext) {
+  if (isDefaultAdmin && adminCompanyContext) {
+    // Master navegando pra outra empresa via "Managing"
     loadCompanyMasterVisibility(adminCompanyContext);
+  } else if (isSeller && adminCompanyContext) {
+    // Seller navegando pra uma das próprias empresas via "Managing"
+    loadCompanyMasterVisibility(adminCompanyContext);
+  } else if (loggedInEmployeeCompanyId && !isDefaultAdmin && !isSeller) {
+    // Empresa comum consultando/configurando a própria visibilidade
+    loadCompanyMasterVisibility(loggedInEmployeeCompanyId);
   } else {
     setCompanyMasterVisibility([]);
+    setCompanyMasterVisibilityRowExists(false);
   }
-}, [loggedInEmployeeCompanyId, isDefaultAdmin, adminCompanyContext]);
+}, [loggedInEmployeeCompanyId, isDefaultAdmin, isSeller, adminCompanyContext]);
 
-// true quando o Master está navegando o Admin de OUTRA empresa (não o próprio
-// Default) — nesse caso, as seções ficam limitadas ao que essa empresa autorizou.
-const masterMustRespectVisibility = isDefaultAdmin && !!adminCompanyContext;
-// true quando o Master, gerenciando outra empresa, ainda não foi autorizado a
-// ver as abas públicas (See What Others Did / Share Your Experience) — a
-// empresa precisa ter liberado "Synthetic/Curated Content" pra isso aparecer.
-// Sellers NUNCA caem aqui — a navegação pública deles fica sempre aberta,
-// com leitura/escrita completa, igual um ID de demo.
+// true quando o Master (ou um Seller navegando pra uma das PRÓPRIAS empresas)
+// está gerenciando uma empresa que não é o próprio Default — nesse caso, as
+// seções ficam limitadas ao que essa empresa autorizou. Sem isso pro Seller,
+// ele veria TODAS as seções de qualquer empresa que criasse, sem restrição
+// nenhuma — era exatamente o bug relatado.
+const masterMustRespectVisibility = (isDefaultAdmin || isSellerManagingOwnCompany) && !!adminCompanyContext;
+// true quando o Master/Seller, gerenciando outra empresa, ainda não foi
+// autorizado a ver as abas públicas (See What Others Did / Share Your
+// Experience) — a empresa precisa ter liberado "Synthetic/Curated Content"
+// pra isso aparecer. Não se aplica à navegação do Master/Seller no PRÓPRIO
+// Default (isDemoModeActive) — só quando estão "dentro" de uma empresa real.
 const masterBlockedFromPublicTabs = masterMustRespectVisibility && !companyMasterVisibility.includes('synthetic');
 // true quando escrever (Share Your Experience, comentar, avaliar) deve ficar
-// bloqueado — inclui o modo Sample de sempre, e também o Master "Managing"
-// outra empresa (mesmo com visibilidade concedida, ele nunca deve poder
-// escrever de verdade nos dados reais de outra empresa por ali).
+// bloqueado — inclui o modo Sample de sempre, e também o Master/Seller
+// "Managing" outra empresa (mesmo com visibilidade concedida, nunca deve
+// poder escrever de verdade nos dados reais de outra empresa por ali).
 const isReadOnlyOrMasterManaging = isReadOnlyView || masterMustRespectVisibility;
 // Exceção pro problema do ovo-e-galinha: uma empresa recém-criada não tem
-// nenhum ADM ainda pra liberar visibilidade pro Master/seller — então, enquanto
-// ela não tiver NENHUM employee com is_admin=true, quem está gerenciando
-// (Default Admin OU seller, ambos via "Managing") pode continuar usando Manage
-// Employees independente das permissões de visibilidade. Importante: o
-// critério é "sem ADM ainda", não "sem employees" — senão a seção sumiria
-// assim que o primeiro employee comum (não-admin) fosse cadastrado, antes
-// mesmo do ADM em si existir.
-const canBootstrapFirstAdmin = !!adminCompanyContext && !employees.some(e => e.is_admin);
+// ninguém ainda pra configurar a visibilidade pro Master/Seller — então,
+// enquanto essa empresa NUNCA tiver salvo suas próprias configurações de
+// "Section Settings" (nem que seja pra não liberar nada), quem está
+// gerenciando (Default Admin OU Seller, ambos via "Managing") continua
+// vendo Manage Employees, pra poder cadastrar o primeiro ADM. Importante: o
+// critério é "a empresa nunca configurou visibilidade" (existe uma LINHA em
+// company_master_visibility), não "existe um employee is_admin" — porque o
+// próprio ato de cadastrar o ADM já marcaria is_admin=true, fazendo a seção
+// sumir antes mesmo desse ADM ter tido a chance de logar e configurar algo.
+const canBootstrapFirstAdmin = !!adminCompanyContext && !companyMasterVisibilityRowExists;
 // true só quando dá pra gerenciar de verdade os dados de UMA empresa (Manage
 // Employees, Manage Categories/Practices, Quotes, Content Pages, App Config,
 // etc.). Verdadeiro pra todo mundo (Default Admin, Admin de empresa comum)
@@ -635,6 +684,7 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null) => {
   // Marca essa chamada como a mais recente.
   latestExperiencesRequestRef.current += 1;
   const thisRequestId = latestExperiencesRequestRef.current;
+  console.log(`🔵 loadExperiences #${thisRequestId} INICIOU — company=${effectiveCompanyId}, lang=${effectiveViewingLanguage}, isViewingDefault=${isViewingDefault}, demoSession=${currentDemoSessionId}`);
   try {
     if (!skipLoading) {
       setLoading(true);
@@ -648,6 +698,12 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null) => {
     if (isViewingDefault) {
       query1 = query1.eq('language', effectiveViewingLanguage);
     }
+    // Esconde conteúdo de demo de OUTRAS sessões (outro Master/Seller
+    // demonstrando em paralelo) — mostra sempre o real (demo_session_id nulo)
+    // e a própria sessão de demo ativa, se houver.
+    query1 = currentDemoSessionId
+      ? query1.or(`demo_session_id.is.null,demo_session_id.eq.${currentDemoSessionId}`)
+      : query1.is('demo_session_id', null);
     const { data: batch1, error: error1 } = await query1
       .order('source', { ascending: true })
       .order('id', { ascending: false })
@@ -666,6 +722,9 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null) => {
     if (isViewingDefault) {
       query2 = query2.eq('language', effectiveViewingLanguage);
     }
+    query2 = currentDemoSessionId
+      ? query2.or(`demo_session_id.is.null,demo_session_id.eq.${currentDemoSessionId}`)
+      : query2.is('demo_session_id', null);
     const { data: batch2, error: error2 } = await query2
       .order('source', { ascending: true })
       .order('id', { ascending: false })
@@ -706,10 +765,14 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null) => {
       comments: []
     }));
     
-    const { data: allComments } = await supabase
+    let allCommentsQuery = supabase
       .from('comments')
       .select('*')
       .order('created_at', { ascending: true });
+    allCommentsQuery = currentDemoSessionId
+      ? allCommentsQuery.or(`demo_session_id.is.null,demo_session_id.eq.${currentDemoSessionId}`)
+      : allCommentsQuery.is('demo_session_id', null);
+    const { data: allComments } = await allCommentsQuery;
 
     if (allComments) {
       const commentsByExp = {};
@@ -793,6 +856,7 @@ if (latestExperiencesRequestRef.current !== thisRequestId) {
   console.log('🟠 loadExperiences IGNOROU resultado desatualizado — request #', thisRequestId, 'mas o mais recente agora é #', latestExperiencesRequestRef.current);
   return;
 }
+console.log(`🟢 loadExperiences #${thisRequestId} CONCLUIU — ${allExps.length} total (${keyInsights.length} key insights, ${userExps.length} app, ${orderedSynthetic.length} synthetic)`);
 setExperiences(allExps);
 
 // Carregar reações dos últimos comentários visíveis (bloco default)
@@ -1140,6 +1204,54 @@ const runExpiredDemoCleanup = async () => {
   }
 };
 
+// ==================== DEMO MODE (Master/Seller navegando o Default) ====================
+
+// Garante que existe uma sessão de demo pra essa conta antes de criar
+// Experience/comentário em modo demo — gera uma nova só se ainda não tiver
+// uma, e persiste tanto no state/localStorage quanto no próprio employee no
+// banco (pra sobreviver a refresh de página).
+const ensureDemoSessionId = async () => {
+  if (currentDemoSessionId) return currentDemoSessionId;
+  const newId = `demo-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  setCurrentDemoSessionId(newId);
+  localStorage.setItem('currentDemoSessionId', newId);
+  try {
+    if (employeeId) {
+      await supabase.from('employees').update({ current_demo_session_id: newId }).eq('employee_id', employeeId);
+    }
+  } catch (error) {
+    console.error('Error persisting demo session id:', error);
+  }
+  return newId;
+};
+
+// Apaga tudo que pertence a uma sessão de demo específica: comentários,
+// arquivos de CV, e as experiences em si. Usado tanto pelo botão manual
+// "Delete Last Demo" quanto pela limpeza automática ao sair do modo demo.
+const deleteDemoSession = async (sessionId, { silent } = {}) => {
+  if (!sessionId) return;
+  try {
+    await supabase.from('comments').delete().eq('demo_session_id', sessionId);
+    const { data: exps } = await supabase.from('experiences').select('id, cv_url').eq('demo_session_id', sessionId);
+    for (const exp of exps || []) {
+      if (exp.cv_url) await deleteFileFromStorage(exp.cv_url);
+    }
+    await supabase.from('experiences').delete().eq('demo_session_id', sessionId);
+    if (employeeId) {
+      await supabase.from('employees').update({ current_demo_session_id: null }).eq('employee_id', employeeId);
+    }
+    setCurrentDemoSessionId(null);
+    localStorage.removeItem('currentDemoSessionId');
+    if (!silent) {
+      await loadExperiences(true);
+      alert('Demo content deleted.');
+    }
+  } catch (error) {
+    console.error('Error deleting demo session:', error);
+    if (!silent) alert('Error deleting demo content: ' + error.message);
+  }
+};
+
 const loadCurrentEmployeeGroup = async (empId) => {
   try {
     const { data, error } = await supabase
@@ -1345,6 +1457,11 @@ const loadCompanyMasterVisibility = async (companyId) => {
       .maybeSingle();
     if (error) throw error;
     setCompanyMasterVisibility(data?.section_key || []);
+    // Marca se já existe uma linha pra essa empresa — diferente de "section_key
+    // vazio", que também pode significar "a empresa já configurou e escolheu
+    // não liberar nada". Sem essa distinção não dá pra saber se é bootstrap
+    // (empresa nova, ninguém mexeu ainda) ou uma escolha deliberada.
+    setCompanyMasterVisibilityRowExists(data !== null);
   } catch (error) {
     console.error('Error loading company master visibility:', error);
   }
@@ -1543,6 +1660,8 @@ const importSyntheticContent = async () => {
     }
 
     await loadEmployees(effectiveCompanyId);
+    await loadExperiences(true);
+    await loadTopExperiences();
     alert(`Synthetic/Curated Content updated — ${addedEmployees} new Employee(s), ${addedExperiences} new Experience(s)/Key Insight(s), ${addedTop3} new Top 3 item(s).`);
   } catch (error) {
     console.error('Error importing Synthetic Content:', error);
@@ -2038,6 +2157,14 @@ const handleEmployeeLogin = async () => {
   setLoggedInEmployeeLanguage(data.language || 'en');
   localStorage.setItem('loggedInEmployeeLanguage', data.language || 'en');
 
+  // Retoma uma sessão de demo que já existia (ex: não passou pelo fluxo normal
+  // de saída da última vez — navegador fechado sem avisar). Só é relevante pra
+  // Master/Seller, mas carregar pra qualquer um é inofensivo.
+  if (data.current_demo_session_id) {
+    setCurrentDemoSessionId(data.current_demo_session_id);
+    localStorage.setItem('currentDemoSessionId', data.current_demo_session_id);
+  }
+
   // Se esse employee é marcado como Admin, libera o modo Admin também
   if (data.is_admin) {
     setEmployeeIsAdmin(true);
@@ -2057,7 +2184,12 @@ const handleEmployeeLogin = async () => {
   }
 };
 
-  const handleEmployeeLogout = () => {
+  const handleEmployeeLogout = async () => {
+  // Se tinha uma sessão de demo ativa, apaga tudo antes de sair — silenciosa,
+  // sem alert, pra não travar o fluxo normal de logout.
+  if (isDemoModeActive && currentDemoSessionId) {
+    await deleteDemoSession(currentDemoSessionId, { silent: true });
+  }
   setIsEmployeeLoggedIn(false);
   setEmployeeId('');
   localStorage.removeItem('employeeLoggedIn');
@@ -2451,6 +2583,11 @@ setTimeout(() => {
       cvUrl = cvData.url;
       cvFilename = cvData.filename;
     }
+
+    // Em modo demo (Master/Seller navegando o Default direto), marca essa
+    // experience com a sessão de demo atual — fica invisível pra qualquer
+    // outra pessoa até ser apagada.
+    const demoSessionIdForInsert = isDemoModeActive ? await ensureDemoSessionId() : null;
     
     const { data, error } = await supabase
       .from('experiences')
@@ -2476,6 +2613,7 @@ setTimeout(() => {
         cv_url: cvUrl,
         cv_filename: cvFilename,
         company_id: effectiveCompanyId,
+        demo_session_id: demoSessionIdForInsert,
         created_at: new Date().toISOString()
       }])
       .select();
@@ -2605,6 +2743,8 @@ if (appSettings.requireEmployeeLogin && !isAdmin && exp.employeeId !== employeeI
       cvUrl = cvData.url;
       cvFilename = cvData.filename;
     }
+
+    const demoSessionIdForInsert = isDemoModeActive ? await ensureDemoSessionId() : null;
     
     const { error } = await supabase
       .from('comments')
@@ -2617,6 +2757,7 @@ if (appSettings.requireEmployeeLogin && !isAdmin && exp.employeeId !== employeeI
         cv_url: cvUrl,
         cv_filename: cvFilename,
         company_id: effectiveCompanyId,
+        demo_session_id: demoSessionIdForInsert,
         created_at: new Date().toISOString()
       }]);
     
@@ -5148,6 +5289,9 @@ autoComplete="off"
           <td className="py-2">
             <p>Metadata Model</p>
             <p className="text-xs text-gray-400 font-normal">Functions/Practices, Categories, Descriptions, Tags</p>
+            {practices.length > 0 && (
+              <p className="text-xs text-amber-600 font-normal">⚠️ Already imported. Re-importing in a different language would mix languages together — delete existing Categories first if you need to switch.</p>
+            )}
           </td>
           <td className="py-2 text-center">
             <input type="checkbox" checked={companyMasterVisibility.includes('metadata')}
@@ -5155,8 +5299,9 @@ autoComplete="off"
           </td>
           <td className="py-2 text-center">
             <input type="checkbox" checked={selectedForImport.includes('metadata')}
+              disabled={practices.length > 0}
               onChange={(e) => setSelectedForImport(e.target.checked ? [...selectedForImport, 'metadata'] : selectedForImport.filter(k => k !== 'metadata'))}
-              className="w-4 h-4" />
+              className="w-4 h-4 disabled:opacity-30" />
           </td>
         </tr>
 
@@ -5193,7 +5338,7 @@ autoComplete="off"
   </div>
 )}
 
-{isAdmin && isSeller && (
+{isAdmin && isSeller && !isSellerManagingOwnCompany && (
   <div className="mt-4 bg-indigo-50 border-2 border-indigo-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
       🏢 Manage Companies
@@ -6180,7 +6325,7 @@ autoComplete="off"
           )}
         </div>
 
-{isAdmin && (showDefaultOnlyTools || isSeller) && (
+{isAdmin && (showDefaultOnlyTools || (isSeller && !isSellerManagingOwnCompany)) && (
   <div className="mt-4 bg-pink-50 border-2 border-pink-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
       🎯 Manage Demo Groups
@@ -7521,6 +7666,22 @@ onClick={() => {
             </div>
           )}
           
+{isDemoModeActive && (
+  <div className="mt-5 max-w-2xl mx-auto bg-purple-50 border-2 border-purple-300 rounded-2xl p-3 flex items-center justify-between flex-wrap gap-2">
+    <p className="text-purple-800 text-sm font-medium">
+      🎬 Demo Mode — anything you add here is invisible to everyone else and gets deleted automatically when you leave.
+    </p>
+    {currentDemoSessionId && (
+      <button
+        onClick={() => { if (window.confirm('Delete everything added in this demo session?')) deleteDemoSession(currentDemoSessionId); }}
+        className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-medium whitespace-nowrap"
+      >
+        🗑️ Delete Last Demo
+      </button>
+    )}
+  </div>
+)}
+
 {masterBlockedFromPublicTabs && (
   <div className="mt-5 mb-8 max-w-2xl mx-auto bg-amber-50 border-2 border-amber-300 rounded-2xl p-6 text-center">
     <p className="text-amber-800 font-medium">🔒 {effectiveCompanyName} hasn't authorized ADM Master to view "Synthetic/Curated Content" yet.</p>
