@@ -5259,7 +5259,7 @@ autoComplete="off"
   )}
 </div>
           
-{isDemoModeActive && !(isSeller && isAdmin) && (
+{isDemoModeActive && !(isSeller && isAdmin) && !(isDefaultAdmin && isAdmin) && (
   <div className="mt-4 max-w-2xl mx-auto bg-purple-50 border-2 border-purple-300 rounded-2xl p-3 flex items-center justify-between gap-2">
     <p className="text-purple-800 text-sm font-medium flex-1 min-w-0">
       🎬 Demo Mode — anything you add here is invisible to everyone else and gets deleted automatically when you leave.
@@ -5302,9 +5302,32 @@ autoComplete="off"
         <option value="default">Default</option>
         <option value="company">Company</option>
       </select>
+      {!adminCompanyContext && (
+        <>
+          <label className="text-sm font-medium text-gray-700 ml-2">Language:</label>
+          <select
+            value={viewingLanguage}
+            onChange={(e) => setViewingLanguage(e.target.value)}
+            className="p-2 border-2 border-gray-300 rounded-lg text-sm font-medium"
+          >
+            <option value="en">English</option>
+            <option value="es">Español</option>
+            <option value="pt">Português</option>
+            <option value="zh">中文 (Chinese)</option>
+          </select>
+          {currentDemoSessionId && (
+            <button
+              onClick={() => { if (window.confirm('Delete everything added in this demo session?')) deleteDemoSession(currentDemoSessionId); }}
+              className="px-2 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-medium whitespace-nowrap"
+            >
+              🗑️ Delete Last Demo
+            </button>
+          )}
+        </>
+      )}
       {adminCompanyContext && (
         <span className="text-sm font-semibold text-amber-700 flex items-center gap-1">
-          ⚠️ You are viewing/editing <strong>{effectiveCompanyName}</strong>'s data, not Default's. Pick which one in "Manage Companies" below.
+          ⚠️ You are viewing/editing the data fields <strong>{effectiveCompanyName}</strong> has authorized.
         </span>
       )}
       <button
@@ -5344,15 +5367,20 @@ autoComplete="off"
       </select>
       {isSellerManagingOwnCompany && (
         <span className="text-sm font-semibold text-amber-700 flex items-center gap-1">
-          ⚠️ You are viewing/editing <strong>{effectiveCompanyName}</strong>'s data. Pick which one in "Manage Companies" below.
+          ⚠️ You are viewing/editing the data fields <strong>{effectiveCompanyName}</strong> has authorized.
         </span>
       )}
-      {!isSellerManagingOwnCompany && companyViewMode === 'sample' && (
-        <>
-          <span className="text-sm font-semibold text-blue-700 flex items-center gap-1">
-            👁️ Read-only preview of Default's real content — great for showing a prospect.
-          </span>
-          <label className="text-sm font-medium text-gray-700 ml-2">Language:</label>
+      <button
+        onClick={exitAdminMode}
+        className="ml-auto px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors"
+      >
+        Logout ADM
+      </button>
+    </div>
+    {!isSellerManagingOwnCompany && companyViewMode === 'sample' && (
+      <div className="flex flex-col gap-1 mt-2">
+        <div className="flex items-center gap-2">
+          <label className="text-sm font-medium text-gray-700">Language:</label>
           <select
             value={viewingLanguage}
             onChange={(e) => setViewingLanguage(e.target.value)}
@@ -5363,15 +5391,12 @@ autoComplete="off"
             <option value="pt">Português</option>
             <option value="zh">中文 (Chinese)</option>
           </select>
-        </>
-      )}
-      <button
-        onClick={exitAdminMode}
-        className="ml-auto px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors"
-      >
-        Logout ADM
-      </button>
-    </div>
+        </div>
+        <span className="text-sm font-semibold text-blue-700 flex items-center gap-1">
+          👁️ Read-only preview of ADM Default's content.
+        </span>
+      </div>
+    )}
   </div>
 )}
 
