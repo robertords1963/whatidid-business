@@ -443,7 +443,10 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
 // que já soubermos isso (Default assim que companies terminar de carregar,
 // ou quando o contexto mudar — dropdown do Master ou modo Sample da empresa).
 useEffect(() => {
-  if (effectiveCompanyId) {
+  // Não roda enquanto "companies" ainda não carregou — antes disso,
+  // defaultCompanyId é null e isViewingDefault fica errado (false), fazendo
+  // o filtro de idioma ser pulado e trazer as 4 línguas misturadas.
+  if (effectiveCompanyId && companies.length > 0) {
     loadEmployees(effectiveCompanyId);
     loadExperiences();
     loadTopExperiences();
@@ -454,7 +457,7 @@ useEffect(() => {
     loadPractices();
     loadAppSettings();
   }
-}, [effectiveCompanyId, effectiveViewingLanguage, currentDemoSessionId, defaultCompanyId]);
+}, [effectiveCompanyId, effectiveViewingLanguage, currentDemoSessionId, defaultCompanyId, companies.length]);
 
 // Limpeza automática: assim que o Master/Seller troca o "Managing" pra uma
 // empresa real (saindo do Default direto), qualquer sessão de demo ativa é
@@ -853,12 +856,17 @@ const orderedSynthetic = shuffleOrderRef.current
   .filter(Boolean);
 
 const allExps = [...keyInsights, ...userExps, ...orderedSynthetic];
-// REMOVIDO o descarte por "resultado desatualizado": esse mecanismo estava
-// implicado em bugs recorrentes de troca de idioma mostrando zero resultados
-// (a chamada certa rodava, buscava os dados certos, mas era descartada por
-// essa checagem achando — errado — que uma chamada mais nova tinha "vencido").
-// Agora sempre aplica o resultado que chegou, sem tentar adivinhar qual é o
-// "mais recente" por número de chamada.
+// A trava de "descartar resultado desatualizado" protege contra um cenário
+// real: uma chamada mais LENTA (ex: buscando mais dados sem filtro) terminar
+// DEPOIS de uma chamada mais RÁPIDA e correta, sobrescrevendo o resultado
+// certo com o errado. A causa raiz de ela disparar sem necessidade (chamada
+// automática rodando antes de "companies" carregar) já foi corrigida acima
+// (guard "companies.length > 0" no useEffect), então agora é seguro manter
+// essa trava como proteção de verdade, não como remendo de outro bug.
+if (latestExperiencesRequestRef.current !== thisRequestId) {
+  console.log('🟠 loadExperiences IGNOROU resultado desatualizado — request #', thisRequestId, 'mas o mais recente agora é #', latestExperiencesRequestRef.current);
+  return;
+}
 console.log(`🟢 loadExperiences #${thisRequestId} CONCLUIU — ${allExps.length} total (${keyInsights.length} key insights, ${userExps.length} app, ${orderedSynthetic.length} synthetic)`);
 setExperiences(allExps);
 
@@ -5145,7 +5153,7 @@ autoComplete="off"
           
 {isDemoModeActive && (
   <div style={{position: 'fixed', top: 0, left: 0, right: 0, zIndex: 99999, background: 'red', color: 'white', fontFamily: 'monospace', fontSize: 13, padding: '8px', textAlign: 'center', fontWeight: 'bold'}}>
-    BUILD 20260731-2 | lang={effectiveViewingLanguage} | exps={experiences.length} | isViewingDefault={String(isViewingDefault)} | companyId={effectiveCompanyId}
+    BUILD 20260731-3 | lang={effectiveViewingLanguage} | exps={experiences.length} | isViewingDefault={String(isViewingDefault)} | companyId={effectiveCompanyId}
   </div>
 )}
 {isDemoModeActive && (
