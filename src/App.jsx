@@ -9868,7 +9868,7 @@ onClick={() => {
         )}
         
         {/* Botão delete admin */}
-        {isAdmin && (() => {
+        {isAdmin && !isReadOnlyOrMasterManaging && (() => {
           const confirmKey = `comment-${exp.id}-${comment.id}`;
           const isConfirming = confirmDelete === confirmKey;
           return (
@@ -10023,7 +10023,7 @@ onClick={() => {
           )}
           
           {/* Botão delete admin */}
-          {isAdmin && (() => {
+          {isAdmin && !isReadOnlyOrMasterManaging && (() => {
             const confirmKey = `comment-${exp.id}-${lastComment.id}`;
             const isConfirming = confirmDelete === confirmKey;
             return (
