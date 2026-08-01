@@ -5802,7 +5802,7 @@ autoComplete="off"
 )}
 
 
-{isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany) && (!masterMustRespectVisibility || companyMasterVisibility.includes('app_config')) && (
+{isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('app_config')) && (
   <div className="mt-4 bg-indigo-50 border-2 border-indigo-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
       ⚙️ App Configuration
@@ -6086,7 +6086,7 @@ autoComplete="off"
           
 
 
-          {isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany) && (!masterMustRespectVisibility || companyMasterVisibility.includes('quotes')) && (
+          {isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('quotes')) && (
             <div className="mt-4 bg-green-50 border-2 border-green-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 <MessageCircle size={20} />
@@ -6239,7 +6239,7 @@ autoComplete="off"
             </div>
           )}
 
-          {isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany) && (!masterMustRespectVisibility || companyMasterVisibility.includes('promotional_videos')) && (
+          {isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('promotional_videos')) && (
             <div className="mt-4 bg-purple-50 border-2 border-purple-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 🎬 Manage Promotional Videos
@@ -6464,7 +6464,7 @@ autoComplete="off"
             </div>
           )}
 
-          {isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany) && (!masterMustRespectVisibility || companyMasterVisibility.includes('content_pages')) && (
+          {isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('content_pages')) && (
             <div className="mt-4 bg-blue-50 border-2 border-blue-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 <MessageCircle size={20} />
@@ -6734,7 +6734,7 @@ autoComplete="off"
 )}
        
 
-{isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany) && (!masterMustRespectVisibility || companyMasterVisibility.includes('synthetic') || canBootstrapFirstAdmin) && (
+{isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('synthetic') || canBootstrapFirstAdmin) && (
   <div className={`${showDefaultOnlyTools ? 'mt-4' : '-mt-4'} bg-slate-50 border-2 border-slate-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto`}>
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
       👥 Manage Employees
@@ -6897,7 +6897,7 @@ autoComplete="off"
   </div>
 )}
 
-{isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany) && (!masterMustRespectVisibility || companyMasterVisibility.includes('metadata')) && (
+{isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('metadata')) && (
   <div className="mt-4 bg-teal-50 border-2 border-teal-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
       🗂️ Manage Problem Categories
@@ -7712,7 +7712,7 @@ onClick={() => {
         })()}
 
 {/* Tabs estilo fichário — substitui os botões de navegação */}
-          {isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany) && !isReadOnlyOrMasterManaging && (!masterMustRespectVisibility || companyMasterVisibility.includes('keyword_filter')) && (
+          {isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && !isReadOnlyOrMasterManaging && (!masterMustRespectVisibility || companyMasterVisibility.includes('keyword_filter')) && (
             <div className="mt-4 bg-yellow-50 border-2 border-yellow-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 <Search size={20} />
