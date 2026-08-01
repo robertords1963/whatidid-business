@@ -332,7 +332,7 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   // que pro seller já É o Default, dando a ele leitura/escrita completa nele.
   const effectiveCompanyId = ((isDefaultAdmin || isSeller) && adminCompanyContext)
     ? adminCompanyContext
-    : (!isDefaultAdmin && !isSeller && companyViewMode === 'sample')
+    : (!isDefaultAdmin && companyViewMode === 'sample')
       ? defaultCompanyId
       : (loggedInEmployeeCompanyId || defaultCompanyId);
   const effectiveCompanyName = ((isDefaultAdmin || isSeller) && adminCompanyContext)
@@ -348,7 +348,7 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   // tudo que for criado é tratado como demo: efêmero, invisível pra mais
   // ninguém, apagado ao sair. Precisa vir ANTES de effectiveViewingLanguage,
   // que depende dela.
-  const isDemoModeActive = (isDefaultAdmin || isSeller) && isViewingDefault;
+  const isDemoModeActive = (isDefaultAdmin || isSeller) && isViewingDefault && companyViewMode !== 'sample';
   // Idioma que efetivamente filtra o conteúdo do Default: se quem está
   // navegando é Master/Seller em modo demo (dentro OU fora do painel Admin —
   // por isso "isDemoModeActive" e não "isAdmin", já que o seletor manual
@@ -758,20 +758,45 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null, override
     // Combinar os 2 lotes
     const data = [...(batch1 || []), ...(batch2 || [])];
 
-    // Corrige related_common_case_id que aponta pra uma linha de outro idioma
-    // (mesma causa do bug do Top 3: o vínculo foi gravado com o id da versão
-    // em inglês, que não existe no conjunto do idioma atual) — resolve pro id
-    // certo via translation_group_id.
+    // Corrige related_common_case_id pra Individual Experiences não-inglesas.
+    // Duas causas possíveis, resolvidas juntas: (a) o valor aponta pro id da
+    // versão em inglês, que não existe no conjunto do idioma atual; (b) o
+    // valor nunca foi gravado nas traduções (fica nulo) — nesse caso, busca
+    // o valor da própria linha em inglês (mesmo translation_group_id) e
+    // resolve a partir dali. As duas resolvidas via translation_group_id.
     let relatedIdFix = {};
-    if (isViewingDefault) {
+    if (isViewingDefault && effectiveViewingLanguage !== 'en') {
       const idsInCurrentSet = new Set(data.map(e => e.id));
-      const missingIds = [...new Set(data.map(e => e.related_common_case_id).filter(Boolean))]
+      const rowsWithGroup = data.filter(e => e.translation_group_id);
+      const ownGroupIds = [...new Set(rowsWithGroup.map(e => e.translation_group_id))];
+      const pointedIds = [...new Set(data.map(e => e.related_common_case_id).filter(Boolean))]
         .filter(id => !idsInCurrentSet.has(id));
-      if (missingIds.length > 0) {
+
+      // (b) Busca a versão em inglês de cada linha atual, pra pegar o
+      // related_common_case_id de lá quando o da tradução estiver vazio.
+      let englishRelatedByGroup = {};
+      if (ownGroupIds.length > 0) {
+        const { data: englishRows } = await supabase
+          .from('experiences')
+          .select('translation_group_id, related_common_case_id')
+          .eq('company_id', effectiveCompanyId)
+          .eq('language', 'en')
+          .in('translation_group_id', ownGroupIds);
+        (englishRows || []).forEach(r => {
+          if (r.related_common_case_id) englishRelatedByGroup[r.translation_group_id] = r.related_common_case_id;
+        });
+      }
+
+      // Junta os alvos a resolver: os que já apontavam (errado) + os que
+      // vieram da versão em inglês por estarem vazios na tradução.
+      const allTargetIds = [...new Set([...pointedIds, ...Object.values(englishRelatedByGroup)])]
+        .filter(id => !idsInCurrentSet.has(id));
+
+      if (allTargetIds.length > 0) {
         const { data: sourceRows } = await supabase
           .from('experiences')
           .select('id, translation_group_id')
-          .in('id', missingIds);
+          .in('id', allTargetIds);
         const groupByOriginalId = {};
         (sourceRows || []).forEach(r => { groupByOriginalId[r.id] = r.translation_group_id; });
         const groupIds = [...new Set(Object.values(groupByOriginalId).filter(Boolean))];
@@ -785,10 +810,24 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null, override
             .in('translation_group_id', groupIds);
           (translatedRows || []).forEach(r => { translatedByGroup[r.translation_group_id] = r.id; });
         }
-        missingIds.forEach(origId => {
-          const groupId = groupByOriginalId[origId];
+        // Mapa direto: id apontado (errado ou vindo do inglês) -> id certo no idioma atual
+        const resolveTarget = {};
+        allTargetIds.forEach(targetId => {
+          const groupId = groupByOriginalId[targetId];
           if (groupId && translatedByGroup[groupId]) {
-            relatedIdFix[origId] = translatedByGroup[groupId];
+            resolveTarget[targetId] = translatedByGroup[groupId];
+          }
+        });
+        // Aplica: se a própria linha já apontava pra um id resolvível, usa esse;
+        // senão, se a versão em inglês tinha um valor, usa o resolvido dele.
+        rowsWithGroup.forEach(row => {
+          if (row.related_common_case_id && resolveTarget[row.related_common_case_id]) {
+            relatedIdFix[row.id] = resolveTarget[row.related_common_case_id];
+          } else {
+            const englishTarget = englishRelatedByGroup[row.translation_group_id];
+            if (englishTarget && resolveTarget[englishTarget]) {
+              relatedIdFix[row.id] = resolveTarget[englishTarget];
+            }
           }
         });
       }
@@ -802,7 +841,7 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null, override
       result: exp.result,
       resultCategory: exp.result_category,
       industrySector: exp.industry_sector || '', // ⭐ ADICIONAR
-      relatedCommonCaseId: relatedIdFix[exp.related_common_case_id] || exp.related_common_case_id || null, // ⭐ ADICIONAR
+      relatedCommonCaseId: relatedIdFix[exp.id] || exp.related_common_case_id || null, // ⭐ ADICIONAR
       author: exp.author || '',
       gender: exp.gender || '',
       age: exp.age || '',
@@ -5249,7 +5288,7 @@ autoComplete="off"
 {isAdmin && isDefaultAdmin && (
   <div className={`mt-4 rounded-lg shadow-md p-4 max-w-4xl mx-auto border-2 ${adminCompanyContext ? 'bg-amber-50 border-amber-400' : 'bg-gray-50 border-gray-300'}`}>
     <div className="flex items-center gap-3 flex-wrap">
-      <label className="text-sm font-medium text-gray-700">Managing:</label>
+      <label className="text-sm font-medium text-gray-700">Viewing:</label>
       <select
         value={adminCompanyContext ? 'company' : 'default'}
         onChange={(e) => setAdminCompanyContext(e.target.value === 'company' ? (selectedCompanyForContext || companies.filter(c => c.code !== 'default').slice(-1)[0]?.id || null) : null)}
@@ -5276,7 +5315,7 @@ autoComplete="off"
 {isAdmin && isSeller && (
   <div className={`mt-4 rounded-lg shadow-md p-4 max-w-4xl mx-auto border-2 ${isSellerManagingOwnCompany ? 'bg-amber-50 border-amber-400' : companyViewMode === 'sample' ? 'bg-blue-50 border-blue-400' : 'bg-gray-50 border-gray-300'}`}>
     <div className="flex items-center gap-3 flex-wrap">
-      <label className="text-sm font-medium text-gray-700">Context:</label>
+      <label className="text-sm font-medium text-gray-700">Viewing:</label>
       <select
         value={adminCompanyContext ? 'company' : (companyViewMode === 'sample' ? 'sample' : 'seller')}
         onChange={(e) => {
