@@ -851,16 +851,12 @@ const orderedSynthetic = shuffleOrderRef.current
   .filter(Boolean);
 
 const allExps = [...keyInsights, ...userExps, ...orderedSynthetic];
-// Chamadas explícitas (skipLoading=true — sempre disparadas manualmente logo
-// depois de uma ação concluída, tipo import, delete, editar) NUNCA são
-// descartadas por essa checagem: elas representam "acabei de mudar dados,
-// recarregue agora" e têm que vencer sempre, mesmo que outra chamada
-// automática (do useEffect) tenha corrido em paralelo. Só as automáticas
-// (skipLoading=false) competem entre si por essa checagem.
-if (!skipLoading && latestExperiencesRequestRef.current !== thisRequestId) {
-  console.log('🟠 loadExperiences IGNOROU resultado desatualizado — request #', thisRequestId, 'mas o mais recente agora é #', latestExperiencesRequestRef.current);
-  return;
-}
+// REMOVIDO o descarte por "resultado desatualizado": esse mecanismo estava
+// implicado em bugs recorrentes de troca de idioma mostrando zero resultados
+// (a chamada certa rodava, buscava os dados certos, mas era descartada por
+// essa checagem achando — errado — que uma chamada mais nova tinha "vencido").
+// Agora sempre aplica o resultado que chegou, sem tentar adivinhar qual é o
+// "mais recente" por número de chamada.
 console.log(`🟢 loadExperiences #${thisRequestId} CONCLUIU — ${allExps.length} total (${keyInsights.length} key insights, ${userExps.length} app, ${orderedSynthetic.length} synthetic)`);
 setExperiences(allExps);
 
@@ -912,10 +908,42 @@ const loadTopExperiences = async () => {
       if (error) throw error;
       
       const topExp = { 1: null, 2: null, 3: null };
+      const rawIds = (data || []).map(d => d.experience_id).filter(Boolean);
+
+      // O Top 3 guarda o id de UMA linha específica (a que foi marcada na hora
+      // de configurar) — mas cada idioma é uma linha diferente. Sem resolver
+      // isso, o Top 3 só aparecia quando o idioma ativo era o mesmo em que foi
+      // configurado (inglês). Resolve pro id certo no idioma atual via
+      // translation_group_id, que já existe desde a tradução do conteúdo.
+      let resolvedByOriginalId = {};
+      if (rawIds.length > 0 && isViewingDefault) {
+        const { data: sourceRows } = await supabase
+          .from('experiences')
+          .select('id, translation_group_id')
+          .in('id', rawIds);
+        const groupByOriginalId = {};
+        (sourceRows || []).forEach(r => { groupByOriginalId[r.id] = r.translation_group_id; });
+        const groupIds = [...new Set(Object.values(groupByOriginalId).filter(Boolean))];
+        let translatedByGroup = {};
+        if (groupIds.length > 0) {
+          const { data: translatedRows } = await supabase
+            .from('experiences')
+            .select('id, translation_group_id')
+            .eq('company_id', effectiveCompanyId)
+            .eq('language', effectiveViewingLanguage)
+            .in('translation_group_id', groupIds);
+          (translatedRows || []).forEach(r => { translatedByGroup[r.translation_group_id] = r.id; });
+        }
+        rawIds.forEach(origId => {
+          const groupId = groupByOriginalId[origId];
+          resolvedByOriginalId[origId] = (groupId && translatedByGroup[groupId]) || origId;
+        });
+      }
+
       if (data) {
         data.forEach(item => {
           if (item.experience_id) {
-            topExp[item.position] = item.experience_id;
+            topExp[item.position] = resolvedByOriginalId[item.experience_id] || item.experience_id;
           }
         });
       }
