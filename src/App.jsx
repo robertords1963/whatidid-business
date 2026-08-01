@@ -354,7 +354,7 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   // agora vive na faixa "Demo Mode", visível mesmo depois de sair do Admin),
   // usa o seletor manual "Viewing language"; senão (Demo ID, employee comum)
   // usa o idioma da própria conta que logou, automaticamente.
-  const effectiveViewingLanguage = isDemoModeActive ? viewingLanguage : (loggedInEmployeeLanguage || 'en');
+  const effectiveViewingLanguage = (isDemoModeActive || (isAdmin && !isDefaultAdmin && !isSeller && companyViewMode === 'sample')) ? viewingLanguage : (loggedInEmployeeLanguage || 'en');
   // true só quando é o Admin do Default DE VERDADE, olhando pro próprio Default
   // (não um Admin de empresa espiando o Sample, que também usa dados do Default,
   // mas não deve ver as 5 seções exclusivas do Default).
@@ -5141,6 +5141,11 @@ autoComplete="off"
   )}
 </div>
           
+{isDemoModeActive && (
+  <div style={{position: 'fixed', bottom: 8, right: 8, zIndex: 9999, background: 'black', color: '#0f0', fontFamily: 'monospace', fontSize: 11, padding: '6px 10px', borderRadius: 6, opacity: 0.85}}>
+    lang={effectiveViewingLanguage} | exps={experiences.length} | isViewingDefault={String(isViewingDefault)} | companyId={effectiveCompanyId}
+  </div>
+)}
 {isDemoModeActive && (
   <div className="mt-4 max-w-2xl mx-auto bg-purple-50 border-2 border-purple-300 rounded-2xl p-3 flex items-center justify-between flex-wrap gap-2">
     <p className="text-purple-800 text-sm font-medium">
