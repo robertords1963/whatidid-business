@@ -533,7 +533,12 @@ const canBootstrapFirstAdmin = !!adminCompanyContext && !companyMasterVisibility
 // abas públicas (See What Others Did / Share Your Experience) e as ferramentas
 // "Manage Companies" / "Manage Demo Groups", nunca as seções administrativas
 // exclusivas do Default de verdade.
-const canManageThisCompany = !isSeller || isSellerManagingOwnCompany;
+// Verdadeiro pra todo mundo (Default Admin, Admin de empresa comum — inclusive
+// no próprio Sample deles) EXCETO um seller no "My Seller View" ou gerenciando
+// outra empresa que não a sua. No "Sample" do seller, TAMBÉM tem que ser
+// verdadeiro: é pra ele ver os painéis admin do Default (travados pra leitura),
+// exatamente como uma empresa comum vê no Sample dela.
+const canManageThisCompany = !isSeller || isSellerManagingOwnCompany || companyViewMode === 'sample';
 
 // Se entrar em modo Sample enquanto estava na aba "Share Your Experience"
 // (que não existe mais nesse modo), volta pra "See What Others Did".
@@ -5335,7 +5340,7 @@ autoComplete="off"
       >
         <option value="seller">My Seller View</option>
         <option value="company">Company</option>
-        <option value="sample">Default (Sample)</option>
+        <option value="sample">Sample (Default's ADM content)</option>
       </select>
       {isSellerManagingOwnCompany && (
         <span className="text-sm font-semibold text-amber-700 flex items-center gap-1">
@@ -5367,7 +5372,7 @@ autoComplete="off"
         className="p-2 border-2 border-gray-300 rounded-lg text-sm font-medium"
       >
         <option value="own">My Company</option>
-        <option value="sample">Sample (Default's content)</option>
+        <option value="sample">Sample (Default's ADM content)</option>
       </select>
       {companyViewMode === 'sample' && (
         <>
