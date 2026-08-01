@@ -173,6 +173,7 @@ export default function WhatIDid() {
   // o embaralhamento precisa ser refeito (senão fica "travado" na primeira
   // empresa que carregou, mesmo trocando de empresa depois).
   const shuffleOrderCompanyRef = useRef(null);
+  const shuffleOrderLanguageRef = useRef(null);
   // Protege contra condição de corrida: se duas chamadas de loadExperiences
   // estiverem em andamento, só a resposta da MAIS RECENTE deve realmente
   // atualizar a tela — mesmo que ela termine primeiro.
@@ -837,13 +838,14 @@ const keyInsights = transformedData.filter(e => e.author === 'key_insights');
     );
   }
 
-if (!shuffleOrderRef.current || shuffleOrderCompanyRef.current !== effectiveCompanyId) {
+if (!shuffleOrderRef.current || shuffleOrderCompanyRef.current !== effectiveCompanyId || shuffleOrderLanguageRef.current !== effectiveViewingLanguage) {
   for (let i = syntheticExps.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [syntheticExps[i], syntheticExps[j]] = [syntheticExps[j], syntheticExps[i]];
   }
   shuffleOrderRef.current = syntheticExps.map(e => e.id);
   shuffleOrderCompanyRef.current = effectiveCompanyId;
+  shuffleOrderLanguageRef.current = effectiveViewingLanguage;
 }
 
 const orderedSynthetic = shuffleOrderRef.current
@@ -5142,8 +5144,8 @@ autoComplete="off"
 </div>
           
 {isDemoModeActive && (
-  <div style={{position: 'fixed', bottom: 8, right: 8, zIndex: 9999, background: 'black', color: '#0f0', fontFamily: 'monospace', fontSize: 11, padding: '6px 10px', borderRadius: 6, opacity: 0.85}}>
-    lang={effectiveViewingLanguage} | exps={experiences.length} | isViewingDefault={String(isViewingDefault)} | companyId={effectiveCompanyId}
+  <div style={{position: 'fixed', top: 0, left: 0, right: 0, zIndex: 99999, background: 'red', color: 'white', fontFamily: 'monospace', fontSize: 13, padding: '8px', textAlign: 'center', fontWeight: 'bold'}}>
+    BUILD 20260731-2 | lang={effectiveViewingLanguage} | exps={experiences.length} | isViewingDefault={String(isViewingDefault)} | companyId={effectiveCompanyId}
   </div>
 )}
 {isDemoModeActive && (
