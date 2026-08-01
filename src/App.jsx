@@ -502,7 +502,12 @@ const masterMustRespectVisibility = (isDefaultAdmin || isSellerManagingOwnCompan
 // empresa) — nesse estado, só Manage Companies e Manage Demo Groups devem
 // aparecer; toda a navegação pública (abas, Top 3, marquee, carrossel,
 // cabeçalho com nome/logo do Default) fica escondida.
-const isSellerBaseView = isSeller && !isSellerManagingOwnCompany;
+// true quando o seller está em "My Seller View" (não gerenciando nenhuma
+// empresa) E ainda dentro do painel Admin — nesse estado, só Manage Companies
+// e Manage Demo Groups devem aparecer. Precisa de "&& isAdmin": depois do
+// Logout ADM, o seller volta a navegar o Default normalmente (é literalmente
+// o propósito do Demo Mode), então essa restrição não pode continuar valendo.
+const isSellerBaseView = isSeller && !isSellerManagingOwnCompany && isAdmin;
 const masterBlockedFromPublicTabs = (masterMustRespectVisibility && !companyMasterVisibility.includes('synthetic')) || isSellerBaseView;
 // true quando escrever (Share Your Experience, comentar, avaliar) deve ficar
 // bloqueado — inclui o modo Sample de sempre, e também o Master/Seller
@@ -5027,8 +5032,6 @@ autoComplete="off"
     }`} />
   </div>
 )}          
-{!isSellerBaseView && (
-<>
           <p className="text-gray-700 font-medium mb-1 text-sm sm:text-base">Real problems. Real actions. Real results.</p>
 <p className="text-gray-600 text-sm sm:text-base">
   <span className="block sm:inline">Share your work experiences.</span>
@@ -5036,6 +5039,8 @@ autoComplete="off"
   <span className="block sm:inline">Accelerate organizational learning.</span>
 </p>
 
+{!isSellerBaseView && (
+<>
 {/* Video Carousel Section - Esteira Rolante */}
 <div className="my-5">
   <div className="flex items-center justify-center gap-2 max-w-4xl mx-auto">
