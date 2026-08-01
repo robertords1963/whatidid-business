@@ -365,7 +365,7 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   // o conteúdo do Default). Sellers NUNCA caem aqui — eles sempre têm
   // leitura/escrita completa no que estão vendo (Default ou empresa própria),
   // igual um ID de demo.
-  const isReadOnlyView = !isDefaultAdmin && !isSeller && companyViewMode === 'sample';
+  const isReadOnlyView = (!isDefaultAdmin && !isSeller && companyViewMode === 'sample') || (isSeller && !isSellerManagingOwnCompany && companyViewMode === 'sample');
   // Sessão de demo "atual" da própria conta (Master ou Seller) — carregada do
   // banco no login, gerada na hora se ainda não existir quando o primeiro
   // conteúdo for criado. Tudo que essa conta cria em modo demo leva essa marca.
@@ -507,7 +507,7 @@ const masterMustRespectVisibility = (isDefaultAdmin || isSellerManagingOwnCompan
 // e Manage Demo Groups devem aparecer. Precisa de "&& isAdmin": depois do
 // Logout ADM, o seller volta a navegar o Default normalmente (é literalmente
 // o propósito do Demo Mode), então essa restrição não pode continuar valendo.
-const isSellerBaseView = isSeller && !isSellerManagingOwnCompany && isAdmin;
+const isSellerBaseView = isSeller && !isSellerManagingOwnCompany && isAdmin && companyViewMode !== 'sample';
 const masterBlockedFromPublicTabs = (masterMustRespectVisibility && !companyMasterVisibility.includes('synthetic')) || isSellerBaseView;
 // true quando escrever (Share Your Experience, comentar, avaliar) deve ficar
 // bloqueado — inclui o modo Sample de sempre, e também o Master/Seller
@@ -757,6 +757,42 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null, override
     
     // Combinar os 2 lotes
     const data = [...(batch1 || []), ...(batch2 || [])];
+
+    // Corrige related_common_case_id que aponta pra uma linha de outro idioma
+    // (mesma causa do bug do Top 3: o vínculo foi gravado com o id da versão
+    // em inglês, que não existe no conjunto do idioma atual) — resolve pro id
+    // certo via translation_group_id.
+    let relatedIdFix = {};
+    if (isViewingDefault) {
+      const idsInCurrentSet = new Set(data.map(e => e.id));
+      const missingIds = [...new Set(data.map(e => e.related_common_case_id).filter(Boolean))]
+        .filter(id => !idsInCurrentSet.has(id));
+      if (missingIds.length > 0) {
+        const { data: sourceRows } = await supabase
+          .from('experiences')
+          .select('id, translation_group_id')
+          .in('id', missingIds);
+        const groupByOriginalId = {};
+        (sourceRows || []).forEach(r => { groupByOriginalId[r.id] = r.translation_group_id; });
+        const groupIds = [...new Set(Object.values(groupByOriginalId).filter(Boolean))];
+        let translatedByGroup = {};
+        if (groupIds.length > 0) {
+          const { data: translatedRows } = await supabase
+            .from('experiences')
+            .select('id, translation_group_id')
+            .eq('company_id', effectiveCompanyId)
+            .eq('language', effectiveViewingLanguage)
+            .in('translation_group_id', groupIds);
+          (translatedRows || []).forEach(r => { translatedByGroup[r.translation_group_id] = r.id; });
+        }
+        missingIds.forEach(origId => {
+          const groupId = groupByOriginalId[origId];
+          if (groupId && translatedByGroup[groupId]) {
+            relatedIdFix[origId] = translatedByGroup[groupId];
+          }
+        });
+      }
+    }
     
     const transformedData = data.map(exp => ({
       id: exp.id,
@@ -766,7 +802,7 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null, override
       result: exp.result,
       resultCategory: exp.result_category,
       industrySector: exp.industry_sector || '', // ⭐ ADICIONAR
-      relatedCommonCaseId: exp.related_common_case_id || null, // ⭐ ADICIONAR
+      relatedCommonCaseId: relatedIdFix[exp.related_common_case_id] || exp.related_common_case_id || null, // ⭐ ADICIONAR
       author: exp.author || '',
       gender: exp.gender || '',
       age: exp.age || '',
@@ -5238,20 +5274,38 @@ autoComplete="off"
 )}
 
 {isAdmin && isSeller && (
-  <div className={`mt-4 rounded-lg shadow-md p-4 max-w-4xl mx-auto border-2 ${isSellerManagingOwnCompany ? 'bg-amber-50 border-amber-400' : 'bg-gray-50 border-gray-300'}`}>
+  <div className={`mt-4 rounded-lg shadow-md p-4 max-w-4xl mx-auto border-2 ${isSellerManagingOwnCompany ? 'bg-amber-50 border-amber-400' : companyViewMode === 'sample' ? 'bg-blue-50 border-blue-400' : 'bg-gray-50 border-gray-300'}`}>
     <div className="flex items-center gap-3 flex-wrap">
       <label className="text-sm font-medium text-gray-700">Context:</label>
       <select
-        value={adminCompanyContext ? 'company' : 'seller'}
-        onChange={(e) => setAdminCompanyContext(e.target.value === 'company' ? (selectedCompanyForContext || companies.filter(c => c.created_by_seller_id === loggedInSellerId).slice(-1)[0]?.id || null) : null)}
+        value={adminCompanyContext ? 'company' : (companyViewMode === 'sample' ? 'sample' : 'seller')}
+        onChange={(e) => {
+          const val = e.target.value;
+          if (val === 'company') {
+            setAdminCompanyContext(selectedCompanyForContext || companies.filter(c => c.created_by_seller_id === loggedInSellerId).slice(-1)[0]?.id || null);
+            setCompanyViewMode('own');
+          } else if (val === 'sample') {
+            setAdminCompanyContext(null);
+            setCompanyViewMode('sample');
+          } else {
+            setAdminCompanyContext(null);
+            setCompanyViewMode('own');
+          }
+        }}
         className="p-2 border-2 border-gray-300 rounded-lg text-sm font-medium"
       >
         <option value="seller">My Seller View</option>
         <option value="company">Company</option>
+        <option value="sample">Default (Sample)</option>
       </select>
       {isSellerManagingOwnCompany && (
         <span className="text-sm font-semibold text-amber-700 flex items-center gap-1">
           ⚠️ You are viewing/editing <strong>{effectiveCompanyName}</strong>'s data. Pick which one in "Manage Companies" below.
+        </span>
+      )}
+      {!isSellerManagingOwnCompany && companyViewMode === 'sample' && (
+        <span className="text-sm font-semibold text-blue-700 flex items-center gap-1">
+          👁️ Read-only preview of Default's real content — great for showing a prospect.
         </span>
       )}
       <button
@@ -5438,7 +5492,7 @@ autoComplete="off"
   </div>
 )}
 
-{isAdmin && isSeller && !isSellerManagingOwnCompany && (
+{isAdmin && isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample' && (
   <div className="mt-4 bg-indigo-50 border-2 border-indigo-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
       🏢 Manage Companies
@@ -6433,7 +6487,7 @@ autoComplete="off"
           )}
         </div>
 
-{isAdmin && (showDefaultOnlyTools || (isSeller && !isSellerManagingOwnCompany)) && (
+{isAdmin && (showDefaultOnlyTools || (isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample')) && (
   <div className="mt-4 bg-pink-50 border-2 border-pink-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
       🎯 Manage Demo Groups
