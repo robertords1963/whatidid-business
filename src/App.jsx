@@ -498,7 +498,12 @@ const masterMustRespectVisibility = (isDefaultAdmin || isSellerManagingOwnCompan
 // Experience) — a empresa precisa ter liberado "Synthetic/Curated Content"
 // pra isso aparecer. Não se aplica à navegação do Master/Seller no PRÓPRIO
 // Default (isDemoModeActive) — só quando estão "dentro" de uma empresa real.
-const masterBlockedFromPublicTabs = masterMustRespectVisibility && !companyMasterVisibility.includes('synthetic');
+// true quando o seller está em "My Seller View" (não gerenciando nenhuma
+// empresa) — nesse estado, só Manage Companies e Manage Demo Groups devem
+// aparecer; toda a navegação pública (abas, Top 3, marquee, carrossel,
+// cabeçalho com nome/logo do Default) fica escondida.
+const isSellerBaseView = isSeller && !isSellerManagingOwnCompany;
+const masterBlockedFromPublicTabs = (masterMustRespectVisibility && !companyMasterVisibility.includes('synthetic')) || isSellerBaseView;
 // true quando escrever (Share Your Experience, comentar, avaliar) deve ficar
 // bloqueado — inclui o modo Sample de sempre, e também o Master/Seller
 // "Managing" outra empresa (mesmo com visibilidade concedida, nunca deve
@@ -4993,7 +4998,7 @@ autoComplete="off"
         {appSettings.editionName === 'pro' ? 'Pro' : 'Corp'}
       </span>
     </h1>
-    {companyName && (
+    {companyName && !isSellerBaseView && (
   <div className={`flex items-center justify-center gap-3 mt-1 ${
     companyNameSize === 'small' ? 'text-xs' :
     companyNameSize === 'large' ? 'text-xl' : 'text-base'
@@ -5005,7 +5010,7 @@ autoComplete="off"
 )}
   </div>
   <div className="flex-1 flex justify-end items-start pt-1">
-    {companyLogoUrl && (
+    {companyLogoUrl && !isSellerBaseView && (
   <img src={companyLogoUrl} alt="Company logo"
     className={`hidden sm:block object-contain ${
       companyLogoSize === 'small' ? 'h-8 max-w-[100px]' :
@@ -5014,7 +5019,7 @@ autoComplete="off"
 )}
   </div>
 </div>
-{companyLogoUrl && (
+{companyLogoUrl && !isSellerBaseView && (
   <div className="flex justify-center sm:hidden mb-3">
 <img src={companyLogoUrl} alt="Company logo" className={`object-contain ${
       companyLogoSize === 'small' ? 'h-10 max-w-[120px]' :
@@ -5022,6 +5027,8 @@ autoComplete="off"
     }`} />
   </div>
 )}          
+{!isSellerBaseView && (
+<>
           <p className="text-gray-700 font-medium mb-1 text-sm sm:text-base">Real problems. Real actions. Real results.</p>
 <p className="text-gray-600 text-sm sm:text-base">
   <span className="block sm:inline">Share your work experiences.</span>
@@ -5134,6 +5141,8 @@ autoComplete="off"
     
   </div>
 </div>
+    </>
+    )}
 
 {/* Employee Info - Centralizado */}
 <div className="flex items-center justify-center gap-3 mt-4 mb-2 flex-wrap">
@@ -5166,11 +5175,11 @@ autoComplete="off"
 </div>
           
 {isDemoModeActive && !(isSeller && isAdmin) && (
-  <div className="mt-4 max-w-2xl mx-auto bg-purple-50 border-2 border-purple-300 rounded-2xl p-3 flex items-center justify-between flex-wrap gap-2">
-    <p className="text-purple-800 text-sm font-medium">
+  <div className="mt-4 max-w-2xl mx-auto bg-purple-50 border-2 border-purple-300 rounded-2xl p-3 flex items-center justify-between gap-2">
+    <p className="text-purple-800 text-sm font-medium flex-1 min-w-0">
       🎬 Demo Mode — anything you add here is invisible to everyone else and gets deleted automatically when you leave.
     </p>
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 flex-shrink-0">
       <select
         value={viewingLanguage}
         onChange={(e) => setViewingLanguage(e.target.value)}
@@ -5195,23 +5204,6 @@ autoComplete="off"
 )}
 
 
-          {isAdmin && !isSeller && (
-            <div className="mt-4 bg-purple-50 border-2 border-purple-300 rounded-lg shadow-md p-4 max-w-md mx-auto">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <Shield size={20} className="text-purple-600" />
-                  <h3 className="font-semibold text-purple-800">Admin Mode Active</h3>
-                </div>
-                <button
-                  onClick={exitAdminMode}
-                  className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors"
-                >
-                  Logout ADM
-                </button>
-              </div>
-              <p className="text-sm text-gray-600">You have access to admin features</p>
-            </div>
-          )}
 
 {isAdmin && isDefaultAdmin && (
   <div className={`mt-4 rounded-lg shadow-md p-4 max-w-4xl mx-auto border-2 ${adminCompanyContext ? 'bg-amber-50 border-amber-400' : 'bg-gray-50 border-gray-300'}`}>
@@ -5230,6 +5222,12 @@ autoComplete="off"
           ⚠️ You are viewing/editing <strong>{effectiveCompanyName}</strong>'s data, not Default's. Pick which one in "Manage Companies" below.
         </span>
       )}
+      <button
+        onClick={exitAdminMode}
+        className="ml-auto px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors"
+      >
+        Logout ADM
+      </button>
     </div>
   </div>
 )}
@@ -5291,6 +5289,12 @@ autoComplete="off"
           </select>
         </>
       )}
+      <button
+        onClick={exitAdminMode}
+        className="ml-auto px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors"
+      >
+        Logout ADM
+      </button>
     </div>
   </div>
 )}
@@ -7411,7 +7415,7 @@ for (const row of rows) {
 )}
         
         {/* Inspirational Quotes Marquee - Top */}
-        {appSettings.showMarquee && (() => {
+        {appSettings.showMarquee && !isSellerBaseView && (() => {
           const topQuotes = quotes.filter(q => q.position === 'top');
           if (topQuotes.length === 0) return null;
           return (
@@ -7429,7 +7433,7 @@ for (const row of rows) {
         })()}
 
         {/* Top 3 Experiences This Week - MOVED TO TOP */}
-        {appSettings.showTop3 && top3VisibleInSession && (() => {
+        {appSettings.showTop3 && top3VisibleInSession && !isSellerBaseView && (() => {
           const top3Data = [1, 2, 3]
             .map(pos => experiences.find(exp => exp.id === topExperiences[pos]))
             .filter(Boolean);
@@ -7587,7 +7591,7 @@ onClick={() => {
         })()}
 
         {/* Inspirational Quotes Marquee - Bottom */}
-        {appSettings.showMarquee && (() => {
+        {appSettings.showMarquee && !isSellerBaseView && (() => {
           const bottomQuotes = quotes.filter(q => q.position === 'bottom');
           if (bottomQuotes.length === 0) return null;
           return (
@@ -7791,7 +7795,7 @@ onClick={() => {
             </div>
           )}
           
-{masterBlockedFromPublicTabs && (
+{masterBlockedFromPublicTabs && !isSellerBaseView && (
   <div className="mt-5 mb-8 max-w-2xl mx-auto bg-amber-50 border-2 border-amber-300 rounded-2xl p-6 text-center">
     <p className="text-amber-800 font-medium">🔒 {effectiveCompanyName} hasn't authorized ADM Master to view "Synthetic/Curated Content" yet.</p>
     <p className="text-amber-700 text-sm mt-1">Ask the company to check that box in their own "Section Settings" if you need to preview this.</p>
