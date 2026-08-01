@@ -5151,12 +5151,12 @@ autoComplete="off"
   )}
 </div>
           
-{isDemoModeActive && (
-  <div style={{position: 'fixed', top: 0, left: 0, right: 0, zIndex: 99999, background: 'red', color: 'white', fontFamily: 'monospace', fontSize: 13, padding: '8px', textAlign: 'center', fontWeight: 'bold'}}>
-    BUILD 20260731-3 | lang={effectiveViewingLanguage} | exps={experiences.length} | isViewingDefault={String(isViewingDefault)} | companyId={effectiveCompanyId}
+{isAdmin && isSeller && (
+  <div style={{position: 'fixed', top: 0, left: 0, right: 0, zIndex: 99999, background: 'red', color: 'white', fontFamily: 'monospace', fontSize: 12, padding: '6px', textAlign: 'center', fontWeight: 'bold'}}>
+    isSeller={String(isSeller)} | adminCompanyContext={String(adminCompanyContext)} | isSellerManagingOwnCompany={String(isSellerManagingOwnCompany)} | canManageThisCompany={String(canManageThisCompany)}
   </div>
 )}
-{isDemoModeActive && (
+{isDemoModeActive && !(isSeller && isAdmin) && (
   <div className="mt-4 max-w-2xl mx-auto bg-purple-50 border-2 border-purple-300 rounded-2xl p-3 flex items-center justify-between flex-wrap gap-2">
     <p className="text-purple-800 text-sm font-medium">
       🎬 Demo Mode — anything you add here is invisible to everyone else and gets deleted automatically when you leave.
