@@ -457,7 +457,7 @@ useEffect(() => {
     loadPractices();
     loadAppSettings();
   }
-}, [effectiveCompanyId, effectiveViewingLanguage, currentDemoSessionId, defaultCompanyId, companies.length]);
+}, [effectiveCompanyId, effectiveViewingLanguage, defaultCompanyId, companies.length]);
 
 // Limpeza automática: assim que o Master/Seller troca o "Managing" pra uma
 // empresa real (saindo do Default direto), qualquer sessão de demo ativa é
@@ -679,15 +679,22 @@ useEffect(() => {
     }
   };
   
-const loadExperiences = async (skipLoading = false, loggedEmpId = null) => {
+const loadExperiences = async (skipLoading = false, loggedEmpId = null, overrideDemoSessionId = undefined) => {
   if (!effectiveCompanyId) {
     console.log('🔴 loadExperiences ABORTOU — effectiveCompanyId está vazio/nulo');
     return;
   }
+  // Se quem chamou já sabe o valor certo de agora (ex: acabou de gerar uma
+  // sessão de demo nova nesse mesmo instante), usa esse valor em vez do
+  // state — o state só reflete no próximo render, e por isso a chamada
+  // explícita logo após criar conteúdo em modo demo pegava um valor
+  // "preso" (antigo), fazendo o item recém-criado não aparecer até a
+  // próxima ação atualizar o state de verdade.
+  const activeDemoSessionId = overrideDemoSessionId !== undefined ? overrideDemoSessionId : currentDemoSessionId;
   // Marca essa chamada como a mais recente.
   latestExperiencesRequestRef.current += 1;
   const thisRequestId = latestExperiencesRequestRef.current;
-  console.log(`🔵 loadExperiences #${thisRequestId} INICIOU — company=${effectiveCompanyId}, lang=${effectiveViewingLanguage}, isViewingDefault=${isViewingDefault}, demoSession=${currentDemoSessionId}, skipLoading=${skipLoading}`);
+  console.log(`🔵 loadExperiences #${thisRequestId} INICIOU — company=${effectiveCompanyId}, lang=${effectiveViewingLanguage}, isViewingDefault=${isViewingDefault}, demoSession=${activeDemoSessionId}, skipLoading=${skipLoading}`);
   try {
     if (!skipLoading) {
       setLoading(true);
@@ -704,8 +711,8 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null) => {
     // Esconde conteúdo de demo de OUTRAS sessões (outro Master/Seller
     // demonstrando em paralelo) — mostra sempre o real (demo_session_id nulo)
     // e a própria sessão de demo ativa, se houver.
-    query1 = currentDemoSessionId
-      ? query1.or(`demo_session_id.is.null,demo_session_id.eq.${currentDemoSessionId}`)
+    query1 = activeDemoSessionId
+      ? query1.or(`demo_session_id.is.null,demo_session_id.eq.${activeDemoSessionId}`)
       : query1.is('demo_session_id', null);
     const { data: batch1, error: error1 } = await query1
       .order('source', { ascending: true })
@@ -725,8 +732,8 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null) => {
     if (isViewingDefault) {
       query2 = query2.eq('language', effectiveViewingLanguage);
     }
-    query2 = currentDemoSessionId
-      ? query2.or(`demo_session_id.is.null,demo_session_id.eq.${currentDemoSessionId}`)
+    query2 = activeDemoSessionId
+      ? query2.or(`demo_session_id.is.null,demo_session_id.eq.${activeDemoSessionId}`)
       : query2.is('demo_session_id', null);
     const { data: batch2, error: error2 } = await query2
       .order('source', { ascending: true })
@@ -772,8 +779,8 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null) => {
       .from('comments')
       .select('*')
       .order('created_at', { ascending: true });
-    allCommentsQuery = currentDemoSessionId
-      ? allCommentsQuery.or(`demo_session_id.is.null,demo_session_id.eq.${currentDemoSessionId}`)
+    allCommentsQuery = activeDemoSessionId
+      ? allCommentsQuery.or(`demo_session_id.is.null,demo_session_id.eq.${activeDemoSessionId}`)
       : allCommentsQuery.is('demo_session_id', null);
     const { data: allComments } = await allCommentsQuery;
 
@@ -2724,7 +2731,7 @@ setTimeout(() => {
     // Limpar CV selecionado após sucesso
     setSelectedCv(null);
 
-    await loadExperiences(true);
+    await loadExperiences(true, null, demoSessionIdForInsert);
 
     // Fix 2 — Scroll para o novo card após carregar
     if (newExpId) {
@@ -2850,7 +2857,7 @@ if (appSettings.requireEmployeeLogin && !isAdmin && exp.employeeId !== employeeI
     delete newFiles[experienceId];
     setCommentCvFiles(newFiles);
     
-    await loadExperiences(true);
+    await loadExperiences(true, null, demoSessionIdForInsert);
     // Garantir que os IDs dos comentarios existem no estado de reacoes
     const { data: freshComments } = await supabase
       .from('comments')
@@ -5244,6 +5251,12 @@ autoComplete="off"
           ⚠️ You are viewing/editing <strong>{effectiveCompanyName}</strong>'s data. Pick which one in "Manage Companies" below.
         </span>
       )}
+      <button
+        onClick={exitAdminMode}
+        className="ml-auto px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors"
+      >
+        Logout ADM
+      </button>
     </div>
   </div>
 )}
@@ -5472,7 +5485,7 @@ autoComplete="off"
   </div>
 )}
 
-{isAdmin && showDefaultOnlyTools && (
+{isAdmin && showDefaultOnlyTools && !isSeller && (
   <div className="mt-4 bg-indigo-50 border-2 border-indigo-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
       🏢 Manage Companies
@@ -5533,7 +5546,7 @@ autoComplete="off"
   </div>
 )}
 
-{isAdmin && showDefaultOnlyTools && (
+{isAdmin && showDefaultOnlyTools && !isSeller && (
   <div className="mt-4 bg-teal-50 border-2 border-teal-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
       🧑‍💼 Manage Sellers
@@ -5601,7 +5614,7 @@ autoComplete="off"
   </div>
 )}
 
-{isAdmin && showDefaultOnlyTools && (
+{isAdmin && showDefaultOnlyTools && !isSeller && (
   <div className="mt-4 bg-cyan-50 border-2 border-cyan-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
       📊 Sellers & Demo Activity Overview
@@ -5682,7 +5695,7 @@ autoComplete="off"
 )}
 
 
-{isAdmin && canManageThisCompany && (!masterMustRespectVisibility || companyMasterVisibility.includes('app_config')) && (
+{isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany) && (!masterMustRespectVisibility || companyMasterVisibility.includes('app_config')) && (
   <div className="mt-4 bg-indigo-50 border-2 border-indigo-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
       ⚙️ App Configuration
@@ -5966,7 +5979,7 @@ autoComplete="off"
           
 
 
-          {isAdmin && canManageThisCompany && (!masterMustRespectVisibility || companyMasterVisibility.includes('quotes')) && (
+          {isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany) && (!masterMustRespectVisibility || companyMasterVisibility.includes('quotes')) && (
             <div className="mt-4 bg-green-50 border-2 border-green-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 <MessageCircle size={20} />
@@ -6119,7 +6132,7 @@ autoComplete="off"
             </div>
           )}
 
-          {isAdmin && canManageThisCompany && (!masterMustRespectVisibility || companyMasterVisibility.includes('promotional_videos')) && (
+          {isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany) && (!masterMustRespectVisibility || companyMasterVisibility.includes('promotional_videos')) && (
             <div className="mt-4 bg-purple-50 border-2 border-purple-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 🎬 Manage Promotional Videos
@@ -6344,7 +6357,7 @@ autoComplete="off"
             </div>
           )}
 
-          {isAdmin && canManageThisCompany && (!masterMustRespectVisibility || companyMasterVisibility.includes('content_pages')) && (
+          {isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany) && (!masterMustRespectVisibility || companyMasterVisibility.includes('content_pages')) && (
             <div className="mt-4 bg-blue-50 border-2 border-blue-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 <MessageCircle size={20} />
@@ -6614,7 +6627,7 @@ autoComplete="off"
 )}
        
 
-{isAdmin && canManageThisCompany && (!masterMustRespectVisibility || companyMasterVisibility.includes('synthetic') || canBootstrapFirstAdmin) && (
+{isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany) && (!masterMustRespectVisibility || companyMasterVisibility.includes('synthetic') || canBootstrapFirstAdmin) && (
   <div className={`${showDefaultOnlyTools ? 'mt-4' : '-mt-4'} bg-slate-50 border-2 border-slate-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto`}>
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
       👥 Manage Employees
@@ -6777,7 +6790,7 @@ autoComplete="off"
   </div>
 )}
 
-{isAdmin && canManageThisCompany && (!masterMustRespectVisibility || companyMasterVisibility.includes('metadata')) && (
+{isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany) && (!masterMustRespectVisibility || companyMasterVisibility.includes('metadata')) && (
   <div className="mt-4 bg-teal-50 border-2 border-teal-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
       🗂️ Manage Problem Categories
@@ -7090,7 +7103,7 @@ for (const row of rows) {
   </div>
 )}
 
-{isAdmin && showDefaultOnlyTools && (
+{isAdmin && showDefaultOnlyTools && !isSeller && (
   <div className="mt-4 bg-orange-50 border-2 border-orange-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
       ⭐ Assign Ratings to Experiences
@@ -7592,7 +7605,7 @@ onClick={() => {
         })()}
 
 {/* Tabs estilo fichário — substitui os botões de navegação */}
-          {isAdmin && canManageThisCompany && !isReadOnlyOrMasterManaging && (!masterMustRespectVisibility || companyMasterVisibility.includes('keyword_filter')) && (
+          {isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany) && !isReadOnlyOrMasterManaging && (!masterMustRespectVisibility || companyMasterVisibility.includes('keyword_filter')) && (
             <div className="mt-4 bg-yellow-50 border-2 border-yellow-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 <Search size={20} />
