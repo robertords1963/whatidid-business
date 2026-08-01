@@ -7936,7 +7936,7 @@ onClick={() => {
             </div>
           )}
           
-{masterBlockedFromPublicTabs && !isSellerBaseView && (
+{masterBlockedFromPublicTabs && !isSellerBaseView && !isSellerManagingOwnCompany && !(isDefaultAdmin && !!adminCompanyContext) && (
   <div className="mt-5 mb-8 max-w-2xl mx-auto bg-amber-50 border-2 border-amber-300 rounded-2xl p-6 text-center">
     <p className="text-amber-800 font-medium">🔒 {effectiveCompanyName} hasn't authorized ADM Master to view "Synthetic/Curated Content" yet.</p>
     <p className="text-amber-700 text-sm mt-1">Ask the company to check that box in their own "Section Settings" if you need to preview this.</p>
