@@ -355,7 +355,7 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   // agora vive na faixa "Demo Mode", visível mesmo depois de sair do Admin),
   // usa o seletor manual "Viewing language"; senão (Demo ID, employee comum)
   // usa o idioma da própria conta que logou, automaticamente.
-  const effectiveViewingLanguage = (isDemoModeActive || (isAdmin && !isDefaultAdmin && !isSeller && companyViewMode === 'sample')) ? viewingLanguage : (loggedInEmployeeLanguage || 'en');
+  const effectiveViewingLanguage = (isDemoModeActive || (isAdmin && !isDefaultAdmin && companyViewMode === 'sample')) ? viewingLanguage : (loggedInEmployeeLanguage || 'en');
   // true só quando é o Admin do Default DE VERDADE, olhando pro próprio Default
   // (não um Admin de empresa espiando o Sample, que também usa dados do Default,
   // mas não deve ver as 5 seções exclusivas do Default).
@@ -5348,9 +5348,22 @@ autoComplete="off"
         </span>
       )}
       {!isSellerManagingOwnCompany && companyViewMode === 'sample' && (
-        <span className="text-sm font-semibold text-blue-700 flex items-center gap-1">
-          👁️ Read-only preview of Default's real content — great for showing a prospect.
-        </span>
+        <>
+          <span className="text-sm font-semibold text-blue-700 flex items-center gap-1">
+            👁️ Read-only preview of Default's real content — great for showing a prospect.
+          </span>
+          <label className="text-sm font-medium text-gray-700 ml-2">Language:</label>
+          <select
+            value={viewingLanguage}
+            onChange={(e) => setViewingLanguage(e.target.value)}
+            className="p-2 border-2 border-gray-300 rounded-lg text-sm font-medium"
+          >
+            <option value="en">English</option>
+            <option value="es">Español</option>
+            <option value="pt">Português</option>
+            <option value="zh">中文 (Chinese)</option>
+          </select>
+        </>
       )}
       <button
         onClick={exitAdminMode}
