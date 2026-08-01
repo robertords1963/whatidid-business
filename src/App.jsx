@@ -158,8 +158,6 @@ export default function WhatIDid() {
   const [deletionPracticeId, setDeletionPracticeId] = useState(null);
   const [deletionCategory, setDeletionCategory] = useState('');
   const [deletionCategoriesForPractice, setDeletionCategoriesForPractice] = useState([]);
-  const [confirmDeleteAll, setConfirmDeleteAll] = useState(false);
-  const [confirmDeleteAllExperiences, setConfirmDeleteAllExperiences] = useState(false);
   const [deletionDataType, setDeletionDataType] = useState('all');
   const [deletionSource, setDeletionSource] = useState('all');
   // Empresa marcada via radio button no "Manage Companies" — é o que a opção
@@ -2740,10 +2738,13 @@ if (appSettings.requireEmployeeLogin && !isAdmin && exp.employeeId !== employeeI
     }
 
     // Deletar experiência (CASCADE deleta comentários automaticamente)
+    // .eq('company_id', ...) é uma segunda trava: mesmo que o id viesse de
+    // algum lugar errado, nunca apaga fora da empresa ativa no momento.
     const { error } = await supabase
       .from('experiences')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .eq('company_id', effectiveCompanyId);
     
     if (error) throw error;
     await loadExperiences(true);
@@ -3911,13 +3912,20 @@ if (appSettings.requireEmployeeLogin && !isAdmin && comment.employeeId !== emplo
   const getKeywordMatches = () => {
   const hasKeyword = !!adminKeywords.trim();
   const hasPracticeOrCategory = !!deletionPracticeId || !!deletionCategory;
-  if (!hasKeyword && !hasPracticeOrCategory) return [];
+  const hasDataTypeOrSource = deletionDataType !== 'all' || deletionSource !== 'all';
+  if (!hasKeyword && !hasPracticeOrCategory && !hasDataTypeOrSource) return [];
   const keywords = hasKeyword ? adminKeywords.toLowerCase().split(',').map(k => k.trim()).filter(k => k) : [];
   const matches = [];
   experiences.forEach(exp => {
     // Filtro de Practice/Category — se marcado, a experience precisa bater
     if (deletionPracticeId && exp.practiceId !== deletionPracticeId) return;
     if (deletionCategory && exp.problemCategory !== deletionCategory) return;
+    // Filtro de Data Type — Individual Experiences vs Common Cases/Key Insights
+    if (deletionDataType === 'individual' && exp.author === 'key_insights') return;
+    if (deletionDataType === 'key_insights' && exp.author !== 'key_insights') return;
+    // Filtro de Source — Curated/Sample vs Entered by Users
+    if (deletionSource === 'curated' && exp.source === 'app') return;
+    if (deletionSource === 'users' && exp.source !== 'app') return;
 
     if (hasKeyword) {
       const searchText = `${exp.problem} ${exp.solution} ${exp.result} ${exp.author} ${exp.employeeId || ''} ${exp.source !== 'app' ? 'Curator' : ''}`.toLowerCase();
@@ -3946,7 +3954,8 @@ if (appSettings.requireEmployeeLogin && !isAdmin && comment.employeeId !== emplo
         });
       });
     } else {
-      // Sem keyword — só Practice/Category marcados: toda experience que bater entra na lista
+      // Sem keyword — Practice/Category/Data Type/Source marcados: toda
+      // experience que bater com os filtros ativos entra na lista
       matches.push({
         type: 'experience',
         expId: exp.id,
@@ -3965,42 +3974,31 @@ const handleDeleteAllMatches = async () => {
   const commentMatches = matches.filter(m => m.type === 'comment');
   if (expIds.length === 0 && commentMatches.length === 0) return;
 
-  if (!confirmDeleteAll) {
-    setConfirmDeleteAll(true);
-    return;
-  }
-  setConfirmDeleteAll(false);
+  if (!window.confirm(`Delete ${expIds.length} experience(s) and ${commentMatches.length} comment(s)? This cannot be undone.`)) return;
   try {
-    for (const c of commentMatches) {
-      await handleDeleteComment(c.expId, c.commentId);
+    // Comentários que bateram individualmente (sem apagar a experience pai)
+    if (commentMatches.length > 0) {
+      const commentIds = commentMatches.map(c => c.commentId);
+      await supabase.from('comments').delete().in('id', commentIds);
     }
-    for (const expId of expIds) {
-      await deleteExperienceFromSupabase(expId);
+    // Experiences que bateram — apagadas em lote, não uma por uma
+    if (expIds.length > 0) {
+      const matchedExps = experiences.filter(e => expIds.includes(e.id));
+      await supabase.from('comments').delete().in('experience_id', expIds);
+      await supabase.from('top_experiences').delete().in('experience_id', expIds);
+      for (const exp of matchedExps) {
+        if (exp.cvUrl) await deleteFileFromStorage(exp.cvUrl);
+        (exp.comments || []).forEach(async (comment) => {
+          if (comment.cvUrl) await deleteFileFromStorage(comment.cvUrl);
+        });
+      }
+      const { error } = await supabase.from('experiences').delete().in('id', expIds).eq('company_id', effectiveCompanyId);
+      if (error) throw error;
     }
+    await loadExperiences(true);
     alert(`Deleted ${expIds.length} experience(s) and ${commentMatches.length} comment(s).`);
   } catch (error) {
     console.error('Error deleting matches:', error);
-    alert('Error deleting some items: ' + error.message);
-  }
-};
-
-// Apaga um lote de experiences já filtrado por Data Type + Source (chamado
-// pelo painel "Manage Deletion") — confirmação dupla antes de executar.
-const handleDeleteAllExperiences = async (matchedExperiences) => {
-  const allIds = matchedExperiences.map(e => e.id);
-  if (allIds.length === 0) { alert('No experiences match.'); return; }
-  if (!confirmDeleteAllExperiences) {
-    setConfirmDeleteAllExperiences(true);
-    return;
-  }
-  setConfirmDeleteAllExperiences(false);
-  try {
-    for (const expId of allIds) {
-      await deleteExperienceFromSupabase(expId);
-    }
-    alert(`Deleted ${allIds.length} experience(s).`);
-  } catch (error) {
-    console.error('Error deleting all experiences:', error);
     alert('Error deleting some items: ' + error.message);
   }
 };
@@ -7556,63 +7554,7 @@ onClick={() => {
                 Manage Deletion
               </h3>
               <div className="space-y-3">
-                {(() => {
-                  const dataTypeMatches = (exp) => {
-                    if (deletionDataType === 'individual') return exp.author !== 'key_insights';
-                    if (deletionDataType === 'key_insights') return exp.author === 'key_insights';
-                    return true;
-                  };
-                  const sourceMatches = (exp) => {
-                    if (deletionSource === 'curated') return exp.source !== 'app';
-                    if (deletionSource === 'users') return exp.source === 'app';
-                    return true;
-                  };
-                  const bulkMatches = experiences.filter(e => dataTypeMatches(e) && sourceMatches(e));
-                  return (
-                <div className="bg-red-50 border-2 border-red-300 rounded p-3 space-y-2">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Data Type</label>
-                      <select
-                        value={deletionDataType}
-                        onChange={(e) => { setDeletionDataType(e.target.value); setConfirmDeleteAllExperiences(false); }}
-                        className="w-full h-9 px-2 py-1 border-2 border-gray-300 rounded-lg bg-white text-sm"
-                      >
-                        <option value="all">All</option>
-                        <option value="individual">Individual Experiences</option>
-                        <option value="key_insights">Common Cases / Key Insights</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Source</label>
-                      <select
-                        value={deletionSource}
-                        onChange={(e) => { setDeletionSource(e.target.value); setConfirmDeleteAllExperiences(false); }}
-                        className="w-full h-9 px-2 py-1 border-2 border-gray-300 rounded-lg bg-white text-sm"
-                      >
-                        <option value="all">All</option>
-                        <option value="curated">Curated / Sample</option>
-                        <option value="users">Entered by Users</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between flex-wrap gap-2">
-                    <p className="text-sm text-red-800">
-                      ⚠️ Matches <strong>{bulkMatches.length}</strong> experience(s) with the selections above.
-                    </p>
-                    {bulkMatches.length > 0 && (
-                      <button
-                        onClick={() => handleDeleteAllExperiences(bulkMatches)}
-                        className={`px-3 py-1.5 rounded text-sm text-white whitespace-nowrap ${confirmDeleteAllExperiences ? 'bg-red-900' : 'bg-red-700 hover:bg-red-800'}`}
-                      >
-                        {confirmDeleteAllExperiences ? `Confirm delete ${bulkMatches.length} item(s)?` : '🗑️ Delete Matching'}
-                      </button>
-                    )}
-                  </div>
-                </div>
-                  );
-                })()}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-2">Function / Practice</label>
                     <div className="relative">
@@ -7654,6 +7596,30 @@ onClick={() => {
                       <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500" style={{ fontSize: '10px' }}>▼</span>
                     </div>
                   </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-2">Data Type</label>
+                    <select
+                      value={deletionDataType}
+                      onChange={(e) => setDeletionDataType(e.target.value)}
+                      className="w-full h-9 px-2 py-1 border-2 border-gray-300 rounded-lg bg-white"
+                    >
+                      <option value="all">All</option>
+                      <option value="individual">Individual Experiences</option>
+                      <option value="key_insights">Common Cases / Key Insights</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-2">Source</label>
+                    <select
+                      value={deletionSource}
+                      onChange={(e) => setDeletionSource(e.target.value)}
+                      className="w-full h-9 px-2 py-1 border-2 border-gray-300 rounded-lg bg-white"
+                    >
+                      <option value="all">All</option>
+                      <option value="curated">Curated / Sample</option>
+                      <option value="users">Entered by Users</option>
+                    </select>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -7670,7 +7636,7 @@ onClick={() => {
                     Will search in problems, solutions, results, and comments. Combine with Function/Practice and Category above to narrow down further.
                   </p>
                 </div>
-                {(adminKeywords || deletionPracticeId || deletionCategory) && (
+                {(adminKeywords || deletionPracticeId || deletionCategory || deletionDataType !== 'all' || deletionSource !== 'all') && (
                   <div className="bg-white rounded p-3">
                     <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
                       <p className="text-sm font-semibold">
@@ -7679,9 +7645,9 @@ onClick={() => {
                       {getKeywordMatches().length > 0 && (
                         <button
                           onClick={handleDeleteAllMatches}
-                          className={`px-3 py-1.5 rounded text-sm text-white ${confirmDeleteAll ? 'bg-red-800' : 'bg-red-600 hover:bg-red-700'}`}
+                          className="px-3 py-1.5 rounded text-sm text-white bg-red-600 hover:bg-red-700"
                         >
-                          {confirmDeleteAll ? `Confirm delete ${getKeywordMatches().length} item(s)?` : 'Delete All'}
+                          Delete All
                         </button>
                       )}
                     </div>
@@ -7745,10 +7711,12 @@ onClick={() => {
                                 );
                               })()}
                             </div>
-                            <p className="text-sm text-gray-700 mb-1">
-                              <span className="font-medium">Keyword found:</span>{' '}
-                              <span className="bg-yellow-300 px-1 rounded font-semibold">{match.keyword}</span>
-                            </p>
+                            {match.keyword && (
+                              <p className="text-sm text-gray-700 mb-1">
+                                <span className="font-medium">Keyword found:</span>{' '}
+                                <span className="bg-yellow-300 px-1 rounded font-semibold">{match.keyword}</span>
+                              </p>
+                            )}
                             {match.author && (
                               <p className="text-xs text-gray-600 mb-1">By: {match.author}</p>
                             )}
