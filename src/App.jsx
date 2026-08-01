@@ -2213,6 +2213,13 @@ const handleEmployeeLogin = async () => {
   setLoggedInEmployeeCompanyId(data.company_id || null);
   localStorage.setItem('loggedInEmployeeCompanyId', data.company_id || '');
 
+  // Sempre começa sem nenhuma empresa "marcada" no contexto — elimina
+  // qualquer chance de uma sessão anterior (outra conta, no mesmo navegador)
+  // deixar isso "grudado" e o novo login já cair direto gerenciando uma
+  // empresa sem querer.
+  setAdminCompanyContext(null);
+  setSelectedCompanyForContext(null);
+
   // Se essa conta é um seller, guarda o id dela pra escopar Manage Companies
   // e Manage Demo Groups só ao que ele mesmo criou.
   if (data.is_seller) {
@@ -5151,11 +5158,6 @@ autoComplete="off"
   )}
 </div>
           
-{isAdmin && isSeller && (
-  <div style={{position: 'fixed', top: 0, left: 0, right: 0, zIndex: 99999, background: 'red', color: 'white', fontFamily: 'monospace', fontSize: 12, padding: '6px', textAlign: 'center', fontWeight: 'bold'}}>
-    isSeller={String(isSeller)} | adminCompanyContext={String(adminCompanyContext)} | isSellerManagingOwnCompany={String(isSellerManagingOwnCompany)} | canManageThisCompany={String(canManageThisCompany)}
-  </div>
-)}
 {isDemoModeActive && !(isSeller && isAdmin) && (
   <div className="mt-4 max-w-2xl mx-auto bg-purple-50 border-2 border-purple-300 rounded-2xl p-3 flex items-center justify-between flex-wrap gap-2">
     <p className="text-purple-800 text-sm font-medium">
@@ -5186,7 +5188,7 @@ autoComplete="off"
 )}
 
 
-          {isAdmin && (
+          {isAdmin && !isSeller && (
             <div className="mt-4 bg-purple-50 border-2 border-purple-300 rounded-lg shadow-md p-4 max-w-md mx-auto">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
