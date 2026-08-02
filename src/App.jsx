@@ -1691,7 +1691,7 @@ const importMetadataModel = async () => {
     }
 
     const { data: alreadyImportedCategories } = await supabase
-      .from('problem_categories').select('imported_from_id').eq('company_id', effectiveCompanyId).not('imported_from_id', 'is', null).eq('active', true);
+      .from('problem_categories').select('id, imported_from_id, practice_id').eq('company_id', effectiveCompanyId).not('imported_from_id', 'is', null).eq('active', true);
     const importedCategoryIds = new Set((alreadyImportedCategories || []).map(r => r.imported_from_id));
 
     // Recarrega practices já com as novas, pra achar o practice_id correto no destino
@@ -1699,25 +1699,23 @@ const importMetadataModel = async () => {
     const practiceIdByImportedFrom = {};
     (targetPractices || []).forEach(p => { if (p.imported_from_id) practiceIdByImportedFrom[p.imported_from_id] = p.id; });
 
-    // Reparo: categorias que já foram importadas antes mas ficaram órfãs
-    // (practice_id nulo — aconteceu quando uma tentativa anterior travou no
-    // meio e a Practice-mãe ainda não existia nesse momento) — religa agora
-    // que a Practice pode ter acabado de ser criada acima.
-    const { data: orphanCategories } = await supabase
-      .from('problem_categories').select('id, imported_from_id')
-      .eq('company_id', effectiveCompanyId).eq('active', true).is('practice_id', null)
-      .not('imported_from_id', 'is', null);
-    if (orphanCategories && orphanCategories.length > 0) {
-      const { data: sourceCatsForOrphans } = await supabase
+    // Reparo: categorias já importadas antes, mas com o practice_id errado —
+    // seja nulo (Practice-mãe ainda não existia numa tentativa anterior que
+    // travou no meio), seja apontando pra uma Practice que foi desativada
+    // depois (ex: apagada e reimportada, ganhando um id novo). Confere TODAS
+    // as categorias já importadas contra o mapeamento certo, e corrige
+    // qualquer uma que não bata — não só as com practice_id nulo.
+    if (alreadyImportedCategories && alreadyImportedCategories.length > 0) {
+      const { data: sourceCatsForAll } = await supabase
         .from('problem_categories').select('id, practice_id')
-        .in('id', orphanCategories.map(o => o.imported_from_id));
+        .in('id', alreadyImportedCategories.map(c => c.imported_from_id));
       const sourcePracticeIdByCatId = {};
-      (sourceCatsForOrphans || []).forEach(sc => { sourcePracticeIdByCatId[sc.id] = sc.practice_id; });
-      for (const orphan of orphanCategories) {
-        const sourcePracticeId = sourcePracticeIdByCatId[orphan.imported_from_id];
-        const fixedPracticeId = sourcePracticeId ? practiceIdByImportedFrom[sourcePracticeId] : null;
-        if (fixedPracticeId) {
-          await supabase.from('problem_categories').update({ practice_id: fixedPracticeId }).eq('id', orphan.id);
+      (sourceCatsForAll || []).forEach(sc => { sourcePracticeIdByCatId[sc.id] = sc.practice_id; });
+      for (const cat of alreadyImportedCategories) {
+        const sourcePracticeId = sourcePracticeIdByCatId[cat.imported_from_id];
+        const correctPracticeId = sourcePracticeId ? (practiceIdByImportedFrom[sourcePracticeId] || null) : null;
+        if (correctPracticeId && correctPracticeId !== cat.practice_id) {
+          await supabase.from('problem_categories').update({ practice_id: correctPracticeId }).eq('id', cat.id);
         }
       }
     }
@@ -1857,7 +1855,8 @@ const importSyntheticContent = async () => {
     // do zero do que tentar deduplicar por imported_from_id — uma tentativa
     // anterior que travou no meio pode ter deixado uma linha "position" já
     // ocupada sem o imported_from_id bater, causando erro de chave duplicada.
-    await supabase.from('top_experiences').delete().eq('company_id', effectiveCompanyId);
+    const { error: clearTop3Error } = await supabase.from('top_experiences').delete().eq('company_id', effectiveCompanyId);
+    if (clearTop3Error) throw new Error('Could not clear existing Top 3 rows before re-import: ' + clearTop3Error.message);
 
     const { data: defaultTop3 } = await supabase.from('top_experiences').select('*').eq('company_id', defaultCompanyId);
     let addedTop3 = 0;
