@@ -938,7 +938,10 @@ const keyInsights = transformedData.filter(e => e.author === 'key_insights');
     );
   }
 
-if (!shuffleOrderRef.current || shuffleOrderCompanyRef.current !== effectiveCompanyId || shuffleOrderLanguageRef.current !== effectiveViewingLanguage) {
+const hasNewSyntheticItems = shuffleOrderRef.current
+  ? syntheticExps.some(e => !shuffleOrderRef.current.includes(e.id))
+  : false;
+if (!shuffleOrderRef.current || shuffleOrderCompanyRef.current !== effectiveCompanyId || shuffleOrderLanguageRef.current !== effectiveViewingLanguage || hasNewSyntheticItems) {
   for (let i = syntheticExps.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [syntheticExps[i], syntheticExps[j]] = [syntheticExps[j], syntheticExps[i]];
@@ -1710,7 +1713,7 @@ const importMetadataModel = async () => {
 
     await loadPractices();
     await loadProblemCategories();
-    alert(`Metadata Model updated — ${addedPractices} new Practice(s), ${addedCategories} new Categor${addedCategories === 1 ? 'y' : 'ies'}.`);
+    alert(`Metadata Model updated — ${addedPractices} new Practice(s), ${addedCategories} new Categor${addedCategories === 1 ? 'y' : 'ies'}. [debug: importLanguage=${importLanguage}, defaultPractices found=${(defaultPractices || []).length}, already imported before=${importedPracticeIds.size}, defaultCategories found=${(defaultCategories || []).length}]`);
   } catch (error) {
     console.error('Error importing Metadata Model:', error);
     alert('Error during import: ' + error.message);
