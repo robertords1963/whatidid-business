@@ -1821,7 +1821,7 @@ const importSyntheticContent = async () => {
       const newExpId = expIdMap[t.experience_id];
       if (!newExpId) continue; // a experience correspondente não foi importada (talvez já existisse)
       const { error } = await supabase.from('top_experiences').insert([{
-        experience_id: newExpId, company_id: effectiveCompanyId, imported_from_id: t.id, import_batch_id: batchId
+        experience_id: newExpId, position: t.position, company_id: effectiveCompanyId, imported_from_id: t.id, import_batch_id: batchId
       }]);
       if (error) throw error;
       addedTop3++;
