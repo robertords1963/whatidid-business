@@ -958,9 +958,12 @@ const allExps = [...keyInsights, ...userExps, ...orderedSynthetic];
 // DEPOIS de uma chamada mais RÁPIDA e correta, sobrescrevendo o resultado
 // certo com o errado. A causa raiz de ela disparar sem necessidade (chamada
 // automática rodando antes de "companies" carregar) já foi corrigida acima
-// (guard "companies.length > 0" no useEffect), então agora é seguro manter
-// essa trava como proteção de verdade, não como remendo de outro bug.
-if (latestExperiencesRequestRef.current !== thisRequestId) {
+// (guard "companies.length > 0" no useEffect). Com isso corrigido, chamadas
+// EXPLÍCITAS (skipLoading=true — sempre disparadas manualmente logo depois de
+// uma ação concluída, tipo import/delete/comentário) voltam a ser imunes:
+// representam "acabei de mudar dados, mostre agora" e não podem ser
+// descartadas só porque uma automática rodou em paralelo.
+if (!skipLoading && latestExperiencesRequestRef.current !== thisRequestId) {
   console.log('🟠 loadExperiences IGNOROU resultado desatualizado — request #', thisRequestId, 'mas o mais recente agora é #', latestExperiencesRequestRef.current);
   return;
 }
@@ -2003,7 +2006,51 @@ const deleteCategoryCascade = async (cat) => {
   }
 };
 
-// ==================== FIM MULTI-EMPRESA ====================
+// Apaga uma Function/Practice inteira em cascata: todas as Categories dela,
+// as Experiences/Key Insights/comments ligadas a essas Categories, e os
+// employees que ficarem sem nenhum conteúdo restante.
+const deletePracticeCascade = async (practice) => {
+  try {
+    const { data: cats, error: catErr } = await supabase
+      .from('problem_categories').select('id, name')
+      .eq('practice_id', practice.id).eq('company_id', effectiveCompanyId).eq('active', true);
+    if (catErr) throw catErr;
+
+    for (const cat of cats || []) {
+      const { data: exps } = await supabase
+        .from('experiences').select('id, employee_id')
+        .eq('problem_category', cat.name).eq('company_id', effectiveCompanyId);
+      const expIds = (exps || []).map(e => e.id);
+      const employeeIds = [...new Set((exps || []).map(e => e.employee_id).filter(Boolean))];
+      if (expIds.length > 0) {
+        await supabase.from('comments').delete().in('experience_id', expIds);
+        await supabase.from('top_experiences').delete().in('experience_id', expIds);
+        await supabase.from('experiences').delete().in('id', expIds);
+      }
+      for (const empId of employeeIds) {
+        const { count } = await supabase
+          .from('experiences').select('id', { count: 'exact', head: true })
+          .eq('employee_id', empId).eq('company_id', effectiveCompanyId);
+        if (!count || count === 0) {
+          await supabase.from('employees').delete().eq('employee_id', empId).eq('company_id', effectiveCompanyId);
+        }
+      }
+      await supabase.from('problem_categories').update({ active: false }).eq('id', cat.id);
+    }
+
+    const { error } = await supabase.from('practices').update({ active: false }).eq('id', practice.id);
+    if (error) throw error;
+
+    await loadPractices();
+    await loadProblemCategories();
+    await loadEmployees(effectiveCompanyId);
+    await loadExperiences(true);
+  } catch (error) {
+    console.error('Error deleting practice (cascade):', error);
+    throw error;
+  }
+};
+
 
 const addEmployee = async () => {
   if (!newEmployee.employee_id.trim() || !newEmployee.name.trim()) {
@@ -5542,11 +5589,8 @@ autoComplete="off"
           <td className="py-2">
             <p>Synthetic/Curated Content</p>
             <p className="text-xs text-gray-400 font-normal">Individual Experiences, Top 3, Employees, Key Insights</p>
-            {practices.length === 0 && !selectedForImport.includes('metadata') && (
-              <p className="text-xs text-amber-600 font-normal">⚠️ Import Metadata first (or check it together) — Content links to it.</p>
-            )}
-            {practices.length > 0 && (
-              <p className="text-xs text-amber-600 font-normal">⚠️ Already imported. Re-importing in a different language would mix languages together — delete existing Categories first if you need to switch.</p>
+            {!selectedForImport.includes('metadata') && (
+              <p className="text-xs text-amber-600 font-normal">⚠️ Check "Metadata Model" above too — Content can only be imported together with it, to stay linked to the right Categories.</p>
             )}
           </td>
           <td className="py-2 text-center">
@@ -5555,14 +5599,14 @@ autoComplete="off"
           </td>
           <td className="py-2 text-center">
             <input type="checkbox" checked={selectedForImport.includes('synthetic')}
-              disabled={practices.length === 0 && !selectedForImport.includes('metadata')}
+              disabled={!selectedForImport.includes('metadata')}
               onChange={(e) => setSelectedForImport(e.target.checked ? [...selectedForImport, 'synthetic'] : selectedForImport.filter(k => k !== 'synthetic'))}
               className="w-4 h-4 disabled:opacity-30" />
           </td>
         </tr>
 
         <tr>
-          <td className="py-2">Manage Deletion</td>
+          <td className="py-2">Manage Group Deletion</td>
           <td className="py-2 text-center">
             <input type="checkbox" checked={companyMasterVisibility.includes('keyword_filter')}
               onChange={(e) => toggleMasterVisibility('keyword_filter', e.target.checked)} className="w-4 h-4" />
@@ -7754,10 +7798,38 @@ onClick={() => {
             <div className="mt-4 bg-yellow-50 border-2 border-yellow-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 <Search size={20} />
-                Manage Deletion
+                Manage Group Deletion
               </h3>
               <div className="space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-2">Data Type</label>
+                    <select
+                      value={deletionDataType}
+                      onChange={(e) => {
+                        setDeletionDataType(e.target.value);
+                        if (e.target.value === 'metadata' && deletionSource === 'all') setDeletionSource('curated');
+                      }}
+                      className="w-full h-9 px-2 py-1 border-2 border-gray-300 rounded-lg bg-white"
+                    >
+                      <option value="all">All</option>
+                      <option value="metadata">Metadata</option>
+                      <option value="individual">Individual Experiences</option>
+                      <option value="key_insights">Common Cases / Key Insights</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-2">Source</label>
+                    <select
+                      value={deletionSource}
+                      onChange={(e) => setDeletionSource(e.target.value)}
+                      className="w-full h-9 px-2 py-1 border-2 border-gray-300 rounded-lg bg-white"
+                    >
+                      <option value="all">All</option>
+                      <option value="curated">Curated / Sample</option>
+                      <option value="users">Entered by Users</option>
+                    </select>
+                  </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-2">Function / Practice</label>
                     <div className="relative">
@@ -7775,7 +7847,9 @@ onClick={() => {
                         className="w-full h-9 px-2 py-1 pr-8 border-2 border-gray-300 rounded-lg appearance-none bg-white"
                       >
                         <option value="">All</option>
-                        {uiPractices.map(p => (
+                        {uiPractices
+                          .filter(p => deletionDataType !== 'metadata' || deletionSource === 'all' || (deletionSource === 'curated' ? p.imported_from_id : !p.imported_from_id))
+                          .map(p => (
                           <option key={p.id} value={p.id}>{p.name}</option>
                         ))}
                       </select>
@@ -7792,38 +7866,122 @@ onClick={() => {
                         className="w-full h-9 px-2 py-1 pr-8 border-2 border-gray-300 rounded-lg appearance-none bg-white disabled:bg-gray-100"
                       >
                         <option value="">All</option>
-                        {deletionCategoriesForPractice.map(c => (
+                        {deletionCategoriesForPractice
+                          .filter(c => deletionDataType !== 'metadata' || deletionSource === 'all' || (deletionSource === 'curated' ? c.imported_from_id : !c.imported_from_id))
+                          .map(c => (
                           <option key={c.id} value={c.name}>{c.name}</option>
                         ))}
                       </select>
                       <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500" style={{ fontSize: '10px' }}>▼</span>
                     </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-2">Data Type</label>
-                    <select
-                      value={deletionDataType}
-                      onChange={(e) => setDeletionDataType(e.target.value)}
-                      className="w-full h-9 px-2 py-1 border-2 border-gray-300 rounded-lg bg-white"
-                    >
-                      <option value="all">All</option>
-                      <option value="individual">Individual Experiences</option>
-                      <option value="key_insights">Common Cases / Key Insights</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-2">Source</label>
-                    <select
-                      value={deletionSource}
-                      onChange={(e) => setDeletionSource(e.target.value)}
-                      className="w-full h-9 px-2 py-1 border-2 border-gray-300 rounded-lg bg-white"
-                    >
-                      <option value="all">All</option>
-                      <option value="curated">Curated / Sample</option>
-                      <option value="users">Entered by Users</option>
-                    </select>
-                  </div>
                 </div>
+                {deletionDataType === 'metadata' ? (
+                  <div className="bg-white rounded p-3">
+                    {(() => {
+                      const sourceMatches = (item) => deletionSource === 'all' || (deletionSource === 'curated' ? item.imported_from_id : !item.imported_from_id);
+
+                      // Categoria específica escolhida — lista de 1 item.
+                      if (deletionPracticeId && deletionCategory) {
+                        const cat = deletionCategoriesForPractice.find(c => c.name === deletionCategory);
+                        if (!cat) return <p className="text-sm text-gray-500">—</p>;
+                        return (
+                          <div className="flex items-center justify-between p-2 border border-gray-200 rounded-lg">
+                            <span className="text-sm text-gray-800">🗂️ {cat.name}</span>
+                            <button
+                              onClick={async () => {
+                                if (!window.confirm(`Delete Category "${cat.name}"? This also deletes its Experiences, Key Insights and comments. This cannot be undone.`)) return;
+                                try { await deleteCategoryCascade(cat); } catch (e) { alert('Error: ' + e.message); }
+                              }}
+                              className="px-2 py-1 rounded text-xs bg-red-600 hover:bg-red-700 text-white"
+                            >🗑️ Delete</button>
+                          </div>
+                        );
+                      }
+
+                      // Practice escolhida, Category = All — lista as Categories dela.
+                      if (deletionPracticeId) {
+                        const items = deletionCategoriesForPractice.filter(sourceMatches);
+                        const practiceName = uiPractices.find(p => p.id === deletionPracticeId)?.name;
+                        return (
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between mb-1 flex-wrap gap-2">
+                              <p className="text-sm font-semibold">{items.length} Categor{items.length === 1 ? 'y' : 'ies'} in "{practiceName}"</p>
+                              {items.length > 0 && (
+                                <button
+                                  onClick={async () => {
+                                    if (!window.confirm(`Delete all ${items.length} Categories listed below (and their Experiences/Key Insights/comments)? This cannot be undone.`)) return;
+                                    for (const cat of items) {
+                                      try { await deleteCategoryCascade(cat); } catch (e) { console.error(e); }
+                                    }
+                                  }}
+                                  className="px-3 py-1.5 rounded text-sm text-white bg-red-700 hover:bg-red-800"
+                                >🗑️ Delete All</button>
+                              )}
+                            </div>
+                            {items.length === 0 ? (
+                              <p className="text-sm text-gray-500">No Categories match this Source.</p>
+                            ) : items.map(cat => (
+                              <div key={cat.id} className="flex items-center justify-between p-2 border border-gray-200 rounded-lg">
+                                <span className="text-sm text-gray-800">🗂️ {cat.name}</span>
+                                <button
+                                  onClick={async () => {
+                                    if (!window.confirm(`Delete Category "${cat.name}"? This also deletes its Experiences, Key Insights and comments. This cannot be undone.`)) return;
+                                    try { await deleteCategoryCascade(cat); } catch (e) { alert('Error: ' + e.message); }
+                                  }}
+                                  className="px-2 py-1 rounded text-xs bg-red-600 hover:bg-red-700 text-white"
+                                >🗑️ Delete</button>
+                              </div>
+                            ))}
+                            <button
+                              onClick={async () => {
+                                const practice = uiPractices.find(p => p.id === deletionPracticeId);
+                                if (!window.confirm(`Delete the whole Function/Practice "${practice.name}" (all its Categories, regardless of Source)? This cannot be undone.`)) return;
+                                try { await deletePracticeCascade(practice); alert(`"${practice.name}" deleted.`); } catch (e) { alert('Error: ' + e.message); }
+                              }}
+                              className="text-xs text-red-700 hover:text-red-900 underline mt-1"
+                            >Delete the whole Function/Practice instead</button>
+                          </div>
+                        );
+                      }
+
+                      // Nada escolhido — lista todas as Practices que batem com o Source.
+                      const items = uiPractices.filter(sourceMatches);
+                      return (
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between mb-1 flex-wrap gap-2">
+                            <p className="text-sm font-semibold">{items.length} Function/Practice(s)</p>
+                            {items.length > 0 && (
+                              <button
+                                onClick={async () => {
+                                  if (!window.confirm(`Delete all ${items.length} Functions/Practices listed below (and everything under them)? This cannot be undone.`)) return;
+                                  for (const p of items) {
+                                    try { await deletePracticeCascade(p); } catch (e) { console.error(e); }
+                                  }
+                                }}
+                                className="px-3 py-1.5 rounded text-sm text-white bg-red-700 hover:bg-red-800"
+                              >🗑️ Delete All</button>
+                            )}
+                          </div>
+                          {items.length === 0 ? (
+                            <p className="text-sm text-gray-500">No Functions/Practices match this Source.</p>
+                          ) : items.map(p => (
+                            <div key={p.id} className="flex items-center justify-between p-2 border border-gray-200 rounded-lg">
+                              <span className="text-sm text-gray-800">📁 {p.name}</span>
+                              <button
+                                onClick={async () => {
+                                  if (!window.confirm(`Delete Function/Practice "${p.name}" (all its Categories)? This cannot be undone.`)) return;
+                                  try { await deletePracticeCascade(p); alert(`"${p.name}" deleted.`); } catch (e) { alert('Error: ' + e.message); }
+                                }}
+                                className="px-2 py-1 rounded text-xs bg-red-600 hover:bg-red-700 text-white"
+                              >🗑️ Delete</button>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                ) : (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Keywords (separate with commas)
@@ -7839,7 +7997,8 @@ onClick={() => {
                     Will search in problems, solutions, results, and comments. Combine with Function/Practice and Category above to narrow down further.
                   </p>
                 </div>
-                {(adminKeywords || deletionPracticeId || deletionCategory || deletionDataType !== 'all' || deletionSource !== 'all') && (
+                )}
+                {deletionDataType !== 'metadata' && (adminKeywords || deletionPracticeId || deletionCategory || deletionDataType !== 'all' || deletionSource !== 'all') && (
                   <div className="bg-white rounded p-3">
                     <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
                       <p className="text-sm font-semibold">
