@@ -1699,6 +1699,29 @@ const importMetadataModel = async () => {
     const practiceIdByImportedFrom = {};
     (targetPractices || []).forEach(p => { if (p.imported_from_id) practiceIdByImportedFrom[p.imported_from_id] = p.id; });
 
+    // Reparo: categorias que já foram importadas antes mas ficaram órfãs
+    // (practice_id nulo — aconteceu quando uma tentativa anterior travou no
+    // meio e a Practice-mãe ainda não existia nesse momento) — religa agora
+    // que a Practice pode ter acabado de ser criada acima.
+    const { data: orphanCategories } = await supabase
+      .from('problem_categories').select('id, imported_from_id')
+      .eq('company_id', effectiveCompanyId).eq('active', true).is('practice_id', null)
+      .not('imported_from_id', 'is', null);
+    if (orphanCategories && orphanCategories.length > 0) {
+      const { data: sourceCatsForOrphans } = await supabase
+        .from('problem_categories').select('id, practice_id')
+        .in('id', orphanCategories.map(o => o.imported_from_id));
+      const sourcePracticeIdByCatId = {};
+      (sourceCatsForOrphans || []).forEach(sc => { sourcePracticeIdByCatId[sc.id] = sc.practice_id; });
+      for (const orphan of orphanCategories) {
+        const sourcePracticeId = sourcePracticeIdByCatId[orphan.imported_from_id];
+        const fixedPracticeId = sourcePracticeId ? practiceIdByImportedFrom[sourcePracticeId] : null;
+        if (fixedPracticeId) {
+          await supabase.from('problem_categories').update({ practice_id: fixedPracticeId }).eq('id', orphan.id);
+        }
+      }
+    }
+
     const { data: defaultCategories, error: cErr } = await supabase
       .from('problem_categories').select('*').eq('company_id', defaultCompanyId).eq('language', importLanguage);
     if (cErr) throw cErr;
@@ -1719,9 +1742,11 @@ const importMetadataModel = async () => {
     await loadPractices();
     await loadProblemCategories();
     alert(`Metadata Model updated — ${addedPractices} new Practice(s), ${addedCategories} new Categor${addedCategories === 1 ? 'y' : 'ies'}.`);
+    return true;
   } catch (error) {
     console.error('Error importing Metadata Model:', error);
     alert('Error during import: ' + error.message);
+    return false;
   } finally {
     setImportingBundle(false);
   }
@@ -1816,23 +1841,63 @@ const importSyntheticContent = async () => {
       expIdMap[exp.id] = inserted.id;
       addedExperiences++;
     }
+    // Experiences já importadas antes também precisam entrar no mapa, pra o
+    // Top 3 conseguir achar o id certo mesmo quando a experience em si não
+    // foi recriada agora (mesmo bug/fix já aplicado pros employees acima).
+    if (importedExpIds.size > 0) {
+      const { data: existingImportedExps } = await supabase
+        .from('experiences').select('id, imported_from_id').eq('company_id', effectiveCompanyId).not('imported_from_id', 'is', null);
+      (existingImportedExps || []).forEach(row => {
+        if (row.imported_from_id) expIdMap[row.imported_from_id] = row.id;
+      });
+    }
 
-    // Top 3
-    const { data: alreadyImportedTop3 } = await supabase
-      .from('top_experiences').select('imported_from_id').eq('company_id', effectiveCompanyId).not('imported_from_id', 'is', null);
-    const importedTop3Ids = new Set((alreadyImportedTop3 || []).map(r => r.imported_from_id));
+    // Top 3 — limpa qualquer linha existente dessa empresa antes de inserir de
+    // novo. O Top 3 é sempre só até 3 linhas, então é mais seguro reconstruir
+    // do zero do que tentar deduplicar por imported_from_id — uma tentativa
+    // anterior que travou no meio pode ter deixado uma linha "position" já
+    // ocupada sem o imported_from_id bater, causando erro de chave duplicada.
+    await supabase.from('top_experiences').delete().eq('company_id', effectiveCompanyId);
 
     const { data: defaultTop3 } = await supabase.from('top_experiences').select('*').eq('company_id', defaultCompanyId);
     let addedTop3 = 0;
-    for (const t of (defaultTop3 || [])) {
-      if (importedTop3Ids.has(t.id)) continue;
-      const newExpId = expIdMap[t.experience_id];
-      if (!newExpId) continue; // a experience correspondente não foi importada (talvez já existisse)
-      const { error } = await supabase.from('top_experiences').insert([{
-        experience_id: newExpId, position: t.position, company_id: effectiveCompanyId, imported_from_id: t.id, import_batch_id: batchId
-      }]);
-      if (error) throw error;
-      addedTop3++;
+    if (defaultTop3 && defaultTop3.length > 0) {
+      // top_experiences do Default aponta pra experiences de UM idioma só (o
+      // original, tipicamente inglês) — pra importar em qualquer outro
+      // idioma, precisa resolver pra linha equivalente via
+      // translation_group_id antes de procurar no expIdMap.
+      let resolvedExpIdByTop3ExpId = {};
+      if (importLanguage !== 'en') {
+        const top3ExpIds = defaultTop3.map(t => t.experience_id).filter(Boolean);
+        const { data: top3SourceRows } = await supabase
+          .from('experiences').select('id, translation_group_id').in('id', top3ExpIds);
+        const groupByTop3ExpId = {};
+        (top3SourceRows || []).forEach(r => { groupByTop3ExpId[r.id] = r.translation_group_id; });
+        const groupIds = [...new Set(Object.values(groupByTop3ExpId).filter(Boolean))];
+        if (groupIds.length > 0) {
+          const { data: translatedRows } = await supabase
+            .from('experiences').select('id, translation_group_id')
+            .eq('company_id', defaultCompanyId).eq('language', importLanguage)
+            .in('translation_group_id', groupIds);
+          const translatedByGroup = {};
+          (translatedRows || []).forEach(r => { translatedByGroup[r.translation_group_id] = r.id; });
+          top3ExpIds.forEach(origId => {
+            const groupId = groupByTop3ExpId[origId];
+            if (groupId && translatedByGroup[groupId]) resolvedExpIdByTop3ExpId[origId] = translatedByGroup[groupId];
+          });
+        }
+      }
+
+      for (const t of defaultTop3) {
+        const sourceExpId = importLanguage === 'en' ? t.experience_id : (resolvedExpIdByTop3ExpId[t.experience_id] || t.experience_id);
+        const newExpId = expIdMap[sourceExpId];
+        if (!newExpId) continue; // a experience correspondente não foi importada (talvez já existisse)
+        const { error } = await supabase.from('top_experiences').insert([{
+          experience_id: newExpId, position: t.position, company_id: effectiveCompanyId, imported_from_id: t.id, import_batch_id: batchId
+        }]);
+        if (error) throw error;
+        addedTop3++;
+      }
     }
 
     await loadEmployees(effectiveCompanyId);
@@ -1956,7 +2021,10 @@ const importContentPages = async () => {
 
 // Botão único de import da tabela — age sobre todas as linhas marcadas.
 const runImportForSelected = async () => {
-  if (selectedForImport.includes('metadata')) await importMetadataModel();
+  if (selectedForImport.includes('metadata')) {
+    const ok = await importMetadataModel();
+    if (ok === false) { setSelectedForImport([]); return; } // não segue pro Content se o Metadata falhou
+  }
   if (selectedForImport.includes('synthetic')) await importSyntheticContent();
   if (selectedForImport.includes('quotes')) await importQuotesFromDefault();
   if (selectedForImport.includes('promotional_videos')) await importPromotionalVideos();
