@@ -298,7 +298,12 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   const [selectedForImport, setSelectedForImport] = useState([]);
   // Idioma escolhido pra importar o conteúdo do Default (Metadata Model,
   // Synthetic Content, Quotes). Padrão inglês.
-  const [importLanguage, setImportLanguage] = useState('en');
+  const [importLanguage, setImportLanguage] = useState(() => {
+    return localStorage.getItem('importLanguage') || 'en';
+  });
+  useEffect(() => {
+    localStorage.setItem('importLanguage', importLanguage);
+  }, [importLanguage]);
   // Idioma em que o Default é EXIBIDO quando alguém está navegando o próprio
   // Default (Admin do Default olhando pra ele mesmo, ou uma empresa em modo
   // Sample) — não afeta empresas vendo os próprios dados (cada uma só tem o
@@ -1667,7 +1672,7 @@ const importMetadataModel = async () => {
   const batchId = `metadata-${Date.now()}`;
   try {
     const { data: alreadyImportedPractices } = await supabase
-      .from('practices').select('imported_from_id').eq('company_id', effectiveCompanyId).not('imported_from_id', 'is', null);
+      .from('practices').select('imported_from_id').eq('company_id', effectiveCompanyId).not('imported_from_id', 'is', null).eq('active', true);
     const importedPracticeIds = new Set((alreadyImportedPractices || []).map(r => r.imported_from_id));
 
     const { data: defaultPractices, error: pErr } = await supabase
@@ -1686,7 +1691,7 @@ const importMetadataModel = async () => {
     }
 
     const { data: alreadyImportedCategories } = await supabase
-      .from('problem_categories').select('imported_from_id').eq('company_id', effectiveCompanyId).not('imported_from_id', 'is', null);
+      .from('problem_categories').select('imported_from_id').eq('company_id', effectiveCompanyId).not('imported_from_id', 'is', null).eq('active', true);
     const importedCategoryIds = new Set((alreadyImportedCategories || []).map(r => r.imported_from_id));
 
     // Recarrega practices já com as novas, pra achar o practice_id correto no destino
@@ -1713,7 +1718,7 @@ const importMetadataModel = async () => {
 
     await loadPractices();
     await loadProblemCategories();
-    alert(`Metadata Model updated — ${addedPractices} new Practice(s), ${addedCategories} new Categor${addedCategories === 1 ? 'y' : 'ies'}. [debug: importLanguage=${importLanguage}, defaultPractices found=${(defaultPractices || []).length}, already imported before=${importedPracticeIds.size}, defaultCategories found=${(defaultCategories || []).length}]`);
+    alert(`Metadata Model updated — ${addedPractices} new Practice(s), ${addedCategories} new Categor${addedCategories === 1 ? 'y' : 'ies'}.`);
   } catch (error) {
     console.error('Error importing Metadata Model:', error);
     alert('Error during import: ' + error.message);
@@ -5514,6 +5519,7 @@ autoComplete="off"
               className="px-3 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 disabled:opacity-50 w-40">
               {(importingBundle || importingQuotes) ? 'Importing...' : 'Import/Update'}
             </button>
+            <p className="text-xs text-gray-500 mt-1">in {importLanguage === 'en' ? 'English' : importLanguage === 'es' ? 'Español' : importLanguage === 'pt' ? 'Português' : '中文'}</p>
           </th>
         </tr>
       </thead>
