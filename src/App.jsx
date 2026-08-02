@@ -160,6 +160,7 @@ export default function WhatIDid() {
   const [deletionCategoriesForPractice, setDeletionCategoriesForPractice] = useState([]);
   const [deletionDataType, setDeletionDataType] = useState('all');
   const [deletionSource, setDeletionSource] = useState('all');
+  const [deletionFiltersRemountKey, setDeletionFiltersRemountKey] = useState(0);
   // Empresa marcada via radio button no "Manage Companies" — é o que a opção
   // "Company"/"Companies" do dropdown de contexto aponta, tanto pro Default
   // Admin quanto pro Seller. Existe separado de adminCompanyContext pra
@@ -1858,12 +1859,13 @@ const importSyntheticContent = async () => {
       });
     }
 
-    // Religa related_common_case_id nas experiences recém-importadas — não dá
-    // pra fazer isso no insert principal porque o vínculo aponta pra OUTRA
-    // experience que também está sendo importada nessa mesma leva (só existe
-    // um id novo pra ela depois que ela mesma já foi inserida). Só atualiza
-    // as que foram inseridas NESSA rodada (senão reescreveria vínculos já
-    // corrigidos manualmente ou pelo reparo de Top 3/idioma).
+    // Religa related_common_case_id — TANTO nas experiences recém-importadas
+    // nessa rodada QUANTO nas que já existiam de tentativas anteriores (o
+    // loop roda sobre TODAS as experiences da Default, e expIdMap já cobre
+    // as duas situações graças ao backfill acima). Ou seja: isso já conserta
+    // retroativamente vínculos que ficaram quebrados antes desse fix existir
+    // — não precisa apagar e reimportar, só rodar o import de novo (mesmo
+    // que reporte "0 new", o reparo roda de qualquer forma).
     for (const exp of (defaultExperiences || [])) {
       if (!exp.related_common_case_id) continue;
       const newOwnId = expIdMap[exp.id];
@@ -4309,6 +4311,7 @@ const resetDeletionFilters = () => {
   setDeletionCategoriesForPractice([]);
   setDeletionDataType('all');
   setDeletionSource('all');
+  setDeletionFiltersRemountKey(k => k + 1);
 };
 
 const handleDeleteAllMatches = async () => {
@@ -7961,6 +7964,7 @@ onClick={() => {
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-2">Data Type</label>
                     <select
+                      key={`dt-${deletionFiltersRemountKey}`}
                       value={deletionDataType}
                       onChange={(e) => {
                         setDeletionDataType(e.target.value);
@@ -7977,6 +7981,7 @@ onClick={() => {
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-2">Source</label>
                     <select
+                      key={`src-${deletionFiltersRemountKey}`}
                       value={deletionSource}
                       onChange={(e) => setDeletionSource(e.target.value)}
                       className="w-full h-9 px-2 py-1 border-2 border-gray-300 rounded-lg bg-white"
@@ -7990,6 +7995,7 @@ onClick={() => {
                     <label className="block text-sm font-medium text-gray-600 mb-2">Function / Practice</label>
                     <div className="relative">
                       <select
+                        key={`prac-${deletionFiltersRemountKey}`}
                         value={deletionPracticeId || ''}
                         onChange={async (e) => {
                           const id = e.target.value ? parseInt(e.target.value) : null;
@@ -8016,6 +8022,7 @@ onClick={() => {
                     <label className="block text-sm font-medium text-gray-600 mb-2">Category</label>
                     <div className="relative">
                       <select
+                        key={`cat-${deletionFiltersRemountKey}`}
                         value={deletionCategory}
                         onChange={(e) => setDeletionCategory(e.target.value)}
                         disabled={!deletionPracticeId}
