@@ -1695,7 +1695,12 @@ const importMetadataModel = async () => {
     const importedCategoryIds = new Set((alreadyImportedCategories || []).map(r => r.imported_from_id));
 
     // Recarrega practices já com as novas, pra achar o practice_id correto no destino
-    const { data: targetPractices } = await supabase.from('practices').select('*').eq('company_id', effectiveCompanyId);
+    // — SÓ as ativas: se uma practice foi apagada e reimportada, a antiga
+    // (inativa) ainda tem o mesmo imported_from_id da nova, e sem esse filtro
+    // o mapa podia acabar apontando pra a inativa (ordem do banco não é
+    // garantida sem ORDER BY), fazendo o reparo achar que já estava "certo"
+    // quando na verdade apontava pro lugar errado.
+    const { data: targetPractices } = await supabase.from('practices').select('*').eq('company_id', effectiveCompanyId).eq('active', true);
     const practiceIdByImportedFrom = {};
     (targetPractices || []).forEach(p => { if (p.imported_from_id) practiceIdByImportedFrom[p.imported_from_id] = p.id; });
 
@@ -1761,7 +1766,10 @@ const importSyntheticContent = async () => {
   const companyCode = companies.find(c => c.id === effectiveCompanyId)?.code || String(effectiveCompanyId);
   try {
     // Practices/Categories já existentes no destino (por nome, não por import_from)
-    const { data: targetPractices } = await supabase.from('practices').select('*').eq('company_id', effectiveCompanyId);
+    // — só as ativas, pelo mesmo motivo do reparo em importMetadataModel: uma
+    // practice apagada e reimportada pode ter o mesmo nome que a antiga
+    // (inativa), e sem esse filtro o mapeamento por nome podia pegar a errada.
+    const { data: targetPractices } = await supabase.from('practices').select('*').eq('company_id', effectiveCompanyId).eq('active', true);
     if (!targetPractices || targetPractices.length === 0) {
       alert('Import Metadata first — Synthetic/Curated Content links to Practices/Categories, which this company doesn\'t have yet.');
       setImportingBundle(false);
@@ -2124,6 +2132,50 @@ const deletePracticeCascade = async (practice) => {
     console.error('Error deleting practice (cascade):', error);
     throw error;
   }
+};
+
+// Versões em LOTE — uma chamada por tabela, não um loop item-por-item — usadas
+// pelos botões "Delete All" do Manage Group Deletion, pra apagar tudo de uma
+// vez em vez de ir uma Category/Practice de cada vez (que ficava visivelmente
+// lento e sequencial).
+const deleteCategoriesBatch = async (cats) => {
+  if (!cats || cats.length === 0) return;
+  const catIds = cats.map(c => c.id);
+  const catNames = [...new Set(cats.map(c => c.name))];
+
+  const { data: exps } = await supabase
+    .from('experiences').select('id, employee_id')
+    .in('problem_category', catNames).eq('company_id', effectiveCompanyId);
+  const expIds = (exps || []).map(e => e.id);
+  const employeeIds = [...new Set((exps || []).map(e => e.employee_id).filter(Boolean))];
+
+  if (expIds.length > 0) {
+    await supabase.from('comments').delete().in('experience_id', expIds);
+    await supabase.from('top_experiences').delete().in('experience_id', expIds);
+    await supabase.from('experiences').delete().in('id', expIds);
+  }
+  if (employeeIds.length > 0) {
+    const { data: remaining } = await supabase
+      .from('experiences').select('employee_id').eq('company_id', effectiveCompanyId).in('employee_id', employeeIds);
+    const stillHasContent = new Set((remaining || []).map(r => r.employee_id));
+    const toDeleteEmployees = employeeIds.filter(id => !stillHasContent.has(id));
+    if (toDeleteEmployees.length > 0) {
+      await supabase.from('employees').delete().in('employee_id', toDeleteEmployees).eq('company_id', effectiveCompanyId);
+    }
+  }
+  await supabase.from('problem_categories').update({ active: false }).in('id', catIds);
+};
+
+const deletePracticesBatch = async (practicesList) => {
+  if (!practicesList || practicesList.length === 0) return;
+  const practiceIds = practicesList.map(p => p.id);
+  const { data: cats } = await supabase
+    .from('problem_categories').select('id, name')
+    .in('practice_id', practiceIds).eq('company_id', effectiveCompanyId).eq('active', true);
+  if (cats && cats.length > 0) {
+    await deleteCategoriesBatch(cats);
+  }
+  await supabase.from('practices').update({ active: false }).in('id', practiceIds);
 };
 
 
@@ -7987,9 +8039,13 @@ onClick={() => {
                                 <button
                                   onClick={async () => {
                                     if (!window.confirm(`Delete all ${items.length} Categories listed below (and their Experiences/Key Insights/comments)? This cannot be undone.`)) return;
-                                    for (const cat of items) {
-                                      try { await deleteCategoryCascade(cat); } catch (e) { console.error(e); }
-                                    }
+                                    try {
+                                      await deleteCategoriesBatch(items);
+                                      await loadAdminCategories(selectedPracticeId);
+                                      await loadProblemCategories(selectedPracticeId);
+                                      await loadEmployees(effectiveCompanyId);
+                                      await loadExperiences(true);
+                                    } catch (e) { alert('Error: ' + e.message); }
                                   }}
                                   className="px-3 py-1.5 rounded text-sm text-white bg-red-700 hover:bg-red-800"
                                 >🗑️ Delete All</button>
@@ -8031,9 +8087,13 @@ onClick={() => {
                               <button
                                 onClick={async () => {
                                   if (!window.confirm(`Delete all ${items.length} Functions/Practices listed below (and everything under them)? This cannot be undone.`)) return;
-                                  for (const p of items) {
-                                    try { await deletePracticeCascade(p); } catch (e) { console.error(e); }
-                                  }
+                                  try {
+                                    await deletePracticesBatch(items);
+                                    await loadPractices();
+                                    await loadProblemCategories();
+                                    await loadEmployees(effectiveCompanyId);
+                                    await loadExperiences(true);
+                                  } catch (e) { alert('Error: ' + e.message); }
                                 }}
                                 className="px-3 py-1.5 rounded text-sm text-white bg-red-700 hover:bg-red-800"
                               >🗑️ Delete All</button>
