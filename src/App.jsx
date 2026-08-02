@@ -1858,6 +1858,21 @@ const importSyntheticContent = async () => {
       });
     }
 
+    // Religa related_common_case_id nas experiences recém-importadas — não dá
+    // pra fazer isso no insert principal porque o vínculo aponta pra OUTRA
+    // experience que também está sendo importada nessa mesma leva (só existe
+    // um id novo pra ela depois que ela mesma já foi inserida). Só atualiza
+    // as que foram inseridas NESSA rodada (senão reescreveria vínculos já
+    // corrigidos manualmente ou pelo reparo de Top 3/idioma).
+    for (const exp of (defaultExperiences || [])) {
+      if (!exp.related_common_case_id) continue;
+      const newOwnId = expIdMap[exp.id];
+      const newRelatedId = expIdMap[exp.related_common_case_id];
+      if (newOwnId && newRelatedId) {
+        await supabase.from('experiences').update({ related_common_case_id: newRelatedId }).eq('id', newOwnId);
+      }
+    }
+
     // Top 3 — limpa qualquer linha existente dessa empresa antes de inserir de
     // novo. O Top 3 é sempre só até 3 linhas, então é mais seguro reconstruir
     // do zero do que tentar deduplicar por imported_from_id — uma tentativa
@@ -4284,6 +4299,18 @@ if (appSettings.requireEmployeeLogin && !isAdmin && comment.employeeId !== emplo
 };
 
 // Apaga tudo que estiver batendo com o filtro atual (keyword e/ou Practice/Category)
+// Limpa todos os filtros do Manage Group Deletion depois de um "Delete All"
+// bem-sucedido — sem isso, os filtros ficavam "grudados" apontando pra algo
+// que acabou de ser apagado.
+const resetDeletionFilters = () => {
+  setAdminKeywords('');
+  setDeletionPracticeId(null);
+  setDeletionCategory('');
+  setDeletionCategoriesForPractice([]);
+  setDeletionDataType('all');
+  setDeletionSource('all');
+};
+
 const handleDeleteAllMatches = async () => {
   const matches = getKeywordMatches();
   const expIds = [...new Set(matches.filter(m => m.type === 'experience').map(m => m.expId))];
@@ -4313,6 +4340,7 @@ const handleDeleteAllMatches = async () => {
     }
     await loadExperiences(true);
     alert(`Deleted ${expIds.length} experience(s) and ${commentMatches.length} comment(s).`);
+    resetDeletionFilters();
   } catch (error) {
     console.error('Error deleting matches:', error);
     alert('Error deleting some items: ' + error.message);
@@ -8045,6 +8073,7 @@ onClick={() => {
                                       await loadProblemCategories(selectedPracticeId);
                                       await loadEmployees(effectiveCompanyId);
                                       await loadExperiences(true);
+                                      resetDeletionFilters();
                                     } catch (e) { alert('Error: ' + e.message); }
                                   }}
                                   className="px-3 py-1.5 rounded text-sm text-white bg-red-700 hover:bg-red-800"
@@ -8093,6 +8122,7 @@ onClick={() => {
                                     await loadProblemCategories();
                                     await loadEmployees(effectiveCompanyId);
                                     await loadExperiences(true);
+                                    resetDeletionFilters();
                                   } catch (e) { alert('Error: ' + e.message); }
                                 }}
                                 className="px-3 py-1.5 rounded text-sm text-white bg-red-700 hover:bg-red-800"
