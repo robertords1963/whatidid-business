@@ -2603,6 +2603,11 @@ const handleEmployeeLogin = async () => {
   setAdminCompanyContext(null);
   setCompanyViewMode('own');
   setSelectedCompanyForContext(null);
+  // Sempre começa em inglês, em vez de herdar o que ficou salvo de uma
+  // sessão anterior — evita o descompasso "dropdown mostra um idioma,
+  // conteúdo vem em outro" que vinha acontecendo em certas transições.
+  setViewingLanguage('en');
+  localStorage.setItem('viewingLanguage', 'en');
 
   // Guarda o company_id da própria conta que logou
   setLoggedInEmployeeCompanyId(data.company_id || null);
