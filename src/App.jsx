@@ -161,6 +161,10 @@ export default function WhatIDid() {
   const [deletionDataType, setDeletionDataType] = useState('all');
   const [deletionSource, setDeletionSource] = useState('all');
   const [deletionFiltersRemountKey, setDeletionFiltersRemountKey] = useState(0);
+  // Quantos dias de expiração estão marcados no "+ Add New ID" de cada grupo
+  // — controla o radio button pra poder mostrar a data calculada ao vivo,
+  // antes do usuário confirmar.
+  const [addIdExpiryDays, setAddIdExpiryDays] = useState({});
   // Empresa marcada via radio button no "Manage Companies" — é o que a opção
   // "Company"/"Companies" do dropdown de contexto aponta, tanto pro Default
   // Admin quanto pro Seller. Existe separado de adminCompanyContext pra
@@ -6943,6 +6947,23 @@ autoComplete="off"
       🎯 Manage Demo Groups
     </h3>
 
+    {isSeller && (() => {
+      const myLimit = sellers.find(s => s.id === loggedInSellerId)?.demo_id_limit ?? 10;
+      const now = new Date();
+      const myActiveCount = employees.filter(e =>
+        e.is_demo && e.created_by_seller_id === loggedInSellerId && !e.retired &&
+        (!e.demo_expires_at || new Date(e.demo_expires_at) >= now)
+      ).length;
+      const remaining = myLimit > 0 ? Math.max(0, myLimit - myActiveCount) : null;
+      return (
+        <p className={`text-sm font-medium mb-4 ${remaining === 0 ? 'text-red-600' : 'text-pink-700'}`}>
+          {remaining === null
+            ? `You have ${myActiveCount} active Demo ID(s) — no limit set.`
+            : `You have ${remaining} of ${myLimit} Demo ID(s) available right now.`}
+        </p>
+      );
+    })()}
+
     {/* Create New Group */}
     <div className="bg-white rounded p-4 mb-4">
       <h4 className="font-medium text-gray-700 mb-3">Create New Group</h4>
@@ -7069,16 +7090,21 @@ autoComplete="off"
                   <span>Expires in:</span>
                   {[3, 5, 7].map(days => (
                     <label key={days} className="flex items-center gap-1">
-                      <input type="radio" name={`add-member-expiry-${group.id}`} value={days} defaultChecked={days === 5} className="w-4 h-4" />
+                      <input type="radio" name={`add-member-expiry-${group.id}`} value={days}
+                        checked={(addIdExpiryDays[group.id] ?? 5) === days}
+                        onChange={() => setAddIdExpiryDays(prev => ({ ...prev, [group.id]: days }))}
+                        className="w-4 h-4" />
                       {days}d
                     </label>
                   ))}
+                  <span className="text-xs text-gray-400">
+                    (Created {new Date().toLocaleDateString()} · Expires {new Date(Date.now() + (addIdExpiryDays[group.id] ?? 5) * 24 * 60 * 60 * 1000).toLocaleDateString()})
+                  </span>
                 </div>
                 <button
                   onClick={async () => {
                     const langVal = document.getElementById(`add-member-lang-${group.id}`).value;
-                    const daysChecked = document.querySelector(`input[name="add-member-expiry-${group.id}"]:checked`);
-                    const days = daysChecked ? parseInt(daysChecked.value) : 5;
+                    const days = addIdExpiryDays[group.id] ?? 5;
                     const expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
                     // Trava o limite de IDs ativos do seller (0 = ilimitado,
                     // configurado pelo Default Admin em "Manage Sellers"). Não
