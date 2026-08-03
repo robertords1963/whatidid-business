@@ -1192,7 +1192,7 @@ const loadDemoGroups = async () => {
       .from('demo_groups')
       .select(`
         *,
-        employees!group_id (employee_id, name, is_demo, group_id, demo_expires_at, language, created_at, password)
+        employees!group_id (employee_id, name, is_demo, group_id, demo_expires_at, language, created_at, password, last_login_at)
       `)
       .order('created_at', { ascending: false });
     // Se quem está logado é um seller (não o Default Admin), só vê os grupos
@@ -2601,6 +2601,10 @@ const handleEmployeeLogin = async () => {
       setLoginError('This demo account is not currently active. Please contact your Admin.');
       return;
     }
+
+    // Registra o acesso — não bloqueia o login se falhar (fire-and-forget),
+    // usado só pra mostrar "used" vs "never accessed" em Manage Demo Groups.
+    supabase.from('employees').update({ last_login_at: new Date().toISOString() }).eq('id', data.id);
     
 // Login bem-sucedido — tudo que é síncrono roda ANTES de qualquer await, pra
   // o React juntar isso numa única atualização de tela. Se isAdmin fosse
@@ -7047,10 +7051,16 @@ autoComplete="off"
               <div className="mb-3">
                 <p className="text-xs font-medium text-gray-600 mb-2">Members ({memberCount}/2):</p>
                 <div className="flex flex-wrap gap-2">
-                  {(group.employees || []).map(emp => (
-                    <span key={emp.employee_id} className="px-3 py-1 bg-pink-100 text-pink-800 rounded-full text-xs font-medium">
+                  {(group.employees || []).map(emp => {
+                    const isExpired = emp.demo_expires_at && new Date(emp.demo_expires_at) < new Date();
+                    const isUsed = !!emp.last_login_at;
+                    const status = isExpired ? 'Expired' : isUsed ? 'Used' : 'Active';
+                    const statusColor = isExpired ? 'bg-red-200 text-red-800' : isUsed ? 'bg-amber-200 text-amber-800' : 'bg-green-200 text-green-800';
+                    return (
+                    <span key={emp.employee_id} className="px-3 py-1 bg-pink-100 text-pink-800 rounded-full text-xs font-medium inline-flex items-center gap-1">
                       ID={emp.employee_id}, Password={emp.password}
                       <span className="text-pink-500 ml-1 uppercase">[{emp.language || 'en'}]</span>
+                      <span className={`ml-1 px-1.5 py-0.5 rounded-full font-semibold ${statusColor}`}>{status}</span>
                       {emp.created_at && (
                         <span className="text-pink-500 ml-1">
                           (Created {new Date(emp.created_at).toLocaleDateString()})
@@ -7061,8 +7071,33 @@ autoComplete="off"
                           (Exp {new Date(emp.demo_expires_at).toLocaleDateString()})
                         </span>
                       )}
+                      <button
+                        onClick={async () => {
+                          if (!window.confirm(`Delete ID "${emp.employee_id}"? This retires it permanently — it can never be reused.`)) return;
+                          try {
+                            await supabase.from('comments').delete().eq('employee_id', emp.employee_id);
+                            const { data: exps } = await supabase.from('experiences').select('id, cv_url').eq('employee_id', emp.employee_id);
+                            for (const exp of exps || []) {
+                              if (exp.cv_url) await deleteFileFromStorage(exp.cv_url);
+                            }
+                            await supabase.from('experiences').delete().eq('employee_id', emp.employee_id);
+                            const { error } = await supabase.from('employees')
+                              .update({ group_id: null, demo_expires_at: null, retired: true, active: false })
+                              .eq('employee_id', emp.employee_id);
+                            if (error) throw error;
+                            await loadDemoGroups();
+                            await loadEmployees();
+                            await loadExperiences(true);
+                          } catch (error) {
+                            alert('Error deleting ID: ' + error.message);
+                          }
+                        }}
+                        className="ml-1 text-pink-600 hover:text-pink-900 font-bold"
+                        title="Delete this ID (retires it permanently)"
+                      >✕</button>
                     </span>
-                  ))}
+                    );
+                  })}
                   {(group.employees || []).length === 0 && (
                     <span className="text-xs text-gray-400">No members yet</span>
                   )}
