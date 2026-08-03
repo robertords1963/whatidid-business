@@ -1978,7 +1978,7 @@ const importSyntheticContent = async () => {
     await loadEmployees(effectiveCompanyId);
     await loadExperiences(true);
     await loadTopExperiences();
-    alert(`Synthetic/Curated Content updated — ${addedEmployees} new Employee(s), ${addedExperiences} new Experience(s)/Key Insight(s), ${addedTop3} new Top 3 item(s). [debug: relink attempted=${relinkAttempted}, succeeded=${relinkSucceeded}, failed=${relinkFailed}, skippedNoSource=${relinkSkippedNoSource}, skippedNoMap=${relinkSkippedNoMap}]`);
+    alert(`Synthetic/Curated Content updated — ${addedEmployees} new Employee(s), ${addedExperiences} new Experience(s)/Key Insight(s), ${addedTop3} new Top 3 item(s).`);
   } catch (error) {
     console.error('Error importing Synthetic Content:', error);
     alert('Error during import: ' + error.message);
@@ -2582,7 +2582,11 @@ const handleEmployeeLogin = async () => {
       return;
     }
     
-// Login bem-sucedido
+// Login bem-sucedido — tudo que é síncrono roda ANTES de qualquer await, pra
+  // o React juntar isso numa única atualização de tela. Se isAdmin fosse
+  // setado só depois dos awaits (como estava antes), aparecia uma piscada
+  // real: "logado, mas ainda sem admin" (UI do app puro) → Loading
+  // Experiences → só então os painéis de admin apareciam.
   setIsEmployeeLoggedIn(true);
   localStorage.setItem('employeeLoggedIn', 'true');
   localStorage.setItem('employeeId', employeeId);
@@ -2591,19 +2595,11 @@ const handleEmployeeLogin = async () => {
   // (Managing/Viewing) de uma sessão anterior no mesmo navegador.
   setAdminCompanyContext(null);
   setCompanyViewMode('own');
-  await loadCurrentEmployeeGroup(employeeId);
-  await loadExperiences(false, employeeId);
+  setSelectedCompanyForContext(null);
 
   // Guarda o company_id da própria conta que logou
   setLoggedInEmployeeCompanyId(data.company_id || null);
   localStorage.setItem('loggedInEmployeeCompanyId', data.company_id || '');
-
-  // Sempre começa sem nenhuma empresa "marcada" no contexto — elimina
-  // qualquer chance de uma sessão anterior (outra conta, no mesmo navegador)
-  // deixar isso "grudado" e o novo login já cair direto gerenciando uma
-  // empresa sem querer.
-  setAdminCompanyContext(null);
-  setSelectedCompanyForContext(null);
 
   // Se essa conta é um seller, guarda o id dela pra escopar Manage Companies
   // e Manage Demo Groups só ao que ele mesmo criou.
@@ -2628,7 +2624,8 @@ const handleEmployeeLogin = async () => {
     localStorage.setItem('currentDemoSessionId', data.current_demo_session_id);
   }
 
-  // Se esse employee é marcado como Admin, libera o modo Admin também
+  // Se esse employee é marcado como Admin, libera o modo Admin também —
+  // AGORA, junto com tudo o mais, antes de qualquer await.
   if (data.is_admin) {
     setEmployeeIsAdmin(true);
     localStorage.setItem('employeeIsAdmin', 'true');
@@ -2640,6 +2637,12 @@ const handleEmployeeLogin = async () => {
   if (data.force_password_change || data.status === 'pending') {
     setShowChangePassword(true);
   }
+
+  // Só agora, com todo o state síncrono já certo, dispara as cargas
+  // assíncronas — a tela que aparece enquanto elas rodam já mostra a versão
+  // correta (com ou sem admin), sem piscar nada intermediário.
+  await loadCurrentEmployeeGroup(employeeId);
+  await loadExperiences(false, employeeId);
   
   } catch (error) {
     console.error('Login error:', error);
