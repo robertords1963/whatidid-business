@@ -2660,14 +2660,16 @@ const handleEmployeeLogin = async () => {
     localStorage.setItem('currentDemoSessionId', data.current_demo_session_id);
   }
 
-  // Se esse employee é marcado como Admin, libera o modo Admin também —
-  // AGORA, junto com tudo o mais, antes de qualquer await.
+  // Se esse employee é marcado como Admin, libera a PERMISSÃO de entrar em
+  // modo Admin (o toggle fica disponível) — mas não entra direto lá. Todo
+  // login cai primeiro no UI normal do app, uma porta de entrada mais
+  // simpática; quem quiser o painel Admin ativa manualmente pelo toggle.
   if (data.is_admin) {
     setEmployeeIsAdmin(true);
     localStorage.setItem('employeeIsAdmin', 'true');
-    setIsAdmin(true);
-    localStorage.setItem('isAdmin', 'true');
   }
+  setIsAdmin(false);
+  localStorage.removeItem('isAdmin');
 
   // If force_password_change is set, prompt to change password
   if (data.force_password_change || data.status === 'pending') {
