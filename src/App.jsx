@@ -7072,32 +7072,30 @@ autoComplete="off"
                           </span>
                         )}
                       </span>
-                      <div className="border-2 border-red-400 rounded-lg p-1">
-                        <button
-                          onClick={async () => {
-                            if (!window.confirm(`Delete ID "${emp.employee_id}"? This retires it permanently — it can never be reused.`)) return;
-                            try {
-                              await supabase.from('comments').delete().eq('employee_id', emp.employee_id);
-                              const { data: exps } = await supabase.from('experiences').select('id, cv_url').eq('employee_id', emp.employee_id);
-                              for (const exp of exps || []) {
-                                if (exp.cv_url) await deleteFileFromStorage(exp.cv_url);
-                              }
-                              await supabase.from('experiences').delete().eq('employee_id', emp.employee_id);
-                              const { error } = await supabase.from('employees')
-                                .update({ group_id: null, demo_expires_at: null, retired: true, active: false })
-                                .eq('employee_id', emp.employee_id);
-                              if (error) throw error;
-                              await loadDemoGroups();
-                              await loadEmployees();
-                              await loadExperiences(true);
-                            } catch (error) {
-                              alert('Error deleting ID: ' + error.message);
+                      <button
+                        onClick={async () => {
+                          if (!window.confirm(`Delete ID "${emp.employee_id}"? This retires it permanently — it can never be reused.`)) return;
+                          try {
+                            await supabase.from('comments').delete().eq('employee_id', emp.employee_id);
+                            const { data: exps } = await supabase.from('experiences').select('id, cv_url').eq('employee_id', emp.employee_id);
+                            for (const exp of exps || []) {
+                              if (exp.cv_url) await deleteFileFromStorage(exp.cv_url);
                             }
-                          }}
-                          className="px-3 py-1.5 rounded text-sm font-semibold bg-red-600 hover:bg-red-700 text-white whitespace-nowrap"
-                          title="Retires this ID/PW permanently"
-                        >🗑️ Delete ID/PW</button>
-                      </div>
+                            await supabase.from('experiences').delete().eq('employee_id', emp.employee_id);
+                            const { error } = await supabase.from('employees')
+                              .update({ group_id: null, demo_expires_at: null, retired: true, active: false })
+                              .eq('employee_id', emp.employee_id);
+                            if (error) throw error;
+                            await loadDemoGroups();
+                            await loadEmployees();
+                            await loadExperiences(true);
+                          } catch (error) {
+                            alert('Error deleting ID: ' + error.message);
+                          }
+                        }}
+                        className="px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700"
+                        title="Retires this ID/PW permanently"
+                      >🗑️ Delete ID/PW</button>
                     </div>
                     );
                   })}
