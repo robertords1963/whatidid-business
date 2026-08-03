@@ -5636,31 +5636,29 @@ autoComplete="off"
 </div>
           
 {isDemoModeActive && !(isSeller && isAdmin) && !(isDefaultAdmin && isAdmin) && (
-  <div className="mt-4 max-w-2xl mx-auto bg-purple-50 border-2 border-purple-300 rounded-2xl p-3 flex items-center justify-between gap-2">
-    <p className="text-purple-800 text-sm font-medium flex-1 min-w-0">
+  <div className="mt-4 max-w-3xl mx-auto bg-purple-50 border-2 border-purple-300 rounded-2xl p-3 flex items-center justify-between gap-2">
+    <select
+      value={viewingLanguage}
+      onChange={(e) => setViewingLanguage(e.target.value)}
+      className="p-1.5 border-2 border-purple-300 rounded-lg text-xs font-medium bg-white flex-shrink-0"
+      title="Language"
+    >
+      <option value="en">English</option>
+      <option value="es">Español</option>
+      <option value="pt">Português</option>
+      <option value="zh">中文 (Chinese)</option>
+    </select>
+    <p className="text-purple-800 text-sm font-medium flex-1 min-w-0 text-center whitespace-nowrap">
       🎬 Demo Mode — Only visible to you. Deleted when you leave.
     </p>
-    <div className="flex items-center gap-2 flex-shrink-0">
-      <select
-        value={viewingLanguage}
-        onChange={(e) => setViewingLanguage(e.target.value)}
-        className="p-1.5 border-2 border-purple-300 rounded-lg text-xs font-medium bg-white"
-        title="Language"
+    {currentDemoSessionId && (
+      <button
+        onClick={() => { if (window.confirm('Delete everything added in this demo session?')) deleteDemoSession(currentDemoSessionId); }}
+        className="flex-shrink-0 px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-medium whitespace-nowrap"
       >
-        <option value="en">English</option>
-        <option value="es">Español</option>
-        <option value="pt">Português</option>
-        <option value="zh">中文 (Chinese)</option>
-      </select>
-      {currentDemoSessionId && (
-        <button
-          onClick={() => { if (window.confirm('Delete everything added in this demo session?')) deleteDemoSession(currentDemoSessionId); }}
-          className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-medium whitespace-nowrap"
-        >
-          🗑️ Delete Now
-        </button>
-      )}
-    </div>
+        🗑️ Delete Now
+      </button>
+    )}
   </div>
 )}
 
@@ -5686,6 +5684,7 @@ autoComplete="off"
         );
       })()}
     </div>
+    {experiences.some(e => e.employeeId === employeeId) && (
     <button
       onClick={async () => {
         if (!window.confirm('Delete everything you added in this demo so far? This cannot be undone.')) return;
@@ -5706,6 +5705,7 @@ autoComplete="off"
     >
       🗑️ Delete Now
     </button>
+    )}
   </div>
 )}
 
