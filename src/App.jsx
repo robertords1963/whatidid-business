@@ -330,7 +330,14 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   const isSeller = !!loggedInSellerId;
   // true quando o seller selecionou uma das próprias empresas no "Managing"
   // (em vez de estar navegando o Default puro).
-  const isSellerManagingOwnCompany = isSeller && !!adminCompanyContext;
+  // true só quando o seller está gerenciando uma empresa que ELE MESMO
+  // criou de verdade (created_by_seller_id bate com quem está logado) — não
+  // basta "é seller e tem alguma empresa selecionada". Sem essa checagem, um
+  // seller que manipulasse adminCompanyContext manualmente (ex: via devtools)
+  // poderia se passar por dono de uma empresa de outro seller e enxergar o
+  // que ela liberou pro Master.
+  const isSellerManagingOwnCompany = isSeller && !!adminCompanyContext &&
+    companies.some(c => c.id === adminCompanyContext && c.created_by_seller_id === loggedInSellerId);
   // O company_id que as operações do Admin devem usar agora: se for o Admin do
   // Default (ou um seller) navegando pra outra empresa via dropdown, usa essa;
   // se for o Admin de uma empresa olhando o "Sample", usa a Default (mas em
