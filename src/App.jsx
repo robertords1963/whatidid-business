@@ -2602,9 +2602,11 @@ const handleEmployeeLogin = async () => {
       return;
     }
 
-    // Registra o acesso — não bloqueia o login se falhar (fire-and-forget),
-    // usado só pra mostrar "used" vs "never accessed" em Manage Demo Groups.
-    supabase.from('employees').update({ last_login_at: new Date().toISOString() }).eq('id', data.id);
+    // Registra o acesso — espera terminar e confere erro (era fire-and-forget
+    // antes, o que pode ter deixado passar uma falha silenciosa).
+    const { error: loginTrackError } = await supabase
+      .from('employees').update({ last_login_at: new Date().toISOString() }).eq('id', data.id);
+    if (loginTrackError) console.error('Error recording last_login_at:', loginTrackError);
     
 // Login bem-sucedido — tudo que é síncrono roda ANTES de qualquer await, pra
   // o React juntar isso numa única atualização de tela. Se isAdmin fosse
