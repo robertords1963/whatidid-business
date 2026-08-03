@@ -1188,7 +1188,7 @@ const loadDemoGroups = async () => {
       .from('demo_groups')
       .select(`
         *,
-        employees!group_id (employee_id, name, is_demo, group_id, demo_expires_at, language)
+        employees!group_id (employee_id, name, is_demo, group_id, demo_expires_at, language, created_at)
       `)
       .order('created_at', { ascending: false });
     // Se quem está logado é um seller (não o Default Admin), só vê os grupos
@@ -1263,27 +1263,9 @@ const createSeller = async () => {
       .single();
     if (sellerError) throw sellerError;
 
-    // 10 Demo IDs prefixados pelo ID do seller: vend01-01 .. vend01-10
-    const demoRows = Array.from({ length: 10 }, (_, i) => {
-      const n = String(i + 1).padStart(2, '0');
-      return {
-        employee_id: `${sellerId}-${n}`,
-        name: `${sellerName} Demo ${n}`,
-        company_id: defaultCompanyId,
-        is_demo: true,
-        password: `pw0${n}`,
-        status: 'active',
-        active: true,
-        language: 'en',
-        created_by_seller_id: sellerRow.id
-      };
-    });
-    const { error: demoError } = await supabase.from('employees').insert(demoRows);
-    if (demoError) throw demoError;
-
     setNewSeller({ employee_id: '', name: '', email: '' });
     await loadSellers();
-    alert(`Seller "${sellerName}" created with 10 demo IDs (${sellerId}-01 to ${sellerId}-10, password pw001-pw010).`);
+    alert(`Seller "${sellerName}" created. Demo IDs are generated on demand when you add them to a Demo Group.`);
   } catch (error) {
     console.error('Error creating seller:', error);
     alert('Error creating seller. ID may already exist.');
@@ -1378,7 +1360,10 @@ const runExpiredDemoCleanup = async () => {
         if (exp.cv_url) await deleteFileFromStorage(exp.cv_url);
       }
       await supabase.from('experiences').delete().eq('employee_id', emp.employee_id);
-      await supabase.from('employees').update({ group_id: null, demo_expires_at: null }).eq('employee_id', emp.employee_id);
+      // Retira o ID pra sempre — diferente de antes, que só limpava
+      // group_id/demo_expires_at e devolvia ele pro pool pra ser reatribuído.
+      // Uma vez expirado, esse ID nunca mais é usado por ninguém.
+      await supabase.from('employees').update({ group_id: null, demo_expires_at: null, retired: true, active: false }).eq('employee_id', emp.employee_id);
     }
   } catch (error) {
     // Silencioso de propósito — não deve travar a navegação de ninguém.
@@ -6066,7 +6051,7 @@ autoComplete="off"
     {/* Add Seller */}
     <div className="bg-white rounded p-4 mb-4">
       <h4 className="font-medium text-gray-700 mb-3">Add Seller</h4>
-      <p className="text-xs text-gray-500 mb-3">Creates the seller's own account (goes through 1st Access like any employee) plus 10 ready-to-use demo IDs, prefixed with their Employee ID (e.g. <span className="font-mono">acme-01</span> to <span className="font-mono">acme-10</span>), password <span className="font-mono">pw001</span>-<span className="font-mono">pw010</span>.</p>
+      <p className="text-xs text-gray-500 mb-3">Creates the seller's own account (goes through 1st Access like any employee). Demo IDs are created on demand in "Manage Demo Groups" — drawn from a shared numbered pool (e.g. <span className="font-mono">ID0001</span>/<span className="font-mono">PW0001</span>), never reused once expired, and don't reveal the seller's own Employee ID.</p>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
         <input type="text" value={newSeller.employee_id} onChange={(e) => setNewSeller({...newSeller, employee_id: e.target.value})}
           placeholder="Employee ID *" className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
@@ -6105,6 +6090,23 @@ autoComplete="off"
                   {s.status === 'active' ? 'Active' : s.status === 'blocked' ? 'Blocked' : 'Pending 1st Access'}
                 </span>
                 <span className="text-xs text-gray-500">{companiesCreated} companies · {groupsCreated} groups</span>
+                <label className="text-xs text-gray-500 flex items-center gap-1" title="Max active Demo IDs this seller can have at once">
+                  Max IDs:
+                  <input
+                    type="number"
+                    min="0"
+                    defaultValue={s.demo_id_limit ?? 10}
+                    onBlur={async (e) => {
+                      const val = parseInt(e.target.value);
+                      if (isNaN(val) || val < 0) { e.target.value = s.demo_id_limit ?? 10; return; }
+                      if (val === (s.demo_id_limit ?? 10)) return;
+                      const { error } = await supabase.from('employees').update({ demo_id_limit: val }).eq('id', s.id);
+                      if (error) { alert('Error saving limit: ' + error.message); return; }
+                      await loadSellers();
+                    }}
+                    className="w-14 p-1 border-2 border-gray-200 rounded text-xs text-center"
+                  />
+                </label>
                 <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${s.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
                   {s.active ? 'Enabled' : 'Disabled'}
                 </span>
@@ -6170,7 +6172,7 @@ autoComplete="off"
                 const expired = assigned.filter(e => e.demo_expires_at && new Date(e.demo_expires_at) < now);
                 const active = assigned.filter(e => !e.demo_expires_at || new Date(e.demo_expires_at) >= now);
                 const expiringSoon = active.filter(e => e.demo_expires_at && windowMs !== null && (new Date(e.demo_expires_at) - now) <= windowMs);
-                const available = sellerDemoIds.filter(e => !e.group_id);
+                const available = sellerDemoIds.filter(e => !e.group_id && !e.retired);
                 return {
                   seller: s,
                   companiesCount: sellerCompanies.length,
@@ -6969,38 +6971,6 @@ autoComplete="off"
       </div>
     </div>
 
-    {/* Available Demo IDs — pro seller, só o pool próprio dele; pro Default
-        Admin, todos os pools misturados, mas com etiqueta de quem é cada um
-        (pool da casa = id001-id010 clássicos, sem seller; ou o nome do seller
-        dono daquele pool). */}
-    <div className="bg-white rounded p-4 mb-4">
-      <h4 className="font-medium text-gray-700 mb-3">
-        Available Demo IDs ({employees.filter(e => e.is_demo && !e.group_id && (!isSeller || e.created_by_seller_id === loggedInSellerId)).length})
-      </h4>
-      {isSeller && (
-        <p className="text-xs text-gray-500 mb-2">
-          Password for your IDs follows the number: <span className="font-mono">{employeeId || '{id}'}-01</span> → <span className="font-mono">pw001</span>, <span className="font-mono">-02</span> → <span className="font-mono">pw002</span>, and so on through <span className="font-mono">pw010</span>.
-        </p>
-      )}
-      <div className="flex flex-wrap gap-2">
-        {employees.filter(e => e.is_demo && !e.group_id && (!isSeller || e.created_by_seller_id === loggedInSellerId)).map(emp => (
-          <span key={emp.employee_id} className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-            {emp.employee_id}
-            {!isSeller && (
-              <span className="text-green-600 ml-1 font-normal">
-                ({emp.created_by_seller_id
-                  ? (sellers.find(s => s.id === emp.created_by_seller_id)?.name || 'seller')
-                  : 'house pool'})
-              </span>
-            )}
-          </span>
-        ))}
-        {employees.filter(e => e.is_demo && !e.group_id && (!isSeller || e.created_by_seller_id === loggedInSellerId)).length === 0 && (
-          <p className="text-sm text-gray-500">No available IDs — all in use</p>
-        )}
-      </div>
-    </div>
-
     {/* Existing Groups — pro seller, só os que ele criou (loadDemoGroups já filtra) */}
     <div className="bg-white rounded p-4">
       <h4 className="font-medium text-gray-700 mb-3">Active Groups ({demoGroups.length})</h4>
@@ -7060,6 +7030,11 @@ autoComplete="off"
                     <span key={emp.employee_id} className="px-3 py-1 bg-pink-100 text-pink-800 rounded-full text-xs font-medium">
                       {emp.employee_id}
                       <span className="text-pink-500 ml-1 uppercase">[{emp.language || 'en'}]</span>
+                      {emp.created_at && (
+                        <span className="text-pink-500 ml-1">
+                          (Created {new Date(emp.created_at).toLocaleDateString()})
+                        </span>
+                      )}
                       {emp.demo_expires_at && (
                         <span className="text-pink-500 ml-1">
                           (Exp {new Date(emp.demo_expires_at).toLocaleDateString()})
@@ -7073,22 +7048,12 @@ autoComplete="off"
                 </div>
               </div>
 
-              {/* Add member — desabilitado ao atingir o limite de 2 */}
+              {/* Add member — cria o ID na hora (não escolhe de um pool pré-criado)
+                  — desabilitado ao atingir o limite de 2 */}
               {atLimit ? (
                 <p className="text-xs text-amber-600 font-medium">Maximum of 2 IDs per group reached.</p>
               ) : (
               <div className="flex gap-2 items-center flex-wrap">
-                <select
-                  id={`add-member-${group.id}`}
-                  className="flex-1 p-2 border-2 border-gray-200 rounded-lg text-sm"
-                >
-                  <option value="">Add available ID...</option>
-                  {employees.filter(e => e.is_demo && !e.group_id && (!isSeller || e.created_by_seller_id === loggedInSellerId)).map(emp => (
-                    <option key={emp.employee_id} value={emp.employee_id}>
-                      {emp.employee_id}{!isSeller ? ` (${emp.created_by_seller_id ? (sellers.find(s => s.id === emp.created_by_seller_id)?.name || 'seller') : 'house pool'})` : ''}
-                    </option>
-                  ))}
-                </select>
                 <select
                   id={`add-member-lang-${group.id}`}
                   title="Language the demo will show"
@@ -7100,32 +7065,65 @@ autoComplete="off"
                   <option value="pt">Português</option>
                   <option value="zh">中文</option>
                 </select>
-                <input
-                  type="date"
-                  id={`add-member-expiry-${group.id}`}
-                  title="Expiration date (optional)"
-                  className="p-2 border-2 border-gray-200 rounded-lg text-sm"
-                />
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <span>Expires in:</span>
+                  {[3, 5, 7].map(days => (
+                    <label key={days} className="flex items-center gap-1">
+                      <input type="radio" name={`add-member-expiry-${group.id}`} value={days} defaultChecked={days === 5} className="w-4 h-4" />
+                      {days}d
+                    </label>
+                  ))}
+                </div>
                 <button
                   onClick={async () => {
-                    const empId = document.getElementById(`add-member-${group.id}`).value;
-                    const expiryVal = document.getElementById(`add-member-expiry-${group.id}`).value;
                     const langVal = document.getElementById(`add-member-lang-${group.id}`).value;
-                    if (!empId) { alert('Please select an ID'); return; }
-                    const { error } = await supabase
-                      .from('employees')
-                      .update({
+                    const daysChecked = document.querySelector(`input[name="add-member-expiry-${group.id}"]:checked`);
+                    const days = daysChecked ? parseInt(daysChecked.value) : 5;
+                    const expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+                    // Trava o limite de IDs ativos do seller (0 = ilimitado,
+                    // configurado pelo Default Admin em "Manage Sellers"). Não
+                    // se aplica ao pool da casa (Default Admin criando direto).
+                    if (isSeller) {
+                      const myLimit = sellers.find(s => s.id === loggedInSellerId)?.demo_id_limit ?? 10;
+                      const now = new Date();
+                      const myActiveCount = employees.filter(e =>
+                        e.is_demo && e.created_by_seller_id === loggedInSellerId && !e.retired &&
+                        (!e.demo_expires_at || new Date(e.demo_expires_at) >= now)
+                      ).length;
+                      if (myLimit > 0 && myActiveCount >= myLimit) {
+                        alert(`You've reached your limit of ${myLimit} active Demo ID(s). Wait for one to expire, or ask the Default Admin to raise your limit.`);
+                        return;
+                      }
+                    }
+                    try {
+                      // Gera um número novo do pool global na hora — não existe
+                      // mais um "pool disponível" pra escolher, cada ID nasce
+                      // já pertencendo a esse grupo.
+                      const { data: seqNumbers, error: seqError } = await supabase.rpc('next_demo_id_numbers', { count: 1 });
+                      if (seqError) throw seqError;
+                      const padded = String(seqNumbers[0].n).padStart(4, '0');
+                      const { error } = await supabase.from('employees').insert([{
+                        employee_id: `ID${padded}`,
+                        name: `${group.name} Demo ${padded}`,
+                        company_id: defaultCompanyId,
+                        is_demo: true,
+                        password: `PW${padded}`,
+                        status: 'active',
+                        active: true,
+                        language: langVal,
+                        created_by_seller_id: isSeller ? loggedInSellerId : null,
                         group_id: group.id,
-                        demo_expires_at: expiryVal ? new Date(expiryVal).toISOString() : null,
-                        language: langVal
-                      })
-                      .eq('employee_id', empId);
-                    if (error) { alert('Error adding member: ' + error.message); return; }
-                    await loadDemoGroups();
-                    await loadEmployees();
+                        demo_expires_at: expiresAt
+                      }]);
+                      if (error) throw error;
+                      await loadDemoGroups();
+                      await loadEmployees();
+                    } catch (error) {
+                      alert('Error creating ID: ' + error.message);
+                    }
                   }}
                   className="px-3 py-2 bg-pink-600 text-white rounded-lg text-sm hover:bg-pink-700"
-                >Add</button>
+                >+ Add New ID</button>
               </div>
               )}
             </div>
