@@ -6215,6 +6215,275 @@ autoComplete="off"
   </div>
 )}
 
+{isAdmin && (showDefaultOnlyTools || (isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample')) && (
+  <div className="mt-4 bg-pink-50 border-2 border-pink-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
+    <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+      🎯 Manage Demo Groups
+    </h3>
+
+    {isSeller && (() => {
+      const myLimit = sellers.find(s => s.id === loggedInSellerId)?.demo_id_limit ?? 10;
+      const now = new Date();
+      const myActiveCount = employees.filter(e =>
+        e.is_demo && e.created_by_seller_id === loggedInSellerId && !e.retired && !!e.group_id &&
+        (!e.demo_expires_at || new Date(e.demo_expires_at) >= now)
+      ).length;
+      const remaining = myLimit > 0 ? Math.max(0, myLimit - myActiveCount) : null;
+      return (
+        <p className={`text-sm font-medium mb-4 ${remaining === 0 ? 'text-red-600' : 'text-pink-700'}`}>
+          {remaining === null
+            ? `You have ${myActiveCount} active Demo ID(s) — no limit set.`
+            : `You have ${remaining} of ${myLimit} Demo ID(s) available right now.`}
+        </p>
+      );
+    })()}
+
+    {/* Create New Group */}
+    <div className="bg-white rounded p-4 mb-4">
+      <h4 className="font-medium text-gray-700 mb-3">Create New Group</h4>
+      <div className="flex gap-2 mb-3">
+        <input
+          type="text"
+          id="new-group-name"
+          placeholder="Group name (e.g. Demo XYZ Bank)"
+          className="flex-1 p-2 border-2 border-gray-300 rounded-lg text-sm"
+        />
+        <button
+          onClick={async () => {
+            const name = document.getElementById('new-group-name').value.trim();
+            if (!name) { alert('Please enter a group name'); return; }
+            const { data, error } = await supabase
+              .from('demo_groups')
+              .insert([{ name, created_by_seller_id: isSeller ? loggedInSellerId : null }])
+              .select();
+            if (error) { alert('Error creating group: ' + error.message); return; }
+            document.getElementById('new-group-name').value = '';
+            await loadDemoGroups();
+            alert(`Group "${name}" created!`);
+          }}
+          className="px-4 py-2 bg-pink-600 text-white rounded-lg text-sm hover:bg-pink-700"
+        >+ Create Group</button>
+      </div>
+    </div>
+
+    {/* Existing Groups — pro seller, só os que ele criou (loadDemoGroups já filtra) */}
+    <div className="bg-white rounded p-4">
+      <h4 className="font-medium text-gray-700 mb-3">Active Groups ({demoGroups.length})</h4>
+      {demoGroups.length === 0 ? (
+        <p className="text-sm text-gray-500">No groups yet</p>
+      ) : (
+        <div className="space-y-4">
+          {demoGroups.map(group => {
+            const memberCount = (group.employees || []).length;
+            const atLimit = memberCount >= 2;
+            return (
+            <div key={group.id} className="border border-gray-200 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h5 className="font-semibold text-gray-800">{group.name}</h5>
+                  <p className="text-xs text-gray-500">
+                    By: {group.created_by_seller_id
+                      ? (sellers.find(s => s.id === group.created_by_seller_id)?.name || 'Unknown seller')
+                      : 'Default Admin'}
+                    {group.created_at && ` · ${new Date(group.created_at).toLocaleDateString()}`}
+                  </p>
+                </div>
+                <button
+                  onClick={async () => {
+                    if (!window.confirm(`Delete group "${group.name}"? All experiences and comments from its members will be deleted.`)) return;
+                    try {
+                      // Get group members
+                      const { data: members } = await supabase
+                        .from('employees')
+                        .select('employee_id, group_id')
+                        .eq('group_id', group.id);
+                      
+                      for (const member of members || []) {
+                        // Delete comments
+                        await supabase.from('comments').delete().eq('employee_id', member.employee_id);
+                        // Delete experiences files
+                        const { data: exps } = await supabase.from('experiences').select('id, cv_url').eq('employee_id', member.employee_id);
+                        for (const exp of exps || []) {
+                          if (exp.cv_url) await deleteFileFromStorage(exp.cv_url);
+                        }
+                        // Delete experiences
+                        await supabase.from('experiences').delete().eq('employee_id', member.employee_id);
+                        // Release ID from group
+                        await supabase.from('employees').update({ group_id: null, demo_expires_at: null }).eq('employee_id', member.employee_id);
+                      }
+                      // Delete group
+                      await supabase.from('demo_groups').delete().eq('id', group.id);
+                      await loadDemoGroups();
+                      await loadEmployees();
+                      await loadExperiences(true);
+                      alert(`Group "${group.name}" deleted and data cleared!`);
+                    } catch (error) {
+                      alert('Error deleting group: ' + error.message);
+                    }
+                  }}
+                  className="px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700"
+                >🗑️ Delete Group</button>
+              </div>
+
+              {/* Members */}
+              <div className="mb-3">
+                <p className="text-xs font-medium text-gray-600 mb-2">Members ({memberCount}/2):</p>
+                <div className="flex flex-col gap-2">
+                  {(group.employees || []).map(emp => {
+                    const isExpired = emp.demo_expires_at && new Date(emp.demo_expires_at) < new Date();
+                    const isUsed = !!emp.last_login_at;
+                    const totalDays = (emp.created_at && emp.demo_expires_at)
+                      ? Math.round((new Date(emp.demo_expires_at) - new Date(emp.created_at)) / (1000 * 60 * 60 * 24))
+                      : null;
+                    const daysLeft = emp.demo_expires_at
+                      ? Math.max(0, Math.ceil((new Date(emp.demo_expires_at) - new Date()) / (1000 * 60 * 60 * 24)))
+                      : null;
+                    return (
+                    <div key={emp.employee_id} className="flex items-center justify-between gap-2 p-2 border border-pink-200 rounded-lg bg-pink-50">
+                      <span className="px-3 py-1 bg-pink-100 text-pink-800 rounded-full text-xs font-medium inline-flex items-center gap-1 flex-wrap">
+                        ID={emp.employee_id}, Password={emp.password}
+                        <span className="text-pink-500 ml-1 uppercase">[{emp.language || 'en'}]</span>
+                        <span className={`ml-1 px-1.5 py-0.5 rounded-full font-semibold ${isExpired ? 'bg-red-200 text-red-800' : 'bg-green-200 text-green-800'}`}>{isExpired ? 'Expired' : 'Active'}</span>
+                        <span className={`px-1.5 py-0.5 rounded-full font-semibold ${isUsed ? 'bg-amber-200 text-amber-800' : 'bg-gray-200 text-gray-600'}`}>{isUsed ? 'Used' : 'Not Used'}</span>
+                        {emp.created_at && (
+                          <span className="text-pink-500 ml-1">
+                            (Created {new Date(emp.created_at).toLocaleDateString()})
+                          </span>
+                        )}
+                        {emp.demo_expires_at && (
+                          <span className="text-pink-500 ml-1">
+                            (Exp {new Date(emp.demo_expires_at).toLocaleDateString()})
+                          </span>
+                        )}
+                        {daysLeft !== null && (
+                          <span className="text-pink-500 ml-1">({isExpired ? '0' : daysLeft}/{totalDays} days left)</span>
+                        )}
+                      </span>
+                      <button
+                        onClick={async () => {
+                          if (!window.confirm(`Delete ID "${emp.employee_id}"? This retires it permanently — it can never be reused.`)) return;
+                          try {
+                            await supabase.from('comments').delete().eq('employee_id', emp.employee_id);
+                            const { data: exps } = await supabase.from('experiences').select('id, cv_url').eq('employee_id', emp.employee_id);
+                            for (const exp of exps || []) {
+                              if (exp.cv_url) await deleteFileFromStorage(exp.cv_url);
+                            }
+                            await supabase.from('experiences').delete().eq('employee_id', emp.employee_id);
+                            const { error } = await supabase.from('employees')
+                              .update({ group_id: null, demo_expires_at: null, retired: true, active: false })
+                              .eq('employee_id', emp.employee_id);
+                            if (error) throw error;
+                            await loadDemoGroups();
+                            await loadEmployees();
+                            await loadExperiences(true);
+                          } catch (error) {
+                            alert('Error deleting ID: ' + error.message);
+                          }
+                        }}
+                        className="px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700"
+                        title="Retires this ID/PW permanently"
+                      >🗑️ Del</button>
+                    </div>
+                    );
+                  })}
+                  {(group.employees || []).length === 0 && (
+                    <span className="text-xs text-gray-400">No members yet</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Add member — cria o ID na hora (não escolhe de um pool pré-criado)
+                  — desabilitado ao atingir o limite de 2 */}
+              {atLimit ? (
+                <p className="text-xs text-amber-600 font-medium">Maximum of 2 IDs per group reached.</p>
+              ) : (
+              <div className="flex gap-2 items-center flex-wrap">
+                <select
+                  id={`add-member-lang-${group.id}`}
+                  title="Language the demo will show"
+                  defaultValue="en"
+                  className="p-2 border-2 border-gray-200 rounded-lg text-sm"
+                >
+                  <option value="en">English</option>
+                  <option value="es">Español</option>
+                  <option value="pt">Português</option>
+                  <option value="zh">中文</option>
+                </select>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <span>Expires in:</span>
+                  {[3, 5, 7].map(days => (
+                    <label key={days} className="flex items-center gap-1">
+                      <input type="radio" name={`add-member-expiry-${group.id}`} value={days}
+                        checked={(addIdExpiryDays[group.id] ?? 5) === days}
+                        onChange={() => setAddIdExpiryDays(prev => ({ ...prev, [group.id]: days }))}
+                        className="w-4 h-4" />
+                      {days}d
+                    </label>
+                  ))}
+                  <span className="text-xs text-gray-400">
+                    (Created {new Date().toLocaleDateString()} · Expires {new Date(Date.now() + (addIdExpiryDays[group.id] ?? 5) * 24 * 60 * 60 * 1000).toLocaleDateString()})
+                  </span>
+                </div>
+                <button
+                  onClick={async () => {
+                    const langVal = document.getElementById(`add-member-lang-${group.id}`).value;
+                    const days = addIdExpiryDays[group.id] ?? 5;
+                    const expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+                    // Trava o limite de IDs ativos do seller (0 = ilimitado,
+                    // configurado pelo Default Admin em "Manage Sellers"). Não
+                    // se aplica ao pool da casa (Default Admin criando direto).
+                    if (isSeller) {
+                      const myLimit = sellers.find(s => s.id === loggedInSellerId)?.demo_id_limit ?? 10;
+                      const now = new Date();
+                      const myActiveCount = employees.filter(e =>
+                        e.is_demo && e.created_by_seller_id === loggedInSellerId && !e.retired && !!e.group_id &&
+                        (!e.demo_expires_at || new Date(e.demo_expires_at) >= now)
+                      ).length;
+                      if (myLimit > 0 && myActiveCount >= myLimit) {
+                        alert(`You've reached your limit of ${myLimit} active Demo ID(s). Wait for one to expire, or ask the Default Admin to raise your limit.`);
+                        return;
+                      }
+                    }
+                    try {
+                      // Gera um número novo do pool global na hora — não existe
+                      // mais um "pool disponível" pra escolher, cada ID nasce
+                      // já pertencendo a esse grupo.
+                      const { data: seqNumbers, error: seqError } = await supabase.rpc('next_demo_id_numbers', { count: 1 });
+                      if (seqError) throw seqError;
+                      const padded = String(seqNumbers[0].n).padStart(4, '0');
+                      const { error } = await supabase.from('employees').insert([{
+                        employee_id: `ID${padded}`,
+                        name: `${group.name} Demo ${padded}`,
+                        company_id: defaultCompanyId,
+                        is_demo: true,
+                        password: `PW${padded}`,
+                        status: 'active',
+                        active: true,
+                        language: langVal,
+                        created_by_seller_id: isSeller ? loggedInSellerId : null,
+                        group_id: group.id,
+                        demo_expires_at: expiresAt
+                      }]);
+                      if (error) throw error;
+                      await loadDemoGroups();
+                      await loadEmployees();
+                    } catch (error) {
+                      alert('Error creating ID: ' + error.message);
+                    }
+                  }}
+                  className="px-3 py-2 bg-pink-600 text-white rounded-lg text-sm hover:bg-pink-700"
+                >+ Add New ID</button>
+              </div>
+              )}
+            </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  </div>
+)}
+
 {isAdmin && showDefaultOnlyTools && !isSeller && (
   <div className="mt-4 bg-cyan-50 border-2 border-cyan-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
@@ -7025,266 +7294,6 @@ autoComplete="off"
           )}
         </div>
 
-{isAdmin && (showDefaultOnlyTools || (isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample')) && (
-  <div className="mt-4 bg-pink-50 border-2 border-pink-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
-    <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
-      🎯 Manage Demo Groups
-    </h3>
-
-    {isSeller && (() => {
-      const myLimit = sellers.find(s => s.id === loggedInSellerId)?.demo_id_limit ?? 10;
-      const now = new Date();
-      const myActiveCount = employees.filter(e =>
-        e.is_demo && e.created_by_seller_id === loggedInSellerId && !e.retired && !!e.group_id &&
-        (!e.demo_expires_at || new Date(e.demo_expires_at) >= now)
-      ).length;
-      const remaining = myLimit > 0 ? Math.max(0, myLimit - myActiveCount) : null;
-      return (
-        <p className={`text-sm font-medium mb-4 ${remaining === 0 ? 'text-red-600' : 'text-pink-700'}`}>
-          {remaining === null
-            ? `You have ${myActiveCount} active Demo ID(s) — no limit set.`
-            : `You have ${remaining} of ${myLimit} Demo ID(s) available right now.`}
-        </p>
-      );
-    })()}
-
-    {/* Create New Group */}
-    <div className="bg-white rounded p-4 mb-4">
-      <h4 className="font-medium text-gray-700 mb-3">Create New Group</h4>
-      <div className="flex gap-2 mb-3">
-        <input
-          type="text"
-          id="new-group-name"
-          placeholder="Group name (e.g. Demo XYZ Bank)"
-          className="flex-1 p-2 border-2 border-gray-300 rounded-lg text-sm"
-        />
-        <button
-          onClick={async () => {
-            const name = document.getElementById('new-group-name').value.trim();
-            if (!name) { alert('Please enter a group name'); return; }
-            const { data, error } = await supabase
-              .from('demo_groups')
-              .insert([{ name, created_by_seller_id: isSeller ? loggedInSellerId : null }])
-              .select();
-            if (error) { alert('Error creating group: ' + error.message); return; }
-            document.getElementById('new-group-name').value = '';
-            await loadDemoGroups();
-            alert(`Group "${name}" created!`);
-          }}
-          className="px-4 py-2 bg-pink-600 text-white rounded-lg text-sm hover:bg-pink-700"
-        >+ Create Group</button>
-      </div>
-    </div>
-
-    {/* Existing Groups — pro seller, só os que ele criou (loadDemoGroups já filtra) */}
-    <div className="bg-white rounded p-4">
-      <h4 className="font-medium text-gray-700 mb-3">Active Groups ({demoGroups.length})</h4>
-      {demoGroups.length === 0 ? (
-        <p className="text-sm text-gray-500">No groups yet</p>
-      ) : (
-        <div className="space-y-4">
-          {demoGroups.map(group => {
-            const memberCount = (group.employees || []).length;
-            const atLimit = memberCount >= 2;
-            return (
-            <div key={group.id} className="border border-gray-200 rounded-lg p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h5 className="font-semibold text-gray-800">{group.name}</h5>
-                <button
-                  onClick={async () => {
-                    if (!window.confirm(`Delete group "${group.name}"? All experiences and comments from its members will be deleted.`)) return;
-                    try {
-                      // Get group members
-                      const { data: members } = await supabase
-                        .from('employees')
-                        .select('employee_id, group_id')
-                        .eq('group_id', group.id);
-                      
-                      for (const member of members || []) {
-                        // Delete comments
-                        await supabase.from('comments').delete().eq('employee_id', member.employee_id);
-                        // Delete experiences files
-                        const { data: exps } = await supabase.from('experiences').select('id, cv_url').eq('employee_id', member.employee_id);
-                        for (const exp of exps || []) {
-                          if (exp.cv_url) await deleteFileFromStorage(exp.cv_url);
-                        }
-                        // Delete experiences
-                        await supabase.from('experiences').delete().eq('employee_id', member.employee_id);
-                        // Release ID from group
-                        await supabase.from('employees').update({ group_id: null, demo_expires_at: null }).eq('employee_id', member.employee_id);
-                      }
-                      // Delete group
-                      await supabase.from('demo_groups').delete().eq('id', group.id);
-                      await loadDemoGroups();
-                      await loadEmployees();
-                      await loadExperiences(true);
-                      alert(`Group "${group.name}" deleted and data cleared!`);
-                    } catch (error) {
-                      alert('Error deleting group: ' + error.message);
-                    }
-                  }}
-                  className="px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700"
-                >🗑️ Delete Group</button>
-              </div>
-
-              {/* Members */}
-              <div className="mb-3">
-                <p className="text-xs font-medium text-gray-600 mb-2">Members ({memberCount}/2):</p>
-                <div className="flex flex-col gap-2">
-                  {(group.employees || []).map(emp => {
-                    const isExpired = emp.demo_expires_at && new Date(emp.demo_expires_at) < new Date();
-                    const isUsed = !!emp.last_login_at;
-                    const totalDays = (emp.created_at && emp.demo_expires_at)
-                      ? Math.round((new Date(emp.demo_expires_at) - new Date(emp.created_at)) / (1000 * 60 * 60 * 24))
-                      : null;
-                    const daysLeft = emp.demo_expires_at
-                      ? Math.max(0, Math.ceil((new Date(emp.demo_expires_at) - new Date()) / (1000 * 60 * 60 * 24)))
-                      : null;
-                    return (
-                    <div key={emp.employee_id} className="flex items-center justify-between gap-2 p-2 border border-pink-200 rounded-lg bg-pink-50">
-                      <span className="px-3 py-1 bg-pink-100 text-pink-800 rounded-full text-xs font-medium inline-flex items-center gap-1 flex-wrap">
-                        ID={emp.employee_id}, Password={emp.password}
-                        <span className="text-pink-500 ml-1 uppercase">[{emp.language || 'en'}]</span>
-                        <span className={`ml-1 px-1.5 py-0.5 rounded-full font-semibold ${isExpired ? 'bg-red-200 text-red-800' : 'bg-green-200 text-green-800'}`}>{isExpired ? 'Expired' : 'Active'}</span>
-                        <span className={`px-1.5 py-0.5 rounded-full font-semibold ${isUsed ? 'bg-amber-200 text-amber-800' : 'bg-gray-200 text-gray-600'}`}>{isUsed ? 'Used' : 'Not Used'}</span>
-                        {emp.created_at && (
-                          <span className="text-pink-500 ml-1">
-                            (Created {new Date(emp.created_at).toLocaleDateString()})
-                          </span>
-                        )}
-                        {emp.demo_expires_at && (
-                          <span className="text-pink-500 ml-1">
-                            (Exp {new Date(emp.demo_expires_at).toLocaleDateString()})
-                          </span>
-                        )}
-                        {daysLeft !== null && (
-                          <span className="text-pink-500 ml-1">({isExpired ? '0' : daysLeft}/{totalDays} days left)</span>
-                        )}
-                      </span>
-                      <button
-                        onClick={async () => {
-                          if (!window.confirm(`Delete ID "${emp.employee_id}"? This retires it permanently — it can never be reused.`)) return;
-                          try {
-                            await supabase.from('comments').delete().eq('employee_id', emp.employee_id);
-                            const { data: exps } = await supabase.from('experiences').select('id, cv_url').eq('employee_id', emp.employee_id);
-                            for (const exp of exps || []) {
-                              if (exp.cv_url) await deleteFileFromStorage(exp.cv_url);
-                            }
-                            await supabase.from('experiences').delete().eq('employee_id', emp.employee_id);
-                            const { error } = await supabase.from('employees')
-                              .update({ group_id: null, demo_expires_at: null, retired: true, active: false })
-                              .eq('employee_id', emp.employee_id);
-                            if (error) throw error;
-                            await loadDemoGroups();
-                            await loadEmployees();
-                            await loadExperiences(true);
-                          } catch (error) {
-                            alert('Error deleting ID: ' + error.message);
-                          }
-                        }}
-                        className="px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700"
-                        title="Retires this ID/PW permanently"
-                      >🗑️ Del</button>
-                    </div>
-                    );
-                  })}
-                  {(group.employees || []).length === 0 && (
-                    <span className="text-xs text-gray-400">No members yet</span>
-                  )}
-                </div>
-              </div>
-
-              {/* Add member — cria o ID na hora (não escolhe de um pool pré-criado)
-                  — desabilitado ao atingir o limite de 2 */}
-              {atLimit ? (
-                <p className="text-xs text-amber-600 font-medium">Maximum of 2 IDs per group reached.</p>
-              ) : (
-              <div className="flex gap-2 items-center flex-wrap">
-                <select
-                  id={`add-member-lang-${group.id}`}
-                  title="Language the demo will show"
-                  defaultValue="en"
-                  className="p-2 border-2 border-gray-200 rounded-lg text-sm"
-                >
-                  <option value="en">English</option>
-                  <option value="es">Español</option>
-                  <option value="pt">Português</option>
-                  <option value="zh">中文</option>
-                </select>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <span>Expires in:</span>
-                  {[3, 5, 7].map(days => (
-                    <label key={days} className="flex items-center gap-1">
-                      <input type="radio" name={`add-member-expiry-${group.id}`} value={days}
-                        checked={(addIdExpiryDays[group.id] ?? 5) === days}
-                        onChange={() => setAddIdExpiryDays(prev => ({ ...prev, [group.id]: days }))}
-                        className="w-4 h-4" />
-                      {days}d
-                    </label>
-                  ))}
-                  <span className="text-xs text-gray-400">
-                    (Created {new Date().toLocaleDateString()} · Expires {new Date(Date.now() + (addIdExpiryDays[group.id] ?? 5) * 24 * 60 * 60 * 1000).toLocaleDateString()})
-                  </span>
-                </div>
-                <button
-                  onClick={async () => {
-                    const langVal = document.getElementById(`add-member-lang-${group.id}`).value;
-                    const days = addIdExpiryDays[group.id] ?? 5;
-                    const expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
-                    // Trava o limite de IDs ativos do seller (0 = ilimitado,
-                    // configurado pelo Default Admin em "Manage Sellers"). Não
-                    // se aplica ao pool da casa (Default Admin criando direto).
-                    if (isSeller) {
-                      const myLimit = sellers.find(s => s.id === loggedInSellerId)?.demo_id_limit ?? 10;
-                      const now = new Date();
-                      const myActiveCount = employees.filter(e =>
-                        e.is_demo && e.created_by_seller_id === loggedInSellerId && !e.retired && !!e.group_id &&
-                        (!e.demo_expires_at || new Date(e.demo_expires_at) >= now)
-                      ).length;
-                      if (myLimit > 0 && myActiveCount >= myLimit) {
-                        alert(`You've reached your limit of ${myLimit} active Demo ID(s). Wait for one to expire, or ask the Default Admin to raise your limit.`);
-                        return;
-                      }
-                    }
-                    try {
-                      // Gera um número novo do pool global na hora — não existe
-                      // mais um "pool disponível" pra escolher, cada ID nasce
-                      // já pertencendo a esse grupo.
-                      const { data: seqNumbers, error: seqError } = await supabase.rpc('next_demo_id_numbers', { count: 1 });
-                      if (seqError) throw seqError;
-                      const padded = String(seqNumbers[0].n).padStart(4, '0');
-                      const { error } = await supabase.from('employees').insert([{
-                        employee_id: `ID${padded}`,
-                        name: `${group.name} Demo ${padded}`,
-                        company_id: defaultCompanyId,
-                        is_demo: true,
-                        password: `PW${padded}`,
-                        status: 'active',
-                        active: true,
-                        language: langVal,
-                        created_by_seller_id: isSeller ? loggedInSellerId : null,
-                        group_id: group.id,
-                        demo_expires_at: expiresAt
-                      }]);
-                      if (error) throw error;
-                      await loadDemoGroups();
-                      await loadEmployees();
-                    } catch (error) {
-                      alert('Error creating ID: ' + error.message);
-                    }
-                  }}
-                  className="px-3 py-2 bg-pink-600 text-white rounded-lg text-sm hover:bg-pink-700"
-                >+ Add New ID</button>
-              </div>
-              )}
-            </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  </div>
-)}
        
 
 {isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('synthetic') || canBootstrapFirstAdmin) && (
