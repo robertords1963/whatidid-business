@@ -6951,7 +6951,7 @@ autoComplete="off"
       const myLimit = sellers.find(s => s.id === loggedInSellerId)?.demo_id_limit ?? 10;
       const now = new Date();
       const myActiveCount = employees.filter(e =>
-        e.is_demo && e.created_by_seller_id === loggedInSellerId && !e.retired &&
+        e.is_demo && e.created_by_seller_id === loggedInSellerId && !e.retired && !!e.group_id &&
         (!e.demo_expires_at || new Date(e.demo_expires_at) >= now)
       ).length;
       const remaining = myLimit > 0 ? Math.max(0, myLimit - myActiveCount) : null;
@@ -7113,7 +7113,7 @@ autoComplete="off"
                       const myLimit = sellers.find(s => s.id === loggedInSellerId)?.demo_id_limit ?? 10;
                       const now = new Date();
                       const myActiveCount = employees.filter(e =>
-                        e.is_demo && e.created_by_seller_id === loggedInSellerId && !e.retired &&
+                        e.is_demo && e.created_by_seller_id === loggedInSellerId && !e.retired && !!e.group_id &&
                         (!e.demo_expires_at || new Date(e.demo_expires_at) >= now)
                       ).length;
                       if (myLimit > 0 && myActiveCount >= myLimit) {
