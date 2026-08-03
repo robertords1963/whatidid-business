@@ -5657,7 +5657,7 @@ autoComplete="off"
           onClick={() => { if (window.confirm('Delete everything added in this demo session?')) deleteDemoSession(currentDemoSessionId); }}
           className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-medium whitespace-nowrap"
         >
-          🗑️ Delete Last Demo
+          🗑️ Delete Now
         </button>
       )}
     </div>
@@ -5665,25 +5665,27 @@ autoComplete="off"
 )}
 
 {isEmployeeLoggedIn && loggedInIsDemoId && (
-  <div className="mt-4 max-w-2xl mx-auto bg-purple-50 border-2 border-purple-300 rounded-2xl p-3 text-center">
-    <p className="text-purple-800 text-sm font-medium">
-      🎬 Demo Mode — Only visible to you. Deleted when your demo expires.
-    </p>
-    {(loggedInDemoCreatedAt || loggedInDemoExpiresAt) && (() => {
-      const totalDays = (loggedInDemoCreatedAt && loggedInDemoExpiresAt)
-        ? Math.round((new Date(loggedInDemoExpiresAt) - new Date(loggedInDemoCreatedAt)) / (1000 * 60 * 60 * 24))
-        : null;
-      const daysLeft = loggedInDemoExpiresAt
-        ? Math.max(0, Math.ceil((new Date(loggedInDemoExpiresAt) - new Date()) / (1000 * 60 * 60 * 24)))
-        : null;
-      return (
-        <p className="text-purple-600 text-xs mt-1">
-          {loggedInDemoCreatedAt && `(Created ${new Date(loggedInDemoCreatedAt).toLocaleDateString()})`}
-          {loggedInDemoExpiresAt && ` (Exp ${new Date(loggedInDemoExpiresAt).toLocaleDateString()})`}
-          {daysLeft !== null && totalDays !== null && ` (${daysLeft}/${totalDays} days left)`}
-        </p>
-      );
-    })()}
+  <div className="mt-4 max-w-2xl mx-auto bg-purple-50 border-2 border-purple-300 rounded-2xl p-3 flex items-center justify-between gap-2">
+    <div className="flex-1 min-w-0">
+      <p className="text-purple-800 text-sm font-medium">
+        🎬 Demo Mode — Only visible to you. Deleted when your demo expires.
+      </p>
+      {(loggedInDemoCreatedAt || loggedInDemoExpiresAt) && (() => {
+        const totalDays = (loggedInDemoCreatedAt && loggedInDemoExpiresAt)
+          ? Math.round((new Date(loggedInDemoExpiresAt) - new Date(loggedInDemoCreatedAt)) / (1000 * 60 * 60 * 24))
+          : null;
+        const daysLeft = loggedInDemoExpiresAt
+          ? Math.max(0, Math.ceil((new Date(loggedInDemoExpiresAt) - new Date()) / (1000 * 60 * 60 * 24)))
+          : null;
+        return (
+          <p className="text-purple-600 text-xs mt-1">
+            {loggedInDemoCreatedAt && `(Created ${new Date(loggedInDemoCreatedAt).toLocaleDateString()})`}
+            {loggedInDemoExpiresAt && ` (Exp ${new Date(loggedInDemoExpiresAt).toLocaleDateString()})`}
+            {daysLeft !== null && totalDays !== null && ` (${daysLeft}/${totalDays} days left)`}
+          </p>
+        );
+      })()}
+    </div>
     <button
       onClick={async () => {
         if (!window.confirm('Delete everything you added in this demo so far? This cannot be undone.')) return;
@@ -5700,7 +5702,7 @@ autoComplete="off"
           alert('Error deleting: ' + error.message);
         }
       }}
-      className="mt-2 px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-medium"
+      className="flex-shrink-0 px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-medium whitespace-nowrap"
     >
       🗑️ Delete Now
     </button>
@@ -5739,7 +5741,7 @@ autoComplete="off"
               onClick={() => { if (window.confirm('Delete everything added in this demo session?')) deleteDemoSession(currentDemoSessionId); }}
               className="px-2 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-medium whitespace-nowrap"
             >
-              🗑️ Delete Last Demo
+              🗑️ Delete Now
             </button>
           )}
         </>
