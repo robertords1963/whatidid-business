@@ -473,6 +473,11 @@ useEffect(() => {
     loadProblemCategories();
     loadPractices();
     loadAppSettings();
+    // Sem isso, "Manage Demo Groups" ficava com dado parado desde o carregamento
+    // inicial do app — trocar de sessão (logar como um Demo ID, sair, entrar
+    // como Seller) não recarregava, já que aqui é tudo client-side sem reload
+    // de página real.
+    loadDemoGroups();
   }
 }, [effectiveCompanyId, effectiveViewingLanguage, defaultCompanyId, companies.length]);
 
