@@ -2645,11 +2645,16 @@ const handleEmployeeLogin = async () => {
     setShowChangePassword(true);
   }
 
-  // Só agora, com todo o state síncrono já certo, dispara as cargas
-  // assíncronas — a tela que aparece enquanto elas rodam já mostra a versão
-  // correta (com ou sem admin), sem piscar nada intermediário.
+  // Só agora, com todo o state síncrono já certo, dispara a carga de grupo.
+  // NÃO chama loadExperiences aqui de propósito: essa chamada usaria o
+  // fechamento desse mesmo clique (com effectiveViewingLanguage/isAdmin de
+  // ANTES do login, já que o React só recalcula isso no próximo render) —
+  // era exatamente isso que causava o idioma errado sendo buscado no login
+  // (dropdown mostrando um idioma, conteúdo vindo em outro). O efeito
+  // automático (useEffect que já observa effectiveCompanyId/
+  // effectiveViewingLanguage) dispara sozinho no próximo render, já com os
+  // valores corretos e atualizados.
   await loadCurrentEmployeeGroup(employeeId);
-  await loadExperiences(false, employeeId);
   
   } catch (error) {
     console.error('Login error:', error);
