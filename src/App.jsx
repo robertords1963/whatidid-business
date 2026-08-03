@@ -7050,52 +7050,55 @@ autoComplete="off"
               {/* Members */}
               <div className="mb-3">
                 <p className="text-xs font-medium text-gray-600 mb-2">Members ({memberCount}/2):</p>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-col gap-2">
                   {(group.employees || []).map(emp => {
                     const isExpired = emp.demo_expires_at && new Date(emp.demo_expires_at) < new Date();
                     const isUsed = !!emp.last_login_at;
-                    const status = isExpired ? 'Expired' : isUsed ? 'Used' : 'Active';
-                    const statusColor = isExpired ? 'bg-red-200 text-red-800' : isUsed ? 'bg-amber-200 text-amber-800' : 'bg-green-200 text-green-800';
                     return (
-                    <span key={emp.employee_id} className="px-3 py-1 bg-pink-100 text-pink-800 rounded-full text-xs font-medium inline-flex items-center gap-1">
-                      ID={emp.employee_id}, Password={emp.password}
-                      <span className="text-pink-500 ml-1 uppercase">[{emp.language || 'en'}]</span>
-                      <span className={`ml-1 px-1.5 py-0.5 rounded-full font-semibold ${statusColor}`}>{status}</span>
-                      {emp.created_at && (
-                        <span className="text-pink-500 ml-1">
-                          (Created {new Date(emp.created_at).toLocaleDateString()})
-                        </span>
-                      )}
-                      {emp.demo_expires_at && (
-                        <span className="text-pink-500 ml-1">
-                          (Exp {new Date(emp.demo_expires_at).toLocaleDateString()})
-                        </span>
-                      )}
-                      <button
-                        onClick={async () => {
-                          if (!window.confirm(`Delete ID "${emp.employee_id}"? This retires it permanently — it can never be reused.`)) return;
-                          try {
-                            await supabase.from('comments').delete().eq('employee_id', emp.employee_id);
-                            const { data: exps } = await supabase.from('experiences').select('id, cv_url').eq('employee_id', emp.employee_id);
-                            for (const exp of exps || []) {
-                              if (exp.cv_url) await deleteFileFromStorage(exp.cv_url);
+                    <div key={emp.employee_id} className="flex items-center gap-2 p-2 border border-pink-200 rounded-lg bg-pink-50">
+                      <span className="px-3 py-1 bg-pink-100 text-pink-800 rounded-full text-xs font-medium inline-flex items-center gap-1 flex-wrap">
+                        ID={emp.employee_id}, Password={emp.password}
+                        <span className="text-pink-500 ml-1 uppercase">[{emp.language || 'en'}]</span>
+                        <span className={`ml-1 px-1.5 py-0.5 rounded-full font-semibold ${isExpired ? 'bg-red-200 text-red-800' : 'bg-green-200 text-green-800'}`}>{isExpired ? 'Expired' : 'Active'}</span>
+                        <span className={`px-1.5 py-0.5 rounded-full font-semibold ${isUsed ? 'bg-amber-200 text-amber-800' : 'bg-gray-200 text-gray-600'}`}>{isUsed ? 'Used' : 'Not Used'}</span>
+                        {emp.created_at && (
+                          <span className="text-pink-500 ml-1">
+                            (Created {new Date(emp.created_at).toLocaleDateString()})
+                          </span>
+                        )}
+                        {emp.demo_expires_at && (
+                          <span className="text-pink-500 ml-1">
+                            (Exp {new Date(emp.demo_expires_at).toLocaleDateString()})
+                          </span>
+                        )}
+                      </span>
+                      <div className="border-2 border-red-400 rounded-lg p-1">
+                        <button
+                          onClick={async () => {
+                            if (!window.confirm(`Delete ID "${emp.employee_id}"? This retires it permanently — it can never be reused.`)) return;
+                            try {
+                              await supabase.from('comments').delete().eq('employee_id', emp.employee_id);
+                              const { data: exps } = await supabase.from('experiences').select('id, cv_url').eq('employee_id', emp.employee_id);
+                              for (const exp of exps || []) {
+                                if (exp.cv_url) await deleteFileFromStorage(exp.cv_url);
+                              }
+                              await supabase.from('experiences').delete().eq('employee_id', emp.employee_id);
+                              const { error } = await supabase.from('employees')
+                                .update({ group_id: null, demo_expires_at: null, retired: true, active: false })
+                                .eq('employee_id', emp.employee_id);
+                              if (error) throw error;
+                              await loadDemoGroups();
+                              await loadEmployees();
+                              await loadExperiences(true);
+                            } catch (error) {
+                              alert('Error deleting ID: ' + error.message);
                             }
-                            await supabase.from('experiences').delete().eq('employee_id', emp.employee_id);
-                            const { error } = await supabase.from('employees')
-                              .update({ group_id: null, demo_expires_at: null, retired: true, active: false })
-                              .eq('employee_id', emp.employee_id);
-                            if (error) throw error;
-                            await loadDemoGroups();
-                            await loadEmployees();
-                            await loadExperiences(true);
-                          } catch (error) {
-                            alert('Error deleting ID: ' + error.message);
-                          }
-                        }}
-                        className="ml-1 text-pink-600 hover:text-pink-900 font-bold"
-                        title="Delete this ID (retires it permanently)"
-                      >✕</button>
-                    </span>
+                          }}
+                          className="px-3 py-1.5 rounded text-sm font-semibold bg-red-600 hover:bg-red-700 text-white whitespace-nowrap"
+                          title="Retires this ID/PW permanently"
+                        >🗑️ Delete ID/PW</button>
+                      </div>
+                    </div>
                     );
                   })}
                   {(group.employees || []).length === 0 && (
