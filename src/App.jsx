@@ -1906,19 +1906,25 @@ const importSyntheticContent = async () => {
       }
     }
 
+    let relinkAttempted = 0, relinkSucceeded = 0, relinkFailed = 0, relinkSkippedNoSource = 0, relinkSkippedNoMap = 0;
     for (const exp of (defaultExperiences || [])) {
       let relatedSourceId = exp.related_common_case_id;
       if (!relatedSourceId && exp.translation_group_id) {
         const englishTargetId = englishRelatedByGroup[exp.translation_group_id];
         relatedSourceId = englishTargetId ? (resolvedEnglishTargetToOwnLang[englishTargetId] || null) : null;
       }
-      if (!relatedSourceId) continue;
+      if (!relatedSourceId) { relinkSkippedNoSource++; continue; }
       const newOwnId = expIdMap[exp.id];
       const newRelatedId = expIdMap[relatedSourceId];
       if (newOwnId && newRelatedId) {
-        await supabase.from('experiences').update({ related_common_case_id: newRelatedId }).eq('id', newOwnId);
+        relinkAttempted++;
+        const { error: relinkErr } = await supabase.from('experiences').update({ related_common_case_id: newRelatedId }).eq('id', newOwnId);
+        if (relinkErr) { relinkFailed++; console.error('Relink error:', relinkErr); } else { relinkSucceeded++; }
+      } else {
+        relinkSkippedNoMap++;
       }
     }
+    console.log(`🔗 Relink related_common_case_id: attempted=${relinkAttempted}, succeeded=${relinkSucceeded}, failed=${relinkFailed}, skippedNoSource=${relinkSkippedNoSource}, skippedNoMap=${relinkSkippedNoMap}`);
 
     // Top 3 — limpa qualquer linha existente dessa empresa antes de inserir de
     // novo. O Top 3 é sempre só até 3 linhas, então é mais seguro reconstruir
@@ -1972,7 +1978,7 @@ const importSyntheticContent = async () => {
     await loadEmployees(effectiveCompanyId);
     await loadExperiences(true);
     await loadTopExperiences();
-    alert(`Synthetic/Curated Content updated — ${addedEmployees} new Employee(s), ${addedExperiences} new Experience(s)/Key Insight(s), ${addedTop3} new Top 3 item(s).`);
+    alert(`Synthetic/Curated Content updated — ${addedEmployees} new Employee(s), ${addedExperiences} new Experience(s)/Key Insight(s), ${addedTop3} new Top 3 item(s). [debug: relink attempted=${relinkAttempted}, succeeded=${relinkSucceeded}, failed=${relinkFailed}, skippedNoSource=${relinkSkippedNoSource}, skippedNoMap=${relinkSkippedNoMap}]`);
   } catch (error) {
     console.error('Error importing Synthetic Content:', error);
     alert('Error during import: ' + error.message);
