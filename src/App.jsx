@@ -5576,6 +5576,11 @@ autoComplete="off"
   )}
 </div>
           
+{isEmployeeLoggedIn && (
+  <div style={{position: 'fixed', top: 0, left: 0, right: 0, zIndex: 99999, background: 'red', color: 'white', fontFamily: 'monospace', fontSize: 12, padding: '6px', textAlign: 'center', fontWeight: 'bold'}}>
+    viewingLanguage={viewingLanguage} | effectiveViewingLanguage={effectiveViewingLanguage} | isDemoModeActive={String(isDemoModeActive)} | isDefaultAdmin={String(isDefaultAdmin)} | isViewingDefault={String(isViewingDefault)} | exps={experiences.length} | isAdmin={String(isAdmin)}
+  </div>
+)}
 {isDemoModeActive && !(isSeller && isAdmin) && !(isDefaultAdmin && isAdmin) && (
   <div className="mt-4 max-w-2xl mx-auto bg-purple-50 border-2 border-purple-300 rounded-2xl p-3 flex items-center justify-between gap-2">
     <p className="text-purple-800 text-sm font-medium flex-1 min-w-0">
