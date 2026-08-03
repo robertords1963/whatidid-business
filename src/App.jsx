@@ -1670,6 +1670,28 @@ const toggleMasterVisibility = async (sectionKey, checked) => {
   }
 };
 
+// Todas as seções que existem na coluna "View & Edit access" — usado pelo
+// checkbox "ALL" no cabeçalho, pra marcar/desmarcar tudo de uma vez numa
+// chamada só, em vez da empresa ter que marcar item por item.
+const ALL_VISIBILITY_SECTION_KEYS = ['app_config', 'content_pages', 'keyword_filter', 'metadata', 'promotional_videos', 'quotes', 'synthetic'];
+const toggleAllMasterVisibility = async (checked) => {
+  const updated = checked ? ALL_VISIBILITY_SECTION_KEYS : [];
+  setCompanyMasterVisibility(updated);
+  try {
+    const { error } = await supabase
+      .from('company_master_visibility')
+      .upsert({ company_id: effectiveCompanyId, section_key: updated, updated_at: new Date().toISOString() }, { onConflict: 'company_id' });
+    if (error) throw error;
+  } catch (error) {
+    console.error('Error saving visibility:', error);
+    alert('Error saving visibility setting.');
+  }
+};
+// Todas as seções que têm opção de Import — usado pelo checkbox "ALL" da
+// coluna de Import. Não precisa chamar o banco: é só a seleção antes de
+// clicar em "Import/Update".
+const ALL_IMPORT_SECTION_KEYS = ['app_config', 'quotes', 'promotional_videos', 'content_pages', 'metadata', 'synthetic'];
+
 // Importa o "pacote" ligado: Practices + Categories + Employees sintéticos +
 // Experiences sintéticas (inclui Key Insights, já que são experiences com
 // author = 'key_insights'). São importados juntos porque um depende do outro.
@@ -5793,6 +5815,22 @@ autoComplete="off"
         </tr>
       </thead>
       <tbody>
+        <tr className="border-b bg-gray-50 font-medium">
+          <td className="py-2 text-gray-600">ALL</td>
+          <td className="py-2 text-center">
+            <input type="checkbox"
+              checked={ALL_VISIBILITY_SECTION_KEYS.every(k => companyMasterVisibility.includes(k))}
+              onChange={(e) => toggleAllMasterVisibility(e.target.checked)}
+              className="w-4 h-4" />
+          </td>
+          <td className="py-2 text-center">
+            <input type="checkbox"
+              checked={ALL_IMPORT_SECTION_KEYS.every(k => selectedForImport.includes(k))}
+              onChange={(e) => setSelectedForImport(e.target.checked ? ALL_IMPORT_SECTION_KEYS : [])}
+              className="w-4 h-4" />
+          </td>
+        </tr>
+
         <tr className="border-b">
           <td className="py-2">App Configuration</td>
           <td className="py-2 text-center">
