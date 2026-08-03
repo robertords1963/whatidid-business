@@ -1862,14 +1862,59 @@ const importSyntheticContent = async () => {
     // Religa related_common_case_id — TANTO nas experiences recém-importadas
     // nessa rodada QUANTO nas que já existiam de tentativas anteriores (o
     // loop roda sobre TODAS as experiences da Default, e expIdMap já cobre
-    // as duas situações graças ao backfill acima). Ou seja: isso já conserta
-    // retroativamente vínculos que ficaram quebrados antes desse fix existir
-    // — não precisa apagar e reimportar, só rodar o import de novo (mesmo
-    // que reporte "0 new", o reparo roda de qualquer forma).
+    // as duas situações graças ao backfill acima).
+    //
+    // Para idiomas não-ingleses, exp.related_common_case_id costuma vir NULO
+    // na própria tradução (nunca foi preenchido nela) — só existe na versão
+    // em inglês. Por isso, quando estiver vazio, busca o vínculo através da
+    // linha em inglês com o mesmo translation_group_id, e resolve esse
+    // vínculo de volta pro idioma sendo importado (mesma técnica já usada na
+    // exibição, agora aplicada também no import).
+    let englishRelatedByGroup = {};
+    if (importLanguage !== 'en') {
+      const ownGroupIds = [...new Set((defaultExperiences || []).map(e => e.translation_group_id).filter(Boolean))];
+      if (ownGroupIds.length > 0) {
+        const { data: englishRows } = await supabase
+          .from('experiences').select('translation_group_id, related_common_case_id')
+          .eq('company_id', defaultCompanyId).eq('language', 'en').in('translation_group_id', ownGroupIds);
+        (englishRows || []).forEach(r => {
+          if (r.related_common_case_id) englishRelatedByGroup[r.translation_group_id] = r.related_common_case_id;
+        });
+      }
+    }
+    // O related_common_case_id (do inglês) aponta pra uma experience em
+    // inglês — precisa resolver ISSO também pro idioma sendo importado antes
+    // de procurar no expIdMap (que só tem ids desse idioma).
+    let resolvedEnglishTargetToOwnLang = {};
+    const englishTargetIds = [...new Set(Object.values(englishRelatedByGroup))];
+    if (englishTargetIds.length > 0) {
+      const { data: englishTargetRows } = await supabase
+        .from('experiences').select('id, translation_group_id').in('id', englishTargetIds);
+      const groupByEnglishTargetId = {};
+      (englishTargetRows || []).forEach(r => { groupByEnglishTargetId[r.id] = r.translation_group_id; });
+      const targetGroupIds = [...new Set(Object.values(groupByEnglishTargetId).filter(Boolean))];
+      if (targetGroupIds.length > 0) {
+        const { data: ownLangTargetRows } = await supabase
+          .from('experiences').select('id, translation_group_id')
+          .eq('company_id', defaultCompanyId).eq('language', importLanguage).in('translation_group_id', targetGroupIds);
+        const ownLangIdByGroup = {};
+        (ownLangTargetRows || []).forEach(r => { ownLangIdByGroup[r.translation_group_id] = r.id; });
+        englishTargetIds.forEach(engId => {
+          const groupId = groupByEnglishTargetId[engId];
+          if (groupId && ownLangIdByGroup[groupId]) resolvedEnglishTargetToOwnLang[engId] = ownLangIdByGroup[groupId];
+        });
+      }
+    }
+
     for (const exp of (defaultExperiences || [])) {
-      if (!exp.related_common_case_id) continue;
+      let relatedSourceId = exp.related_common_case_id;
+      if (!relatedSourceId && exp.translation_group_id) {
+        const englishTargetId = englishRelatedByGroup[exp.translation_group_id];
+        relatedSourceId = englishTargetId ? (resolvedEnglishTargetToOwnLang[englishTargetId] || null) : null;
+      }
+      if (!relatedSourceId) continue;
       const newOwnId = expIdMap[exp.id];
-      const newRelatedId = expIdMap[exp.related_common_case_id];
+      const newRelatedId = expIdMap[relatedSourceId];
       if (newOwnId && newRelatedId) {
         await supabase.from('experiences').update({ related_common_case_id: newRelatedId }).eq('id', newOwnId);
       }
@@ -2042,6 +2087,51 @@ const importContentPages = async () => {
   }
 };
 
+// Copia a configuração visual/comportamental da Default (nome/logo exibidos,
+// exigir login de employee, permitir upload de CV, mostrar Top 3, mostrar
+// marquee, etc.) pra empresa de destino — serve como ponto de partida
+// ilustrativo, mostrando pro cliente o que dá pra configurar. Como toda
+// empresa já tem uma linha própria de app_settings (criada automaticamente
+// no primeiro carregamento), isso é sempre um UPDATE, nunca um INSERT.
+const importAppConfiguration = async () => {
+  if (!effectiveCompanyId || effectiveCompanyId === defaultCompanyId) return;
+  setImportingBundle(true);
+  try {
+    const { data: defaultSettings, error: fetchErr } = await supabase
+      .from('app_settings').select('*').eq('company_id', defaultCompanyId).maybeSingle();
+    if (fetchErr) throw fetchErr;
+    if (!defaultSettings) {
+      alert('Default has no App Configuration to copy from.');
+      return;
+    }
+
+    const { error } = await supabase.from('app_settings').update({
+      require_employee_login: defaultSettings.require_employee_login,
+      edition_name: defaultSettings.edition_name,
+      allow_cv_upload: defaultSettings.allow_cv_upload,
+      document_type: defaultSettings.document_type,
+      show_top3: defaultSettings.show_top3,
+      top3_start_visible: defaultSettings.top3_start_visible,
+      show_marquee: defaultSettings.show_marquee,
+      company_name: defaultSettings.company_name,
+      company_logo_url: defaultSettings.company_logo_url,
+      company_name_size: defaultSettings.company_name_size,
+      company_logo_size: defaultSettings.company_logo_size
+    }).eq('company_id', effectiveCompanyId);
+    if (error) throw error;
+
+    await loadAppSettings();
+    alert('App Configuration copied from Default.');
+  } catch (error) {
+    console.error('Error importing App Configuration:', error);
+    alert('Error: ' + error.message);
+  } finally {
+    setImportingBundle(false);
+  }
+};
+
+
+
 
 // Botão único de import da tabela — age sobre todas as linhas marcadas.
 const runImportForSelected = async () => {
@@ -2053,6 +2143,7 @@ const runImportForSelected = async () => {
   if (selectedForImport.includes('quotes')) await importQuotesFromDefault();
   if (selectedForImport.includes('promotional_videos')) await importPromotionalVideos();
   if (selectedForImport.includes('content_pages')) await importContentPages();
+  if (selectedForImport.includes('app_config')) await importAppConfiguration();
   // Reseta os checkboxes depois de concluído — sem isso ficam "grudados" com
   // a seleção anterior, dando a impressão de que só uma parte ficou disponível.
   setSelectedForImport([]);
@@ -5680,7 +5771,11 @@ autoComplete="off"
             <input type="checkbox" checked={companyMasterVisibility.includes('app_config')}
               onChange={(e) => toggleMasterVisibility('app_config', e.target.checked)} className="w-4 h-4" />
           </td>
-          <td className="py-2 text-center text-gray-300">—</td>
+          <td className="py-2 text-center">
+            <input type="checkbox" checked={selectedForImport.includes('app_config')}
+              onChange={(e) => setSelectedForImport(e.target.checked ? [...selectedForImport, 'app_config'] : selectedForImport.filter(k => k !== 'app_config'))}
+              className="w-4 h-4" />
+          </td>
         </tr>
 
         <tr className="border-b">
@@ -8039,8 +8134,11 @@ onClick={() => {
                     </div>
                   </div>
                 </div>
-                {deletionDataType === 'metadata' ? (
+                {(deletionDataType === 'metadata' || (deletionDataType === 'all' && (adminKeywords || deletionPracticeId || deletionCategory || deletionSource !== 'all'))) && (
                   <div className="bg-white rounded p-3">
+                    {deletionDataType === 'all' && (
+                      <p className="text-xs text-gray-500 mb-2 font-medium">🗂️ Metadata (Practices / Categories)</p>
+                    )}
                     {(() => {
                       const sourceMatches = (item) => deletionSource === 'all' || (deletionSource === 'curated' ? item.imported_from_id : !item.imported_from_id);
 
@@ -8154,7 +8252,8 @@ onClick={() => {
                       );
                     })()}
                   </div>
-                ) : (
+                )}
+                {deletionDataType !== 'metadata' && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Keywords (separate with commas)
