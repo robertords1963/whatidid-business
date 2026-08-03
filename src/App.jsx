@@ -324,7 +324,12 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   // outra empresa só vê e opera sobre os próprios dados, sempre.
   // Sellers ficam com company_id = Default (pra herdar o conteúdo público dele),
   // mas NÃO são o Default Admin de verdade — por isso o "&& !loggedInSellerId".
-  const isDefaultAdmin = !!loggedInEmployeeCompanyId && loggedInEmployeeCompanyId === defaultCompanyId && !loggedInSellerId;
+  // Precisa checar employeeIsAdmin também — sem isso, um Demo Group ID
+  // (ID0001 etc.) caía aqui igualzinho ao Master de verdade, já que ambos
+  // têm company_id = Default e is_seller = false. Isso fazia o Demo Mode
+  // (faixa roxa, sessão efêmera, idioma manual) se aplicar por engano a
+  // sessões de demo de prospect também.
+  const isDefaultAdmin = !!loggedInEmployeeCompanyId && loggedInEmployeeCompanyId === defaultCompanyId && !loggedInSellerId && employeeIsAdmin;
   // true quando quem logou é uma conta de seller (vendedor). "Um só conceito,
   // não dois": a própria conta do seller circula pelo Default com acesso de
   // leitura/escrita completo, igual um ID de demo — não existe modo travado
@@ -5610,7 +5615,7 @@ autoComplete="off"
 {isDemoModeActive && !(isSeller && isAdmin) && !(isDefaultAdmin && isAdmin) && (
   <div className="mt-4 max-w-2xl mx-auto bg-purple-50 border-2 border-purple-300 rounded-2xl p-3 flex items-center justify-between gap-2">
     <p className="text-purple-800 text-sm font-medium flex-1 min-w-0">
-      🎬 Demo Mode — anything you add here is invisible to everyone else and gets deleted automatically when you leave.
+      🎬 Demo Mode — Only visible to you. Deleted when you leave.
     </p>
     <div className="flex items-center gap-2 flex-shrink-0">
       <select
