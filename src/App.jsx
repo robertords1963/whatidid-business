@@ -7061,6 +7061,12 @@ autoComplete="off"
                   {(group.employees || []).map(emp => {
                     const isExpired = emp.demo_expires_at && new Date(emp.demo_expires_at) < new Date();
                     const isUsed = !!emp.last_login_at;
+                    const totalDays = (emp.created_at && emp.demo_expires_at)
+                      ? Math.round((new Date(emp.demo_expires_at) - new Date(emp.created_at)) / (1000 * 60 * 60 * 24))
+                      : null;
+                    const daysLeft = emp.demo_expires_at
+                      ? Math.max(0, Math.ceil((new Date(emp.demo_expires_at) - new Date()) / (1000 * 60 * 60 * 24)))
+                      : null;
                     return (
                     <div key={emp.employee_id} className="flex items-center gap-2 p-2 border border-pink-200 rounded-lg bg-pink-50">
                       <span className="px-3 py-1 bg-pink-100 text-pink-800 rounded-full text-xs font-medium inline-flex items-center gap-1 flex-wrap">
@@ -7077,6 +7083,12 @@ autoComplete="off"
                           <span className="text-pink-500 ml-1">
                             (Exp {new Date(emp.demo_expires_at).toLocaleDateString()})
                           </span>
+                        )}
+                        {totalDays !== null && (
+                          <span className="text-pink-500 ml-1">{totalDays}d</span>
+                        )}
+                        {daysLeft !== null && (
+                          <span className="text-pink-500 ml-1">({isExpired ? '0' : daysLeft}/{totalDays} days left)</span>
                         )}
                       </span>
                       <button
@@ -7102,7 +7114,7 @@ autoComplete="off"
                         }}
                         className="px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700"
                         title="Retires this ID/PW permanently"
-                      >🗑️ Delete ID/PW</button>
+                      >🗑️ Del</button>
                     </div>
                     );
                   })}
