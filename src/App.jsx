@@ -4810,6 +4810,11 @@ useEffect(() => {
                     : [fo.author, fo.gender, fo.age, fo.country].filter(Boolean).join(', ')}
                 </span>
               )}
+              {fo.source === 'app' && fo.createdAt && (
+                <span className="text-xs text-gray-400 block">
+                  {new Date(fo.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                </span>
+              )}
               {appSettings.requireEmployeeLogin && fo.employeeId === employeeId && (
                 <button onClick={async () => { if (window.confirm('Delete this experience?')) await deleteExperienceFromSupabase(fo.id); }}
                   className="text-red-600 hover:text-red-800 text-xs mt-3 inline-flex items-center gap-1">
@@ -4917,16 +4922,14 @@ useEffect(() => {
                         <div key={comment.id} className="bg-gray-50 rounded-lg p-3 relative">
                           {/* Autor */}
                           {appSettings.requireEmployeeLogin && (comment.author || comment.employeeId || comment.country) && (
-                            <div className="mb-1">
-                              <span className="text-xs text-gray-500 block">
-                                By: {[comment.author, comment.country].filter(Boolean).join(', ')}
-                              </span>
-                              {comment.createdAt && (
-                                <span className="text-xs text-gray-400 block">
-                                  {new Date(comment.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
-                                </span>
-                              )}
-                            </div>
+                            <span className="text-xs text-gray-500 block">
+                              By: {[comment.author, comment.country].filter(Boolean).join(', ')}
+                            </span>
+                          )}
+                          {comment.createdAt && (
+                            <span className="text-xs text-gray-400 block mb-1">
+                              {new Date(comment.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                            </span>
                           )}
                           <p className="text-sm text-gray-700">{comment.text}</p>
                           {/* Reações */}
@@ -4975,6 +4978,11 @@ useEffect(() => {
                         {appSettings.requireEmployeeLogin && (lastComment.author || lastComment.country) && (
                           <span className="text-xs text-gray-500 block mb-1">
                             By: {[lastComment.author, lastComment.country].filter(Boolean).join(', ')}
+                          </span>
+                        )}
+                        {lastComment.createdAt && (
+                          <span className="text-xs text-gray-400 block mb-1">
+                            {new Date(lastComment.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
                           </span>
                         )}
                         <p className="text-sm text-gray-700">{lastComment.text}</p>
@@ -5676,6 +5684,26 @@ autoComplete="off"
         </p>
       );
     })()}
+    <button
+      onClick={async () => {
+        if (!window.confirm('Delete everything you added in this demo so far? This cannot be undone.')) return;
+        try {
+          await supabase.from('comments').delete().eq('employee_id', employeeId);
+          const { data: exps } = await supabase.from('experiences').select('id, cv_url').eq('employee_id', employeeId);
+          for (const exp of exps || []) {
+            if (exp.cv_url) await deleteFileFromStorage(exp.cv_url);
+          }
+          await supabase.from('experiences').delete().eq('employee_id', employeeId);
+          await loadExperiences(true);
+          alert('Everything you added has been deleted.');
+        } catch (error) {
+          alert('Error deleting: ' + error.message);
+        }
+      }}
+      className="mt-2 px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-medium"
+    >
+      🗑️ Delete Now
+    </button>
   </div>
 )}
 
@@ -10479,11 +10507,6 @@ onClick={() => {
             <span className="text-xs text-gray-600 block">
               By: {[comment.author, comment.employeeId, comment.country].filter(Boolean).join(', ')}
             </span>
-            {comment.createdAt && (
-              <span className="text-xs text-gray-400 block">
-                {new Date(comment.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
-              </span>
-            )}
             
             {/* Ícone Document - linha separada */}
 {comment.cvUrl && (
@@ -10526,6 +10549,11 @@ onClick={() => {
   </div>
 )}
           </div>
+        )}
+        {comment.createdAt && (
+          <span className="text-xs text-gray-400 block mb-1">
+            {new Date(comment.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+          </span>
         )}
         
         {/* Botão delete admin */}
@@ -10681,6 +10709,11 @@ onClick={() => {
   </div>
 )}
             </div>
+          )}
+          {lastComment.createdAt && (
+            <span className="text-xs text-gray-400 block mb-1">
+              {new Date(lastComment.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+            </span>
           )}
           
           {/* Botão delete admin */}
