@@ -5636,7 +5636,7 @@ autoComplete="off"
 </div>
           
 {isDemoModeActive && !(isSeller && isAdmin) && !(isDefaultAdmin && isAdmin) && (
-  <div className="mt-4 max-w-3xl mx-auto bg-purple-50 border-2 border-purple-300 rounded-2xl p-3 flex items-center justify-between gap-2">
+  <div className="mt-4 max-w-2xl mx-auto bg-purple-50 border-2 border-purple-300 rounded-2xl p-3 flex items-center justify-evenly gap-2">
     <select
       value={viewingLanguage}
       onChange={(e) => setViewingLanguage(e.target.value)}
@@ -5648,7 +5648,7 @@ autoComplete="off"
       <option value="pt">Português</option>
       <option value="zh">中文 (Chinese)</option>
     </select>
-    <p className="text-purple-800 text-sm font-medium flex-1 min-w-0 text-center whitespace-nowrap">
+    <p className="text-purple-800 text-sm font-medium text-center whitespace-nowrap">
       🎬 Demo Mode — Only visible to you. Deleted when you leave.
     </p>
     {currentDemoSessionId && (
@@ -5684,7 +5684,7 @@ autoComplete="off"
         );
       })()}
     </div>
-    {experiences.some(e => e.employeeId === employeeId) && (
+    {experiences.some(e => e.employeeId === employeeId || (e.comments || []).some(c => c.employeeId === employeeId)) && (
     <button
       onClick={async () => {
         if (!window.confirm('Delete everything you added in this demo so far? This cannot be undone.')) return;
