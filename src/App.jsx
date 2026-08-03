@@ -7068,7 +7068,7 @@ autoComplete="off"
                       ? Math.max(0, Math.ceil((new Date(emp.demo_expires_at) - new Date()) / (1000 * 60 * 60 * 24)))
                       : null;
                     return (
-                    <div key={emp.employee_id} className="flex items-center gap-2 p-2 border border-pink-200 rounded-lg bg-pink-50">
+                    <div key={emp.employee_id} className="flex items-center justify-between gap-2 p-2 border border-pink-200 rounded-lg bg-pink-50">
                       <span className="px-3 py-1 bg-pink-100 text-pink-800 rounded-full text-xs font-medium inline-flex items-center gap-1 flex-wrap">
                         ID={emp.employee_id}, Password={emp.password}
                         <span className="text-pink-500 ml-1 uppercase">[{emp.language || 'en'}]</span>
@@ -7083,9 +7083,6 @@ autoComplete="off"
                           <span className="text-pink-500 ml-1">
                             (Exp {new Date(emp.demo_expires_at).toLocaleDateString()})
                           </span>
-                        )}
-                        {totalDays !== null && (
-                          <span className="text-pink-500 ml-1">{totalDays}d</span>
                         )}
                         {daysLeft !== null && (
                           <span className="text-pink-500 ml-1">({isExpired ? '0' : daysLeft}/{totalDays} days left)</span>
