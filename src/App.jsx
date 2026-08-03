@@ -289,6 +289,12 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   const [loggedInEmployeeLanguage, setLoggedInEmployeeLanguage] = useState(() => {
     return localStorage.getItem('loggedInEmployeeLanguage') || null;
   });
+  // Só pra mostrar a faixa "Demo Mode" (versão sem seletor de idioma) quando
+  // quem logou é um Demo Group ID (ID0001 etc.) — junto com a própria data de
+  // criação/expiração dele, pra exibir "(Created)(Exp)(dias restantes)".
+  const [loggedInIsDemoId, setLoggedInIsDemoId] = useState(() => localStorage.getItem('loggedInIsDemoId') === 'true');
+  const [loggedInDemoCreatedAt, setLoggedInDemoCreatedAt] = useState(() => localStorage.getItem('loggedInDemoCreatedAt') || null);
+  const [loggedInDemoExpiresAt, setLoggedInDemoExpiresAt] = useState(() => localStorage.getItem('loggedInDemoExpiresAt') || null);
   // Pro Admin de uma empresa (não Default): 'own' (visão normal, editável) ou
   // 'sample' (conteúdo do Default, somente leitura, pra decidir o que importar).
   const [companyViewMode, setCompanyViewMode] = useState('own');
@@ -2656,6 +2662,15 @@ const handleEmployeeLogin = async () => {
   // verem o Default automaticamente no idioma certo, sem precisar de seletor).
   setLoggedInEmployeeLanguage(data.language || 'en');
   localStorage.setItem('loggedInEmployeeLanguage', data.language || 'en');
+
+  // Guarda se é um Demo Group ID + as próprias datas dele, pra mostrar a
+  // faixa "Demo Mode" (sem seletor de idioma) com Created/Exp/dias restantes.
+  setLoggedInIsDemoId(!!data.is_demo);
+  localStorage.setItem('loggedInIsDemoId', data.is_demo ? 'true' : 'false');
+  setLoggedInDemoCreatedAt(data.created_at || null);
+  localStorage.setItem('loggedInDemoCreatedAt', data.created_at || '');
+  setLoggedInDemoExpiresAt(data.demo_expires_at || null);
+  localStorage.setItem('loggedInDemoExpiresAt', data.demo_expires_at || '');
 
   // Retoma uma sessão de demo que já existia (ex: não passou pelo fluxo normal
   // de saída da última vez — navegador fechado sem avisar). Só é relevante pra
@@ -5638,6 +5653,29 @@ autoComplete="off"
         </button>
       )}
     </div>
+  </div>
+)}
+
+{isEmployeeLoggedIn && loggedInIsDemoId && (
+  <div className="mt-4 max-w-2xl mx-auto bg-purple-50 border-2 border-purple-300 rounded-2xl p-3 text-center">
+    <p className="text-purple-800 text-sm font-medium">
+      🎬 Demo Mode — Only visible to you. Deleted when your demo expires.
+    </p>
+    {(loggedInDemoCreatedAt || loggedInDemoExpiresAt) && (() => {
+      const totalDays = (loggedInDemoCreatedAt && loggedInDemoExpiresAt)
+        ? Math.round((new Date(loggedInDemoExpiresAt) - new Date(loggedInDemoCreatedAt)) / (1000 * 60 * 60 * 24))
+        : null;
+      const daysLeft = loggedInDemoExpiresAt
+        ? Math.max(0, Math.ceil((new Date(loggedInDemoExpiresAt) - new Date()) / (1000 * 60 * 60 * 24)))
+        : null;
+      return (
+        <p className="text-purple-600 text-xs mt-1">
+          {loggedInDemoCreatedAt && `(Created ${new Date(loggedInDemoCreatedAt).toLocaleDateString()})`}
+          {loggedInDemoExpiresAt && ` (Exp ${new Date(loggedInDemoExpiresAt).toLocaleDateString()})`}
+          {daysLeft !== null && totalDays !== null && ` (${daysLeft}/${totalDays} days left)`}
+        </p>
+      );
+    })()}
   </div>
 )}
 
