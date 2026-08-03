@@ -1192,7 +1192,7 @@ const loadDemoGroups = async () => {
       .from('demo_groups')
       .select(`
         *,
-        employees!group_id (employee_id, name, is_demo, group_id, demo_expires_at, language, created_at)
+        employees!group_id (employee_id, name, is_demo, group_id, demo_expires_at, language, created_at, password)
       `)
       .order('created_at', { ascending: false });
     // Se quem está logado é um seller (não o Default Admin), só vê os grupos
@@ -7049,7 +7049,7 @@ autoComplete="off"
                 <div className="flex flex-wrap gap-2">
                   {(group.employees || []).map(emp => (
                     <span key={emp.employee_id} className="px-3 py-1 bg-pink-100 text-pink-800 rounded-full text-xs font-medium">
-                      {emp.employee_id}
+                      ID={emp.employee_id}, Password={emp.password}
                       <span className="text-pink-500 ml-1 uppercase">[{emp.language || 'en'}]</span>
                       {emp.created_at && (
                         <span className="text-pink-500 ml-1">
