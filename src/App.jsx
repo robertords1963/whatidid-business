@@ -523,10 +523,12 @@ const masterMustRespectVisibility = (isDefaultAdmin || isSellerManagingOwnCompan
 const isSellerBaseView = isSeller && !isSellerManagingOwnCompany && isAdmin && companyViewMode !== 'sample';
 const masterBlockedFromPublicTabs = (masterMustRespectVisibility && !companyMasterVisibility.includes('synthetic')) || isSellerBaseView;
 // true quando escrever (Share Your Experience, comentar, avaliar) deve ficar
-// bloqueado — inclui o modo Sample de sempre, e também o Master/Seller
-// "Managing" outra empresa (mesmo com visibilidade concedida, nunca deve
-// poder escrever de verdade nos dados reais de outra empresa por ali).
-const isReadOnlyOrMasterManaging = isReadOnlyView || masterMustRespectVisibility;
+// bloqueado — só o modo Sample de sempre (preview read-only de uma empresa
+// comum). Não bloqueia mais o Master/Seller "Managing" outra empresa de
+// forma cega: cada seção já é liberada individualmente pela própria empresa
+// via Section Settings (companyMasterVisibility) — se ela autorizou ver, a
+// intenção é também poder editar aquilo ali, não só olhar.
+const isReadOnlyOrMasterManaging = isReadOnlyView;
 // Exceção pro problema do ovo-e-galinha: uma empresa recém-criada não tem
 // ninguém ainda pra configurar a visibilidade pro Master/Seller — então,
 // enquanto essa empresa NUNCA tiver salvo suas próprias configurações de
@@ -8074,7 +8076,7 @@ onClick={() => {
         })()}
 
 {/* Tabs estilo fichário — substitui os botões de navegação */}
-          {isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && !isReadOnlyOrMasterManaging && (!masterMustRespectVisibility || companyMasterVisibility.includes('keyword_filter')) && (
+          {isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('keyword_filter')) && (
             <div className="mt-4 bg-yellow-50 border-2 border-yellow-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 <Search size={20} />
