@@ -211,9 +211,6 @@ const [sellers, setSellers] = useState([]);
 const [sellersLoaded, setSellersLoaded] = useState(false);
 const [newSeller, setNewSeller] = useState({ employee_id: '', name: '', email: '' });
 const [creatingSeller, setCreatingSeller] = useState(false);
-// Janela de tempo usada no painel "Sellers & Demo Activity Overview" pra
-// calcular quantos IDs ativos estão "expirando em breve".
-const [sellersOverviewWindow, setSellersOverviewWindow] = useState('30');
 const [currentEmployeeGroup, setCurrentEmployeeGroup] = useState(null);
 
 // ⭐ CATEGORY DESCRIPTIONS + TAGS
@@ -6106,7 +6103,7 @@ autoComplete="off"
                 title="Set as the 'Company' the context dropdown points to" className="w-4 h-4 flex-shrink-0" />
               <span className="text-sm font-medium text-gray-800 text-left w-40 flex-shrink-0 truncate">{c.name}</span>
               <span className="text-xs text-gray-500 text-left w-32 flex-shrink-0 whitespace-nowrap">
-                From: {c.created_at ? new Date(c.created_at).toLocaleDateString() : '—'}
+                Since: {c.created_at ? new Date(c.created_at).toLocaleDateString() : '—'}
               </span>
               <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-slate-100 text-slate-600 text-left w-40 flex-shrink-0 whitespace-nowrap truncate">
                 By: {c.created_by_seller_id
@@ -6172,6 +6169,9 @@ autoComplete="off"
               <div key={s.id} className="flex items-center gap-3 p-2 border border-gray-200 rounded-lg flex-wrap">
                 <span className="text-sm font-medium text-gray-800 flex-1 min-w-32">{s.name}</span>
                 <span className="text-xs text-gray-500 font-mono">{s.employee_id}</span>
+                <span className="text-xs text-gray-500 whitespace-nowrap">
+                  Since: {s.created_at ? new Date(s.created_at).toLocaleDateString() : '—'}
+                </span>
                 <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                   s.status === 'active' ? 'bg-green-100 text-green-700'
                   : s.status === 'blocked' ? 'bg-red-100 text-red-700'
@@ -6341,25 +6341,20 @@ autoComplete="off"
                       ? Math.max(0, Math.ceil((new Date(emp.demo_expires_at) - new Date()) / (1000 * 60 * 60 * 24)))
                       : null;
                     return (
-                    <div key={emp.employee_id} className="flex items-center justify-between gap-2 p-2 border border-pink-200 rounded-lg bg-pink-50">
-                      <span className="px-3 py-1 bg-pink-100 text-pink-800 rounded-full text-xs font-medium inline-flex items-center gap-1 flex-wrap">
-                        ID={emp.employee_id}, Password={emp.password}
-                        <span className="text-pink-500 ml-1 uppercase">[{emp.language || 'en'}]</span>
-                        <span className={`ml-1 px-1.5 py-0.5 rounded-full font-semibold ${isExpired ? 'bg-red-200 text-red-800' : 'bg-green-200 text-green-800'}`}>{isExpired ? 'Expired' : 'Active'}</span>
-                        <span className={`px-1.5 py-0.5 rounded-full font-semibold ${isUsed ? 'bg-amber-200 text-amber-800' : 'bg-gray-200 text-gray-600'}`}>{isUsed ? 'Used' : 'Not Used'}</span>
-                        {emp.created_at && (
-                          <span className="text-pink-500 ml-1">
-                            (Created {new Date(emp.created_at).toLocaleDateString()})
-                          </span>
-                        )}
-                        {emp.demo_expires_at && (
-                          <span className="text-pink-500 ml-1">
-                            (Exp {new Date(emp.demo_expires_at).toLocaleDateString()})
-                          </span>
-                        )}
-                        {daysLeft !== null && (
-                          <span className="text-pink-500 ml-1">({isExpired ? '0' : daysLeft}/{totalDays} days left)</span>
-                        )}
+                    <div key={emp.employee_id} className="flex items-center gap-3 p-2 border border-pink-200 rounded-lg bg-pink-50">
+                      <span className="text-xs font-medium text-pink-800 w-24 flex-shrink-0 whitespace-nowrap">ID: {emp.employee_id}</span>
+                      <span className="text-xs font-medium text-pink-800 w-28 flex-shrink-0 whitespace-nowrap">PW: {emp.password}</span>
+                      <span className="text-xs text-pink-500 uppercase w-10 flex-shrink-0">[{emp.language || 'en'}]</span>
+                      <span className={`text-xs px-1.5 py-0.5 rounded-full font-semibold w-16 flex-shrink-0 text-center whitespace-nowrap ${isExpired ? 'bg-red-200 text-red-800' : 'bg-green-200 text-green-800'}`}>{isExpired ? 'Expired' : 'Active'}</span>
+                      <span className={`text-xs px-1.5 py-0.5 rounded-full font-semibold w-20 flex-shrink-0 text-center whitespace-nowrap ${isUsed ? 'bg-amber-200 text-amber-800' : 'bg-gray-200 text-gray-600'}`}>{isUsed ? 'Used' : 'Not Used'}</span>
+                      <span className="text-xs text-pink-500 w-32 flex-shrink-0 whitespace-nowrap">
+                        {emp.created_at ? `Since: ${new Date(emp.created_at).toLocaleDateString()}` : ''}
+                      </span>
+                      <span className="text-xs text-pink-500 w-32 flex-shrink-0 whitespace-nowrap">
+                        {emp.demo_expires_at ? `Exp: ${new Date(emp.demo_expires_at).toLocaleDateString()}` : ''}
+                      </span>
+                      <span className="text-xs text-pink-500 w-24 flex-shrink-0 whitespace-nowrap">
+                        {daysLeft !== null ? `${isExpired ? '0' : daysLeft}/${totalDays} days left` : ''}
                       </span>
                       <button
                         onClick={async () => {
@@ -6492,20 +6487,7 @@ autoComplete="off"
       📊 Sellers & Demo Activity Overview
     </h3>
     <div className="bg-white rounded p-4">
-      <div className="flex items-center gap-2 mb-3 flex-wrap">
-        <label className="text-xs font-medium text-gray-600">Expiring within:</label>
-        <select
-          value={sellersOverviewWindow}
-          onChange={(e) => setSellersOverviewWindow(e.target.value)}
-          className="p-1.5 border-2 border-gray-200 rounded-lg text-xs"
-        >
-          <option value="7">Next 7 days</option>
-          <option value="30">Next 30 days</option>
-          <option value="90">Next 90 days</option>
-          <option value="all">Any time</option>
-        </select>
-        <span className="text-xs text-gray-400">— "Expired" IDs auto-clear the next time anyone loads the app.</span>
-      </div>
+      <p className="text-xs text-gray-400 mb-3">"Expired" IDs auto-clear the next time anyone loads the app.</p>
       <div className="overflow-x-auto">
         <table className="w-full text-xs">
           <thead>
@@ -6514,7 +6496,6 @@ autoComplete="off"
               <th className="py-2 pr-2">Companies</th>
               <th className="py-2 pr-2">Groups</th>
               <th className="py-2 pr-2">Active IDs</th>
-              <th className="py-2 pr-2">Expiring soon</th>
               <th className="py-2 pr-2">Expired (pending cleanup)</th>
               <th className="py-2 pr-2">Available (unassigned)</th>
             </tr>
@@ -6522,7 +6503,6 @@ autoComplete="off"
           <tbody>
             {(() => {
               const now = new Date();
-              const windowMs = sellersOverviewWindow === 'all' ? null : parseInt(sellersOverviewWindow) * 24 * 60 * 60 * 1000;
               const rows = sellers.map(s => {
                 const sellerCompanies = companies.filter(c => c.created_by_seller_id === s.id);
                 const sellerGroups = demoGroups.filter(g => g.created_by_seller_id === s.id);
@@ -6530,21 +6510,19 @@ autoComplete="off"
                 const assigned = sellerDemoIds.filter(e => !!e.group_id);
                 const expired = assigned.filter(e => e.demo_expires_at && new Date(e.demo_expires_at) < now);
                 const active = assigned.filter(e => !e.demo_expires_at || new Date(e.demo_expires_at) >= now);
-                const expiringSoon = active.filter(e => e.demo_expires_at && windowMs !== null && (new Date(e.demo_expires_at) - now) <= windowMs);
                 const available = sellerDemoIds.filter(e => !e.group_id && !e.retired);
                 return {
                   seller: s,
                   companiesCount: sellerCompanies.length,
                   groupsCount: sellerGroups.length,
                   activeCount: active.length,
-                  expiringSoonCount: expiringSoon.length,
                   expiredCount: expired.length,
                   availableCount: available.length
                 };
               });
               if (rows.length === 0) {
                 return (
-                  <tr><td colSpan="7" className="py-4 text-center text-gray-400">No sellers yet.</td></tr>
+                  <tr><td colSpan="6" className="py-4 text-center text-gray-400">No sellers yet.</td></tr>
                 );
               }
               return rows.map(r => (
@@ -6553,7 +6531,6 @@ autoComplete="off"
                   <td className="py-2 pr-2">{r.companiesCount}</td>
                   <td className="py-2 pr-2">{r.groupsCount}</td>
                   <td className="py-2 pr-2 text-green-700 font-medium">{r.activeCount}</td>
-                  <td className="py-2 pr-2 text-amber-700 font-medium">{r.expiringSoonCount}</td>
                   <td className="py-2 pr-2 text-red-700 font-medium">{r.expiredCount}</td>
                   <td className="py-2 pr-2 text-gray-500">{r.availableCount}</td>
                 </tr>
