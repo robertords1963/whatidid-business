@@ -6128,6 +6128,10 @@ autoComplete="off"
       ) : (
         <div className="space-y-2">
           {sellers.map(s => {
+            const sellerCompanies = companies.filter(c => c.created_by_seller_id === s.id);
+            const prospectCount = sellerCompanies.filter(c => (c.status || 'prospect') === 'prospect').length;
+            const pilotCount = sellerCompanies.filter(c => c.status === 'pilot').length;
+            const customerCount = sellerCompanies.filter(c => c.status === 'customer').length;
             return (
               <div key={s.id} className="flex items-center gap-2 p-2 border border-gray-200 rounded-lg flex-wrap">
                 <span className="text-sm font-medium text-gray-800 text-left whitespace-nowrap w-28 flex-shrink-0 truncate">{s.name}</span>
@@ -6135,37 +6139,24 @@ autoComplete="off"
                 <span className="text-xs text-gray-500 text-left whitespace-nowrap w-24 flex-shrink-0">
                   Since: {s.created_at ? new Date(s.created_at).toLocaleDateString() : '—'}
                 </span>
-                <span className={`text-xs px-2 py-0.5 rounded-full font-medium text-left whitespace-nowrap w-28 flex-shrink-0 text-center ${
+                <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium text-left whitespace-nowrap w-16 flex-shrink-0 text-center ${
                   s.status === 'active' ? 'bg-green-100 text-green-700'
                   : s.status === 'blocked' ? 'bg-red-100 text-red-700'
                   : 'bg-yellow-100 text-yellow-700'
                 }`}>
-                  {s.status === 'active' ? 'Active' : s.status === 'blocked' ? 'Blocked' : 'Pending 1st Access'}
+                  {s.status === 'active' ? 'Active' : s.status === 'blocked' ? 'Blocked' : 'Pending'}
                 </span>
-                <label className="text-xs text-gray-500 flex items-center gap-1 whitespace-nowrap w-36 flex-shrink-0" title="Max active Demo IDs this seller can have at once">
-                  Max DEMO IDs:
-                  <input
-                    type="number"
-                    min="0"
-                    defaultValue={s.demo_id_limit ?? 10}
-                    onBlur={async (e) => {
-                      const val = parseInt(e.target.value);
-                      if (isNaN(val) || val < 0) { e.target.value = s.demo_id_limit ?? 10; return; }
-                      if (val === (s.demo_id_limit ?? 10)) return;
-                      const { error } = await supabase.from('employees').update({ demo_id_limit: val }).eq('id', s.id);
-                      if (error) { alert('Error saving limit: ' + error.message); return; }
-                      await loadSellers();
-                    }}
-                    className="w-14 p-1 border-2 border-gray-200 rounded text-xs text-center"
-                  />
-                </label>
-                <span className={`text-xs px-2 py-0.5 rounded-full font-medium text-left whitespace-nowrap w-20 flex-shrink-0 text-center ${s.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                  {s.active ? 'Enabled' : 'Disabled'}
-                </span>
-                <button onClick={() => toggleSellerActive(s.id, !s.active)}
-                  className={`px-2 py-1 rounded text-xs whitespace-nowrap flex-shrink-0 ${s.active ? 'bg-gray-400 hover:bg-gray-500 text-white' : 'bg-green-600 hover:bg-green-700 text-white'}`}>
-                  {s.active ? 'Disable' : 'Enable'}
-                </button>
+                <span className="text-xs text-yellow-700 whitespace-nowrap w-14 flex-shrink-0">#Pros: {prospectCount}</span>
+                <span className="text-xs text-blue-700 whitespace-nowrap w-12 flex-shrink-0">#Plt: {pilotCount}</span>
+                <span className="text-xs text-green-700 whitespace-nowrap w-14 flex-shrink-0">#Cust: {customerCount}</span>
+                <select
+                  value={s.active ? 'active' : 'inactive'}
+                  onChange={(e) => toggleSellerActive(s.id, e.target.value === 'active')}
+                  className={`text-xs px-1.5 py-1 rounded-full font-medium w-24 flex-shrink-0 border-0 ${s.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}
+                >
+                  <option value="active">Enabled</option>
+                  <option value="inactive">Disabled</option>
+                </select>
                 <button onClick={() => deleteSeller(s.id, s.name)}
                   className="px-2 py-1 rounded text-xs bg-red-600 hover:bg-red-700 text-white whitespace-nowrap flex-shrink-0">
                   🗑️ Del
@@ -6252,7 +6243,23 @@ autoComplete="off"
             <div key={group.id} className="border border-gray-200 rounded-lg p-4">
               <div className="flex items-center justify-between mb-3">
                 <div>
-                  <h5 className="font-semibold text-gray-800">{group.name}</h5>
+                  <h5 className="font-semibold text-gray-800 flex items-center gap-2">
+                    {group.name}
+                    {group.company_id && (() => {
+                      const linkedCompany = companies.find(c => c.id === group.company_id);
+                      if (!linkedCompany) return null;
+                      const status = linkedCompany.status || 'prospect';
+                      return (
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                          status === 'customer' ? 'bg-green-100 text-green-700'
+                          : status === 'pilot' ? 'bg-blue-100 text-blue-700'
+                          : 'bg-yellow-100 text-yellow-700'
+                        }`}>
+                          {status === 'customer' ? 'Customer' : status === 'pilot' ? 'Pilot' : 'Prospect'}
+                        </span>
+                      );
+                    })()}
+                  </h5>
                   <p className="text-xs text-gray-500">
                     By: {group.created_by_seller_id
                       ? (sellers.find(s => s.id === group.created_by_seller_id)?.name || 'Unknown seller')
@@ -6463,11 +6470,12 @@ autoComplete="off"
           <thead>
             <tr className="border-b-2 border-gray-200 text-gray-500">
               <th className="py-2 pr-2 text-left" style={{width: '22%'}}>Seller</th>
-              <th className="py-2 pr-2 text-center" style={{width: '15.6%'}}>Companies</th>
-              <th className="py-2 pr-2 text-center" style={{width: '15.6%'}}>Groups</th>
-              <th className="py-2 pr-2 text-center" style={{width: '15.6%'}}>Active IDs</th>
-              <th className="py-2 pr-2 text-center" style={{width: '15.6%'}}>Available (unassigned)</th>
-              <th className="py-2 pr-2 text-center" style={{width: '15.6%'}}>Expired (pending cleanup)</th>
+              <th className="py-2 pr-2 text-center" style={{width: '13%'}}>Companies</th>
+              <th className="py-2 pr-2 text-center" style={{width: '13%'}}>Groups</th>
+              <th className="py-2 pr-2 text-center" style={{width: '13%'}}>Max DEMO IDs</th>
+              <th className="py-2 pr-2 text-center" style={{width: '13%'}}>Active IDs</th>
+              <th className="py-2 pr-2 text-center" style={{width: '13%'}}>Available (unassigned)</th>
+              <th className="py-2 pr-2 text-center" style={{width: '13%'}}>Expired (pending cleanup)</th>
             </tr>
           </thead>
           <tbody>
@@ -6492,7 +6500,7 @@ autoComplete="off"
               });
               if (rows.length === 0) {
                 return (
-                  <tr><td colSpan="6" className="py-4 text-center text-gray-400">No sellers yet.</td></tr>
+                  <tr><td colSpan="7" className="py-4 text-center text-gray-400">No sellers yet.</td></tr>
                 );
               }
               return rows.map(r => (
@@ -6500,6 +6508,23 @@ autoComplete="off"
                   <td className="py-2 pr-2 font-medium text-gray-800 text-left">{r.seller.name}</td>
                   <td className="py-2 pr-2 text-center">{r.companiesCount}</td>
                   <td className="py-2 pr-2 text-center">{r.groupsCount}</td>
+                  <td className="py-2 pr-2 text-center">
+                    <input
+                      type="number"
+                      min="0"
+                      defaultValue={r.seller.demo_id_limit ?? 10}
+                      title="Max active Demo IDs this seller can have at once"
+                      onBlur={async (e) => {
+                        const val = parseInt(e.target.value);
+                        if (isNaN(val) || val < 0) { e.target.value = r.seller.demo_id_limit ?? 10; return; }
+                        if (val === (r.seller.demo_id_limit ?? 10)) return;
+                        const { error } = await supabase.from('employees').update({ demo_id_limit: val }).eq('id', r.seller.id);
+                        if (error) { alert('Error saving limit: ' + error.message); return; }
+                        await loadSellers();
+                      }}
+                      className="w-14 p-1 border-2 border-gray-200 rounded text-xs text-center"
+                    />
+                  </td>
                   <td className="py-2 pr-2 text-green-700 font-medium text-center">{r.activeCount}</td>
                   <td className="py-2 pr-2 text-gray-500 text-center">{r.availableCount}</td>
                   <td className="py-2 pr-2 text-red-700 font-medium text-center">{r.expiredCount}</td>
