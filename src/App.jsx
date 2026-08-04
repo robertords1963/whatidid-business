@@ -6486,15 +6486,15 @@ autoComplete="off"
     <div className="bg-white rounded p-4">
       <p className="text-xs text-gray-400 mb-3">"Expired" IDs auto-clear the next time anyone loads the app.</p>
       <div className="overflow-x-auto">
-        <table className="w-full text-xs">
+        <table className="w-full text-xs" style={{tableLayout: 'fixed'}}>
           <thead>
-            <tr className="border-b-2 border-gray-200 text-left text-gray-500">
-              <th className="py-2 pr-2">Seller</th>
-              <th className="py-2 pr-2">Companies</th>
-              <th className="py-2 pr-2">Groups</th>
-              <th className="py-2 pr-2">Active IDs</th>
-              <th className="py-2 pr-2">Expired (pending cleanup)</th>
-              <th className="py-2 pr-2">Available (unassigned)</th>
+            <tr className="border-b-2 border-gray-200 text-gray-500">
+              <th className="py-2 pr-2 text-left" style={{width: '22%'}}>Seller</th>
+              <th className="py-2 pr-2 text-center" style={{width: '15.6%'}}>Companies</th>
+              <th className="py-2 pr-2 text-center" style={{width: '15.6%'}}>Groups</th>
+              <th className="py-2 pr-2 text-center" style={{width: '15.6%'}}>Active IDs</th>
+              <th className="py-2 pr-2 text-center" style={{width: '15.6%'}}>Available (unassigned)</th>
+              <th className="py-2 pr-2 text-center" style={{width: '15.6%'}}>Expired (pending cleanup)</th>
             </tr>
           </thead>
           <tbody>
@@ -6524,12 +6524,12 @@ autoComplete="off"
               }
               return rows.map(r => (
                 <tr key={r.seller.id} className="border-b border-gray-100">
-                  <td className="py-2 pr-2 font-medium text-gray-800">{r.seller.name}</td>
-                  <td className="py-2 pr-2">{r.companiesCount}</td>
-                  <td className="py-2 pr-2">{r.groupsCount}</td>
-                  <td className="py-2 pr-2 text-green-700 font-medium">{r.activeCount}</td>
-                  <td className="py-2 pr-2 text-red-700 font-medium">{r.expiredCount}</td>
-                  <td className="py-2 pr-2 text-gray-500">{r.availableCount}</td>
+                  <td className="py-2 pr-2 font-medium text-gray-800 text-left">{r.seller.name}</td>
+                  <td className="py-2 pr-2 text-center">{r.companiesCount}</td>
+                  <td className="py-2 pr-2 text-center">{r.groupsCount}</td>
+                  <td className="py-2 pr-2 text-green-700 font-medium text-center">{r.activeCount}</td>
+                  <td className="py-2 pr-2 text-gray-500 text-center">{r.availableCount}</td>
+                  <td className="py-2 pr-2 text-red-700 font-medium text-center">{r.expiredCount}</td>
                 </tr>
               ));
             })()}
