@@ -6097,7 +6097,7 @@ autoComplete="off"
       ) : (
         <div className="space-y-2">
           {companies.filter(c => c.code !== 'default').map(c => (
-            <div key={c.id} className="flex items-center gap-2 p-2 border border-gray-200 rounded-lg">
+            <div key={c.id} className="flex items-center gap-6 p-2 border border-gray-200 rounded-lg">
               <input type="radio" name="context-company" checked={selectedCompanyForContext === c.id}
                 onChange={() => { setSelectedCompanyForContext(c.id); if (adminCompanyContext) setAdminCompanyContext(c.id); }}
                 title="Set as the 'Company' the context dropdown points to" className="w-4 h-4 flex-shrink-0" />
@@ -6118,7 +6118,7 @@ autoComplete="off"
                 {c.active ? 'Deactivate' : 'Activate'}
               </button>
               <button onClick={() => deleteCompany(c.id, c.name)}
-                className="px-2 py-1 rounded text-xs bg-red-600 hover:bg-red-700 text-white whitespace-nowrap flex-shrink-0 ml-auto">
+                className="px-2 py-1 rounded text-xs bg-red-600 hover:bg-red-700 text-white whitespace-nowrap flex-shrink-0">
                 🗑️ Delete
               </button>
             </div>
@@ -6164,7 +6164,7 @@ autoComplete="off"
         <div className="space-y-2">
           {sellers.map(s => {
             return (
-              <div key={s.id} className="flex items-center gap-2 p-2 border border-gray-200 rounded-lg flex-wrap">
+              <div key={s.id} className="flex items-center gap-6 p-2 border border-gray-200 rounded-lg flex-wrap">
                 <span className="text-sm font-medium text-gray-800 text-left whitespace-nowrap w-28 flex-shrink-0 truncate">{s.name}</span>
                 <span className="text-xs text-gray-500 font-mono text-left whitespace-nowrap w-20 flex-shrink-0">{s.employee_id}</span>
                 <span className="text-xs text-gray-500 text-left whitespace-nowrap w-24 flex-shrink-0">
@@ -6202,7 +6202,7 @@ autoComplete="off"
                   {s.active ? 'Disable' : 'Enable'}
                 </button>
                 <button onClick={() => deleteSeller(s.id, s.name)}
-                  className="px-2 py-1 rounded text-xs bg-red-600 hover:bg-red-700 text-white whitespace-nowrap flex-shrink-0 ml-auto">
+                  className="px-2 py-1 rounded text-xs bg-red-600 hover:bg-red-700 text-white whitespace-nowrap flex-shrink-0">
                   🗑️ Del
                 </button>
               </div>
@@ -6338,16 +6338,16 @@ autoComplete="off"
                       ? Math.max(0, Math.ceil((new Date(emp.demo_expires_at) - new Date()) / (1000 * 60 * 60 * 24)))
                       : null;
                     return (
-                    <div key={emp.employee_id} className="flex items-center gap-1.5 p-2 border border-pink-200 rounded-lg bg-pink-50">
-                      <span className="text-xs font-medium text-pink-800 text-left whitespace-nowrap w-16 flex-shrink-0">ID: {emp.employee_id}</span>
-                      <span className="text-xs font-medium text-pink-800 text-left whitespace-nowrap w-16 flex-shrink-0">PW: {emp.password}</span>
-                      <span className="text-xs text-pink-500 uppercase text-left w-8 flex-shrink-0">[{emp.language || 'en'}]</span>
+                    <div key={emp.employee_id} className="flex items-center gap-4 p-2 border border-pink-200 rounded-lg bg-pink-50">
+                      <span className="text-xs font-medium text-pink-800 text-left whitespace-nowrap w-20 flex-shrink-0">ID: {emp.employee_id}</span>
+                      <span className="text-xs font-medium text-pink-800 text-left whitespace-nowrap w-24 flex-shrink-0">PW: {emp.password}</span>
+                      <span className="text-xs text-pink-500 uppercase text-left w-10 flex-shrink-0">[{emp.language || 'en'}]</span>
                       <span className={`text-xs px-1 py-0.5 rounded-full font-semibold text-left whitespace-nowrap w-14 flex-shrink-0 text-center ${isExpired ? 'bg-red-200 text-red-800' : 'bg-green-200 text-green-800'}`}>{isExpired ? 'Expired' : 'Active'}</span>
                       <span className={`text-xs px-1 py-0.5 rounded-full font-semibold text-left whitespace-nowrap w-16 flex-shrink-0 text-center ${isUsed ? 'bg-amber-200 text-amber-800' : 'bg-gray-200 text-gray-600'}`}>{isUsed ? 'Used' : 'Not Used'}</span>
-                      <span className="text-xs text-pink-500 text-left whitespace-nowrap w-20 flex-shrink-0">
+                      <span className="text-xs text-pink-500 text-left whitespace-nowrap w-28 flex-shrink-0">
                         {emp.created_at ? `Since: ${new Date(emp.created_at).toLocaleDateString()}` : ''}
                       </span>
-                      <span className="text-xs text-pink-500 text-left whitespace-nowrap w-20 flex-shrink-0">
+                      <span className="text-xs text-pink-500 text-left whitespace-nowrap w-28 flex-shrink-0">
                         {emp.demo_expires_at ? `Exp: ${new Date(emp.demo_expires_at).toLocaleDateString()}` : ''}
                       </span>
                       <span className="text-xs text-pink-500 text-left whitespace-nowrap w-16 flex-shrink-0">
@@ -6374,7 +6374,7 @@ autoComplete="off"
                             alert('Error deleting ID: ' + error.message);
                           }
                         }}
-                        className="px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 flex-shrink-0 whitespace-nowrap ml-auto"
+                        className="px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 flex-shrink-0 whitespace-nowrap"
                         title="Retires this ID/PW permanently"
                       >🗑️ Del</button>
                     </div>
