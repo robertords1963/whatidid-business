@@ -6097,11 +6097,28 @@ autoComplete="off"
       ) : (
         <div className="space-y-2">
           {companies.filter(c => c.code !== 'default').map(c => (
-            <div key={c.id} className="flex items-center gap-6 p-2 border border-gray-200 rounded-lg">
+            <div key={c.id} className="flex items-center gap-3 p-2 border border-gray-200 rounded-lg">
               <input type="radio" name="context-company" checked={selectedCompanyForContext === c.id}
                 onChange={() => { setSelectedCompanyForContext(c.id); if (adminCompanyContext) setAdminCompanyContext(c.id); }}
                 title="Set as the 'Company' the context dropdown points to" className="w-4 h-4 flex-shrink-0" />
               <span className="text-sm font-medium text-gray-800 text-left whitespace-nowrap w-32 flex-shrink-0 truncate">{c.name}</span>
+              <select
+                value={c.status || 'prospect'}
+                onChange={async (e) => {
+                  const { error } = await supabase.from('companies').update({ status: e.target.value }).eq('id', c.id);
+                  if (error) { alert('Error updating status: ' + error.message); return; }
+                  await loadCompanies();
+                }}
+                className={`text-xs px-1.5 py-1 rounded-full font-medium w-24 flex-shrink-0 border-0 ${
+                  c.status === 'customer' ? 'bg-green-100 text-green-700'
+                  : c.status === 'pilot' ? 'bg-blue-100 text-blue-700'
+                  : 'bg-yellow-100 text-yellow-700'
+                }`}
+              >
+                <option value="prospect">Prospect</option>
+                <option value="pilot">Pilot</option>
+                <option value="customer">Customer</option>
+              </select>
               <span className="text-xs text-gray-500 text-left whitespace-nowrap w-24 flex-shrink-0">
                 Since: {c.created_at ? new Date(c.created_at).toLocaleDateString() : '—'}
               </span>
@@ -6241,24 +6258,32 @@ autoComplete="off"
     <div className="bg-white rounded p-4 mb-4">
       <h4 className="font-medium text-gray-700 mb-3">Create New Group</h4>
       <div className="flex gap-2 mb-3">
-        <input
-          type="text"
-          id="new-group-name"
-          placeholder="Group name (e.g. Demo XYZ Bank)"
+        <select
+          id="new-group-company"
           className="flex-1 p-2 border-2 border-gray-300 rounded-lg text-sm"
-        />
+          defaultValue=""
+        >
+          <option value="" disabled>Select a registered company...</option>
+          {companies.filter(c => c.code !== 'default' && (!isSeller || c.created_by_seller_id === loggedInSellerId)).map(c => (
+            <option key={c.id} value={c.id}>
+              {c.name} ({c.status === 'customer' ? 'Customer' : c.status === 'pilot' ? 'Pilot' : 'Prospect'})
+            </option>
+          ))}
+        </select>
         <button
           onClick={async () => {
-            const name = document.getElementById('new-group-name').value.trim();
-            if (!name) { alert('Please enter a group name'); return; }
+            const companyId = document.getElementById('new-group-company').value;
+            if (!companyId) { alert('Please select a company'); return; }
+            const company = companies.find(c => String(c.id) === companyId);
+            if (!company) { alert('Company not found'); return; }
             const { data, error } = await supabase
               .from('demo_groups')
-              .insert([{ name, created_by_seller_id: isSeller ? loggedInSellerId : null }])
+              .insert([{ name: company.name, company_id: company.id, created_by_seller_id: isSeller ? loggedInSellerId : null }])
               .select();
             if (error) { alert('Error creating group: ' + error.message); return; }
-            document.getElementById('new-group-name').value = '';
+            document.getElementById('new-group-company').value = '';
             await loadDemoGroups();
-            alert(`Group "${name}" created!`);
+            alert(`Group "${company.name}" created!`);
           }}
           className="px-4 py-2 bg-pink-600 text-white rounded-lg text-sm hover:bg-pink-700"
         >+ Create Group</button>
