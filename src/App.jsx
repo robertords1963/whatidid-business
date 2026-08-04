@@ -6100,26 +6100,28 @@ autoComplete="off"
       ) : (
         <div className="space-y-2">
           {companies.filter(c => c.code !== 'default').map(c => (
-            <div key={c.id} className="flex items-center gap-3 p-2 border border-gray-200 rounded-lg flex-wrap">
+            <div key={c.id} className="grid grid-cols-[auto_1fr_auto_auto_auto_auto_auto] items-center gap-3 p-2 border border-gray-200 rounded-lg text-left">
               <input type="radio" name="context-company" checked={selectedCompanyForContext === c.id}
                 onChange={() => { setSelectedCompanyForContext(c.id); if (adminCompanyContext) setAdminCompanyContext(c.id); }}
                 title="Set as the 'Company' the context dropdown points to" className="w-4 h-4" />
-              <span className="text-sm font-medium text-gray-800 flex-1 min-w-32">{c.name}</span>
-              <span className="text-xs text-gray-500 font-mono">{c.code}</span>
-              <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-slate-100 text-slate-600">
+              <span className="text-sm font-medium text-gray-800 text-left">{c.name}</span>
+              <span className="text-xs text-gray-500 text-left whitespace-nowrap">
+                {c.created_at ? new Date(c.created_at).toLocaleDateString() : '—'}
+              </span>
+              <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-slate-100 text-slate-600 text-left whitespace-nowrap">
                 By: {c.created_by_seller_id
                   ? (sellers.find(s => s.id === c.created_by_seller_id)?.name || 'Unknown seller')
                   : 'Default Admin'}
               </span>
-              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${c.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+              <span className={`text-xs px-2 py-0.5 rounded-full font-medium text-left whitespace-nowrap ${c.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
                 {c.active ? 'Active' : 'Inactive'}
               </span>
               <button onClick={() => toggleCompanyActive(c.id, !c.active)}
-                className={`px-2 py-1 rounded text-xs ${c.active ? 'bg-gray-400 hover:bg-gray-500 text-white' : 'bg-green-600 hover:bg-green-700 text-white'}`}>
+                className={`px-2 py-1 rounded text-xs whitespace-nowrap ${c.active ? 'bg-gray-400 hover:bg-gray-500 text-white' : 'bg-green-600 hover:bg-green-700 text-white'}`}>
                 {c.active ? 'Deactivate' : 'Activate'}
               </button>
               <button onClick={() => deleteCompany(c.id, c.name)}
-                className="px-2 py-1 rounded text-xs bg-red-600 hover:bg-red-700 text-white">
+                className="px-2 py-1 rounded text-xs bg-red-600 hover:bg-red-700 text-white whitespace-nowrap">
                 🗑️ Delete
               </button>
             </div>
