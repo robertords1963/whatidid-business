@@ -6163,11 +6163,9 @@ autoComplete="off"
       ) : (
         <div className="space-y-2">
           {sellers.map(s => {
-            const companiesCreated = companies.filter(c => c.created_by_seller_id === s.id).length;
-            const groupsCreated = demoGroups.filter(g => g.created_by_seller_id === s.id).length;
             return (
-              <div key={s.id} className="flex items-center gap-3 p-2 border border-gray-200 rounded-lg flex-wrap">
-                <span className="text-sm font-medium text-gray-800 flex-1 min-w-32">{s.name}</span>
+              <div key={s.id} className="flex items-center gap-2 p-2 border border-gray-200 rounded-lg flex-wrap">
+                <span className="text-sm font-medium text-gray-800 flex-1 min-w-24">{s.name}</span>
                 <span className="text-xs text-gray-500 font-mono">{s.employee_id}</span>
                 <span className="text-xs text-gray-500 whitespace-nowrap">
                   Since: {s.created_at ? new Date(s.created_at).toLocaleDateString() : '—'}
@@ -6179,7 +6177,6 @@ autoComplete="off"
                 }`}>
                   {s.status === 'active' ? 'Active' : s.status === 'blocked' ? 'Blocked' : 'Pending 1st Access'}
                 </span>
-                <span className="text-xs text-gray-500">{companiesCreated} companies · {groupsCreated} groups</span>
                 <label className="text-xs text-gray-500 flex items-center gap-1" title="Max active Demo IDs this seller can have at once">
                   Max IDs:
                   <input
@@ -6201,12 +6198,12 @@ autoComplete="off"
                   {s.active ? 'Enabled' : 'Disabled'}
                 </span>
                 <button onClick={() => toggleSellerActive(s.id, !s.active)}
-                  className={`px-2 py-1 rounded text-xs ${s.active ? 'bg-gray-400 hover:bg-gray-500 text-white' : 'bg-green-600 hover:bg-green-700 text-white'}`}>
+                  className={`px-2 py-1 rounded text-xs whitespace-nowrap ${s.active ? 'bg-gray-400 hover:bg-gray-500 text-white' : 'bg-green-600 hover:bg-green-700 text-white'}`}>
                   {s.active ? 'Disable' : 'Enable'}
                 </button>
                 <button onClick={() => deleteSeller(s.id, s.name)}
-                  className="px-2 py-1 rounded text-xs bg-red-600 hover:bg-red-700 text-white">
-                  🗑️ Delete
+                  className="px-2 py-1 rounded text-xs bg-red-600 hover:bg-red-700 text-white whitespace-nowrap">
+                  🗑️ Del
                 </button>
               </div>
             );
@@ -6341,20 +6338,20 @@ autoComplete="off"
                       ? Math.max(0, Math.ceil((new Date(emp.demo_expires_at) - new Date()) / (1000 * 60 * 60 * 24)))
                       : null;
                     return (
-                    <div key={emp.employee_id} className="flex items-center gap-3 p-2 border border-pink-200 rounded-lg bg-pink-50">
-                      <span className="text-xs font-medium text-pink-800 w-24 flex-shrink-0 whitespace-nowrap">ID: {emp.employee_id}</span>
-                      <span className="text-xs font-medium text-pink-800 w-28 flex-shrink-0 whitespace-nowrap">PW: {emp.password}</span>
-                      <span className="text-xs text-pink-500 uppercase w-10 flex-shrink-0">[{emp.language || 'en'}]</span>
-                      <span className={`text-xs px-1.5 py-0.5 rounded-full font-semibold w-16 flex-shrink-0 text-center whitespace-nowrap ${isExpired ? 'bg-red-200 text-red-800' : 'bg-green-200 text-green-800'}`}>{isExpired ? 'Expired' : 'Active'}</span>
-                      <span className={`text-xs px-1.5 py-0.5 rounded-full font-semibold w-20 flex-shrink-0 text-center whitespace-nowrap ${isUsed ? 'bg-amber-200 text-amber-800' : 'bg-gray-200 text-gray-600'}`}>{isUsed ? 'Used' : 'Not Used'}</span>
-                      <span className="text-xs text-pink-500 w-32 flex-shrink-0 whitespace-nowrap">
+                    <div key={emp.employee_id} className="flex items-center gap-1.5 p-2 border border-pink-200 rounded-lg bg-pink-50">
+                      <span className="text-xs font-medium text-pink-800 w-16 flex-shrink-0 whitespace-nowrap">ID: {emp.employee_id}</span>
+                      <span className="text-xs font-medium text-pink-800 w-20 flex-shrink-0 whitespace-nowrap">PW: {emp.password}</span>
+                      <span className="text-xs text-pink-500 uppercase w-8 flex-shrink-0">[{emp.language || 'en'}]</span>
+                      <span className={`text-xs px-1 py-0.5 rounded-full font-semibold w-12 flex-shrink-0 text-center whitespace-nowrap ${isExpired ? 'bg-red-200 text-red-800' : 'bg-green-200 text-green-800'}`}>{isExpired ? 'Expired' : 'Active'}</span>
+                      <span className={`text-xs px-1 py-0.5 rounded-full font-semibold w-16 flex-shrink-0 text-center whitespace-nowrap ${isUsed ? 'bg-amber-200 text-amber-800' : 'bg-gray-200 text-gray-600'}`}>{isUsed ? 'Used' : 'Not Used'}</span>
+                      <span className="text-xs text-pink-500 w-20 flex-shrink-0 whitespace-nowrap">
                         {emp.created_at ? `Since: ${new Date(emp.created_at).toLocaleDateString()}` : ''}
                       </span>
-                      <span className="text-xs text-pink-500 w-32 flex-shrink-0 whitespace-nowrap">
+                      <span className="text-xs text-pink-500 w-20 flex-shrink-0 whitespace-nowrap">
                         {emp.demo_expires_at ? `Exp: ${new Date(emp.demo_expires_at).toLocaleDateString()}` : ''}
                       </span>
-                      <span className="text-xs text-pink-500 w-24 flex-shrink-0 whitespace-nowrap">
-                        {daysLeft !== null ? `${isExpired ? '0' : daysLeft}/${totalDays} days left` : ''}
+                      <span className="text-xs text-pink-500 w-16 flex-shrink-0 whitespace-nowrap">
+                        {daysLeft !== null ? `${isExpired ? '0' : daysLeft}/${totalDays}d left` : ''}
                       </span>
                       <button
                         onClick={async () => {
@@ -6377,7 +6374,7 @@ autoComplete="off"
                             alert('Error deleting ID: ' + error.message);
                           }
                         }}
-                        className="px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700"
+                        className="px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 flex-shrink-0 whitespace-nowrap"
                         title="Retires this ID/PW permanently"
                       >🗑️ Del</button>
                     </div>
