@@ -6010,7 +6010,7 @@ autoComplete="off"
   </div>
 )}
 
-{isAdmin && isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample' && (
+{isAdmin && (showDefaultOnlyTools || (isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample')) && (
   <div className="mt-4 bg-indigo-50 border-2 border-indigo-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
       🏢 Manage Companies
@@ -6030,78 +6030,33 @@ autoComplete="off"
       </button>
     </div>
 
-    {/* Company List — só as que esse seller criou */}
+    {/* Company List — pro Default Admin, todas; pro Seller, só as que ele
+        mesmo criou. Um painel só, uma lista só — nunca mais dessincroniza. */}
     <div className="bg-white rounded p-4">
       <h4 className="font-medium text-gray-700 mb-1">
-        My Companies ({companies.filter(c => c.created_by_seller_id === loggedInSellerId).length})
+        Registered Companies ({companies.filter(c => c.code !== 'default' && (!isSeller || c.created_by_seller_id === loggedInSellerId)).length})
       </h4>
       <p className="text-xs text-gray-400 mb-3">The ⚪ marks which company "Company" in the context dropdown points to.</p>
-      {companies.filter(c => c.created_by_seller_id === loggedInSellerId).length === 0 ? (
-        <p className="text-sm text-gray-400">No companies yet.</p>
-      ) : (
-        <div className="space-y-2">
-          {companies.filter(c => c.created_by_seller_id === loggedInSellerId).map(c => (
-            <div key={c.id} className="flex items-center gap-3 p-2 border border-gray-200 rounded-lg flex-wrap">
-              <input type="radio" name="context-company" checked={selectedCompanyForContext === c.id}
-                onChange={() => { setSelectedCompanyForContext(c.id); if (adminCompanyContext) setAdminCompanyContext(c.id); }}
-                title="Set as the 'Company' the context dropdown points to" className="w-4 h-4" />
-              <span className="text-sm font-medium text-gray-800 flex-1 min-w-32">{c.name}</span>
-              <span className="text-xs text-gray-500 font-mono">{c.code}</span>
-              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${c.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                {c.active ? 'Active' : 'Inactive'}
-              </span>
-              <button onClick={() => toggleCompanyActive(c.id, !c.active)}
-                className={`px-2 py-1 rounded text-xs ${c.active ? 'bg-gray-400 hover:bg-gray-500 text-white' : 'bg-green-600 hover:bg-green-700 text-white'}`}>
-                {c.active ? 'Deactivate' : 'Activate'}
-              </button>
-              <button onClick={() => deleteCompany(c.id, c.name)}
-                className="px-2 py-1 rounded text-xs bg-red-600 hover:bg-red-700 text-white">
-                🗑️ Delete
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  </div>
-)}
-
-{isAdmin && showDefaultOnlyTools && !isSeller && (
-  <div className="mt-4 bg-indigo-50 border-2 border-indigo-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
-    <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
-      🏢 Manage Companies
-    </h3>
-
-    {/* Add Company */}
-    <div className="bg-white rounded p-4 mb-4">
-      <h4 className="font-medium text-gray-700 mb-3">Add Company</h4>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-        <input type="text" value={newCompany.name} onChange={(e) => setNewCompany({...newCompany, name: e.target.value})}
-          placeholder="Company Name *" className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
-        <input type="text" value={newCompany.code} onChange={(e) => setNewCompany({...newCompany, code: e.target.value})}
-          placeholder="Company Code (optional, auto-generated if blank)" className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
-      </div>
-      <button onClick={addCompany} className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700">
-        + Add Company
-      </button>
-    </div>
-
-    {/* Company List */}
-    <div className="bg-white rounded p-4">
-      <h4 className="font-medium text-gray-700 mb-1">Registered Companies ({companies.length})</h4>
-      <p className="text-xs text-gray-400 mb-3">The ⚪ marks which company "Company" in the Managing dropdown points to.</p>
       {!companiesLoaded ? (
         <p className="text-sm text-gray-400">Loading...</p>
-      ) : companies.length === 0 ? (
+      ) : companies.filter(c => c.code !== 'default' && (!isSeller || c.created_by_seller_id === loggedInSellerId)).length === 0 ? (
         <p className="text-sm text-gray-400">No companies yet.</p>
       ) : (
         <div className="space-y-2">
-          {companies.filter(c => c.code !== 'default').map(c => (
+          {companies.filter(c => c.code !== 'default' && (!isSeller || c.created_by_seller_id === loggedInSellerId)).map(c => (
             <div key={c.id} className="flex items-center gap-3 p-2 border border-gray-200 rounded-lg">
               <input type="radio" name="context-company" checked={selectedCompanyForContext === c.id}
                 onChange={() => { setSelectedCompanyForContext(c.id); if (adminCompanyContext) setAdminCompanyContext(c.id); }}
                 title="Set as the 'Company' the context dropdown points to" className="w-4 h-4 flex-shrink-0" />
               <span className="text-sm font-medium text-gray-800 text-left whitespace-nowrap w-32 flex-shrink-0 truncate">{c.name}</span>
+              <span className="text-xs text-gray-500 text-left whitespace-nowrap w-24 flex-shrink-0">
+                Since: {c.created_at ? new Date(c.created_at).toLocaleDateString() : '—'}
+              </span>
+              <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-slate-100 text-slate-600 text-left whitespace-nowrap w-32 flex-shrink-0 truncate">
+                By: {c.created_by_seller_id
+                  ? (sellers.find(s => s.id === c.created_by_seller_id)?.name || 'Unknown seller')
+                  : 'Default Admin'}
+              </span>
               <select
                 value={c.status || 'prospect'}
                 onChange={async (e) => {
@@ -6119,21 +6074,14 @@ autoComplete="off"
                 <option value="pilot">Pilot</option>
                 <option value="customer">Customer</option>
               </select>
-              <span className="text-xs text-gray-500 text-left whitespace-nowrap w-24 flex-shrink-0">
-                Since: {c.created_at ? new Date(c.created_at).toLocaleDateString() : '—'}
-              </span>
-              <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-slate-100 text-slate-600 text-left whitespace-nowrap w-32 flex-shrink-0 truncate">
-                By: {c.created_by_seller_id
-                  ? (sellers.find(s => s.id === c.created_by_seller_id)?.name || 'Unknown seller')
-                  : 'Default Admin'}
-              </span>
-              <span className={`text-xs px-2 py-0.5 rounded-full font-medium text-left whitespace-nowrap w-16 flex-shrink-0 text-center ${c.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                {c.active ? 'Active' : 'Inactive'}
-              </span>
-              <button onClick={() => toggleCompanyActive(c.id, !c.active)}
-                className={`px-2 py-1 rounded text-xs whitespace-nowrap flex-shrink-0 ${c.active ? 'bg-gray-400 hover:bg-gray-500 text-white' : 'bg-green-600 hover:bg-green-700 text-white'}`}>
-                {c.active ? 'Deactivate' : 'Activate'}
-              </button>
+              <select
+                value={c.active ? 'active' : 'inactive'}
+                onChange={(e) => toggleCompanyActive(c.id, e.target.value === 'active')}
+                className={`text-xs px-1.5 py-1 rounded-full font-medium w-20 flex-shrink-0 border-0 ${c.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}
+              >
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
               <button onClick={() => deleteCompany(c.id, c.name)}
                 className="px-2 py-1 rounded text-xs bg-red-600 hover:bg-red-700 text-white whitespace-nowrap flex-shrink-0">
                 🗑️ Delete
