@@ -6164,7 +6164,7 @@ autoComplete="off"
         <div className="space-y-2">
           {sellers.map(s => {
             return (
-              <div key={s.id} className="flex items-center gap-6 p-2 border border-gray-200 rounded-lg flex-wrap">
+              <div key={s.id} className="flex items-center gap-2 p-2 border border-gray-200 rounded-lg flex-wrap">
                 <span className="text-sm font-medium text-gray-800 text-left whitespace-nowrap w-28 flex-shrink-0 truncate">{s.name}</span>
                 <span className="text-xs text-gray-500 font-mono text-left whitespace-nowrap w-20 flex-shrink-0">{s.employee_id}</span>
                 <span className="text-xs text-gray-500 text-left whitespace-nowrap w-24 flex-shrink-0">
@@ -6177,7 +6177,7 @@ autoComplete="off"
                 }`}>
                   {s.status === 'active' ? 'Active' : s.status === 'blocked' ? 'Blocked' : 'Pending 1st Access'}
                 </span>
-                <label className="text-xs text-gray-500 flex items-center gap-1 whitespace-nowrap w-40 flex-shrink-0" title="Max active Demo IDs this seller can have at once">
+                <label className="text-xs text-gray-500 flex items-center gap-1 whitespace-nowrap w-36 flex-shrink-0" title="Max active Demo IDs this seller can have at once">
                   Max DEMO IDs:
                   <input
                     type="number"
@@ -6338,7 +6338,7 @@ autoComplete="off"
                       ? Math.max(0, Math.ceil((new Date(emp.demo_expires_at) - new Date()) / (1000 * 60 * 60 * 24)))
                       : null;
                     return (
-                    <div key={emp.employee_id} className="flex items-center gap-4 p-2 border border-pink-200 rounded-lg bg-pink-50">
+                    <div key={emp.employee_id} className="flex items-center gap-3 p-2 border border-pink-200 rounded-lg bg-pink-50">
                       <span className="text-xs font-medium text-pink-800 text-left whitespace-nowrap w-20 flex-shrink-0">ID: {emp.employee_id}</span>
                       <span className="text-xs font-medium text-pink-800 text-left whitespace-nowrap w-24 flex-shrink-0">PW: {emp.password}</span>
                       <span className="text-xs text-pink-500 uppercase text-left w-10 flex-shrink-0">[{emp.language || 'en'}]</span>
