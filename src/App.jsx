@@ -6205,10 +6205,10 @@ autoComplete="off"
       <h4 className="font-medium text-gray-700 mb-3">Add Seller</h4>
       <p className="text-xs text-gray-500 mb-3">Creates the seller's own account (goes through 1st Access like any employee) — both the Seller ID and email need to match exactly what's entered here. <strong>Suggested ID format:</strong> first two letters of first + last name, plus month/year — e.g. <span className="font-mono">RR072026</span> for "Roberto Rodrigues", registered July 2026.</p>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
-        <input type="text" value={newSeller.employee_id} onChange={(e) => setNewSeller({...newSeller, employee_id: e.target.value})}
-          placeholder="Seller ID *" className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
         <input type="text" value={newSeller.name} onChange={(e) => setNewSeller({...newSeller, name: e.target.value})}
           placeholder="Name *" className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
+        <input type="text" value={newSeller.employee_id} onChange={(e) => setNewSeller({...newSeller, employee_id: e.target.value})}
+          placeholder="Seller ID *" className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
         <input type="email" value={newSeller.email} onChange={(e) => setNewSeller({...newSeller, email: e.target.value})}
           placeholder="Email *" className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
       </div>
