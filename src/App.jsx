@@ -170,6 +170,8 @@ export default function WhatIDid() {
   // Admin quanto pro Seller. Existe separado de adminCompanyContext pra
   // "lembrar" a escolha mesmo quando o dropdown está em "Default".
   const [selectedCompanyForContext, setSelectedCompanyForContext] = useState(null);
+  const [expandedCompanyContact, setExpandedCompanyContact] = useState({});
+  const [expandedSellerContact, setExpandedSellerContact] = useState({});
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [loading, setLoading] = useState(true);
   const [experiences, setExperiences] = useState([]);
@@ -6101,7 +6103,15 @@ autoComplete="off"
       ) : (
         <div className="space-y-2">
           {companies.filter(c => c.code !== 'default' && (!isSeller || c.created_by_seller_id === loggedInSellerId)).map(c => (
-            <div key={c.id} className="flex items-center gap-3 p-2 border border-gray-200 rounded-lg">
+            <div key={c.id} className="border border-gray-200 rounded-lg">
+            <div className="flex items-center gap-3 p-2">
+              <button
+                onClick={() => setExpandedCompanyContact(prev => ({ ...prev, [c.id]: !prev[c.id] }))}
+                className="text-gray-500 hover:text-gray-800 font-bold text-sm w-5 h-5 flex-shrink-0 flex items-center justify-center border border-gray-300 rounded"
+                title="Contact info"
+              >
+                {expandedCompanyContact[c.id] ? '−' : '+'}
+              </button>
               <input type="radio" name="context-company" checked={selectedCompanyForContext === c.id}
                 onChange={() => { setSelectedCompanyForContext(c.id); if (adminCompanyContext) setAdminCompanyContext(c.id); }}
                 title="Set as the 'Company' the context dropdown points to" className="w-4 h-4 flex-shrink-0" />
@@ -6143,6 +6153,39 @@ autoComplete="off"
                 className="px-2 py-1 rounded text-xs bg-red-600 hover:bg-red-700 text-white whitespace-nowrap flex-shrink-0">
                 🗑️ Delete
               </button>
+            </div>
+            {expandedCompanyContact[c.id] && (
+              <div className="border-t border-gray-200 p-3 bg-gray-50 space-y-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <input type="text" defaultValue={c.contact_name || ''} id={`contact-name-${c.id}`}
+                    placeholder="Contact Name" className="p-1.5 border border-gray-300 rounded text-sm" />
+                  <input type="email" defaultValue={c.contact_email || ''} id={`contact-email-${c.id}`}
+                    placeholder="Email" className="p-1.5 border border-gray-300 rounded text-sm" />
+                  <input type="text" defaultValue={c.contact_phone || ''} id={`contact-phone-${c.id}`}
+                    placeholder="Phone" className="p-1.5 border border-gray-300 rounded text-sm" />
+                  <input type="text" defaultValue={c.contact_location || ''} id={`contact-location-${c.id}`}
+                    placeholder="City/Country" className="p-1.5 border border-gray-300 rounded text-sm" />
+                </div>
+                <textarea defaultValue={c.contact_notes || ''} id={`contact-notes-${c.id}`}
+                  placeholder="Comments (optional)" rows="2"
+                  className="w-full p-1.5 border border-gray-300 rounded text-sm" />
+                <button
+                  onClick={async () => {
+                    const { error } = await supabase.from('companies').update({
+                      contact_name: document.getElementById(`contact-name-${c.id}`).value.trim() || null,
+                      contact_email: document.getElementById(`contact-email-${c.id}`).value.trim() || null,
+                      contact_phone: document.getElementById(`contact-phone-${c.id}`).value.trim() || null,
+                      contact_location: document.getElementById(`contact-location-${c.id}`).value.trim() || null,
+                      contact_notes: document.getElementById(`contact-notes-${c.id}`).value.trim() || null
+                    }).eq('id', c.id);
+                    if (error) { alert('Error saving contact info: ' + error.message); return; }
+                    await loadCompanies();
+                    alert('Contact info saved.');
+                  }}
+                  className="px-3 py-1 bg-indigo-600 text-white rounded text-xs hover:bg-indigo-700"
+                >Save Contact Info</button>
+              </div>
+            )}
             </div>
           ))}
         </div>
@@ -6190,7 +6233,15 @@ autoComplete="off"
             const pilotCount = sellerCompanies.filter(c => c.status === 'pilot').length;
             const customerCount = sellerCompanies.filter(c => c.status === 'customer').length;
             return (
-              <div key={s.id} className="flex items-center gap-2 p-2 border border-gray-200 rounded-lg flex-wrap">
+              <div key={s.id} className="border border-gray-200 rounded-lg">
+              <div className="flex items-center gap-2 p-2 flex-wrap">
+                <button
+                  onClick={() => setExpandedSellerContact(prev => ({ ...prev, [s.id]: !prev[s.id] }))}
+                  className="text-gray-500 hover:text-gray-800 font-bold text-sm w-5 h-5 flex-shrink-0 flex items-center justify-center border border-gray-300 rounded"
+                  title="Contact info"
+                >
+                  {expandedSellerContact[s.id] ? '−' : '+'}
+                </button>
                 <span className="text-sm font-medium text-gray-800 text-left whitespace-nowrap w-28 flex-shrink-0 truncate">{s.name}</span>
                 <span className="text-xs text-gray-500 font-mono text-left whitespace-nowrap w-20 flex-shrink-0">{s.employee_id}</span>
                 <span className="text-xs text-gray-500 text-left whitespace-nowrap w-24 flex-shrink-0">
@@ -6218,6 +6269,39 @@ autoComplete="off"
                   className="px-2 py-1 rounded text-xs bg-red-600 hover:bg-red-700 text-white whitespace-nowrap flex-shrink-0">
                   🗑️ Del
                 </button>
+              </div>
+              {expandedSellerContact[s.id] && (
+                <div className="border-t border-gray-200 p-3 bg-gray-50 space-y-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <input type="text" defaultValue={s.contact_name || ''} id={`seller-contact-name-${s.id}`}
+                      placeholder="Contact Name" className="p-1.5 border border-gray-300 rounded text-sm" />
+                    <input type="email" defaultValue={s.contact_email || ''} id={`seller-contact-email-${s.id}`}
+                      placeholder="Email" className="p-1.5 border border-gray-300 rounded text-sm" />
+                    <input type="text" defaultValue={s.contact_phone || ''} id={`seller-contact-phone-${s.id}`}
+                      placeholder="Phone" className="p-1.5 border border-gray-300 rounded text-sm" />
+                    <input type="text" defaultValue={s.contact_location || ''} id={`seller-contact-location-${s.id}`}
+                      placeholder="City/Country" className="p-1.5 border border-gray-300 rounded text-sm" />
+                  </div>
+                  <textarea defaultValue={s.contact_notes || ''} id={`seller-contact-notes-${s.id}`}
+                    placeholder="Comments (optional)" rows="2"
+                    className="w-full p-1.5 border border-gray-300 rounded text-sm" />
+                  <button
+                    onClick={async () => {
+                      const { error } = await supabase.from('employees').update({
+                        contact_name: document.getElementById(`seller-contact-name-${s.id}`).value.trim() || null,
+                        contact_email: document.getElementById(`seller-contact-email-${s.id}`).value.trim() || null,
+                        contact_phone: document.getElementById(`seller-contact-phone-${s.id}`).value.trim() || null,
+                        contact_location: document.getElementById(`seller-contact-location-${s.id}`).value.trim() || null,
+                        contact_notes: document.getElementById(`seller-contact-notes-${s.id}`).value.trim() || null
+                      }).eq('id', s.id);
+                      if (error) { alert('Error saving contact info: ' + error.message); return; }
+                      await loadSellers();
+                      alert('Contact info saved.');
+                    }}
+                    className="px-3 py-1 bg-indigo-600 text-white rounded text-xs hover:bg-indigo-700"
+                  >Save Contact Info</button>
+                </div>
+              )}
               </div>
             );
           })}
