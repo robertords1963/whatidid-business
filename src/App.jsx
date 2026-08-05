@@ -6203,10 +6203,10 @@ autoComplete="off"
     {/* Add Seller */}
     <div className="bg-white rounded p-4 mb-4">
       <h4 className="font-medium text-gray-700 mb-3">Add Seller</h4>
-      <p className="text-xs text-gray-500 mb-3">Creates the seller's own account (goes through 1st Access like any employee). Demo IDs are created on demand in "Manage Demo Groups" — drawn from a shared numbered pool (e.g. <span className="font-mono">ID0001</span>/<span className="font-mono">PW0001</span>), never reused once expired, and don't reveal the seller's own Employee ID.</p>
+      <p className="text-xs text-gray-500 mb-3">Creates the seller's own account (goes through 1st Access like any employee) — both the Seller ID and email need to match exactly what's entered here. <strong>Suggested ID format:</strong> first two letters of first + last name, plus month/year — e.g. <span className="font-mono">RR072026</span> for "Roberto Rodrigues", registered July 2026.</p>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
         <input type="text" value={newSeller.employee_id} onChange={(e) => setNewSeller({...newSeller, employee_id: e.target.value})}
-          placeholder="Employee ID *" className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
+          placeholder="Seller ID *" className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
         <input type="text" value={newSeller.name} onChange={(e) => setNewSeller({...newSeller, name: e.target.value})}
           placeholder="Name *" className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
         <input type="email" value={newSeller.email} onChange={(e) => setNewSeller({...newSeller, email: e.target.value})}
@@ -6273,9 +6273,9 @@ autoComplete="off"
               {expandedSellerContact[s.id] && (
                 <div className="border-t border-gray-200 p-3 bg-gray-50 space-y-2">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <input type="text" defaultValue={s.contact_name || ''} id={`seller-contact-name-${s.id}`}
+                    <input type="text" defaultValue={s.contact_name || s.name || ''} id={`seller-contact-name-${s.id}`}
                       placeholder="Contact Name" className="p-1.5 border border-gray-300 rounded text-sm" />
-                    <input type="email" defaultValue={s.contact_email || ''} id={`seller-contact-email-${s.id}`}
+                    <input type="email" defaultValue={s.contact_email || s.email || ''} id={`seller-contact-email-${s.id}`}
                       placeholder="Email" className="p-1.5 border border-gray-300 rounded text-sm" />
                     <input type="text" defaultValue={s.contact_phone || ''} id={`seller-contact-phone-${s.id}`}
                       placeholder="Phone" className="p-1.5 border border-gray-300 rounded text-sm" />
