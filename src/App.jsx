@@ -183,6 +183,7 @@ export default function WhatIDid() {
   // estiverem em andamento, só a resposta da MAIS RECENTE deve realmente
   // atualizar a tela — mesmo que ela termine primeiro.
   const latestExperiencesRequestRef = useRef(0);
+  const promoVideoFileInputRef = useRef(null);
 
   // ⭐ ADICIONAR AQUI (junto com os outros useState) ⭐
   const [appSettings, setAppSettings] = useState({
@@ -3436,13 +3437,18 @@ const [currentCvUrl, setCurrentCvUrl] = useState(null);
   
   // Estados para gerenciar vídeos promocionais
   const [promotionalVideos, setPromotionalVideos] = useState([]);
+  // Lista completa, sem filtro de idioma/visibilidade — só pro painel de
+  // admin, pra ele conseguir gerenciar itens ocultos ou de outro idioma.
+  const [allPromotionalVideosAdmin, setAllPromotionalVideosAdmin] = useState([]);
   const [newVideoFile, setNewVideoFile] = useState(null);
   const [newVideoDuration, setNewVideoDuration] = useState('');
   const [uploadingVideo, setUploadingVideo] = useState(false);
   const [editingVideoDuration, setEditingVideoDuration] = useState({});
+  const [editingVideoName, setEditingVideoName] = useState({});
   const [newItemType, setNewItemType] = useState('video');
   const [newLinkUrl, setNewLinkUrl] = useState('');
   const [newLinkLabel, setNewLinkLabel] = useState('');
+  const [newItemLanguage, setNewItemLanguage] = useState('');
   const [currentPdfPage, setCurrentPdfPage] = useState(1);
   const [pdfTotalPages, setPdfTotalPages] = useState(0);
   const [pdfThumbnails, setPdfThumbnails] = useState({});
@@ -4114,22 +4120,47 @@ useEffect(() => {
         .order('display_order', { ascending: true });
       
       if (error) throw error;
+
+      // Filtro pro carrossel PÚBLICO: só itens marcados como visíveis, e só
+      // no idioma sendo visualizado no momento (itens sem idioma definido
+      // continuam aparecendo em qualquer idioma, pra não sumir conteúdo
+      // antigo que nunca teve essa opção).
+      const filtered = (data || []).filter(v =>
+        (v.visible !== false) && (!v.language || v.language === effectiveViewingLanguage)
+      );
       
-      const videos = data.map(video => ({
+      const videos = filtered.map(video => ({
         id: video.id,
         url: video.video_url,
         duration: video.duration,
         display_order: video.display_order,
         fileType: video.file_type || 'video',
         linkUrl: video.link_url || null,
-        linkLabel: video.link_label || null
+        linkLabel: video.link_label || null,
+        visible: video.visible !== false,
+        language: video.language || null
       }));
       
       setPromotionalVideos(videos);
       console.log('✅ Vídeos carregados do banco:', videos.length);
 
+      // Lista completa, sem filtro — usada só pelo painel de admin, pra
+      // gerenciar tudo (inclusive itens ocultos ou de outro idioma).
+      const allVideos = (data || []).map(video => ({
+        id: video.id,
+        url: video.video_url,
+        duration: video.duration,
+        display_order: video.display_order,
+        fileType: video.file_type || 'video',
+        linkUrl: video.link_url || null,
+        linkLabel: video.link_label || null,
+        visible: video.visible !== false,
+        language: video.language || null
+      }));
+      setAllPromotionalVideosAdmin(allVideos);
+
       // Gerar thumbnails para apresentações
-      const presentations = videos.filter(v => v.fileType === 'presentation');
+      const presentations = allVideos.filter(v => v.fileType === 'presentation');
       if (presentations.length > 0) {
         const loadPdfJs = async () => {
           if (!window.pdfjsLib) {
@@ -4191,8 +4222,8 @@ useEffect(() => {
         return;
       }
       try {
-        const maxOrder = promotionalVideos.length > 0
-          ? Math.max(...promotionalVideos.map(v => v.display_order || 0))
+        const maxOrder = allPromotionalVideosAdmin.length > 0
+          ? Math.max(...allPromotionalVideosAdmin.map(v => v.display_order || 0))
           : 0;
         const { error } = await supabase
           .from('promotional_videos')
@@ -4203,12 +4234,14 @@ useEffect(() => {
             file_type: 'link',
             link_url: newLinkUrl.trim(),
             link_label: newLinkLabel.trim() || 'Visit Link',
-            company_id: effectiveCompanyId
+            company_id: effectiveCompanyId,
+            language: newItemLanguage || null
           }]);
         if (error) throw error;
         await loadPromotionalVideos();
         setNewLinkUrl('');
         setNewLinkLabel('');
+        setNewItemLanguage('');
         alert('Link added successfully!');
       } catch (error) {
         alert('Error adding link: ' + error.message);
@@ -4233,8 +4266,8 @@ useEffect(() => {
       const videoUrl = await uploadVideoToSupabase(newVideoFile);
 
       // 2. Pegar a maior ordem atual
-      const maxOrder = promotionalVideos.length > 0 
-        ? Math.max(...promotionalVideos.map(v => v.display_order || 0))
+      const maxOrder = allPromotionalVideosAdmin.length > 0 
+        ? Math.max(...allPromotionalVideosAdmin.map(v => v.display_order || 0))
         : 0;
 
       // 3. Inserir no banco
@@ -4246,7 +4279,8 @@ useEffect(() => {
           display_order: maxOrder + 1,
           file_type: newItemType,
           company_id: effectiveCompanyId,
-          link_label: newLinkLabel.trim() || null
+          link_label: newLinkLabel.trim() || null,
+          language: newItemLanguage || null
         }]);
 
       if (error) throw error;
@@ -4258,10 +4292,12 @@ useEffect(() => {
       setNewVideoFile(null);
       setNewVideoDuration('');
       setNewLinkLabel('');
+      setNewItemLanguage('');
       
-      // Limpar input file
-      const fileInput = document.querySelector('input[type="file"]');
-      if (fileInput) fileInput.value = '';
+      // Limpar input file — usa a ref específica desse input, não um
+      // querySelector genérico (que pegava o PRIMEIRO input de arquivo da
+      // página inteira, quase sempre um errado, de outra seção).
+      if (promoVideoFileInputRef.current) promoVideoFileInputRef.current.value = '';
 
       alert('Video added successfully!');
     } catch (error) {
@@ -4296,20 +4332,20 @@ useEffect(() => {
   const moveVideoUp = async (index) => {
     if (index === 0) return; // Já está no topo
 
-    const newVideos = [...promotionalVideos];
+    const newVideos = [...allPromotionalVideosAdmin];
     [newVideos[index], newVideos[index - 1]] = [newVideos[index - 1], newVideos[index]];
     
-    setPromotionalVideos(newVideos);
+    setAllPromotionalVideosAdmin(newVideos);
     await updateVideoOrders(newVideos);
   };
 
   const moveVideoDown = async (index) => {
-    if (index === promotionalVideos.length - 1) return; // Já está no final
+    if (index === allPromotionalVideosAdmin.length - 1) return; // Já está no final
 
-    const newVideos = [...promotionalVideos];
+    const newVideos = [...allPromotionalVideosAdmin];
     [newVideos[index], newVideos[index + 1]] = [newVideos[index + 1], newVideos[index]];
     
-    setPromotionalVideos(newVideos);
+    setAllPromotionalVideosAdmin(newVideos);
     await updateVideoOrders(newVideos);
   };
 
@@ -4345,6 +4381,23 @@ useEffect(() => {
     } catch (error) {
       console.error('Error updating duration:', error);
       alert('Error updating duration');
+    }
+  };
+
+  const updateVideoName = async (videoId, newName) => {
+    try {
+      const { error } = await supabase
+        .from('promotional_videos')
+        .update({ link_label: newName.trim() || null })
+        .eq('id', videoId);
+
+      if (error) throw error;
+
+      await loadPromotionalVideos();
+      setEditingVideoName({});
+    } catch (error) {
+      console.error('Error updating name:', error);
+      alert('Error updating name');
     }
   };
 
@@ -7047,8 +7100,19 @@ autoComplete="off"
                       </label>
                       <input
                         type="file"
+                        ref={promoVideoFileInputRef}
                         accept={newItemType === 'video' ? 'video/mp4,video/webm' : '.pdf'}
-                        onChange={(e) => setNewVideoFile(e.target.files[0])}
+                        onChange={(e) => {
+                          const file = e.target.files[0];
+                          setNewVideoFile(file);
+                          // Preenche o Name com o nome do arquivo automaticamente,
+                          // só se o campo ainda estiver vazio — não sobrescreve
+                          // se a pessoa já tiver digitado algo.
+                          if (file && !newLinkLabel.trim()) {
+                            const nameWithoutExt = file.name.replace(/\.[^/.]+$/, '');
+                            setNewLinkLabel(nameWithoutExt);
+                          }
+                        }}
                         className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm"
                       />
                       <p className="text-xs text-gray-500 mt-1">
@@ -7066,6 +7130,22 @@ autoComplete="off"
                       placeholder={newItemType === 'video' ? 'e.g., Intro video (Spanish)' : newItemType === 'presentation' ? 'e.g., Product Overview' : 'Intro'}
                       className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm"
                     />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Language</label>
+                    <select
+                      value={newItemLanguage}
+                      onChange={(e) => setNewItemLanguage(e.target.value)}
+                      className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm"
+                    >
+                      <option value="">🌐 All languages</option>
+                      <option value="en">English</option>
+                      <option value="es">Español</option>
+                      <option value="pt">Português</option>
+                      <option value="zh">中文</option>
+                    </select>
+                    <p className="text-xs text-gray-500 mt-1">Only shows in the carousel when this language is being viewed. Leave as "All languages" to show always.</p>
                   </div>
 
                   {newItemType === 'video' && (
@@ -7093,11 +7173,11 @@ autoComplete="off"
 
               <div className={`bg-white rounded p-4 ${isReadOnlyOrMasterManaging ? "pointer-events-none opacity-60" : ""}`}>
                 <h4 className="font-medium text-gray-700 mb-3">Promotional Videos ({promotionalVideos.length})</h4>
-                {promotionalVideos.length === 0 ? (
+                {allPromotionalVideosAdmin.length === 0 ? (
                   <p className="text-sm text-gray-500">No videos yet</p>
                 ) : (
                   <div className="space-y-3 max-h-96 overflow-y-auto">
-                    {promotionalVideos.map((video, index) => (
+                    {allPromotionalVideosAdmin.map((video, index) => (
                       <div key={video.id} className="border border-gray-300 rounded p-3">
                         <div className="flex items-start gap-3">
                           {/* Thumbnail */}
@@ -7167,13 +7247,78 @@ autoComplete="off"
                                 </button>
                               )}
                             </div>
-                            {video.linkLabel && (
-                              <p className="text-sm font-medium text-gray-800 mb-1">{video.linkLabel}</p>
+                            {editingVideoName[video.id] ? (
+                              <div className="flex items-center gap-2 mb-1">
+                                <input
+                                  type="text"
+                                  defaultValue={video.linkLabel || ''}
+                                  id={`name-${video.id}`}
+                                  className="flex-1 p-1 border border-gray-300 rounded text-sm"
+                                  placeholder="e.g., Intro video (Spanish)"
+                                />
+                                <button
+                                  onClick={() => {
+                                    const newName = document.getElementById(`name-${video.id}`).value;
+                                    updateVideoName(video.id, newName);
+                                  }}
+                                  className="px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700"
+                                >
+                                  Save
+                                </button>
+                                <button
+                                  onClick={() => setEditingVideoName({})}
+                                  className="px-2 py-1 bg-gray-500 text-white rounded text-xs hover:bg-gray-600"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            ) : (
+                              <p className="text-sm font-medium text-gray-800 mb-1">
+                                {video.linkLabel || <span className="text-gray-400 italic">No name set</span>}
+                              </p>
                             )}
-                            <p className="text-xs text-gray-600 truncate mb-2">{video.url}</p>
+                            <p className="text-xs text-gray-500 truncate mb-2" title={video.url}>
+                              File: {video.url ? decodeURIComponent(video.url.split('/').pop()) : '—'}
+                            </p>
+                            <div className="flex gap-2 mb-2">
+                              <select
+                                value={video.visible ? 'show' : 'hide'}
+                                onChange={async (e) => {
+                                  const { error } = await supabase.from('promotional_videos').update({ visible: e.target.value === 'show' }).eq('id', video.id);
+                                  if (error) { alert('Error: ' + error.message); return; }
+                                  await loadPromotionalVideos();
+                                }}
+                                className={`text-xs px-2 py-1 rounded-full font-medium border-0 ${video.visible ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}
+                              >
+                                <option value="show">👁️ Show in carousel</option>
+                                <option value="hide">🙈 Hide from carousel</option>
+                              </select>
+                              <select
+                                value={video.language || ''}
+                                onChange={async (e) => {
+                                  const { error } = await supabase.from('promotional_videos').update({ language: e.target.value || null }).eq('id', video.id);
+                                  if (error) { alert('Error: ' + error.message); return; }
+                                  await loadPromotionalVideos();
+                                }}
+                                className="text-xs px-2 py-1 rounded-full font-medium border-0 bg-blue-50 text-blue-700"
+                                title="Which language this item should appear in — blank shows in every language"
+                              >
+                                <option value="">🌐 All languages</option>
+                                <option value="en">English</option>
+                                <option value="es">Español</option>
+                                <option value="pt">Português</option>
+                                <option value="zh">中文</option>
+                              </select>
+                            </div>
                             
                             {/* Botões de ação */}
                             <div className="flex gap-2 flex-wrap">
+                              <button
+                                onClick={() => setEditingVideoName({ [video.id]: true })}
+                                className="px-2 py-1 bg-indigo-600 text-white rounded text-xs hover:bg-indigo-700"
+                              >
+                                ✏️ Edit
+                              </button>
                               <button
                                 onClick={() => moveVideoUp(index)}
                                 disabled={index === 0}
@@ -7183,7 +7328,7 @@ autoComplete="off"
                               </button>
                               <button
                                 onClick={() => moveVideoDown(index)}
-                                disabled={index === promotionalVideos.length - 1}
+                                disabled={index === allPromotionalVideosAdmin.length - 1}
                                 className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 disabled:opacity-30 disabled:cursor-not-allowed"
                               >
                                 ↓ Down
