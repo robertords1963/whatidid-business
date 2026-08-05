@@ -4245,7 +4245,8 @@ useEffect(() => {
           duration: newItemType === 'video' ? newVideoDuration : '',
           display_order: maxOrder + 1,
           file_type: newItemType,
-          company_id: effectiveCompanyId
+          company_id: effectiveCompanyId,
+          link_label: newLinkLabel.trim() || null
         }]);
 
       if (error) throw error;
@@ -4256,6 +4257,7 @@ useEffect(() => {
       // 5. Limpar campos
       setNewVideoFile(null);
       setNewVideoDuration('');
+      setNewLinkLabel('');
       
       // Limpar input file
       const fileInput = document.querySelector('input[type="file"]');
@@ -7037,16 +7039,6 @@ autoComplete="off"
                           className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm"
                         />
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Label (optional)</label>
-                        <input
-                          type="text"
-                          value={newLinkLabel}
-                          onChange={(e) => setNewLinkLabel(e.target.value)}
-                          placeholder="Intro"
-                          className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm"
-                        />
-                      </div>
                     </div>
                   ) : (
                     <div>
@@ -7064,6 +7056,17 @@ autoComplete="off"
                       </p>
                     </div>
                   )}
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Name (optional)</label>
+                    <input
+                      type="text"
+                      value={newLinkLabel}
+                      onChange={(e) => setNewLinkLabel(e.target.value)}
+                      placeholder={newItemType === 'video' ? 'e.g., Intro video (Spanish)' : newItemType === 'presentation' ? 'e.g., Product Overview' : 'Intro'}
+                      className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm"
+                    />
+                  </div>
 
                   {newItemType === 'video' && (
                     <div>
@@ -7164,6 +7167,9 @@ autoComplete="off"
                                 </button>
                               )}
                             </div>
+                            {video.linkLabel && (
+                              <p className="text-sm font-medium text-gray-800 mb-1">{video.linkLabel}</p>
+                            )}
                             <p className="text-xs text-gray-600 truncate mb-2">{video.url}</p>
                             
                             {/* Botões de ação */}
