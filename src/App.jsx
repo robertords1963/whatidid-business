@@ -490,7 +490,7 @@ useEffect(() => {
     // de página real.
     loadDemoGroups();
   }
-}, [effectiveCompanyId, effectiveViewingLanguage, defaultCompanyId, companies.length]);
+}, [effectiveCompanyId, effectiveViewingLanguage, defaultCompanyId, companies.length, loggedInSellerId]);
 
 // Limpeza automática: assim que o Master/Seller troca o "Managing" pra uma
 // empresa real (saindo do Default direto), qualquer sessão de demo ativa é
