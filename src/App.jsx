@@ -4202,7 +4202,8 @@ useEffect(() => {
             display_order: maxOrder + 1,
             file_type: 'link',
             link_url: newLinkUrl.trim(),
-            link_label: newLinkLabel.trim() || 'Visit Link'
+            link_label: newLinkLabel.trim() || 'Visit Link',
+            company_id: effectiveCompanyId
           }]);
         if (error) throw error;
         await loadPromotionalVideos();
@@ -4243,7 +4244,8 @@ useEffect(() => {
           video_url: videoUrl,
           duration: newItemType === 'video' ? newVideoDuration : '',
           display_order: maxOrder + 1,
-          file_type: newItemType
+          file_type: newItemType,
+          company_id: effectiveCompanyId
         }]);
 
       if (error) throw error;
