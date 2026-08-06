@@ -5692,7 +5692,7 @@ autoComplete="off"
 </div>
           
 {isDemoModeActive && !(isSeller && isAdmin) && !(isDefaultAdmin && isAdmin) && (
-  <div className="mt-4 max-w-2xl mx-auto bg-purple-50 border-2 border-purple-300 rounded-2xl p-3 flex items-center justify-evenly gap-2">
+  <div className="mt-4 max-w-2xl mx-auto bg-purple-50 border-2 border-purple-300 rounded-2xl p-3 flex items-center justify-evenly gap-2 flex-wrap">
     <select
       value={viewingLanguage}
       onChange={(e) => setViewingLanguage(e.target.value)}
@@ -5704,7 +5704,7 @@ autoComplete="off"
       <option value="pt">Português</option>
       <option value="zh">中文 (Chinese)</option>
     </select>
-    <p className="text-purple-800 text-sm font-medium text-center whitespace-nowrap">
+    <p className="text-purple-800 text-sm font-medium text-center flex-1 min-w-[180px]">
       🎬 Demo Mode — Only visible to you. Deleted when you leave.
     </p>
     {currentDemoSessionId && (
