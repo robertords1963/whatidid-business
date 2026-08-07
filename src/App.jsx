@@ -204,6 +204,10 @@ const UI_STRINGS = {
   search_by_id_name_email: { en: 'Search by ID, name or email...', es: 'Buscar por ID, nombre o correo...', pt: 'Buscar por ID, nome ou e-mail...', zh: '按 ID、姓名或邮箱搜索……' },
   category_name_placeholder: { en: 'Category name...', es: 'Nombre de la categoría...', pt: 'Nome da categoria...', zh: '分类名称……' },
   category_name_placeholder_short: { en: 'Category name', es: 'Nombre de la categoría', pt: 'Nome da categoria', zh: '分类名称' },
+  add_to_desktop: { en: 'Add to Desktop', es: 'Agregar al Escritorio', pt: 'Adicionar à Área de Trabalho', zh: '添加到桌面' },
+  add_to_phone: { en: 'Add to Phone', es: 'Agregar al Teléfono', pt: 'Adicionar ao Celular', zh: '添加到手机' },
+  clear_all: { en: 'Clear All', es: 'Limpiar Todo', pt: 'Limpar Tudo', zh: '清空全部' },
+  follow_on_to: { en: '🔗 Follow-On to:', es: '🔗 Continuación de:', pt: '🔗 Continuação de:', zh: '🔗 续写自：' },
   // Lote 2 — botões e labels genéricos usados nas seções administrativas
   save: { en: 'Save', es: 'Guardar', pt: 'Salvar', zh: '保存' },
   cancel: { en: 'Cancel', es: 'Cancelar', pt: 'Cancelar', zh: '取消' },
@@ -6149,7 +6153,7 @@ autoComplete="off"
         height="16"
         style={{ borderRadius: '3px', flexShrink: 0 }}
       />
-      {isDesktopDevice ? 'Add to Desktop' : 'Add to Phone'}
+      {isDesktopDevice ? t('add_to_desktop') : t('add_to_phone')}
     </button>
   )}
 </div>
@@ -9354,7 +9358,7 @@ onClick={() => {
       onClick={handleClearAll}
       className="text-xs text-gray-500 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-full px-3 py-1 transition-colors"
     >
-      Clear All
+      {t('clear_all')}
     </button>
   </div>
 
@@ -9364,7 +9368,7 @@ onClick={() => {
     return parentExp ? (
       <div className="mb-5 p-3 bg-blue-50 border-2 border-blue-200 rounded-lg flex items-start justify-between gap-3">
         <div className="flex-1">
-          <p className="text-xs font-semibold text-blue-700 mb-1">🔗 Follow-On to:</p>
+          <p className="text-xs font-semibold text-blue-700 mb-1">{t('follow_on_to')}</p>
           <p className="text-xs text-blue-600 italic line-clamp-2">{parentExp.problem.substring(0, 150)}{parentExp.problem.length > 150 ? '...' : ''}</p>
         </div>
         <button onClick={() => setFollowOnParentId(null)} className="text-blue-400 hover:text-blue-600 text-xl leading-none flex-shrink-0">×</button>
