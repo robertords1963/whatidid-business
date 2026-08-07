@@ -78,6 +78,62 @@ const marqueeStyles = `
 // "General" é o nome legado; "Corporate Areas" é o nome atual pós-rename no Supabase.
 const HIDDEN_PRACTICE_NAMES = ['General', 'Corporate Areas'];
 
+// ============================================================
+// TRADUÇÃO DE UI (não confundir com o idioma do CONTEÚDO, que já
+// é resolvido por effectiveViewingLanguage). Isso traduz os textos
+// fixos da interface — títulos de seção, botões, labels — nos
+// mesmos 4 idiomas. Sendo feito por lotes: esse é o primeiro
+// (títulos das seções administrativas).
+const UI_STRINGS = {
+  section_settings: { en: 'Section Settings', es: 'Configuración de Secciones', pt: 'Configurações de Seção', zh: '版块设置' },
+  manage_companies: { en: 'Manage Companies', es: 'Gestionar Empresas', pt: 'Gerenciar Empresas', zh: '管理公司' },
+  manage_sellers: { en: 'Manage Sellers', es: 'Gestionar Vendedores', pt: 'Gerenciar Vendedores', zh: '管理销售代表' },
+  manage_demo_groups: { en: 'Manage Demo Groups', es: 'Gestionar Grupos Demo', pt: 'Gerenciar Grupos Demo', zh: '管理演示组' },
+  sellers_demo_activity_overview: { en: 'Sellers & Demo Activity Overview', es: 'Resumen de Actividad de Vendedores y Demos', pt: 'Visão Geral de Atividade de Vendedores e Demos', zh: '销售代表与演示活动概览' },
+  manage_promotional_videos: { en: 'Manage Promotional Videos', es: 'Gestionar Videos Promocionales', pt: 'Gerenciar Vídeos Promocionais', zh: '管理宣传视频' },
+  manage_content_pages: { en: 'Manage Content Pages', es: 'Gestionar Páginas de Contenido', pt: 'Gerenciar Páginas de Conteúdo', zh: '管理内容页面' },
+  manage_employees: { en: 'Manage Employees', es: 'Gestionar Empleados', pt: 'Gerenciar Funcionários', zh: '管理员工' },
+  manage_group_deletion: { en: 'Manage Group Deletion', es: 'Gestionar Eliminación de Grupos', pt: 'Gerenciar Exclusão de Grupos', zh: '管理分组删除' },
+  // Lote 2 — botões e labels genéricos usados nas seções administrativas
+  save: { en: 'Save', es: 'Guardar', pt: 'Salvar', zh: '保存' },
+  cancel: { en: 'Cancel', es: 'Cancelar', pt: 'Cancelar', zh: '取消' },
+  delete: { en: 'Delete', es: 'Eliminar', pt: 'Excluir', zh: '删除' },
+  edit: { en: 'Edit', es: 'Editar', pt: 'Editar', zh: '编辑' },
+  add: { en: 'Add', es: 'Agregar', pt: 'Adicionar', zh: '添加' },
+  active: { en: 'Active', es: 'Activo', pt: 'Ativo', zh: '激活' },
+  inactive: { en: 'Inactive', es: 'Inactivo', pt: 'Inativo', zh: '未激活' },
+  enabled: { en: 'Enabled', es: 'Habilitado', pt: 'Habilitado', zh: '已启用' },
+  disabled: { en: 'Disabled', es: 'Deshabilitado', pt: 'Desabilitado', zh: '已禁用' },
+  // Lote 3 — botões e navegação principal do UI público
+  see_what_others_did: { en: 'See What Others Did', es: 'Ver Lo Que Otros Hicieron', pt: 'Veja o Que Outros Fizeram', zh: '查看他人的经验' },
+  share_your_experience: { en: 'Share Your Experience', es: 'Comparte Tu Experiencia', pt: 'Compartilhe Sua Experiência', zh: '分享你的经验' },
+  individual: { en: 'Individual', es: 'Individuales', pt: 'Individuais', zh: '个人' },
+  experiences: { en: 'Experiences', es: 'Experiencias', pt: 'Experiências', zh: '经验' },
+  user_stories: { en: '(User Stories)', es: '(Historias de Usuarios)', pt: '(Histórias de Usuários)', zh: '（用户故事）' },
+  key: { en: 'Key', es: 'Key', pt: 'Key', zh: 'Key' },
+  insights: { en: 'Insights', es: 'Insights', pt: 'Insights', zh: 'Insights' },
+  curated_patterns: { en: '(Curated Patterns)', es: '(Patrones Curados)', pt: '(Padrões Selecionados)', zh: '（精选规律）' },
+  top3_this_week: { en: 'Top 3 Experiences This Week', es: 'Top 3 Experiencias de la Semana', pt: 'Top 3 Experiências da Semana', zh: '本周精选前三名经验' },
+  handpicked_experiences: { en: 'Handpicked experiences, worth learning from', es: 'Experiencias seleccionadas, que vale la pena conocer', pt: 'Experiências selecionadas, que vale a pena conhecer', zh: '精心挑选、值得借鉴的经验' },
+  // Lote 4 — cards de experiência e filtros do UI público
+  problem: { en: 'Problem', es: 'Problema', pt: 'Problema', zh: '问题' },
+  action: { en: 'Action', es: 'Acción', pt: 'Ação', zh: '行动' },
+  result: { en: 'Result', es: 'Resultado', pt: 'Resultado', zh: '结果' },
+  your_rating: { en: 'Your rating:', es: 'Tu calificación:', pt: 'Sua avaliação:', zh: '你的评分：' },
+  add_a_comment: { en: 'Add a Comment', es: 'Agregar un Comentario', pt: 'Adicionar um Comentário', zh: '添加评论' },
+  category: { en: 'Category', es: 'Categoría', pt: 'Categoria', zh: '分类' },
+  gender: { en: 'Gender', es: 'Género', pt: 'Gênero', zh: '性别' },
+  age: { en: 'Age', es: 'Edad', pt: 'Idade', zh: '年龄' },
+  country: { en: 'Country', es: 'País', pt: 'País', zh: '国家' },
+  enter_keywords: { en: 'Enter Keywords', es: 'Ingresa Palabras Clave', pt: 'Digite Palavras-chave', zh: '输入关键词' },
+  all: { en: 'All', es: 'Todos', pt: 'Todos', zh: '全部' },
+  more_filters: { en: '▼ More filters', es: '▼ Más filtros', pt: '▼ Mais filtros', zh: '▼ 更多筛选' },
+  less_filters: { en: '▲ Less filters', es: '▲ Menos filtros', pt: '▲ Menos filtros', zh: '▲ 收起筛选' },
+  clear_filters: { en: 'Clear filters', es: 'Limpiar filtros', pt: 'Limpar filtros', zh: '清除筛选' },
+  rating: { en: 'Rating', es: 'Calificación', pt: 'Avaliação', zh: '评分' },
+  function_practice: { en: 'Function / Practice', es: 'Función / Práctica', pt: 'Função / Prática', zh: '职能 / 领域' },
+};
+
 // Badge de Function/Practice + Category exibido no bloco "Problem".
 // Quando o texto tem "Practice / Category", força quebra de linha após o "/"
 // (em vez de deixar o texto encolher/estourar dentro do pill redondo).
@@ -384,6 +440,11 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   // usa o seletor manual "Viewing language"; senão (Demo ID, employee comum)
   // usa o idioma da própria conta que logou, automaticamente.
   const effectiveViewingLanguage = (isDemoModeActive || (isAdmin && !isDefaultAdmin && companyViewMode === 'sample')) ? viewingLanguage : (loggedInEmployeeLanguage || 'en');
+  // Traduz textos fixos da UI (títulos de seção, botões, labels) — troca
+  // junto com o mesmo idioma que já controla o conteúdo (effectiveViewingLanguage),
+  // então quando o Demo Mode muda de idioma, a interface administrativa
+  // muda junto, não só o conteúdo.
+  const t = (key) => UI_STRINGS[key]?.[effectiveViewingLanguage] || UI_STRINGS[key]?.en || key;
   // true só quando é o Admin do Default DE VERDADE, olhando pro próprio Default
   // (não um Admin de empresa espiando o Sample, que também usa dados do Default,
   // mas não deve ver as 5 seções exclusivas do Default).
@@ -4893,7 +4954,7 @@ useEffect(() => {
                   </div>
                 </div>
                 <div className="flex flex-col items-end">
-                  <div className="text-xs text-gray-600 mb-1">Your rating:</div>
+                  <div className="text-xs text-gray-600 mb-1">{t('your_rating')}</div>
                   <div className="flex gap-1">
                     {[1,2,3,4,5].map(star => (
                       <button key={star} onClick={() => handleUserRating(fo.id, star)}
@@ -4911,18 +4972,18 @@ useEffect(() => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>Problem</h4>
+                  <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>{t('problem')}</h4>
                   <CategoryBadge label={categoryLabel} />
                 </div>
                 <p className="text-sm text-gray-700">{highlightText(fo.problem, searchTerms)}</p>
               </div>
               <div className="space-y-2">
-                <h4 className="font-semibold text-blue-600 flex items-center gap-2"><TrendingUp size={16}/>Action</h4>
+                <h4 className="font-semibold text-blue-600 flex items-center gap-2"><TrendingUp size={16}/>{t('action')}</h4>
                 <p className="text-sm text-gray-700">{highlightText(fo.solution, searchTerms)}</p>
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <h4 className="font-semibold text-green-600 flex items-center gap-2"><Share2 size={16}/>Result</h4>
+                  <h4 className="font-semibold text-green-600 flex items-center gap-2"><Share2 size={16}/>{t('result')}</h4>
                   <span className={`text-xs px-3 py-1 rounded-full ${getResultColor(fo.resultCategory)}`}>{getResultLabel(fo.resultCategory)}</span>
                 </div>
                 <p className="text-sm text-gray-700">{highlightText(fo.result, searchTerms)}</p>
@@ -4936,7 +4997,7 @@ useEffect(() => {
             )}
             {/* Comments */}
             <div className="border-t pt-4 mt-4">
-              <h4 className="font-semibold text-gray-700 mb-3 flex items-center gap-2"><MessageCircle size={18}/>Add a Comment</h4>
+              <h4 className="font-semibold text-gray-700 mb-3 flex items-center gap-2"><MessageCircle size={18}/>{t('add_a_comment')}</h4>
               <div className="space-y-2">
                 <textarea value={newComment[fo.id] || ''}
                   onChange={(e) => { if (e.target.value.length <= maxChars.comment) setNewComment(c => ({...c, [fo.id]: e.target.value})); }}
@@ -5938,7 +5999,7 @@ autoComplete="off"
 
 {isAdmin && !isDefaultAdmin && !isSeller && companyViewMode === 'own' && (
   <div className="mt-4 bg-white border-2 border-gray-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
-    <h3 className="font-semibold text-gray-800 mb-1">Section Settings</h3>
+    <h3 className="font-semibold text-gray-800 mb-1">{t('section_settings')}</h3>
     <p className="text-xs text-gray-500 mb-3">"View & Edit access for ADM Master" lets the Master see/edit that section for support. Check a row and click "Import/Update" to bring starter content from Default (synthetic examples, not real people) — running it again only brings new items, it never duplicates or overwrites what you already have. To remove something, delete it directly in its own section (Manage Employees, Manage Categories, etc.) — deleting a Category also removes its linked Experiences, Key Insights and comments.</p>
     <div className="flex items-center gap-2 mb-3">
       <label className="text-sm font-medium text-gray-700">Import content in:</label>
@@ -6076,7 +6137,7 @@ autoComplete="off"
         </tr>
 
         <tr>
-          <td className="py-2">Manage Group Deletion</td>
+          <td className="py-2">{t('manage_group_deletion')}</td>
           <td className="py-2 text-center">
             <input type="checkbox" checked={companyMasterVisibility.includes('keyword_filter')}
               onChange={(e) => toggleMasterVisibility('keyword_filter', e.target.checked)} className="w-4 h-4" />
@@ -6091,7 +6152,7 @@ autoComplete="off"
 {isAdmin && (showDefaultOnlyTools || (isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample')) && (
   <div className="mt-4 bg-indigo-50 border-2 border-indigo-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
-      🏢 Manage Companies
+      🏢 {t('manage_companies')}
     </h3>
 
     {/* Add Company */}
@@ -6165,8 +6226,8 @@ autoComplete="off"
                 onChange={(e) => toggleCompanyActive(c.id, e.target.value === 'active')}
                 className={`text-xs px-1.5 py-1 rounded-full font-medium w-20 flex-shrink-0 border-0 ${c.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}
               >
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
+                <option value="active">{t('active')}</option>
+                <option value="inactive">{t('inactive')}</option>
               </select>
               <button onClick={() => deleteCompany(c.id, c.name)}
                 className="px-2 py-1 rounded text-xs bg-red-600 hover:bg-red-700 text-white whitespace-nowrap flex-shrink-0">
@@ -6216,7 +6277,7 @@ autoComplete="off"
 {isAdmin && showDefaultOnlyTools && !isSeller && (
   <div className="mt-4 bg-teal-50 border-2 border-teal-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
-      🧑‍💼 Manage Sellers
+      🧑‍💼 {t('manage_sellers')}
     </h3>
 
     {/* Add Seller */}
@@ -6281,8 +6342,8 @@ autoComplete="off"
                   onChange={(e) => toggleSellerActive(s.id, e.target.value === 'active')}
                   className={`text-xs px-1.5 py-1 rounded-full font-medium w-24 flex-shrink-0 border-0 ${s.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}
                 >
-                  <option value="active">Enabled</option>
-                  <option value="inactive">Disabled</option>
+                  <option value="active">{t('enabled')}</option>
+                  <option value="inactive">{t('disabled')}</option>
                 </select>
                 <button onClick={() => deleteSeller(s.id, s.name)}
                   className="px-2 py-1 rounded text-xs bg-red-600 hover:bg-red-700 text-white whitespace-nowrap flex-shrink-0">
@@ -6333,7 +6394,7 @@ autoComplete="off"
 {isAdmin && (showDefaultOnlyTools || (isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample')) && (
   <div className="mt-4 bg-pink-50 border-2 border-pink-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
-      🎯 Manage Demo Groups
+      🎯 {t('manage_demo_groups')}
     </h3>
 
     {isSeller && (() => {
@@ -6621,7 +6682,7 @@ autoComplete="off"
 {isAdmin && showDefaultOnlyTools && !isSeller && (
   <div className="mt-4 bg-cyan-50 border-2 border-cyan-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
-      📊 Sellers & Demo Activity Overview
+      📊 {t('sellers_demo_activity_overview')}
     </h3>
     <div className="bg-white rounded p-4">
       <p className="text-xs text-gray-400 mb-3">"Expired" IDs auto-clear the next time anyone loads the app.</p>
@@ -7139,7 +7200,7 @@ autoComplete="off"
           {isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('promotional_videos')) && (
             <div className="mt-4 bg-purple-50 border-2 border-purple-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                🎬 Manage Promotional Videos
+                🎬 {t('manage_promotional_videos')}
                 {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">(read-only — Sample)</span>}
               </h3>
               
@@ -7461,7 +7522,7 @@ autoComplete="off"
             <div className="mt-4 bg-blue-50 border-2 border-blue-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 <MessageCircle size={20} />
-                Manage Content Pages
+                {t('manage_content_pages')}
                 {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">(read-only — Sample)</span>}
               </h3>
               
@@ -7529,7 +7590,7 @@ autoComplete="off"
 {isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('synthetic') || canBootstrapFirstAdmin) && (
   <div className="mt-4 bg-slate-50 border-2 border-slate-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
-      👥 Manage Employees
+      👥 {t('manage_employees')}
     </h3>
 
     {/* Add Employee */}
@@ -7614,11 +7675,11 @@ autoComplete="off"
                 <select defaultValue={emp.status || 'pending'} onChange={(e) => setEditingEmployeeData({...editingEmployeeData, status: e.target.value})}
                   className="text-xs p-1 border border-gray-300 rounded shrink-0">
                   <option value="pending">Pending</option>
-                  <option value="active">Active</option>
+                  <option value="active">{t('active')}</option>
                   <option value="blocked">Blocked</option>
                 </select>
-                <button onClick={() => updateEmployee(emp.employee_id)} className="px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700">Save</button>
-                <button onClick={() => { setEditingEmployee(null); setEditingEmployeeData({}); }} className="px-2 py-1 bg-gray-400 text-white rounded text-xs">Cancel</button>
+                <button onClick={() => updateEmployee(emp.employee_id)} className="px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700">{t('save')}</button>
+                <button onClick={() => { setEditingEmployee(null); setEditingEmployeeData({}); }} className="px-2 py-1 bg-gray-400 text-white rounded text-xs">{t('cancel')}</button>
               </>
             ) : (
               <>
@@ -7637,7 +7698,7 @@ autoComplete="off"
                 {!isReadOnlyOrMasterManaging && (
                 <>
                 <button onClick={() => { setEditingEmployee(emp.employee_id); setEditingEmployeeData({ name: emp.name, country: emp.country, email: emp.email, is_admin: emp.is_admin, status: emp.status || 'pending' }); }}
-                  className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700">Edit</button>
+                  className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700">{t('edit')}</button>
                 <button onClick={async () => {
                   if (!window.confirm(`Delete all experiences and comments by ${emp.employee_id}? This cannot be undone.`)) return;
                   try {
@@ -7676,7 +7737,7 @@ autoComplete="off"
                   }
                 }} className="px-2 py-1 bg-orange-600 text-white rounded text-xs hover:bg-orange-700">Clear Data</button>
                 <button onClick={() => deleteEmployee(emp.employee_id)}
-                  className="px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700">Delete</button>
+                  className="px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700">{t('delete')}</button>
                 </>
                 )}
               </>
@@ -8356,10 +8417,10 @@ for (const row of rows) {
               <div className="text-center mb-6">
                 <h2 className="text-2xl font-bold text-gray-800 flex items-center justify-center gap-3 mb-2">
                   <Star className="text-yellow-500 fill-yellow-500" size={28} />
-                  Top 3 Experiences This Week
+                  {t('top3_this_week')}
                   <Star className="text-yellow-500 fill-yellow-500" size={28} />
                 </h2>
-                <p className="text-gray-600">Handpicked experiences, worth learning from</p>
+                <p className="text-gray-600">{t('handpicked_experiences')}</p>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
@@ -8508,7 +8569,7 @@ onClick={() => {
             <div className="mt-4 bg-yellow-50 border-2 border-yellow-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 <Search size={20} />
-                Manage Group Deletion
+                {t('manage_group_deletion')}
               </h3>
               <div className="space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
@@ -8844,7 +8905,7 @@ onClick={() => {
           : 'bg-gray-100 text-gray-400 border-gray-200 hover:bg-gray-200'
       }`}
     >
-      See What Others Did
+      {t('see_what_others_did')}
       {activeMainTab === 'see' && (navSnapshot?.destination === 'browse') && (
         <span
           onClick={(e) => { e.stopPropagation(); goBackToSnapshot(); }}
@@ -8877,7 +8938,7 @@ onClick={() => {
           : 'bg-gray-100 text-gray-400 border-gray-200 hover:bg-gray-200'
       }`}
     >
-      Share Your Experience
+      {t('share_your_experience')}
       {activeMainTab === 'share' && (navSnapshot?.destination === 'share') && (
         <span
           onClick={(e) => { e.stopPropagation(); goBackToSnapshot(); }}
@@ -9446,9 +9507,9 @@ onClick={() => {
   }`}
 >
   <span className="text-2xl mb-1">👥</span>
-  <span className="font-bold text-sm">Individual</span>
-  <span className="font-bold text-sm">Experiences</span>
-  <span className="text-[10px] opacity-80">(User Stories)</span>
+  <span className="font-bold text-sm">{t('individual')}</span>
+  <span className="font-bold text-sm">{t('experiences')}</span>
+  <span className="text-[10px] opacity-80">{t('user_stories')}</span>
 </button>
               
 <button
@@ -9465,9 +9526,9 @@ onClick={() => {
   }`}
 >
   <span className="text-2xl mb-1">🎯</span>
-  <span className="font-bold text-sm">Key</span>
-  <span className="font-bold text-sm">Insights</span>
-  <span className="text-[10px] opacity-80">(Curated Patterns)</span>
+  <span className="font-bold text-sm">{t('key')}</span>
+  <span className="font-bold text-sm">{t('insights')}</span>
+  <span className="text-[10px] opacity-80">{t('curated_patterns')}</span>
 </button>
             </div>
 
@@ -9478,7 +9539,7 @@ onClick={() => {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                   {/* Practice filter - só aparece se 2+ practices ativas, ou se 1 com nome diferente de General */}
                   <div>
-    <label className="block text-sm font-medium text-gray-600 mb-2">Function / Practice</label>
+    <label className="block text-sm font-medium text-gray-600 mb-2">{t('function_practice')}</label>
     <div className="relative">
     <select
       value={filterPracticeId || ''}
@@ -9491,7 +9552,7 @@ onClick={() => {
       className={`w-full h-9 px-2 py-1 pr-8 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none bg-gray-100 appearance-none ${uiPractices.length === 1 ? 'cursor-not-allowed' : ''}`}
       disabled={uiPractices.length === 1}
     >
-      <option value="">All</option>
+      <option value="">{t('all')}</option>
       {uiPractices.map(p => (
         <option key={p.id} value={p.id}>{p.name}</option>
       ))}
@@ -9501,7 +9562,7 @@ onClick={() => {
   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-2">Category</label>
+                    <label className="block text-sm font-medium text-gray-600 mb-2">{t('category')}</label>
                     <div className="flex items-center gap-2">
                       <div className="flex-1 relative filter-category-dropdown-container">
                         <div
@@ -9512,7 +9573,7 @@ onClick={() => {
                           className="w-full h-9 px-2 py-1 border-2 border-gray-200 rounded-lg text-left flex items-center justify-between cursor-default focus:border-purple-500"
                           style={{ fontFamily: 'inherit', fontSize: 'inherit' }}
                         >
-                          <span>{filters.problemCategory || 'All'}</span>
+                          <span>{filters.problemCategory || t('all')}</span>
                           <span className="text-gray-500" style={{ fontSize: '10px' }}>▼</span>
                         </div>
 
@@ -9637,21 +9698,21 @@ onClick={() => {
 )}
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-2">Result</label>
+                    <label className="block text-sm font-medium text-gray-600 mb-2">{t('result')}</label>
                     <div className="relative">
                     <select
                       value={filters.resultCategory}
                       onChange={(e) => setFilters({...filters, resultCategory: e.target.value})}
                       className="w-full h-9 px-2 py-1 pr-8 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:outline-none appearance-none"
                     >
-                      <option value="">All</option>
+                      <option value="">{t("all")}</option>
                       {resultCategories.map(cat => <option key={cat.value} value={cat.value}>{cat.label}</option>)}
                     </select>
                     <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500" style={{ fontSize: '10px' }}>▼</span>
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-2">Enter Keywords</label>
+                    <label className="block text-sm font-medium text-gray-600 mb-2">{t('enter_keywords')}</label>
                     <input
                       type="text"
                       value={filters.searchText}
@@ -9668,7 +9729,7 @@ onClick={() => {
                     onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
                     className="text-sm text-purple-600 hover:text-purple-800 font-medium flex items-center gap-2"
                   >
-                    {showAdvancedFilters ? '▲ Less filters' : '▼ More filters'}
+                    {showAdvancedFilters ? t('less_filters') : t('more_filters')}
                   </button>
                 </div>
                 
@@ -9677,13 +9738,13 @@ onClick={() => {
   <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
     {/* Rating - mantém em ambos */}
     <div>
-      <label className="block text-sm font-medium text-gray-600 mb-2">Rating</label>
+      <label className="block text-sm font-medium text-gray-600 mb-2">{t('rating')}</label>
       <select
         value={filters.rating}
         onChange={(e) => setFilters({...filters, rating: e.target.value})}
         className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-yellow-500 focus:outline-none"
       >
-        <option value="">All</option>
+        <option value="">{t('all')}</option>
         <option value="5">⭐⭐⭐⭐⭐ (5)</option>
         <option value="4">⭐⭐⭐⭐ (4)</option>
         <option value="3">⭐⭐⭐ (3)</option>
@@ -9696,13 +9757,13 @@ onClick={() => {
     {/* Gender - só no Pro */}
     {!appSettings.requireEmployeeLogin && (
       <div>
-        <label className="block text-sm font-medium text-gray-600 mb-2">Gender</label>
+        <label className="block text-sm font-medium text-gray-600 mb-2">{t('gender')}</label>
         <select
           value={filters.gender}
           onChange={(e) => setFilters({...filters, gender: e.target.value})}
           className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
         >
-          <option value="">All</option>
+          <option value="">{t("all")}</option>
           {genderOptions.map(gender => <option key={gender} value={gender}>{gender}</option>)}
         </select>
       </div>
@@ -9711,13 +9772,13 @@ onClick={() => {
     {/* Age - só no Pro */}
     {!appSettings.requireEmployeeLogin && (
       <div>
-        <label className="block text-sm font-medium text-gray-600 mb-2">Age</label>
+        <label className="block text-sm font-medium text-gray-600 mb-2">{t('age')}</label>
         <select
           value={filters.age}
           onChange={(e) => setFilters({...filters, age: e.target.value})}
           className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
         >
-          <option value="">All</option>
+          <option value="">{t('all')}</option>
           {ageOptions.map(age => <option key={age} value={age}>{age}</option>)}
         </select>
       </div>
@@ -9726,13 +9787,13 @@ onClick={() => {
     {/* Country - só no Pro */}
     {!appSettings.requireEmployeeLogin && (
       <div>
-        <label className="block text-sm font-medium text-gray-600 mb-2">Country</label>
+        <label className="block text-sm font-medium text-gray-600 mb-2">{t('country')}</label>
         <select
           value={filters.country}
           onChange={(e) => setFilters({...filters, country: e.target.value})}
           className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
         >
-          <option value="">All</option>
+          <option value="">{t('all')}</option>
           {countryOptions.map(country => <option key={country} value={country}>{country}</option>)}
         </select>
       </div>
@@ -9750,7 +9811,7 @@ onClick={() => {
                       onClick={() => { setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '', industrySector: '' }); setFilterPracticeId(null); setFilterTags([]); }}
                       className="text-sm text-purple-600 hover:text-purple-800 font-medium"
                     >
-                      Clear filters
+                      {t('clear_filters')}
                     </button>
                   )}
                 </div>
@@ -9764,7 +9825,7 @@ onClick={() => {
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-3">
       {/* Practice filter - mesma lógica dos outros lugares */}
       <div>
-    <label className="block text-sm font-medium text-gray-700 mb-2">Function / Practice:</label>
+    <label className="block text-sm font-medium text-gray-700 mb-2">{t('function_practice')}:</label>
     <div className="relative">
     <select
       value={filterPracticeId || ''}
@@ -9778,7 +9839,7 @@ onClick={() => {
       className={`w-full h-9 px-2 py-1 pr-8 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none bg-gray-100 appearance-none ${uiPractices.length === 1 ? 'cursor-not-allowed' : ''}`}
       disabled={uiPractices.length === 1}
     >
-      <option value="">All</option>
+      <option value="">{t('all')}</option>
       {uiPractices.map(p => (
         <option key={p.id} value={p.id}>{p.name}</option>
       ))}
@@ -9883,7 +9944,7 @@ onClick={() => {
           }}
           className="text-sm text-purple-600 hover:text-purple-800 font-medium"
         >
-          Clear filters
+          {t('clear_filters')}
         </button>
       )}
     </div>
@@ -10101,18 +10162,18 @@ onClick={() => {
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
-                            <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>Problem</h4>
+                            <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>{t('problem')}</h4>
                             <CategoryBadge label={catLabel} />
                           </div>
                           <p className="text-sm text-gray-700">{highlightText(exp.problem, searchTerms)}</p>
                         </div>
                         <div className="space-y-2">
-                          <h4 className="font-semibold text-blue-600 flex items-center gap-2"><TrendingUp size={16}/>Action</h4>
+                          <h4 className="font-semibold text-blue-600 flex items-center gap-2"><TrendingUp size={16}/>{t('action')}</h4>
                           <p className="text-sm text-gray-700">{highlightText(exp.solution, searchTerms)}</p>
                         </div>
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
-                            <h4 className="font-semibold text-green-600 flex items-center gap-2"><Share2 size={16}/>Result</h4>
+                            <h4 className="font-semibold text-green-600 flex items-center gap-2"><Share2 size={16}/>{t('result')}</h4>
                             <span className={`text-xs px-3 py-1 rounded-full ${getResultColor(exp.resultCategory)}`}>{getResultLabel(exp.resultCategory)}</span>
                           </div>
                           <p className="text-sm text-gray-700">{highlightText(exp.result, searchTerms)}</p>
@@ -10214,18 +10275,18 @@ onClick={() => {
                               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
                                 <div className="space-y-2">
                                   <div className="flex items-center justify-between">
-                                    <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>Problem</h4>
+                                    <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>{t('problem')}</h4>
                                     <CategoryBadge label={catLabel} />
                                   </div>
                                   <p className="text-sm text-gray-700">{ancestor.problem}</p>
                                 </div>
                                 <div className="space-y-2">
-                                  <h4 className="font-semibold text-blue-600 flex items-center gap-2"><TrendingUp size={16}/>Action</h4>
+                                  <h4 className="font-semibold text-blue-600 flex items-center gap-2"><TrendingUp size={16}/>{t('action')}</h4>
                                   <p className="text-sm text-gray-700">{ancestor.solution}</p>
                                 </div>
                                 <div className="space-y-2">
                                   <div className="flex items-center justify-between">
-                                    <h4 className="font-semibold text-green-600 flex items-center gap-2"><Share2 size={16}/>Result</h4>
+                                    <h4 className="font-semibold text-green-600 flex items-center gap-2"><Share2 size={16}/>{t('result')}</h4>
                                     <span className={`text-xs px-3 py-1 rounded-full ${getResultColor(ancestor.resultCategory)}`}>{getResultLabel(ancestor.resultCategory)}</span>
                                   </div>
                                   <p className="text-sm text-gray-700">{ancestor.result}</p>
@@ -10372,7 +10433,7 @@ onClick={() => {
       
       {/* Linhas 3-4: Your rating */}
       <div className="flex flex-col items-end">
-        <div className="text-xs text-gray-600 mb-1">Your rating:</div>
+        <div className="text-xs text-gray-600 mb-1">{t('your_rating')}</div>
         <div className="flex gap-1">
           {[1, 2, 3, 4, 5].map(star => (
             <button
@@ -10637,7 +10698,7 @@ onClick={() => {
                     <div className="mb-4">
                       <h4 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
                         <MessageCircle size={18} />
-                        Add a Comment
+                        {t('add_a_comment')}
                       </h4>
                       
 <div className="space-y-2">
