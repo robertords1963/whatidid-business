@@ -101,6 +101,109 @@ const UI_STRINGS = {
   manage_content_pages: { en: 'Manage Content Pages', es: 'Gestionar Páginas de Contenido', pt: 'Gerenciar Páginas de Conteúdo', zh: '管理内容页面' },
   manage_employees: { en: 'Manage Employees', es: 'Gestionar Empleados', pt: 'Gerenciar Funcionários', zh: '管理员工' },
   manage_group_deletion: { en: 'Manage Group Deletion', es: 'Gestionar Eliminación de Grupos', pt: 'Gerenciar Exclusão de Grupos', zh: '管理分组删除' },
+  // Lote ADM 1 — títulos de formulários "Add New ..."
+  add_company: { en: 'Add Company', es: 'Agregar Empresa', pt: 'Adicionar Empresa', zh: '添加公司' },
+  add_seller: { en: 'Add Seller', es: 'Agregar Vendedor', pt: 'Adicionar Vendedor', zh: '添加销售代表' },
+  create_new_group: { en: 'Create New Group', es: 'Crear Nuevo Grupo', pt: 'Criar Novo Grupo', zh: '创建新分组' },
+  add_new_quote: { en: 'Add New Quote', es: 'Agregar Nueva Cita', pt: 'Adicionar Nova Citação', zh: '添加新语录' },
+  add_new_item: { en: 'Add New Item', es: 'Agregar Nuevo Elemento', pt: 'Adicionar Novo Item', zh: '添加新项目' },
+  add_employee: { en: 'Add Employee', es: 'Agregar Empleado', pt: 'Adicionar Funcionário', zh: '添加员工' },
+  add_new_category: { en: 'Add New Category', es: 'Agregar Nueva Categoría', pt: 'Adicionar Nova Categoria', zh: '添加新分类' },
+  no_groups_yet: { en: 'No groups yet', es: 'Aún no hay grupos', pt: 'Ainda não há grupos', zh: '暂无分组' },
+  no_members_yet: { en: 'No members yet', es: 'Aún no hay miembros', pt: 'Ainda não há membros', zh: '暂无成员' },
+  no_quotes_yet: { en: 'No quotes yet', es: 'Aún no hay citas', pt: 'Ainda não há citações', zh: '暂无语录' },
+  no_videos_yet: { en: 'No videos yet', es: 'Aún no hay videos', pt: 'Ainda não há vídeos', zh: '暂无视频' },
+  no_name_set: { en: 'No name set', es: 'Sin nombre asignado', pt: 'Nenhum nome definido', zh: '未设置名称' },
+  no_matches_found: { en: 'No matches found', es: 'No se encontraron coincidencias', pt: 'Nenhuma correspondência encontrada', zh: '未找到匹配项' },
+  company_name: { en: 'Company Name', es: 'Nombre de la Empresa', pt: 'Nome da Empresa', zh: '公司名称' },
+  company_logo: { en: 'Company Logo', es: 'Logo de la Empresa', pt: 'Logotipo da Empresa', zh: '公司徽标' },
+  logo_active: { en: 'Logo active', es: 'Logo activo', pt: 'Logotipo ativo', zh: '徽标已启用' },
+  clear_data: { en: 'Clear Data', es: 'Borrar Datos', pt: 'Limpar Dados', zh: '清除数据' },
+  show_in_ui: { en: 'Show in UI', es: 'Mostrar en la Interfaz', pt: 'Mostrar na Interface', zh: '在界面中显示' },
+  delete_practice: { en: 'Delete Practice', es: 'Eliminar Práctica', pt: 'Excluir Prática', zh: '删除领域' },
+  problem_category: { en: 'Problem Category', es: 'Categoría del Problema', pt: 'Categoria do Problema', zh: '问题分类' },
+  result_category: { en: 'Result Category', es: 'Categoría del Resultado', pt: 'Categoria do Resultado', zh: '结果分类' },
+  solution: { en: 'Solution', es: 'Solución', pt: 'Solução', zh: '解决方案' },
+  author: { en: 'Author', es: 'Autor', pt: 'Autor', zh: '作者' },
+  data_type: { en: 'Data Type', es: 'Tipo de Dato', pt: 'Tipo de Dado', zh: '数据类型' },
+  source: { en: 'Source', es: 'Fuente', pt: 'Fonte', zh: '来源' },
+  company_added_success: { en: 'Company added successfully!', es: '¡Empresa agregada con éxito!', pt: 'Empresa adicionada com sucesso!', zh: '公司添加成功！' },
+  content_updated_success: { en: 'Content updated successfully!', es: '¡Contenido actualizado con éxito!', pt: 'Conteúdo atualizado com sucesso!', zh: '内容更新成功！' },
+  link_added_success: { en: 'Link added successfully!', es: '¡Enlace agregado con éxito!', pt: 'Link adicionado com sucesso!', zh: '链接添加成功！' },
+  video_added_success: { en: 'Video added successfully!', es: '¡Video agregado con éxito!', pt: 'Vídeo adicionado com sucesso!', zh: '视频添加成功！' },
+  video_deleted_success: { en: 'Video deleted successfully!', es: '¡Video eliminado con éxito!', pt: 'Vídeo excluído com sucesso!', zh: '视频删除成功！' },
+  duration_updated_success: { en: 'Duration updated successfully!', es: '¡Duración actualizada con éxito!', pt: 'Duração atualizada com sucesso!', zh: '时长更新成功！' },
+  confirm_delete_experience: { en: 'Delete this experience?', es: '¿Eliminar esta experiencia?', pt: 'Excluir esta experiência?', zh: '删除这条经验？' },
+  confirm_delete_comment: { en: 'Delete this comment?', es: '¿Eliminar este comentario?', pt: 'Excluir este comentário?', zh: '删除这条评论？' },
+  confirm_delete_quote: { en: 'Delete this quote?', es: '¿Eliminar esta cita?', pt: 'Excluir esta citação?', zh: '删除这条语录？' },
+  confirm_delete_video: { en: 'Delete this video?', es: '¿Eliminar este video?', pt: 'Excluir este vídeo?', zh: '删除这个视频？' },
+  confirm_delete_file: { en: 'Delete this file?', es: '¿Eliminar este archivo?', pt: 'Excluir este arquivo?', zh: '删除这个文件？' },
+  confirm_delete_experience_comments: { en: 'Delete this experience? All comments will also be deleted.', es: '¿Eliminar esta experiencia? Todos los comentarios también se eliminarán.', pt: 'Excluir esta experiência? Todos os comentários também serão excluídos.', zh: '删除这条经验？所有评论也将一并删除。' },
+  error_loading_data: { en: 'Error loading data. Please refresh the page.', es: 'Error al cargar los datos. Por favor, actualiza la página.', pt: 'Erro ao carregar os dados. Por favor, atualize a página.', zh: '加载数据出错，请刷新页面。' },
+  error_saving_experience: { en: 'Error saving experience.', es: 'Error al guardar la experiencia.', pt: 'Erro ao salvar a experiência.', zh: '保存经验时出错。' },
+  can_only_delete_own_experiences: { en: 'You can only delete your own experiences!', es: '¡Solo puedes eliminar tus propias experiencias!', pt: 'Você só pode excluir suas próprias experiências!', zh: '您只能删除自己的经验！' },
+  error_deleting_experience: { en: 'Error deleting experience.', es: 'Error al eliminar la experiencia.', pt: 'Erro ao excluir a experiência.', zh: '删除经验时出错。' },
+  please_enter_comment: { en: 'Please enter a comment!', es: '¡Por favor, ingresa un comentario!', pt: 'Por favor, digite um comentário!', zh: '请输入评论！' },
+  error_adding_comment: { en: 'Error adding comment', es: 'Error al agregar el comentario', pt: 'Erro ao adicionar o comentário', zh: '添加评论时出错' },
+  already_rated_session: { en: 'You have already rated this experience in this session!', es: '¡Ya calificaste esta experiencia en esta sesión!', pt: 'Você já avaliou esta experiência nesta sessão!', zh: '您在本次会话中已经评价过这条经验了！' },
+  comment_not_found: { en: 'Comment not found!', es: '¡Comentario no encontrado!', pt: 'Comentário não encontrado!', zh: '未找到该评论！' },
+  can_only_delete_own_comments: { en: 'You can only delete your own comments!', es: '¡Solo puedes eliminar tus propios comentarios!', pt: 'Você só pode excluir seus próprios comentários!', zh: '您只能删除自己的评论！' },
+  error_deleting_comment: { en: 'Error deleting comment.', es: 'Error al eliminar el comentario.', pt: 'Erro ao excluir o comentário.', zh: '删除评论时出错。' },
+  employee_id_name_required: { en: 'Employee ID and Name are required', es: 'El ID de Empleado y el Nombre son obligatorios', pt: 'ID de Funcionário e Nome são obrigatórios', zh: '员工 ID 和姓名为必填项' },
+  seller_email_required: { en: "Email is required — the seller needs it to complete 1st Access.", es: 'El correo es obligatorio — el vendedor lo necesita para completar el Primer Acceso.', pt: 'O e-mail é obrigatório — o vendedor precisa dele para concluir o 1º Acesso.', zh: '邮箱为必填项——销售代表需要用它完成首次访问。' },
+  error_creating_seller: { en: 'Error creating seller. ID may already exist.', es: 'Error al crear el vendedor. El ID puede que ya exista.', pt: 'Erro ao criar o vendedor. O ID pode já existir.', zh: '创建销售代表出错，该 ID 可能已存在。' },
+  error_updating_seller: { en: 'Error updating seller', es: 'Error al actualizar el vendedor', pt: 'Erro ao atualizar o vendedor', zh: '更新销售代表时出错' },
+  error_deleting_seller: { en: 'Error deleting seller:', es: 'Error al eliminar el vendedor:', pt: 'Erro ao excluir o vendedor:', zh: '删除销售代表时出错：' },
+  demo_content_deleted: { en: 'Demo content deleted.', es: 'Contenido demo eliminado.', pt: 'Conteúdo demo excluído.', zh: '演示内容已删除。' },
+  error_deleting_demo_content: { en: 'Error deleting demo content:', es: 'Error al eliminar el contenido demo:', pt: 'Erro ao excluir o conteúdo demo:', zh: '删除演示内容时出错：' },
+  company_name_required: { en: 'Company name is required', es: 'El nombre de la empresa es obligatorio', pt: 'O nome da empresa é obrigatório', zh: '公司名称为必填项' },
+  error_adding_company: { en: 'Error adding company. Code may already exist.', es: 'Error al agregar la empresa. El código puede que ya exista.', pt: 'Erro ao adicionar a empresa. O código pode já existir.', zh: '添加公司出错，该代码可能已存在。' },
+  default_company_cannot_delete: { en: 'The Default company cannot be deleted.', es: 'La empresa Default no se puede eliminar.', pt: 'A empresa Default não pode ser excluída.', zh: '默认公司无法删除。' },
+  error_deleting_company: { en: 'Error deleting company:', es: 'Error al eliminar la empresa:', pt: 'Erro ao excluir a empresa:', zh: '删除公司时出错：' },
+  error_saving_visibility: { en: 'Error saving visibility setting.', es: 'Error al guardar la configuración de visibilidad.', pt: 'Erro ao salvar a configuração de visibilidade.', zh: '保存可见性设置时出错。' },
+  error_during_import: { en: 'Error during import:', es: 'Error durante la importación:', pt: 'Erro durante a importação:', zh: '导入过程中出错：' },
+  import_metadata_first: { en: "Import Metadata first — Synthetic/Curated Content links to Practices/Categories, which this company doesn't have yet.", es: 'Importa primero los Metadatos — el Contenido Sintético/Curado se vincula a Prácticas/Categorías, que esta empresa aún no tiene.', pt: 'Importe os Metadados primeiro — o Conteúdo Sintético/Curado se vincula a Práticas/Categorias, que esta empresa ainda não tem.', zh: '请先导入元数据——合成/精选内容会链接到该公司尚未拥有的领域/分类。' },
+  error_importing_quotes: { en: 'Error importing quotes:', es: 'Error al importar las citas:', pt: 'Erro ao importar as citações:', zh: '导入语录时出错：' },
+  generic_error: { en: 'Error:', es: 'Error:', pt: 'Erro:', zh: '错误：' },
+  no_app_config_to_copy: { en: 'Default has no App Configuration to copy from.', es: 'Default no tiene una Configuración de App para copiar.', pt: 'O Default não tem uma Configuração de App para copiar.', zh: 'Default 没有可复制的应用配置。' },
+  app_config_copied: { en: 'App Configuration copied from Default.', es: 'Configuración de App copiada de Default.', pt: 'Configuração de App copiada do Default.', zh: '已从 Default 复制应用配置。' },
+  error_deleting_category: { en: 'Error deleting category:', es: 'Error al eliminar la categoría:', pt: 'Erro ao excluir a categoria:', zh: '删除分类时出错：' },
+  error_adding_employee: { en: 'Error adding employee. ID may already exist.', es: 'Error al agregar el empleado. El ID puede que ya exista.', pt: 'Erro ao adicionar o funcionário. O ID pode já existir.', zh: '添加员工出错，该 ID 可能已存在。' },
+  error_updating_employee: { en: 'Error updating employee', es: 'Error al actualizar el empleado', pt: 'Erro ao atualizar o funcionário', zh: '更新员工时出错' },
+  error_deleting_employee: { en: 'Error deleting employee', es: 'Error al eliminar el empleado', pt: 'Erro ao excluir o funcionário', zh: '删除员工时出错' },
+  error_reading_excel: { en: 'Error reading Excel file. Make sure columns are: Employee ID, Name, Country, Email', es: 'Error al leer el archivo Excel. Asegúrate de que las columnas sean: Employee ID, Name, Country, Email', pt: 'Erro ao ler o arquivo Excel. Verifique se as colunas são: Employee ID, Name, Country, Email', zh: '读取 Excel 文件出错，请确认列名为：Employee ID、Name、Country、Email' },
+  error_setting_top_experience: { en: 'Error setting top experience', es: 'Error al establecer la experiencia destacada', pt: 'Erro ao definir a experiência em destaque', zh: '设置精选经验时出错' },
+  please_enter_quote_text: { en: 'Please enter quote text', es: 'Por favor, ingresa el texto de la cita', pt: 'Por favor, digite o texto da citação', zh: '请输入语录文本' },
+  author_required_bottom: { en: 'Author is required for bottom quotes', es: 'El autor es obligatorio para las citas inferiores', pt: 'O autor é obrigatório para citações no rodapé', zh: '底部语录必须填写作者' },
+  error_adding_quote: { en: 'Error adding quote', es: 'Error al agregar la cita', pt: 'Erro ao adicionar a citação', zh: '添加语录时出错' },
+  error_updating_quote: { en: 'Error updating quote', es: 'Error al actualizar la cita', pt: 'Erro ao atualizar a citação', zh: '更新语录时出错' },
+  error_deleting_quote: { en: 'Error deleting quote', es: 'Error al eliminar la cita', pt: 'Erro ao excluir a citação', zh: '删除语录时出错' },
+  error_updating_content: { en: 'Error updating content', es: 'Error al actualizar el contenido', pt: 'Erro ao atualizar o conteúdo', zh: '更新内容时出错' },
+  please_enter_url: { en: 'Please enter a URL', es: 'Por favor, ingresa una URL', pt: 'Por favor, digite uma URL', zh: '请输入网址' },
+  error_adding_link: { en: 'Error adding link:', es: 'Error al agregar el enlace:', pt: 'Erro ao adicionar o link:', zh: '添加链接时出错：' },
+  please_select_file: { en: 'Please select a file', es: 'Por favor, selecciona un archivo', pt: 'Por favor, selecione um arquivo', zh: '请选择文件' },
+  please_enter_video_duration: { en: 'Please enter video duration (e.g., 1:30)', es: 'Por favor, ingresa la duración del video (ej. 1:30)', pt: 'Por favor, digite a duração do vídeo (ex: 1:30)', zh: '请输入视频时长（例如 1:30）' },
+  error_adding_video: { en: 'Error adding video:', es: 'Error al agregar el video:', pt: 'Erro ao adicionar o vídeo:', zh: '添加视频时出错：' },
+  error_deleting_video: { en: 'Error deleting video', es: 'Error al eliminar el video', pt: 'Erro ao excluir o vídeo', zh: '删除视频时出错' },
+  error_updating_video_order: { en: 'Error updating video order', es: 'Error al actualizar el orden de los videos', pt: 'Erro ao atualizar a ordem dos vídeos', zh: '更新视频顺序时出错' },
+  error_updating_duration: { en: 'Error updating duration', es: 'Error al actualizar la duración', pt: 'Erro ao atualizar a duração', zh: '更新时长时出错' },
+  error_updating_name: { en: 'Error updating name', es: 'Error al actualizar el nombre', pt: 'Erro ao atualizar o nome', zh: '更新名称时出错' },
+  error_deleting_items: { en: 'Error deleting some items:', es: 'Error al eliminar algunos elementos:', pt: 'Erro ao excluir alguns itens:', zh: '删除部分项目时出错：' },
+  error_deleting: { en: 'Error deleting:', es: 'Error al eliminar:', pt: 'Erro ao excluir:', zh: '删除时出错：' },
+  error_updating_status: { en: 'Error updating status:', es: 'Error al actualizar el estado:', pt: 'Erro ao atualizar o status:', zh: '更新状态时出错：' },
+  error_saving_contact_info: { en: 'Error saving contact info:', es: 'Error al guardar la información de contacto:', pt: 'Erro ao salvar as informações de contato:', zh: '保存联系信息时出错：' },
+  contact_info_saved: { en: 'Contact info saved.', es: 'Información de contacto guardada.', pt: 'Informações de contato salvas.', zh: '联系信息已保存。' },
+  contact_name_placeholder: { en: 'Contact Name', es: 'Nombre de Contacto', pt: 'Nome de Contato', zh: '联系人姓名' },
+  phone: { en: 'Phone', es: 'Teléfono', pt: 'Telefone', zh: '电话' },
+  city_country: { en: 'City/Country', es: 'Ciudad/País', pt: 'Cidade/País', zh: '城市/国家' },
+  comments_optional: { en: 'Comments (optional)', es: 'Comentarios (opcional)', pt: 'Comentários (opcional)', zh: '备注（选填）' },
+  enter_quote_placeholder: { en: 'Enter the quote...', es: 'Ingresa la cita...', pt: 'Digite a citação...', zh: '输入语录内容……' },
+  author_name_placeholder: { en: 'Author name...', es: 'Nombre del autor...', pt: 'Nome do autor...', zh: '作者姓名……' },
+  enter_content_markdown: { en: 'Enter content in Markdown format...', es: 'Ingresa el contenido en formato Markdown...', pt: 'Digite o conteúdo em formato Markdown...', zh: '请输入 Markdown 格式的内容……' },
+  corporate_email: { en: 'Corporate Email', es: 'Correo Corporativo', pt: 'E-mail Corporativo', zh: '公司邮箱' },
+  search_by_id_name_email: { en: 'Search by ID, name or email...', es: 'Buscar por ID, nombre o correo...', pt: 'Buscar por ID, nome ou e-mail...', zh: '按 ID、姓名或邮箱搜索……' },
+  category_name_placeholder: { en: 'Category name...', es: 'Nombre de la categoría...', pt: 'Nome da categoria...', zh: '分类名称……' },
+  category_name_placeholder_short: { en: 'Category name', es: 'Nombre de la categoría', pt: 'Nome da categoria', zh: '分类名称' },
   // Lote 2 — botões e labels genéricos usados nas seções administrativas
   save: { en: 'Save', es: 'Guardar', pt: 'Salvar', zh: '保存' },
   cancel: { en: 'Cancel', es: 'Cancelar', pt: 'Cancelar', zh: '取消' },
@@ -684,6 +787,16 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
       es: count === 1 ? 'calificación' : 'calificaciones',
       pt: count === 1 ? 'avaliação' : 'avaliações',
       zh: '评分',
+    };
+    return templates[effectiveViewingLanguage] || templates.en;
+  };
+  // "🔗 Follow-On Experience N"
+  const tFollowOnExperience = (threadIndex) => {
+    const templates = {
+      en: `🔗 Follow-On Experience ${threadIndex}`,
+      es: `🔗 Experiencia de Continuación ${threadIndex}`,
+      pt: `🔗 Experiência de Continuação ${threadIndex}`,
+      zh: `🔗 续写经验 ${threadIndex}`,
     };
     return templates[effectiveViewingLanguage] || templates.en;
   };
@@ -1341,7 +1454,7 @@ if (lastCommentIds.length > 0) {
 }
   } catch (error) {
     console.error('Error loading experiences:', error);
-    alert('Error loading data. Please refresh the page.');
+    alert(t('error_loading_data'));
   } finally {
     if (!skipLoading) {
       setLoading(false);
@@ -1555,14 +1668,14 @@ const createSeller = async () => {
   const sellerName = newSeller.name.trim();
   const sellerEmail = newSeller.email.trim().toLowerCase();
   if (!sellerId || !sellerName) {
-    alert('Employee ID and Name are required');
+    alert(t('employee_id_name_required'));
     return;
   }
   // Email é obrigatório aqui — o fluxo de "1st Access" busca por email +
   // Employee ID juntos, então sem email o seller nunca consegue completar o
   // cadastro (a busca não encontra nada e a tela trava sem enviar o código).
   if (!sellerEmail) {
-    alert('Email is required — the seller needs it to complete 1st Access.');
+    alert(t('seller_email_required'));
     return;
   }
   setCreatingSeller(true);
@@ -1592,7 +1705,7 @@ const createSeller = async () => {
     alert(`Seller "${sellerName}" created. Demo IDs are generated on demand when you add them to a Demo Group.`);
   } catch (error) {
     console.error('Error creating seller:', error);
-    alert('Error creating seller. ID may already exist.');
+    alert(t('error_creating_seller'));
   } finally {
     setCreatingSeller(false);
   }
@@ -1605,7 +1718,7 @@ const toggleSellerActive = async (sellerRowId, active) => {
     await loadSellers();
   } catch (error) {
     console.error('Error updating seller:', error);
-    alert('Error updating seller');
+    alert(t('error_updating_seller'));
   }
 };
 
@@ -1638,7 +1751,7 @@ const deleteSeller = async (sellerRowId, sellerName) => {
     alert(`Seller "${sellerName}" deleted.`);
   } catch (error) {
     console.error('Error deleting seller:', error);
-    alert('Error deleting seller: ' + error.message);
+    alert(t('error_deleting_seller') + ' ' + error.message);
   }
 };
 
@@ -1735,11 +1848,11 @@ const deleteDemoSession = async (sessionId, { silent } = {}) => {
     localStorage.removeItem('currentDemoSessionId');
     if (!silent) {
       await loadExperiences(true);
-      alert('Demo content deleted.');
+      alert(t('demo_content_deleted'));
     }
   } catch (error) {
     console.error('Error deleting demo session:', error);
-    if (!silent) alert('Error deleting demo content: ' + error.message);
+    if (!silent) alert(t('error_deleting_demo_content') + ' ' + error.message);
   }
 };
 
@@ -1874,7 +1987,7 @@ const loadUITranslations = async () => {
 
 const addCompany = async () => {
   if (!newCompany.name.trim()) {
-    alert('Company name is required');
+    alert(t('company_name_required'));
     return;
   }
   const code = newCompany.code.trim() || newCompany.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-');
@@ -1892,10 +2005,10 @@ const addCompany = async () => {
     // contexto — não muda o contexto sozinho, só fica pronta caso escolham
     // "Company" a seguir.
     if (data) setSelectedCompanyForContext(data.id);
-    alert('Company added successfully!');
+    alert(t('company_added_success'));
   } catch (error) {
     console.error('Error adding company:', error);
-    alert('Error adding company. Code may already exist.');
+    alert(t('error_adding_company'));
   }
 };
 
@@ -1915,7 +2028,7 @@ const toggleCompanyActive = async (companyId, active) => {
 // entrada de visibilidade do Master. Nunca mexe no Default.
 const deleteCompany = async (companyId, companyName) => {
   if (companyId === defaultCompanyId) {
-    alert('The Default company cannot be deleted.');
+    alert(t('default_company_cannot_delete'));
     return;
   }
   if (!window.confirm(`Delete "${companyName}" permanently? This removes ALL its employees, experiences, comments and settings. This cannot be undone.`)) return;
@@ -1958,7 +2071,7 @@ const deleteCompany = async (companyId, companyName) => {
     alert(`"${companyName}" deleted.`);
   } catch (error) {
     console.error('Error deleting company:', error);
-    alert('Error deleting company: ' + error.message);
+    alert(t('error_deleting_company') + ' ' + error.message);
   }
 };
 
@@ -1996,7 +2109,7 @@ const toggleMasterVisibility = async (sectionKey, checked) => {
     if (error) throw error;
   } catch (error) {
     console.error('Error saving visibility:', error);
-    alert('Error saving visibility setting.');
+    alert(t('error_saving_visibility'));
   }
 };
 
@@ -2014,7 +2127,7 @@ const toggleAllMasterVisibility = async (checked) => {
     if (error) throw error;
   } catch (error) {
     console.error('Error saving visibility:', error);
-    alert('Error saving visibility setting.');
+    alert(t('error_saving_visibility'));
   }
 };
 // Todas as seções que têm opção de Import — usado pelo checkbox "ALL" da
@@ -2110,7 +2223,7 @@ const importMetadataModel = async () => {
     return true;
   } catch (error) {
     console.error('Error importing Metadata Model:', error);
-    alert('Error during import: ' + error.message);
+    alert(t('error_during_import') + ' ' + error.message);
     return false;
   } finally {
     setImportingBundle(false);
@@ -2133,7 +2246,7 @@ const importSyntheticContent = async () => {
     // (inativa), e sem esse filtro o mapeamento por nome podia pegar a errada.
     const { data: targetPractices } = await supabase.from('practices').select('*').eq('company_id', effectiveCompanyId).eq('active', true);
     if (!targetPractices || targetPractices.length === 0) {
-      alert('Import Metadata first — Synthetic/Curated Content links to Practices/Categories, which this company doesn\'t have yet.');
+      alert(t('import_metadata_first'));
       setImportingBundle(false);
       return;
     }
@@ -2342,7 +2455,7 @@ const importSyntheticContent = async () => {
     alert(`Synthetic/Curated Content updated — ${addedEmployees} new Employee(s), ${addedExperiences} new Experience(s)/Key Insight(s), ${addedTop3} new Top 3 item(s).`);
   } catch (error) {
     console.error('Error importing Synthetic Content:', error);
-    alert('Error during import: ' + error.message);
+    alert(t('error_during_import') + ' ' + error.message);
   } finally {
     setImportingBundle(false);
   }
@@ -2376,7 +2489,7 @@ const importQuotesFromDefault = async () => {
     alert(`Quotes updated — ${added} new item(s).`);
   } catch (error) {
     console.error('Error importing quotes:', error);
-    alert('Error importing quotes: ' + error.message);
+    alert(t('error_importing_quotes') + ' ' + error.message);
   } finally {
     setImportingQuotes(false);
   }
@@ -2413,7 +2526,7 @@ const importPromotionalVideos = async () => {
     alert(`Promotional Videos updated — ${added} new item(s).`);
   } catch (error) {
     console.error('Error importing promotional videos:', error);
-    alert('Error: ' + error.message);
+    alert(t('generic_error') + ' ' + error.message);
   } finally {
     setImportingBundle(false);
   }
@@ -2448,7 +2561,7 @@ const importContentPages = async () => {
     alert(`Content Pages updated — ${added} new item(s).`);
   } catch (error) {
     console.error('Error importing content pages:', error);
-    alert('Error: ' + error.message);
+    alert(t('generic_error') + ' ' + error.message);
   } finally {
     setImportingBundle(false);
   }
@@ -2468,7 +2581,7 @@ const importAppConfiguration = async () => {
       .from('app_settings').select('*').eq('company_id', defaultCompanyId).maybeSingle();
     if (fetchErr) throw fetchErr;
     if (!defaultSettings) {
-      alert('Default has no App Configuration to copy from.');
+      alert(t('no_app_config_to_copy'));
       return;
     }
 
@@ -2488,10 +2601,10 @@ const importAppConfiguration = async () => {
     if (error) throw error;
 
     await loadAppSettings();
-    alert('App Configuration copied from Default.');
+    alert(t('app_config_copied'));
   } catch (error) {
     console.error('Error importing App Configuration:', error);
-    alert('Error: ' + error.message);
+    alert(t('generic_error') + ' ' + error.message);
   } finally {
     setImportingBundle(false);
   }
@@ -2560,7 +2673,7 @@ const deleteCategoryCascade = async (cat) => {
     await loadExperiences(false, null);
   } catch (error) {
     console.error('Error deleting category (cascade):', error);
-    alert('Error deleting category: ' + error.message);
+    alert(t('error_deleting_category') + ' ' + error.message);
   }
 };
 
@@ -2656,7 +2769,7 @@ const deletePracticesBatch = async (practicesList) => {
 
 const addEmployee = async () => {
   if (!newEmployee.employee_id.trim() || !newEmployee.name.trim()) {
-    alert('Employee ID and Name are required');
+    alert(t('employee_id_name_required'));
     return;
   }
   try {
@@ -2676,7 +2789,7 @@ const addEmployee = async () => {
     alert(`Employee added successfully to ${effectiveCompanyName}!`);
   } catch (error) {
     console.error('Error adding employee:', error);
-    alert('Error adding employee. ID may already exist.');
+    alert(t('error_adding_employee'));
   }
 };
 
@@ -2703,7 +2816,7 @@ const updateEmployee = async (empId) => {
     await loadEmployees();
   } catch (error) {
     console.error('Error updating employee:', error);
-    alert('Error updating employee');
+    alert(t('error_updating_employee'));
   }
 };
 
@@ -2715,7 +2828,7 @@ const deleteEmployee = async (empId) => {
     await loadEmployees();
   } catch (error) {
     console.error('Error deleting employee:', error);
-    alert('Error deleting employee');
+    alert(t('error_deleting_employee'));
   }
 };
 
@@ -2743,7 +2856,7 @@ const handleExcelUpload = async (file) => {
     alert(`Upload complete! Added: ${added}, Errors/Skipped: ${errors}`);
   } catch (error) {
     console.error('Error uploading Excel:', error);
-    alert('Error reading Excel file. Make sure columns are: Employee ID, Name, Country, Email');
+    alert(t('error_reading_excel'));
   }
 };
 
@@ -3173,7 +3286,7 @@ const deleteFileFromStorage = async (fileUrl) => {
       await loadTopExperiences();
     } catch (error) {
       console.error('Error setting top experience:', error);
-      alert('Error setting top experience');
+      alert(t('error_setting_top_experience'));
     }
   };
 
@@ -3517,7 +3630,7 @@ setTimeout(() => {
     return true;
   } catch (error) {
     console.error('Error adding experience:', error);
-    alert('Error saving experience.');
+    alert(t('error_saving_experience'));
     return false;
   }
 };
@@ -3534,7 +3647,7 @@ setTimeout(() => {
     
     // Verificar se é o dono (modo Corp)
 if (appSettings.requireEmployeeLogin && !isAdmin && exp.employeeId !== employeeId) {
-  alert('You can only delete your own experiences!');
+  alert(t('can_only_delete_own_experiences'));
   return false;
 }
     
@@ -3578,7 +3691,7 @@ if (appSettings.requireEmployeeLogin && !isAdmin && exp.employeeId !== employeeI
     return true;
   } catch (error) {
     console.error('Error deleting experience:', error);
-    alert('Error deleting experience.');
+    alert(t('error_deleting_experience'));
     return false;
   }
 };
@@ -3586,7 +3699,7 @@ if (appSettings.requireEmployeeLogin && !isAdmin && exp.employeeId !== employeeI
   const handleAddComment = async (experienceId) => {
     if (isReadOnlyOrMasterManaging) return;
   if (!newComment[experienceId]?.trim()) {
-    alert('Please enter a comment!');
+    alert(t('please_enter_comment'));
     return;
   }
   
@@ -3645,7 +3758,7 @@ if (appSettings.requireEmployeeLogin && !isAdmin && exp.employeeId !== employeeI
     }
   } catch (error) {
     console.error('Error adding comment:', error);
-    alert('Error adding comment');
+    alert(t('error_adding_comment'));
   }
   };
 
@@ -3883,7 +3996,7 @@ const industrySectors = [
   if (isReadOnlyOrMasterManaging) return;
   if (userRatings[expId]) {
     console.log('🔍 Rating:', { expId, rating, filterMode });
-    alert('You have already rated this experience in this session!');
+    alert(t('already_rated_session'));
     return;
   }
   
@@ -4326,12 +4439,12 @@ useEffect(() => {
 
   const addQuote = async () => {
     if (!newQuote.text.trim()) {
-      alert('Please enter quote text');
+      alert(t('please_enter_quote_text'));
       return;
     }
     
     if (newQuote.position === 'bottom' && !newQuote.author.trim()) {
-      alert('Author is required for bottom quotes');
+      alert(t('author_required_bottom'));
       return;
     }
     
@@ -4351,7 +4464,7 @@ useEffect(() => {
       await loadQuotes();
     } catch (error) {
       console.error('Error adding quote:', error);
-      alert('Error adding quote');
+      alert(t('error_adding_quote'));
     }
   };
 
@@ -4368,7 +4481,7 @@ useEffect(() => {
       await loadQuotes();
     } catch (error) {
       console.error('Error updating quote:', error);
-      alert('Error updating quote');
+      alert(t('error_updating_quote'));
     }
   };
 
@@ -4384,7 +4497,7 @@ useEffect(() => {
       await loadQuotes();
     } catch (error) {
       console.error('Error deleting quote:', error);
-      alert('Error deleting quote');
+      alert(t('error_deleting_quote'));
     }
   };
 
@@ -4428,10 +4541,10 @@ useEffect(() => {
       
       await loadContentPages();
       setEditingContent({ key: '', content: '' });
-      alert('Content updated successfully!');
+      alert(t('content_updated_success'));
     } catch (error) {
       console.error('Error updating content:', error);
-      alert('Error updating content');
+      alert(t('error_updating_content'));
     }
   };
 
@@ -4545,7 +4658,7 @@ useEffect(() => {
   const addPromotionalVideo = async () => {
     if (newItemType === 'link') {
       if (!newLinkUrl.trim()) {
-        alert('Please enter a URL');
+        alert(t('please_enter_url'));
         return;
       }
       try {
@@ -4569,20 +4682,20 @@ useEffect(() => {
         setNewLinkUrl('');
         setNewLinkLabel('');
         setNewItemLanguage('');
-        alert('Link added successfully!');
+        alert(t('link_added_success'));
       } catch (error) {
-        alert('Error adding link: ' + error.message);
+        alert(t('error_adding_link') + ' ' + error.message);
       }
       return;
     }
 
     if (!newVideoFile) {
-      alert('Please select a file');
+      alert(t('please_select_file'));
       return;
     }
 
     if (newItemType === 'video' && !newVideoDuration) {
-      alert('Please enter video duration (e.g., 1:30)');
+      alert(t('please_enter_video_duration'));
       return;
     }
 
@@ -4626,10 +4739,10 @@ useEffect(() => {
       // página inteira, quase sempre um errado, de outra seção).
       if (promoVideoFileInputRef.current) promoVideoFileInputRef.current.value = '';
 
-      alert('Video added successfully!');
+      alert(t('video_added_success'));
     } catch (error) {
       console.error('Error adding video:', error);
-      alert('Error adding video: ' + error.message);
+      alert(t('error_adding_video') + ' ' + error.message);
     } finally {
       setUploadingVideo(false);
     }
@@ -4649,10 +4762,10 @@ useEffect(() => {
       if (error) throw error;
 
       await loadPromotionalVideos();
-      alert('Video deleted successfully!');
+      alert(t('video_deleted_success'));
     } catch (error) {
       console.error('Error deleting video:', error);
-      alert('Error deleting video');
+      alert(t('error_deleting_video'));
     }
   };
 
@@ -4689,7 +4802,7 @@ useEffect(() => {
       await Promise.all(updates);
     } catch (error) {
       console.error('Error updating video orders:', error);
-      alert('Error updating video order');
+      alert(t('error_updating_video_order'));
     }
   };
 
@@ -4704,10 +4817,10 @@ useEffect(() => {
 
       await loadPromotionalVideos();
       setEditingVideoDuration({});
-      alert('Duration updated successfully!');
+      alert(t('duration_updated_success'));
     } catch (error) {
       console.error('Error updating duration:', error);
-      alert('Error updating duration');
+      alert(t('error_updating_duration'));
     }
   };
 
@@ -4724,7 +4837,7 @@ useEffect(() => {
       setEditingVideoName({});
     } catch (error) {
       console.error('Error updating name:', error);
-      alert('Error updating name');
+      alert(t('error_updating_name'));
     }
   };
 
@@ -4749,13 +4862,13 @@ useEffect(() => {
     const comment = exp?.comments.find(c => c.id === commentId);
     
     if (!comment) {
-      alert('Comment not found!');
+      alert(t('comment_not_found'));
       return;
     }
     
     // Verificar se é o dono (modo Corp)
 if (appSettings.requireEmployeeLogin && !isAdmin && comment.employeeId !== employeeId) {
-  alert('You can only delete your own comments!');
+  alert(t('can_only_delete_own_comments'));
   return;
 }
     
@@ -4781,7 +4894,7 @@ if (appSettings.requireEmployeeLogin && !isAdmin && comment.employeeId !== emplo
     }, 100);
   } catch (error) {
     console.error('Error deleting comment:', error);
-    alert('Error deleting comment.');
+    alert(t('error_deleting_comment'));
   }
 };
 
@@ -4890,7 +5003,7 @@ const handleDeleteAllMatches = async () => {
     resetDeletionFilters();
   } catch (error) {
     console.error('Error deleting matches:', error);
-    alert('Error deleting some items: ' + error.message);
+    alert(t('error_deleting_items') + ' ' + error.message);
   }
 };
 
@@ -5180,7 +5293,7 @@ useEffect(() => {
           <div id={`exp-${fo.id}`} className={`bg-white rounded-2xl shadow-lg p-6 border-l-4 border-blue-300 ${isGreyed ? 'opacity-40' : ''}`}>
             {/* Badge */}
             <div className="mb-3 text-center">
-              <span className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">🔗 Follow-On Experience {threadIndex}</span>
+              <span className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">{tFollowOnExperience(threadIndex)}</span>
             </div>
             {/* By + delete */}
             <div className="mb-3">
@@ -5197,7 +5310,7 @@ useEffect(() => {
                 </span>
               )}
               {appSettings.requireEmployeeLogin && fo.employeeId === employeeId && (
-                <button onClick={async () => { if (window.confirm('Delete this experience?')) await deleteExperienceFromSupabase(fo.id); }}
+                <button onClick={async () => { if (window.confirm(t('confirm_delete_experience'))) await deleteExperienceFromSupabase(fo.id); }}
                   className="text-red-600 hover:text-red-800 text-xs mt-3 inline-flex items-center gap-1">
                   {t('delete_experience')}
                 </button>
@@ -5343,7 +5456,7 @@ useEffect(() => {
                           {/* Delete - só para o dono */}
                           {comment.employeeId === employeeId && (
                             <button
-                              onClick={() => { if (window.confirm('Delete this comment?')) handleDeleteComment(fo.id, comment.id); }}
+                              onClick={() => { if (window.confirm(t('confirm_delete_comment'))) handleDeleteComment(fo.id, comment.id); }}
                               className="text-red-600 hover:text-red-800 text-xs mt-1 inline-flex items-center gap-1"
                             >🗑️ Delete Comment</button>
                           )}
@@ -5395,7 +5508,7 @@ useEffect(() => {
                         </div>
                         {lastComment.employeeId === employeeId && (
                           <button
-                            onClick={() => { if (window.confirm('Delete this comment?')) handleDeleteComment(fo.id, lastComment.id); }}
+                            onClick={() => { if (window.confirm(t('confirm_delete_comment'))) handleDeleteComment(fo.id, lastComment.id); }}
                             className="text-red-600 hover:text-red-800 text-xs mt-1 inline-flex items-center gap-1"
                           >🗑️ Delete Comment</button>
                         )}
@@ -6104,7 +6217,7 @@ autoComplete="off"
           await loadExperiences(true);
           alert(t('everything_deleted'));
         } catch (error) {
-          alert('Error deleting: ' + error.message);
+          alert(t('error_deleting') + ' ' + error.message);
         }
       }}
       className="flex-shrink-0 px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-medium whitespace-nowrap"
@@ -6427,7 +6540,7 @@ autoComplete="off"
 
     {/* Add Company */}
     <div className="bg-white rounded p-4 mb-4">
-      <h4 className="font-medium text-gray-700 mb-3">Add Company</h4>
+      <h4 className="font-medium text-gray-700 mb-3">{t('add_company')}</h4>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
         <input type="text" value={newCompany.name} onChange={(e) => setNewCompany({...newCompany, name: e.target.value})}
           placeholder="Company Name *" className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
@@ -6478,7 +6591,7 @@ autoComplete="off"
                 value={c.status || 'prospect'}
                 onChange={async (e) => {
                   const { error } = await supabase.from('companies').update({ status: e.target.value }).eq('id', c.id);
-                  if (error) { alert('Error updating status: ' + error.message); return; }
+                  if (error) { alert(t('error_updating_status') + ' ' + error.message); return; }
                   await loadCompanies();
                 }}
                 className={`text-xs px-1.5 py-1 rounded-full font-medium w-24 flex-shrink-0 border-0 ${
@@ -6508,16 +6621,16 @@ autoComplete="off"
               <div className="border-t border-gray-200 p-3 bg-gray-50 space-y-2">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <input type="text" defaultValue={c.contact_name || ''} id={`contact-name-${c.id}`}
-                    placeholder="Contact Name" className="p-1.5 border border-gray-300 rounded text-sm" />
+                    placeholder={t('contact_name_placeholder')} className="p-1.5 border border-gray-300 rounded text-sm" />
                   <input type="email" defaultValue={c.contact_email || ''} id={`contact-email-${c.id}`}
                     placeholder="Email" className="p-1.5 border border-gray-300 rounded text-sm" />
                   <input type="text" defaultValue={c.contact_phone || ''} id={`contact-phone-${c.id}`}
-                    placeholder="Phone" className="p-1.5 border border-gray-300 rounded text-sm" />
+                    placeholder={t('phone')} className="p-1.5 border border-gray-300 rounded text-sm" />
                   <input type="text" defaultValue={c.contact_location || ''} id={`contact-location-${c.id}`}
-                    placeholder="City/Country" className="p-1.5 border border-gray-300 rounded text-sm" />
+                    placeholder={t('city_country')} className="p-1.5 border border-gray-300 rounded text-sm" />
                 </div>
                 <textarea defaultValue={c.contact_notes || ''} id={`contact-notes-${c.id}`}
-                  placeholder="Comments (optional)" rows="2"
+                  placeholder={t('comments_optional')} rows="2"
                   className="w-full p-1.5 border border-gray-300 rounded text-sm" />
                 <button
                   onClick={async () => {
@@ -6528,9 +6641,9 @@ autoComplete="off"
                       contact_location: document.getElementById(`contact-location-${c.id}`).value.trim() || null,
                       contact_notes: document.getElementById(`contact-notes-${c.id}`).value.trim() || null
                     }).eq('id', c.id);
-                    if (error) { alert('Error saving contact info: ' + error.message); return; }
+                    if (error) { alert(t('error_saving_contact_info') + ' ' + error.message); return; }
                     await loadCompanies();
-                    alert('Contact info saved.');
+                    alert(t('contact_info_saved'));
                   }}
                   className="px-3 py-1 bg-indigo-600 text-white rounded text-xs hover:bg-indigo-700"
                 >Save Contact Info</button>
@@ -6552,7 +6665,7 @@ autoComplete="off"
 
     {/* Add Seller */}
     <div className="bg-white rounded p-4 mb-4">
-      <h4 className="font-medium text-gray-700 mb-3">Add Seller</h4>
+      <h4 className="font-medium text-gray-700 mb-3">{t('add_seller')}</h4>
       <p className="text-xs text-gray-500 mb-3">Creates the seller's own account (goes through 1st Access like any employee) — both the Seller ID and email need to match exactly what's entered here. <strong>Suggested ID format:</strong> first two letters of first + last name, plus month/year — e.g. <span className="font-mono">RR072026</span> for "Roberto Rodrigues", registered July 2026.</p>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
         <input type="text" value={newSeller.name} onChange={(e) => setNewSeller({...newSeller, name: e.target.value})}
@@ -6624,16 +6737,16 @@ autoComplete="off"
                 <div className="border-t border-gray-200 p-3 bg-gray-50 space-y-2">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <input type="text" defaultValue={s.contact_name || s.name || ''} id={`seller-contact-name-${s.id}`}
-                      placeholder="Contact Name" className="p-1.5 border border-gray-300 rounded text-sm" />
+                      placeholder={t('contact_name_placeholder')} className="p-1.5 border border-gray-300 rounded text-sm" />
                     <input type="email" defaultValue={s.contact_email || s.email || ''} id={`seller-contact-email-${s.id}`}
                       placeholder="Email" className="p-1.5 border border-gray-300 rounded text-sm" />
                     <input type="text" defaultValue={s.contact_phone || ''} id={`seller-contact-phone-${s.id}`}
-                      placeholder="Phone" className="p-1.5 border border-gray-300 rounded text-sm" />
+                      placeholder={t('phone')} className="p-1.5 border border-gray-300 rounded text-sm" />
                     <input type="text" defaultValue={s.contact_location || ''} id={`seller-contact-location-${s.id}`}
-                      placeholder="City/Country" className="p-1.5 border border-gray-300 rounded text-sm" />
+                      placeholder={t('city_country')} className="p-1.5 border border-gray-300 rounded text-sm" />
                   </div>
                   <textarea defaultValue={s.contact_notes || ''} id={`seller-contact-notes-${s.id}`}
-                    placeholder="Comments (optional)" rows="2"
+                    placeholder={t('comments_optional')} rows="2"
                     className="w-full p-1.5 border border-gray-300 rounded text-sm" />
                   <button
                     onClick={async () => {
@@ -6644,9 +6757,9 @@ autoComplete="off"
                         contact_location: document.getElementById(`seller-contact-location-${s.id}`).value.trim() || null,
                         contact_notes: document.getElementById(`seller-contact-notes-${s.id}`).value.trim() || null
                       }).eq('id', s.id);
-                      if (error) { alert('Error saving contact info: ' + error.message); return; }
+                      if (error) { alert(t('error_saving_contact_info') + ' ' + error.message); return; }
                       await loadSellers();
-                      alert('Contact info saved.');
+                      alert(t('contact_info_saved'));
                     }}
                     className="px-3 py-1 bg-indigo-600 text-white rounded text-xs hover:bg-indigo-700"
                   >Save Contact Info</button>
@@ -6686,7 +6799,7 @@ autoComplete="off"
 
     {/* Create New Group */}
     <div className="bg-white rounded p-4 mb-4">
-      <h4 className="font-medium text-gray-700 mb-3">Create New Group</h4>
+      <h4 className="font-medium text-gray-700 mb-3">{t('create_new_group')}</h4>
       <div className="flex gap-2 mb-3">
         <select
           id="new-group-company"
@@ -6724,7 +6837,7 @@ autoComplete="off"
     <div className="bg-white rounded p-4">
       <h4 className="font-medium text-gray-700 mb-3">Active Groups ({demoGroups.length})</h4>
       {demoGroups.length === 0 ? (
-        <p className="text-sm text-gray-500">No groups yet</p>
+        <p className="text-sm text-gray-500">{t('no_groups_yet')}</p>
       ) : (
         <div className="space-y-4">
           {demoGroups.map(group => {
@@ -6852,7 +6965,7 @@ autoComplete="off"
                     );
                   })}
                   {(group.employees || []).length === 0 && (
-                    <span className="text-xs text-gray-400">No members yet</span>
+                    <span className="text-xs text-gray-400">{t('no_members_yet')}</span>
                   )}
                 </div>
               </div>
@@ -7219,7 +7332,7 @@ autoComplete="off"
         <label className="block text-sm font-semibold text-gray-700 mb-3">🏢 Company Branding</label>
 
         <div className="mb-4">
-          <label className="block text-xs font-medium text-gray-600 mb-1">Company Name</label>
+          <label className="block text-xs font-medium text-gray-600 mb-1">{t('company_name')}</label>
           <p className="text-xs text-gray-400 mb-2">Displayed below "WhatIDid Corp" in the header</p>
           <div className="flex gap-2 mb-2">
             <input type="text" value={companyName} onChange={(e) => setCompanyName(e.target.value)}
@@ -7227,9 +7340,9 @@ autoComplete="off"
               className="flex-1 p-2 border-2 border-gray-300 rounded-lg text-sm" maxLength={60} />
             <button onClick={async () => {
               const { error } = await supabase.from('app_settings').update({ company_name: companyName }).eq('company_id', effectiveCompanyId);
-              if (error) alert('Error: ' + error.message);
+              if (error) alert(t('generic_error') + ' ' + error.message);
               else alert('Company name saved!');
-            }} className="px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700">Save</button>
+            }} className="px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700">{t('save')}</button>
             {companyName && (
               <button onClick={async () => {
                 setCompanyName('');
@@ -7255,12 +7368,12 @@ autoComplete="off"
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">Company Logo</label>
+          <label className="block text-xs font-medium text-gray-600 mb-1">{t('company_logo')}</label>
           <p className="text-xs text-gray-400 mb-2">Top-right on desktop, below header on mobile (PNG, JPG, SVG — max 2MB)</p>
           {companyLogoUrl && (
             <div className="mb-3 flex items-center gap-3 p-2 bg-gray-50 rounded-lg border border-gray-200">
               <img src={companyLogoUrl} alt="logo" className="h-10 object-contain border border-gray-200 rounded p-1 bg-white" />
-              <span className="text-xs text-gray-500 flex-1">Logo active</span>
+              <span className="text-xs text-gray-500 flex-1">{t('logo_active')}</span>
               <button onClick={async () => {
                 const { error } = await supabase.from('app_settings').update({ company_logo_url: null }).eq('company_id', effectiveCompanyId);
                 if (!error) { setCompanyLogoUrl(''); alert('Logo removed!'); }
@@ -7334,14 +7447,14 @@ autoComplete="off"
       </div>
               
               <div className="bg-white rounded p-4 mb-4">
-                <h4 className="font-medium text-gray-700 mb-3">Add New Quote</h4>
+                <h4 className="font-medium text-gray-700 mb-3">{t('add_new_quote')}</h4>
                 <div className="space-y-3">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Quote Text</label>
                     <textarea
                       value={newQuote.text}
                       onChange={(e) => setNewQuote({...newQuote, text: e.target.value})}
-                      placeholder="Enter the quote..."
+                      placeholder={t('enter_quote_placeholder')}
                       className="w-full p-2 border-2 border-gray-300 rounded-lg resize-none"
                       rows="3"
                     />
@@ -7354,7 +7467,7 @@ autoComplete="off"
                       type="text"
                       value={newQuote.author}
                       onChange={(e) => setNewQuote({...newQuote, author: e.target.value})}
-                      placeholder="Author name..."
+                      placeholder={t('author_name_placeholder')}
                       className="w-full p-2 border-2 border-gray-300 rounded-lg"
                     />
                   </div>
@@ -7381,7 +7494,7 @@ autoComplete="off"
               <div className="bg-white rounded p-4">
                 <h4 className="font-medium text-gray-700 mb-3">Existing Quotes ({quotes.length})</h4>
                 {quotes.length === 0 ? (
-                  <p className="text-sm text-gray-500">No quotes yet</p>
+                  <p className="text-sm text-gray-500">{t('no_quotes_yet')}</p>
                 ) : (
                   <div className="space-y-3 max-h-96 overflow-y-auto">
                     {quotes.map((quote) => (
@@ -7446,7 +7559,7 @@ autoComplete="off"
                               </button>
                               <button
                                 onClick={() => {
-                                  if (window.confirm('Delete this quote?')) {
+                                  if (window.confirm(t('confirm_delete_quote'))) {
                                     deleteQuote(quote.id);
                                   }
                                 }}
@@ -7475,7 +7588,7 @@ autoComplete="off"
               </h3>
               
               <div className={`bg-white rounded p-4 mb-4 ${isReadOnlyOrMasterManaging ? "pointer-events-none opacity-60" : ""}`}>
-                <h4 className="font-medium text-gray-700 mb-3">Add New Item</h4>
+                <h4 className="font-medium text-gray-700 mb-3">{t('add_new_item')}</h4>
                 <div className="space-y-3">
                   {/* Type selector */}
                   <div className="flex gap-4 bg-gray-50 p-3 rounded-lg flex-wrap">
@@ -7608,7 +7721,7 @@ autoComplete="off"
               <div className={`bg-white rounded p-4 ${isReadOnlyOrMasterManaging ? "pointer-events-none opacity-60" : ""}`}>
                 <h4 className="font-medium text-gray-700 mb-3">Promotional Videos ({promotionalVideos.length})</h4>
                 {allPromotionalVideosAdmin.length === 0 ? (
-                  <p className="text-sm text-gray-500">No videos yet</p>
+                  <p className="text-sm text-gray-500">{t('no_videos_yet')}</p>
                 ) : (
                   <div className="space-y-3 max-h-96 overflow-y-auto">
                     {allPromotionalVideosAdmin.map((video, index) => (
@@ -7708,7 +7821,7 @@ autoComplete="off"
                               </div>
                             ) : (
                               <p className="text-sm font-medium text-gray-800 mb-1">
-                                {video.linkLabel || <span className="text-gray-400 italic">No name set</span>}
+                                {video.linkLabel || <span className="text-gray-400 italic">{t('no_name_set')}</span>}
                               </p>
                             )}
                             <p className="text-xs text-gray-500 truncate mb-2" title={video.url}>
@@ -7719,7 +7832,7 @@ autoComplete="off"
                                 value={video.visible ? 'show' : 'hide'}
                                 onChange={async (e) => {
                                   const { error } = await supabase.from('promotional_videos').update({ visible: e.target.value === 'show' }).eq('id', video.id);
-                                  if (error) { alert('Error: ' + error.message); return; }
+                                  if (error) { alert(t('generic_error') + ' ' + error.message); return; }
                                   await loadPromotionalVideos();
                                 }}
                                 className={`text-xs px-2 py-1 rounded-full font-medium border-0 ${video.visible ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}
@@ -7731,7 +7844,7 @@ autoComplete="off"
                                 value={video.language || ''}
                                 onChange={async (e) => {
                                   const { error } = await supabase.from('promotional_videos').update({ language: e.target.value || null }).eq('id', video.id);
-                                  if (error) { alert('Error: ' + error.message); return; }
+                                  if (error) { alert(t('generic_error') + ' ' + error.message); return; }
                                   await loadPromotionalVideos();
                                 }}
                                 className="text-xs px-2 py-1 rounded-full font-medium border-0 bg-blue-50 text-blue-700"
@@ -7769,7 +7882,7 @@ autoComplete="off"
                               </button>
                               <button
                                 onClick={() => {
-                                  if (window.confirm('Delete this video?')) {
+                                  if (window.confirm(t('confirm_delete_video'))) {
                                     deletePromotionalVideo(video.id);
                                   }
                                 }}
@@ -7822,7 +7935,7 @@ autoComplete="off"
                             onChange={(e) => setEditingContent({ ...editingContent, content: e.target.value })}
                             className="w-full p-3 border-2 border-gray-300 rounded-lg resize-none font-mono text-sm"
                             rows="15"
-                            placeholder="Enter content in Markdown format..."
+                            placeholder={t('enter_content_markdown')}
                           />
                           <div className="text-xs text-gray-600 mb-2">
                             <strong>Markdown Tips:</strong> Use # for titles, ## for subtitles, ### for sections, - for bullet points
@@ -7866,16 +7979,16 @@ autoComplete="off"
     {/* Add Employee */}
     {(!isReadOnlyOrMasterManaging || canBootstrapFirstAdmin) && (
     <div className="bg-white rounded p-4 mb-4">
-      <h4 className="font-medium text-gray-700 mb-3">Add Employee</h4>
+      <h4 className="font-medium text-gray-700 mb-3">{t('add_employee')}</h4>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
         <input type="text" value={newEmployee.employee_id} onChange={(e) => setNewEmployee({...newEmployee, employee_id: e.target.value})}
           placeholder="Employee ID *" className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
         <input type="text" value={newEmployee.name} onChange={(e) => setNewEmployee({...newEmployee, name: e.target.value})}
           placeholder="Full Name *" className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
         <input type="text" value={newEmployee.country} onChange={(e) => setNewEmployee({...newEmployee, country: e.target.value})}
-          placeholder="Country" className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
+          placeholder={t('country')} className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
         <input type="email" value={newEmployee.email} onChange={(e) => setNewEmployee({...newEmployee, email: e.target.value})}
-          placeholder="Corporate Email" className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
+          placeholder={t('corporate_email')} className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
       </div>
       <label className="flex items-center gap-2 mb-3 text-sm text-gray-700 cursor-pointer">
         <input type="checkbox" checked={newEmployee.is_admin} onChange={(e) => setNewEmployee({...newEmployee, is_admin: e.target.checked})}
@@ -7921,7 +8034,7 @@ autoComplete="off"
       <div className="flex items-center gap-3 mb-3">
         <h4 className="font-medium text-gray-700">Search Employees ({employees.length})</h4>
         <input type="text" value={employeeSearch} onChange={(e) => setEmployeeSearch(e.target.value)}
-          placeholder="Search by ID, name or email..." className="flex-1 p-2 border-2 border-gray-200 rounded-lg text-sm" />
+          placeholder={t('search_by_id_name_email')} className="flex-1 p-2 border-2 border-gray-200 rounded-lg text-sm" />
       </div>
       <div className="space-y-2 max-h-96 overflow-y-auto">
         {employees.filter(emp => {
@@ -7935,9 +8048,9 @@ autoComplete="off"
                 <input type="text" defaultValue={emp.name} onChange={(e) => setEditingEmployeeData({...editingEmployeeData, name: e.target.value})}
                   className="flex-1 min-w-24 p-1 border border-gray-300 rounded text-sm" placeholder="Name" />
                 <input type="text" defaultValue={emp.country} onChange={(e) => setEditingEmployeeData({...editingEmployeeData, country: e.target.value})}
-                  className="flex-1 min-w-20 p-1 border border-gray-300 rounded text-sm" placeholder="Country" />
+                  className="flex-1 min-w-20 p-1 border border-gray-300 rounded text-sm" placeholder={t('country')} />
                 <input type="email" defaultValue={emp.email} onChange={(e) => setEditingEmployeeData({...editingEmployeeData, email: e.target.value})}
-                  className="flex-1 min-w-32 p-1 border border-gray-300 rounded text-sm" placeholder="Email" />
+                  className="flex-1 min-w-32 p-1 border border-gray-300 rounded text-sm" placeholder={t('email')} />
                 <label className="flex items-center gap-1 text-xs text-gray-600 shrink-0">
                   <input type="checkbox" defaultChecked={emp.is_admin} onChange={(e) => setEditingEmployeeData({...editingEmployeeData, is_admin: e.target.checked})} />
                   Admin
@@ -8005,7 +8118,7 @@ autoComplete="off"
                     console.error('Error clearing data:', error);
                     alert('Error clearing data: ' + error.message);
                   }
-                }} className="px-2 py-1 bg-orange-600 text-white rounded text-xs hover:bg-orange-700">Clear Data</button>
+                }} className="px-2 py-1 bg-orange-600 text-white rounded text-xs hover:bg-orange-700">{t('clear_data')}</button>
                 <button onClick={() => deleteEmployee(emp.employee_id)}
                   className="px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700">{t('delete')}</button>
                 </>
@@ -8062,7 +8175,7 @@ autoComplete="off"
               }}
               className="w-4 h-4"
             />
-            <span className="text-sm text-gray-700">Show in UI</span>
+            <span className="text-sm text-gray-700">{t('show_in_ui')}</span>
           </label>
         )}
         <button
@@ -8101,19 +8214,19 @@ autoComplete="off"
             }}
             disabled={isReadOnlyOrMasterManaging}
             className={`px-3 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 whitespace-nowrap ${isReadOnlyOrMasterManaging ? 'opacity-40 cursor-not-allowed' : ''}`}
-          >Delete Practice</button>
+          >{t('delete_practice')}</button>
         )}
       </div>
     </div>
 
     <div className={`bg-white rounded p-4 mb-4 ${isReadOnlyOrMasterManaging ? 'pointer-events-none opacity-40' : ''}`}>
-      <h4 className="font-medium text-gray-700 mb-3">Add New Category</h4>
+      <h4 className="font-medium text-gray-700 mb-3">{t('add_new_category')}</h4>
       <div className="flex gap-2 mb-3">
         <input
           type="text"
           value={newCategoryName}
           onChange={(e) => setNewCategoryName(e.target.value)}
-          placeholder="Category name..."
+          placeholder={t('category_name_placeholder')}
           className="flex-1 p-2 border-2 border-gray-300 rounded-lg text-sm"
           onKeyPress={(e) => e.key === 'Enter' && newCategoryName.trim() && (async () => {
             const maxOrder = adminCategories.length;
@@ -8239,7 +8352,7 @@ for (const row of rows) {
                     type="text"
                     defaultValue={cat.name}
                     id={`edit-cat-name-${index}`}
-                    placeholder="Category name"
+                    placeholder={t('category_name_placeholder_short')}
                     className="flex-1 p-1 border border-gray-300 rounded text-sm"
                     autoFocus
                   />
@@ -8277,8 +8390,8 @@ for (const row of rows) {
                       else alert('Error updating category: ' + error.message);
                     }}
                     className="px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700"
-                  >Save</button>
-                  <button onClick={() => setEditingCategory(null)} className="px-2 py-1 bg-gray-400 text-white rounded text-xs hover:bg-gray-500">Cancel</button>
+                  >{t('save')}</button>
+                  <button onClick={() => setEditingCategory(null)} className="px-2 py-1 bg-gray-400 text-white rounded text-xs hover:bg-gray-500">{t('cancel')}</button>
                 </div>
               </div>
             ) : (
@@ -8317,12 +8430,12 @@ for (const row of rows) {
                   )}
                 </div>
                 <button onClick={() => !isReadOnlyOrMasterManaging && setEditingCategory(index)} disabled={isReadOnlyOrMasterManaging}
-                  className={`px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 flex-shrink-0 ${isReadOnlyOrMasterManaging ? 'opacity-40 cursor-not-allowed' : ''}`}>Edit</button>
+                  className={`px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 flex-shrink-0 ${isReadOnlyOrMasterManaging ? 'opacity-40 cursor-not-allowed' : ''}`}>{t('edit')}</button>
                 <button
                   onClick={() => !isReadOnlyOrMasterManaging && deleteCategoryCascade(cat)}
                   disabled={isReadOnlyOrMasterManaging}
                   className={`px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 flex-shrink-0 ${isReadOnlyOrMasterManaging ? 'opacity-40 cursor-not-allowed' : ''}`}
-                >Delete</button>
+                >{t('delete')}</button>
               </>
             )}
           </div>
@@ -8844,7 +8957,7 @@ onClick={() => {
               <div className="space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                   <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-2">Data Type</label>
+                    <label className="block text-sm font-medium text-gray-600 mb-2">{t("data_type")}</label>
                     <select
                       key={`dt-${deletionFiltersRemountKey}`}
                       value={deletionDataType}
@@ -8861,7 +8974,7 @@ onClick={() => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-2">Source</label>
+                    <label className="block text-sm font-medium text-gray-600 mb-2">{t("source")}</label>
                     <select
                       key={`src-${deletionFiltersRemountKey}`}
                       value={deletionSource}
@@ -8901,7 +9014,7 @@ onClick={() => {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-2">Category</label>
+                    <label className="block text-sm font-medium text-gray-600 mb-2">{t("category")}</label>
                     <div className="relative">
                       <select
                         key={`cat-${deletionFiltersRemountKey}`}
@@ -9073,7 +9186,7 @@ onClick={() => {
                       )}
                     </div>
                     {getKeywordMatches().length === 0 ? (
-                      <p className="text-sm text-gray-500">No matches found</p>
+                      <p className="text-sm text-gray-500">{t('no_matches_found')}</p>
                     ) : (
                       <div className="space-y-2 max-h-96 overflow-y-auto">
                         {getKeywordMatches().map((match, idx) => (
@@ -10411,7 +10524,7 @@ onClick={() => {
                     >
                       {!isRootLevel && (
                         <div className="mb-3 text-center">
-                          <span className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">🔗 Follow-On Experience {threadIndex}</span>
+                          <span className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">{tFollowOnExperience(threadIndex)}</span>
                         </div>
                       )}
                       <div className="mb-3">
@@ -10630,7 +10743,7 @@ onClick={() => {
     {appSettings.requireEmployeeLogin && exp.employeeId === employeeId && (
       <button
         onClick={async () => {
-          if (window.confirm('Delete this file?')) {
+          if (window.confirm(t('confirm_delete_file'))) {
             await deleteFileFromStorage(exp.cvUrl);
             
             const { error } = await supabase
@@ -10661,7 +10774,7 @@ onClick={() => {
 {!isReadOnlyOrMasterManaging && appSettings.requireEmployeeLogin && exp.employeeId === employeeId && exp.author !== 'key_insights' && (
   <button
     onClick={async () => {
-      if (window.confirm('Delete this experience? All comments will also be deleted.')) {
+      if (window.confirm(t('confirm_delete_experience_comments'))) {
         await deleteExperienceFromSupabase(exp.id);
       }
     }}
@@ -10809,7 +10922,7 @@ onClick={() => {
                                 else alert('Error saving tags');
                               }}
                               className="px-2 py-0.5 bg-purple-600 text-white rounded text-xs hover:bg-purple-700"
-                            >Save</button>
+                            >{t('save')}</button>
                             <button onClick={() => setEditingTags(null)} className="px-2 py-0.5 bg-gray-400 text-white rounded text-xs">✕</button>
                           </div>
                         ) : (
@@ -10854,7 +10967,7 @@ onClick={() => {
                             else alert('Error saving tags');
                           }}
                           className="px-2 py-0.5 bg-purple-600 text-white rounded text-xs hover:bg-purple-700"
-                        >Save</button>
+                        >{t('save')}</button>
                         <button onClick={() => setEditingTags(null)} className="px-2 py-0.5 bg-gray-400 text-white rounded text-xs">✕</button>
                       </div>
                     )}
@@ -11097,7 +11210,7 @@ onClick={() => {
     {comment.employeeId === employeeId && (
       <button
         onClick={async () => {
-          if (window.confirm('Delete this file?')) {
+          if (window.confirm(t('confirm_delete_file'))) {
             await deleteFileFromStorage(comment.cvUrl);
             
             const { error } = await supabase
@@ -11211,7 +11324,7 @@ onClick={() => {
         {comment.employeeId === employeeId && (
           <button
             onClick={() => {
-              if (window.confirm('Delete this comment?')) {
+              if (window.confirm(t('confirm_delete_comment'))) {
                 handleDeleteComment(exp.id, comment.id);
               }
             }}
@@ -11257,7 +11370,7 @@ onClick={() => {
     {lastComment.employeeId === employeeId && (
       <button
         onClick={async () => {
-          if (window.confirm('Delete this file?')) {
+          if (window.confirm(t('confirm_delete_file'))) {
             await deleteFileFromStorage(lastComment.cvUrl);
             
             const { error } = await supabase
@@ -11369,7 +11482,7 @@ onClick={() => {
           {/* Delete Comment - só para o dono */}
           {lastComment.employeeId === employeeId && (
             <button
-              onClick={() => { if (window.confirm('Delete this comment?')) handleDeleteComment(exp.id, lastComment.id); }}
+              onClick={() => { if (window.confirm(t('confirm_delete_comment'))) handleDeleteComment(exp.id, lastComment.id); }}
               className="text-red-600 hover:text-red-800 text-xs mt-1 inline-flex items-center gap-1"
             >🗑️ Delete Comment</button>
           )}
@@ -11516,7 +11629,7 @@ onClick={() => {
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                       <div>
-                        <label className="block text-sm font-medium mb-1">Problem Category</label>
+                        <label className="block text-sm font-medium mb-1">{t('problem_category')}</label>
                         <select
                           value={editingData[exp.id]?.problemCategory || exp.problemCategory}
                           onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), problemCategory: e.target.value}})}
@@ -11529,7 +11642,7 @@ onClick={() => {
                       </div>
                       
                       <div>
-                        <label className="block text-sm font-medium mb-1">Result Category</label>
+                        <label className="block text-sm font-medium mb-1">{t('result_category')}</label>
                         <select
                           value={editingData[exp.id]?.resultCategory || exp.resultCategory}
                           onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), resultCategory: e.target.value}})}
@@ -11544,7 +11657,7 @@ onClick={() => {
                     
                     <div className="space-y-3 mb-4">
                       <div>
-                        <label className="block text-sm font-medium mb-1">Problem</label>
+                        <label className="block text-sm font-medium mb-1">{t('problem')}</label>
                         <textarea
                           value={editingData[exp.id]?.problem || exp.problem}
                           onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), problem: e.target.value}})}
@@ -11554,7 +11667,7 @@ onClick={() => {
                       </div>
                       
                       <div>
-                        <label className="block text-sm font-medium mb-1">Solution</label>
+                        <label className="block text-sm font-medium mb-1">{t('solution')}</label>
                         <textarea
                           value={editingData[exp.id]?.solution || exp.solution}
                           onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), solution: e.target.value}})}
@@ -11564,7 +11677,7 @@ onClick={() => {
                       </div>
                       
                       <div>
-                        <label className="block text-sm font-medium mb-1">Result</label>
+                        <label className="block text-sm font-medium mb-1">{t('result')}</label>
                         <textarea
                           value={editingData[exp.id]?.result || exp.result}
                           onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), result: e.target.value}})}
@@ -11576,7 +11689,7 @@ onClick={() => {
                     
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
                       <div>
-                        <label className="block text-sm font-medium mb-1">Author</label>
+                        <label className="block text-sm font-medium mb-1">{t('author')}</label>
                         <input
                           type="text"
                           value={editingData[exp.id]?.author || exp.author}
@@ -11586,7 +11699,7 @@ onClick={() => {
                       </div>
                       
                       <div>
-                        <label className="block text-sm font-medium mb-1">Gender</label>
+                        <label className="block text-sm font-medium mb-1">{t('gender')}</label>
                         <select
                           value={editingData[exp.id]?.gender || exp.gender}
                           onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), gender: e.target.value}})}
@@ -11614,7 +11727,7 @@ onClick={() => {
                       </div>
                       
                       <div>
-                        <label className="block text-sm font-medium mb-1">Country</label>
+                        <label className="block text-sm font-medium mb-1">{t('country')}</label>
                         <input
                           type="text"
                           value={editingData[exp.id]?.country || exp.country}
@@ -12204,13 +12317,13 @@ if (selected.length === 0) {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Problem Category</label>
+            <label className="block text-sm font-medium mb-1">{t('problem_category')}</label>
             <select value={editingData[exp.id]?.problemCategory || exp.problemCategory} onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), problemCategory: e.target.value}})} className="w-full p-2 border-2 border-gray-300 rounded">
               {problemCategories.map(cat => (<option key={cat} value={cat}>{cat}</option>))}
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Result Category</label>
+            <label className="block text-sm font-medium mb-1">{t('result_category')}</label>
             <select value={editingData[exp.id]?.resultCategory || exp.resultCategory} onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), resultCategory: e.target.value}})} className="w-full p-2 border-2 border-gray-300 rounded">
               {resultCategories.map(cat => (<option key={cat.value} value={cat.value}>{cat.label}</option>))}
             </select>
@@ -12218,25 +12331,25 @@ if (selected.length === 0) {
         </div>
         <div className="space-y-3 mb-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Problem</label>
+            <label className="block text-sm font-medium mb-1">{t('problem')}</label>
             <textarea value={editingData[exp.id]?.problem || exp.problem} onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), problem: e.target.value}})} className="w-full p-2 border-2 border-gray-300 rounded" rows="3"/>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Solution</label>
+            <label className="block text-sm font-medium mb-1">{t('solution')}</label>
             <textarea value={editingData[exp.id]?.solution || exp.solution} onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), solution: e.target.value}})} className="w-full p-2 border-2 border-gray-300 rounded" rows="3"/>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Result</label>
+            <label className="block text-sm font-medium mb-1">{t('result')}</label>
             <textarea value={editingData[exp.id]?.result || exp.result} onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), result: e.target.value}})} className="w-full p-2 border-2 border-gray-300 rounded" rows="2"/>
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Author</label>
+            <label className="block text-sm font-medium mb-1">{t('author')}</label>
             <input type="text" value={editingData[exp.id]?.author || exp.author} onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), author: e.target.value}})} className="w-full p-2 border-2 border-gray-300 rounded"/>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Gender</label>
+            <label className="block text-sm font-medium mb-1">{t('gender')}</label>
             <select value={editingData[exp.id]?.gender || exp.gender} onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), gender: e.target.value}})} className="w-full p-2 border-2 border-gray-300 rounded">
               <option value="">None</option>
               {genderOptions.map(g => (<option key={g} value={g}>{g}</option>))}
@@ -12250,7 +12363,7 @@ if (selected.length === 0) {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Country</label>
+            <label className="block text-sm font-medium mb-1">{t('country')}</label>
             <input type="text" value={editingData[exp.id]?.country || exp.country} onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), country: e.target.value}})} className="w-full p-2 border-2 border-gray-300 rounded"/>
           </div>
         </div>
