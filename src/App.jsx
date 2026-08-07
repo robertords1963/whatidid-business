@@ -5219,6 +5219,14 @@ useEffect(() => {
   </div>
 ) : appSettings.requireEmployeeLogin && !isEmployeeLoggedIn ? (
   <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 px-4 pt-16 pb-8">
+  <div className="max-w-md mx-auto mb-1">
+    <a
+      href="https://www.whatidid.app"
+      className="block text-right text-sm text-gray-500 hover:text-purple-600 font-medium transition-colors"
+    >
+      Portal →
+    </a>
+  </div>
   <div className="text-center mb-6">
     <h1 className="text-3xl font-bold text-gray-800 flex items-center justify-center gap-2">
       <Share2 className="text-purple-600" size={28} />
@@ -5504,7 +5512,12 @@ autoComplete="off"
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 p-6">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-8"> 
-          
+          <a
+            href="https://www.whatidid.app"
+            className="sm:hidden block text-right text-sm text-gray-500 hover:text-purple-600 font-medium transition-colors mb-2"
+          >
+            Portal →
+          </a>
           <div className="flex items-center justify-between mb-4">
   <div className="flex-1"></div>
   <div className="flex flex-col items-center">
@@ -5526,7 +5539,13 @@ autoComplete="off"
   </div>
 )}
   </div>
-  <div className="flex-1 flex justify-end items-start pt-1">
+  <div className="flex-1 flex flex-col items-end gap-1">
+    <a
+      href="https://www.whatidid.app"
+      className="hidden sm:inline text-sm text-gray-500 hover:text-purple-600 font-medium transition-colors"
+    >
+      Portal →
+    </a>
     {companyLogoUrl && !isSellerBaseView && (
   <img src={companyLogoUrl} alt="Company logo"
     className={`hidden sm:block object-contain ${
