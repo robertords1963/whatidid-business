@@ -277,6 +277,24 @@ const UI_STRINGS = {
   previous_videos: { en: 'Previous videos', es: 'Videos anteriores', pt: 'Vídeos anteriores', zh: '上一批视频' },
   next_videos: { en: 'Next videos', es: 'Videos siguientes', pt: 'Próximos vídeos', zh: '下一批视频' },
   close_video: { en: 'Close video', es: 'Cerrar video', pt: 'Fechar vídeo', zh: '关闭视频' },
+  // Lote 18 — varredura final: Logout, Hide, hero, uploads, buscas, rodapé
+  logout: { en: 'Logout', es: 'Cerrar Sesión', pt: 'Sair', zh: '退出登录' },
+  hide: { en: '✕ Hide', es: '✕ Ocultar', pt: '✕ Ocultar', zh: '✕ 隐藏' },
+  check_all_experiences_shared: { en: 'Check all experiences shared', es: 'Ver todas las experiencias compartidas', pt: 'Ver todas as experiências compartilhadas', zh: '查看所有已分享的经验' },
+  experiences_shared: { en: 'experiences shared', es: 'experiencias compartidas', pt: 'experiências compartilhadas', zh: '条经验已分享' },
+  matching_common_case: { en: '🎯 Matching Common Case →', es: '🎯 Caso Común Coincidente →', pt: '🎯 Caso Comum Correspondente →', zh: '🎯 匹配的共性案例 →' },
+  share_your_thoughts: { en: 'Share your thoughts...', es: 'Comparte tus pensamientos...', pt: 'Compartilhe sua opinião...', zh: '分享你的想法……' },
+  copyright_notice: { en: '© 2026 WhatIDid - All rights reserved', es: '© 2026 WhatIDid - Todos los derechos reservados', pt: '© 2026 WhatIDid - Todos os direitos reservados', zh: '© 2026 WhatIDid - 保留所有权利' },
+  upload_file_optional: { en: 'Upload File (optional) - PPT, XLS, PDF, DOCX', es: 'Subir Archivo (opcional) - PPT, XLS, PDF, DOCX', pt: 'Enviar Arquivo (opcional) - PPT, XLS, PDF, DOCX', zh: '上传文件（选填）- PPT、XLS、PDF、DOCX' },
+  select_function_practice: { en: 'Select Function / Practice', es: 'Selecciona Función / Práctica', pt: 'Selecione a Função / Prática', zh: '选择职能/领域' },
+  hero_tagline_public: { en: 'Real problems. Real actions. Real results.', es: 'Problemas reales. Acciones reales. Resultados reales.', pt: 'Problemas reais. Ações reais. Resultados reais.', zh: '真实问题。真实行动。真实结果。' },
+  share_work_experiences: { en: 'Share your work experiences.', es: 'Comparte tus experiencias laborales.', pt: 'Compartilhe suas experiências de trabalho.', zh: '分享你的工作经验。' },
+  accelerate_org_learning: { en: 'Accelerate organizational learning.', es: 'Acelera el aprendizaje organizacional.', pt: 'Acelere o aprendizado organizacional.', zh: '加速组织学习。' },
+  curator: { en: 'Curator', es: 'Curador', pt: 'Curador', zh: '策展人' },
+  back_to_where_you_were: { en: 'Back to where you were', es: 'Volver a donde estabas', pt: 'Voltar para onde você estava', zh: '返回之前的位置' },
+  hide_top3: { en: 'Hide Top 3', es: 'Ocultar Top 3', pt: 'Ocultar Top 3', zh: '隐藏 Top 3' },
+  show_top3: { en: 'Show Top 3', es: 'Mostrar Top 3', pt: 'Mostrar Top 3', zh: '显示 Top 3' },
+  file_badge: { en: '📎 File', es: '📎 Archivo', pt: '📎 Arquivo', zh: '📎 文件' },
   no_problem_blocked: { en: "No problem — for your security, this account has been blocked until your Admin reviews it. Please contact your company's HR or Admin", es: 'No hay problema — por tu seguridad, esta cuenta ha sido bloqueada hasta que tu Admin la revise. Por favor contacta a RR.HH. o al Admin de tu empresa', pt: 'Sem problema — por segurança, esta conta foi bloqueada até que seu Admin a revise. Por favor, entre em contato com o RH ou Admin da sua empresa', zh: '没问题——出于安全考虑，此账户已被暂时锁定，等待管理员审核。请联系贵公司的人力资源或管理员' },
   no_experiences_found: { en: 'No experiences found.', es: 'No se encontraron experiencias.', pt: 'Nenhuma experiência encontrada.', zh: '未找到任何经验。' },
 };
@@ -644,6 +662,15 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
     return tt(key, { count });
   };
   const tNoExperiencesFound = () => t('no_experiences_found');
+  const tMatchingExperiences = (count) => {
+    const templates = {
+      en: `👥 ${count} Matching ${count === 1 ? 'Experience' : 'Experiences'} →`,
+      es: `👥 ${count} Experiencia${count === 1 ? '' : 's'} Coincidente${count === 1 ? '' : 's'} →`,
+      pt: `👥 ${count} Experiência${count === 1 ? '' : 's'} Correspondente${count === 1 ? '' : 's'} →`,
+      zh: `👥 ${count} 条匹配经验 →`,
+    };
+    return templates[effectiveViewingLanguage] || templates.en;
+  };
   // true só quando é o Admin do Default DE VERDADE, olhando pro próprio Default
   // (não um Admin de empresa espiando o Sample, que também usa dados do Default,
   // mas não deve ver as 5 seções exclusivas do Default).
@@ -5222,7 +5249,7 @@ useEffect(() => {
               <div className="space-y-2">
                 <textarea value={newComment[fo.id] || ''}
                   onChange={(e) => { if (e.target.value.length <= maxChars.comment) setNewComment(c => ({...c, [fo.id]: e.target.value})); }}
-                  placeholder="Share your thoughts..."
+                  placeholder={t('share_your_thoughts')}
                   className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none resize-none" rows="2" />
                 <div className="flex gap-2 items-center">
                   {appSettings.allowCvUpload && (
@@ -5231,7 +5258,7 @@ useEffect(() => {
                         <input type="file" accept={appSettings.documentType === 'cv' ? '.pdf' : '.pdf,.pptx,.xlsx,.docx,.ppt,.xls,.doc'}
                           onChange={(e) => { const file = e.target.files[0]; if (file && file.size <= 5000000) setCommentCvFiles(f => ({...f, [fo.id]: file})); e.target.value = ''; }}
                           className="hidden" />
-                        {appSettings.documentType === 'cv' ? '📎 CV' : '📎 File'}
+                        {appSettings.documentType === 'cv' ? '📎 CV' : t('file_badge')}
                       </label>
                     ) : (
                       <div className="flex items-center gap-1 bg-green-50 border-2 border-green-300 rounded-lg px-2 py-1">
@@ -5851,11 +5878,11 @@ autoComplete="off"
     }`} />
   </div>
 )}          
-          <p className="text-gray-700 font-medium mb-1 text-sm sm:text-base">Real problems. Real actions. Real results.</p>
+          <p className="text-gray-700 font-medium mb-1 text-sm sm:text-base">{t('hero_tagline_public')}</p>
 <p className="text-gray-600 text-sm sm:text-base">
-  <span className="block sm:inline">Share your work experiences.</span>
+  <span className="block sm:inline">{t('share_work_experiences')}</span>
   <span className="hidden sm:inline"> </span>
-  <span className="block sm:inline">Accelerate organizational learning.</span>
+  <span className="block sm:inline">{t('accelerate_org_learning')}</span>
 </p>
 
 {!isSellerBaseView && (
@@ -5977,7 +6004,7 @@ autoComplete="off"
         onClick={handleEmployeeLogout}
         className="text-sm bg-gray-200 text-gray-700 px-3 py-1 rounded hover:bg-gray-300 transition-colors"
       >
-        Logout
+        {t("logout")}
       </button>
     </>
   )}
@@ -8629,17 +8656,17 @@ for (const row of rows) {
                 <button
                   onClick={goBackToSnapshot}
                   className="absolute top-4 left-4 text-gray-500 hover:text-gray-700 text-sm bg-white bg-opacity-70 hover:bg-opacity-100 rounded-full px-3 py-1 transition-colors"
-                  title="Back to where you were"
+                  title={t('back_to_where_you_were')}
                 >
-                  ← Back
+                  {t('back')}
                 </button>
               )}
               <button
                 onClick={() => handleTop3Toggle(false)}
                 className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-sm bg-white bg-opacity-70 hover:bg-opacity-100 rounded-full px-3 py-1 transition-colors"
-                title="Hide Top 3"
+                title={t('hide_top3')}
               >
-                ✕ Hide
+                {t("hide")}
               </button>
               <div className="text-center mb-6">
                 <h2 className="text-2xl font-bold text-gray-800 flex items-center justify-center gap-3 mb-2">
@@ -8765,7 +8792,7 @@ onClick={() => {
                   className="text-purple-600 hover:text-purple-800 font-medium text-sm flex items-center gap-2 mx-auto transition-colors"
                 >
                   <TrendingUp size={16} />
-                  Check all experiences shared
+                  {t("check_all_experiences_shared")}
                   <TrendingUp size={16} className="rotate-180" />
                 </button>
               </div>
@@ -9138,7 +9165,7 @@ onClick={() => {
           onClick={(e) => { e.stopPropagation(); goBackToSnapshot(); }}
           className="block md:hidden text-xs font-medium text-purple-500 hover:text-purple-700 bg-purple-50 rounded-full px-2 py-1 cursor-pointer mt-1"
         >
-          ← Back
+          {t('back')}
         </span>
       )}
       {activeMainTab === 'see' && (navSnapshot?.destination === 'browse') && (
@@ -9146,7 +9173,7 @@ onClick={() => {
           onClick={(e) => { e.stopPropagation(); goBackToSnapshot(); }}
           className="hidden md:block absolute left-3 top-1/2 -translate-y-1/2 text-xs font-medium text-purple-500 hover:text-purple-700 bg-purple-50 rounded-full px-2 py-1 cursor-pointer"
         >
-          ← Back
+          {t('back')}
         </span>
       )}
     </button>
@@ -9171,7 +9198,7 @@ onClick={() => {
           onClick={(e) => { e.stopPropagation(); goBackToSnapshot(); }}
           className="block md:hidden text-xs font-medium text-blue-500 hover:text-blue-700 bg-blue-50 rounded-full px-2 py-1 cursor-pointer mt-1"
         >
-          ← Back
+          {t('back')}
         </span>
       )}
       {activeMainTab === 'share' && (navSnapshot?.destination === 'share') && (
@@ -9179,7 +9206,7 @@ onClick={() => {
           onClick={(e) => { e.stopPropagation(); goBackToSnapshot(); }}
           className="hidden md:block absolute left-3 top-1/2 -translate-y-1/2 text-xs font-medium text-blue-500 hover:text-blue-700 bg-blue-50 rounded-full px-2 py-1 cursor-pointer"
         >
-          ← Back
+          {t('back')}
         </span>
       )}
     </button>
@@ -9236,7 +9263,7 @@ onClick={() => {
       className={`w-full h-9 px-2 py-1 pr-8 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none bg-gray-100 appearance-none ${uiPractices.length === 1 ? 'cursor-not-allowed' : ''}`}
       disabled={uiPractices.length === 1}
     >
-      {uiPractices.length > 1 && <option value="">Select Function / Practice</option>}
+      {uiPractices.length > 1 && <option value="">{t('select_function_practice')}</option>}
       {uiPractices.map(p => (
         <option key={p.id} value={p.id}>{p.name}</option>
       ))}
@@ -9513,7 +9540,7 @@ onClick={() => {
     <label className="block text-sm font-medium text-gray-700 mb-2">
       {appSettings.documentType === 'cv' 
         ? t('upload_cv_optional')
-        : 'Upload File (optional) - PPT, XLS, PDF, DOCX'}
+        : t('upload_file_optional')}
     </label>
     
     <div className="flex gap-2 items-center">
@@ -9535,7 +9562,7 @@ onClick={() => {
     }}
     className="hidden"
   />
-  {appSettings.documentType === 'cv' ? '📎 CV' : '📎 File'}
+  {appSettings.documentType === 'cv' ? '📎 CV' : t('file_badge')}
 </label>
       ) : (
         <div className="flex items-center gap-2 p-2 bg-green-50 border-2 border-green-300 rounded-lg">
@@ -9665,7 +9692,7 @@ onClick={() => {
 {/* Título e Info */}
             <div className="mb-6">
               <div className="flex items-center gap-4 text-sm text-gray-600 flex-wrap">
-                <span className="font-medium">{experiences.length} experiences shared</span>
+                <span className="font-medium">{experiences.length} {t('experiences_shared')}</span>
                 
                 {/* Average Rating */}
                 {(() => {
@@ -9711,7 +9738,7 @@ onClick={() => {
                       className="text-yellow-700 hover:text-yellow-800 text-xs bg-yellow-100 hover:bg-yellow-200 rounded-full px-3 py-1 transition-colors inline-block"
                       style={{ whiteSpace: 'nowrap' }}
                     >
-                      Show Top 3
+                      {t('show_top3')}
                     </button>
                   </>
                 )}
@@ -10540,7 +10567,7 @@ onClick={() => {
                   {exp.source !== 'app' && (
                     <span className="inline-flex items-center gap-1 mb-2">
                       <span className="text-[8px] font-semibold uppercase bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">
-                        Curator
+                        {t("curator")}
                       </span>
                       {exp.language && exp.language !== 'en' && (
                         <span className="text-[8px] text-gray-400 italic">
@@ -10833,7 +10860,7 @@ onClick={() => {
     className="inline-flex items-center gap-1 text-xs bg-purple-100 text-purple-800 px-3 py-1 rounded-full border-2 border-purple-300 hover:bg-purple-200 transition-colors cursor-pointer"
   >
     <Target size={12} />
-    🎯 Matching Common Case →
+    {t('matching_common_case')}
   </button>
 )}
                     
@@ -10846,7 +10873,7 @@ onClick={() => {
                             className="inline-flex items-center gap-1 text-xs bg-green-100 text-green-800 px-3 py-1 rounded-full border-2 border-green-300 hover:bg-green-200 transition-colors cursor-pointer"
                           >
                             <Users size={12} />
-                            👥 {mappedCount} Matching {mappedCount === 1 ? 'Experience' : 'Experiences'} →
+                            {tMatchingExperiences(mappedCount)}
                           </button>
                         );
                       }
@@ -10937,7 +10964,7 @@ onClick={() => {
         setNewComment({...newComment, [exp.id]: e.target.value});
       }
     }}
-    placeholder="Share your thoughts..."
+    placeholder={t('share_your_thoughts')}
     className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none resize-none"
     rows="2"
   />
@@ -10965,7 +10992,7 @@ onClick={() => {
               }}
               className="hidden"
             />
-            {appSettings.documentType === 'cv' ? '📎 CV' : '📎 File'}
+            {appSettings.documentType === 'cv' ? '📎 CV' : t('file_badge')}
           </label>
         ) : (
           <div className="flex items-center gap-1 bg-green-50 border-2 border-green-300 rounded-lg px-2 py-1">
@@ -11875,7 +11902,7 @@ onClick={() => {
               )}
             </div>
             <div className="text-sm text-gray-500">
-              © 2026 WhatIDid - All rights reserved
+              {t('copyright_notice')}
             </div>
           </div>
         </footer>
