@@ -117,8 +117,8 @@ const UI_STRINGS = {
   individual: { en: 'Individual', es: 'Individuales', pt: 'Individuais', zh: '个人' },
   experiences: { en: 'Experiences', es: 'Experiencias', pt: 'Experiências', zh: '经验' },
   user_stories: { en: '(User Stories)', es: '(Historias de Usuarios)', pt: '(Histórias de Usuários)', zh: '（用户故事）' },
-  key: { en: 'Key', es: 'Key', pt: 'Key', zh: 'Key' },
-  insights: { en: 'Insights', es: 'Insights', pt: 'Insights', zh: 'Insights' },
+  key: { en: 'Key', es: 'Ideas', pt: 'Principais', zh: '关键' },
+  insights: { en: 'Insights', es: 'Clave', pt: 'Insights', zh: '洞察' },
   curated_patterns: { en: '(Curated Patterns)', es: '(Patrones Curados)', pt: '(Padrões Selecionados)', zh: '（精选规律）' },
   top3_this_week: { en: 'Top 3 Experiences This Week', es: 'Top 3 Experiencias de la Semana', pt: 'Top 3 Experiências da Semana', zh: '本周精选前三名经验' },
   handpicked_experiences: { en: 'Handpicked experiences, worth learning from', es: 'Experiencias seleccionadas, que vale la pena conocer', pt: 'Experiências selecionadas, que vale a pena conhecer', zh: '精心挑选、值得借鉴的经验' },
@@ -295,6 +295,7 @@ const UI_STRINGS = {
   hide_top3: { en: 'Hide Top 3', es: 'Ocultar Top 3', pt: 'Ocultar Top 3', zh: '隐藏 Top 3' },
   show_top3: { en: 'Show Top 3', es: 'Mostrar Top 3', pt: 'Mostrar Top 3', zh: '显示 Top 3' },
   file_badge: { en: '📎 File', es: '📎 Archivo', pt: '📎 Arquivo', zh: '📎 文件' },
+  portal_link: { en: 'Portal →', es: 'Portal →', pt: 'Portal →', zh: 'Portal →' },
   no_problem_blocked: { en: "No problem — for your security, this account has been blocked until your Admin reviews it. Please contact your company's HR or Admin", es: 'No hay problema — por tu seguridad, esta cuenta ha sido bloqueada hasta que tu Admin la revise. Por favor contacta a RR.HH. o al Admin de tu empresa', pt: 'Sem problema — por segurança, esta conta foi bloqueada até que seu Admin a revise. Por favor, entre em contato com o RH ou Admin da sua empresa', zh: '没问题——出于安全考虑，此账户已被暂时锁定，等待管理员审核。请联系贵公司的人力资源或管理员' },
   no_experiences_found: { en: 'No experiences found.', es: 'No se encontraron experiencias.', pt: 'Nenhuma experiência encontrada.', zh: '未找到任何经验。' },
 };
@@ -668,6 +669,16 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
       es: `👥 ${count} Experiencia${count === 1 ? '' : 's'} Coincidente${count === 1 ? '' : 's'} →`,
       pt: `👥 ${count} Experiência${count === 1 ? '' : 's'} Correspondente${count === 1 ? '' : 's'} →`,
       zh: `👥 ${count} 条匹配经验 →`,
+    };
+    return templates[effectiveViewingLanguage] || templates.en;
+  };
+  // "N rating" / "N ratings" — usado nos contadores de avaliação dos cards
+  const tRatingCount = (count) => {
+    const templates = {
+      en: count === 1 ? 'rating' : 'ratings',
+      es: count === 1 ? 'calificación' : 'calificaciones',
+      pt: count === 1 ? 'avaliação' : 'avaliações',
+      zh: '评分',
     };
     return templates[effectiveViewingLanguage] || templates.en;
   };
@@ -5198,7 +5209,7 @@ useEffect(() => {
                   </div>
                   <div className="text-sm font-semibold text-gray-700">
                     {fo.avgRating.toFixed(1)}
-                    <span className="text-xs text-gray-500 ml-1">({fo.totalRatings} {fo.totalRatings === 1 ? 'rating' : 'ratings'})</span>
+                    <span className="text-xs text-gray-500 ml-1">({fo.totalRatings} {tRatingCount(fo.totalRatings)})</span>
                   </div>
                 </div>
                 <div className="flex flex-col items-end">
@@ -5533,7 +5544,7 @@ useEffect(() => {
       href="https://www.whatidid.app"
       className="block text-right text-sm text-gray-500 hover:text-purple-600 font-medium transition-colors"
     >
-      Portal →
+      {t('portal_link')}
     </a>
   </div>
   <div className="text-center mb-6">
@@ -5831,7 +5842,7 @@ autoComplete="off"
             href="https://www.whatidid.app"
             className="sm:hidden block text-right text-sm text-gray-500 hover:text-purple-600 font-medium transition-colors mb-2"
           >
-            Portal →
+            {t('portal_link')}
           </a>
           <div className="flex items-center justify-between mb-4">
   <div className="flex-1"></div>
@@ -5859,7 +5870,7 @@ autoComplete="off"
       href="https://www.whatidid.app"
       className="hidden sm:inline text-sm text-gray-500 hover:text-purple-600 font-medium transition-colors"
     >
-      Portal →
+      {t('portal_link')}
     </a>
     {companyLogoUrl && !isSellerBaseView && (
   <img src={companyLogoUrl} alt="Company logo"
@@ -8737,7 +8748,7 @@ onClick={() => {
                         <div className="flex flex-wrap items-center gap-2 mb-2">
                           <h4 className="font-semibold text-red-600 flex items-center gap-2">
                             <AlertCircle size={16} />
-                            Problem
+                            {t('problem')}
                           </h4>
                           <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full shrink-0 ml-auto">
                             {exp.problemCategory}
@@ -8749,7 +8760,7 @@ onClick={() => {
                       <div>
                         <h4 className="font-semibold text-blue-600 flex items-center gap-2 mb-2">
                           <TrendingUp size={16} />
-                          Action
+                          {t('action')}
                         </h4>
 <p 
   className={`text-sm text-gray-700 ${exp.author === 'key_insights' ? 'whitespace-pre-line' : 'line-clamp-3 whitespace-pre-line'}`}
@@ -8762,7 +8773,7 @@ onClick={() => {
                         <div className="flex flex-wrap items-center gap-2 mb-2">
                           <h4 className="font-semibold text-green-600 flex items-center gap-2">
                             <Share2 size={16} />
-                            Result
+                            {t('result')}
                           </h4>
                           <span className={`text-xs px-3 py-1 rounded-full shrink-0 ml-auto ${getResultColor(exp.resultCategory)}`}>
                             {getResultLabel(exp.resultCategory)}
@@ -9246,7 +9257,7 @@ onClick={() => {
             <div className="space-y-3">
               <div className="flex items-center gap-2 mb-2">
                 <AlertCircle className="text-red-500" size={20} />
-                <h3 className="text-lg font-semibold text-gray-800">Problem</h3>
+                <h3 className="text-lg font-semibold text-gray-800">{t('problem')}</h3>
               </div>
               
               {/* Practice dropdown - sempre aparece, mesmo vazio, pra dar noção da estrutura */}
@@ -9409,7 +9420,7 @@ onClick={() => {
             <div className="space-y-3">
               <div className="flex items-center gap-2 mb-2">
                 <TrendingUp className="text-blue-500" size={20} />
-                <h3 className="text-lg font-semibold text-gray-800">Action</h3>
+                <h3 className="text-lg font-semibold text-gray-800">{t('action')}</h3>
               </div>
               <div className="relative">
                 <textarea
@@ -9432,7 +9443,7 @@ onClick={() => {
             <div className="space-y-3">
               <div className="flex items-center gap-2 mb-2">
                 <Share2 className="text-green-500" size={20} />
-                <h3 className="text-lg font-semibold text-gray-800">Result</h3>
+                <h3 className="text-lg font-semibold text-gray-800">{t('result')}</h3>
               </div>
               <select
                 value={currentEntry.resultCategory}
@@ -9843,7 +9854,7 @@ onClick={() => {
                               className={`w-full text-left px-3 py-2 hover:bg-purple-50 transition-colors ${!filters.problemCategory ? 'bg-purple-50 text-purple-700 font-medium' : 'text-gray-700'}`}
                               style={{ fontFamily: 'inherit', fontSize: 'inherit' }}
                             >
-                              All
+                              {t('all')}
                             </button>
                             {problemCategories.map(cat => {
                               const desc = categoryData[cat]?.description;
@@ -10103,7 +10114,7 @@ onClick={() => {
   </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Category:</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">{t('category')}:</label>
         <div className="flex items-center gap-2">
           <div className="flex-1 relative key-insight-category-dropdown-container">
             <div
@@ -10114,7 +10125,7 @@ onClick={() => {
               className="w-full h-9 px-2 py-1 border-2 border-gray-200 rounded-lg text-left flex items-center justify-between cursor-default focus:border-purple-500"
               style={{ fontFamily: 'inherit', fontSize: 'inherit' }}
             >
-              <span>{keyInsightCategory || 'All'}</span>
+              <span>{keyInsightCategory || t('all')}</span>
               <span className="text-gray-500" style={{ fontSize: '10px' }}>▼</span>
             </div>
 
@@ -10131,7 +10142,7 @@ onClick={() => {
                   className={`w-full text-left px-3 py-2 hover:bg-purple-50 transition-colors ${!keyInsightCategory ? 'bg-purple-50 text-purple-700 font-medium' : 'text-gray-700'}`}
                   style={{ fontFamily: 'inherit', fontSize: 'inherit' }}
                 >
-                  All
+                  {t("all")}
                 </button>
                 {problemCategories.map(cat => {
                   const desc = categoryData[cat]?.description;
@@ -10681,7 +10692,7 @@ onClick={() => {
         </div>
         <div className="text-sm font-semibold text-gray-700">
           {exp.avgRating.toFixed(1)} 
-          <span className="text-xs text-gray-500 ml-1">({exp.totalRatings} {exp.totalRatings === 1 ? 'rating' : 'ratings'})</span>
+          <span className="text-xs text-gray-500 ml-1">({exp.totalRatings} {tRatingCount(exp.totalRatings)})</span>
         </div>
       </div>
       
@@ -10715,7 +10726,7 @@ onClick={() => {
                       <div className="flex items-center justify-between">
                         <h4 className="font-semibold text-red-600 flex items-center gap-2">
                           <AlertCircle size={16} />
-                          Problem
+                          {t('problem')}
                         </h4>
                         <CategoryBadge label={(() => {
                           const pname = practices.find(p => p.id === exp.practiceId)?.name;
@@ -10729,7 +10740,7 @@ onClick={() => {
                     <div className="space-y-2">
                       <h4 className="font-semibold text-blue-600 flex items-center gap-2">
                         <TrendingUp size={16} />
-                        Action
+                        {t('action')}
                       </h4>
 <p className={`text-sm text-gray-700 ${exp.author === 'key_insights' ? 'whitespace-pre-line' : ''}`}>
   {highlightText(exp.solution, filters.searchText ? filters.searchText.toLowerCase().trim().split(/\s+/) : [])}
@@ -10739,7 +10750,7 @@ onClick={() => {
   <div className="flex items-center justify-between">
     <h4 className="font-semibold text-green-600 flex items-center gap-2">
       <Share2 size={16} />
-      Result
+      {t('result')}
     </h4>
     {exp.author === 'key_insights' && exp.resultCategory === 'varies' ? (
       <span className="text-xs px-3 py-1 rounded-full bg-purple-100 text-purple-800">
