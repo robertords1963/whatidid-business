@@ -157,7 +157,7 @@ const UI_STRINGS = {
   how_it_works: { en: 'How It Works', es: 'Cómo Funciona', pt: 'Como Funciona', zh: '使用说明' },
   community_guidelines: { en: 'Community Guidelines', es: 'Normas de la Comunidad', pt: 'Diretrizes da Comunidade', zh: '社区规范' },
   about: { en: 'About', es: 'Acerca de', pt: 'Sobre', zh: '关于' },
-  portal: { en: 'Portal', es: 'Portal', pt: 'Portal', zh: 'Portal' },
+  portal: { en: 'Portal', es: 'Portal', pt: 'Portal', zh: '门户' },
   admin_mode_logout: { en: 'Admin Mode (Click to Logout)', es: 'Modo Admin (Clic para Salir)', pt: 'Modo Admin (Clique para Sair)', zh: '管理员模式（点击退出）' },
   enter_admin_mode: { en: 'Enter Admin Mode', es: 'Entrar en Modo Admin', pt: 'Entrar no Modo Admin', zh: '进入管理员模式' },
   // Lote 7 — paginação
@@ -201,7 +201,7 @@ const UI_STRINGS = {
   upstream_experience: { en: '↑ Upstream Experience', es: '↑ Experiencia Anterior', pt: '↑ Experiência Anterior', zh: '↑ 上游经验' },
   confirm_delete_click: { en: 'Click to CONFIRM DELETE!', es: 'Haz clic para CONFIRMAR ELIMINACIÓN!', pt: 'Clique para CONFIRMAR EXCLUSÃO!', zh: '点击以确认删除！' },
   browse: { en: 'Browse', es: 'Explorar', pt: 'Explorar', zh: '浏览' },
-  top3_short: { en: 'Top3', es: 'Top 3', pt: 'Top 3', zh: 'Top 3' },
+  top3_short: { en: 'Top3', es: 'Top 3', pt: 'Top 3', zh: '前三' },
   share_your_stories: { en: 'Share your stories', es: 'Comparte tus historias', pt: 'Compartilhe suas histórias', zh: '分享你的故事' },
   max_5mb: { en: 'Max 5MB', es: 'Máx 5MB', pt: 'Máx 5MB', zh: '最大 5MB' },
   file_too_large: { en: 'File too large. Max 5MB', es: 'Archivo demasiado grande. Máx 5MB', pt: 'Arquivo muito grande. Máx 5MB', zh: '文件过大，最大 5MB' },
@@ -292,10 +292,11 @@ const UI_STRINGS = {
   accelerate_org_learning: { en: 'Accelerate organizational learning.', es: 'Acelera el aprendizaje organizacional.', pt: 'Acelere o aprendizado organizacional.', zh: '加速组织学习。' },
   curator: { en: 'Curator', es: 'Curador', pt: 'Curador', zh: '策展人' },
   back_to_where_you_were: { en: 'Back to where you were', es: 'Volver a donde estabas', pt: 'Voltar para onde você estava', zh: '返回之前的位置' },
-  hide_top3: { en: 'Hide Top 3', es: 'Ocultar Top 3', pt: 'Ocultar Top 3', zh: '隐藏 Top 3' },
-  show_top3: { en: 'Show Top 3', es: 'Mostrar Top 3', pt: 'Mostrar Top 3', zh: '显示 Top 3' },
+  hide_top3: { en: 'Hide Top 3', es: 'Ocultar Top 3', pt: 'Ocultar Top 3', zh: '隐藏前三名' },
+  show_top3: { en: 'Show Top 3', es: 'Mostrar Top 3', pt: 'Mostrar Top 3', zh: '显示前三名' },
   file_badge: { en: '📎 File', es: '📎 Archivo', pt: '📎 Arquivo', zh: '📎 文件' },
-  portal_link: { en: 'Portal →', es: 'Portal →', pt: 'Portal →', zh: 'Portal →' },
+  portal_link: { en: 'Portal →', es: 'Portal →', pt: 'Portal →', zh: '门户 →' },
+  whatidid_sellers: { en: 'WhatIDid.app Sellers', es: 'WhatIDid.app Sellers', pt: 'WhatIDid.app Sellers', zh: 'WhatIDid.app Sellers' },
   no_problem_blocked: { en: "No problem — for your security, this account has been blocked until your Admin reviews it. Please contact your company's HR or Admin", es: 'No hay problema — por tu seguridad, esta cuenta ha sido bloqueada hasta que tu Admin la revise. Por favor contacta a RR.HH. o al Admin de tu empresa', pt: 'Sem problema — por segurança, esta conta foi bloqueada até que seu Admin a revise. Por favor, entre em contato com o RH ou Admin da sua empresa', zh: '没问题——出于安全考虑，此账户已被暂时锁定，等待管理员审核。请联系贵公司的人力资源或管理员' },
   no_experiences_found: { en: 'No experiences found.', es: 'No se encontraron experiencias.', pt: 'Nenhuma experiência encontrada.', zh: '未找到任何经验。' },
 };
@@ -624,7 +625,11 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   // agora vive na faixa "Demo Mode", visível mesmo depois de sair do Admin),
   // usa o seletor manual "Viewing language"; senão (Demo ID, employee comum)
   // usa o idioma da própria conta que logou, automaticamente.
-  const effectiveViewingLanguage = (isDemoModeActive || (isAdmin && !isDefaultAdmin && companyViewMode === 'sample')) ? viewingLanguage : (loggedInEmployeeLanguage || 'en');
+  const effectiveViewingLanguage = (
+    isDemoModeActive ||
+    (isAdmin && isSeller) || // Seller: o idioma escolhido vale em qualquer modo do ADM (My Seller View, Company, Sample), não só Sample
+    (isAdmin && !isDefaultAdmin && !isSeller && companyViewMode === 'sample') // Admin de empresa comum: só no modo Sample
+  ) ? viewingLanguage : (loggedInEmployeeLanguage || 'en');
   // Traduz textos fixos da UI (títulos de seção, botões, labels) — troca
   // junto com o mesmo idioma que já controla o conteúdo (effectiveViewingLanguage),
   // então quando o Demo Mode muda de idioma, a interface administrativa
@@ -5672,7 +5677,7 @@ autoComplete="off"
                     <label key={m.id} className="flex items-center gap-3 p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-purple-400">
                       <input type="checkbox" checked={false} readOnly onClick={() => handleChooseAccountAccessMatch(m)} className="w-4 h-4" />
                       <div>
-                        <p className="text-sm font-medium text-gray-800">{m.companies?.name || t('company_fallback')}</p>
+                        <p className="text-sm font-medium text-gray-800">{m.is_seller ? t('whatidid_sellers') : (m.companies?.name || t('company_fallback'))}</p>
                       </div>
                     </label>
                   ))}
@@ -5689,7 +5694,7 @@ autoComplete="off"
                 <div className="space-y-4">
                   <p className="text-sm text-gray-600">{t('we_found_you_at')}</p>
                   <div className="bg-purple-50 border-2 border-purple-200 rounded-lg p-4 text-center">
-                    <p className="text-lg font-semibold text-purple-800">{accountAccessRecord?.companies?.name || t('unknown_company')}</p>
+                    <p className="text-lg font-semibold text-purple-800">{accountAccessRecord?.is_seller ? t('whatidid_sellers') : (accountAccessRecord?.companies?.name || t('unknown_company'))}</p>
                   </div>
                   <p className="text-sm text-gray-600">{t('is_this_your_company')}</p>
                   {accountAccessError && (
@@ -5741,7 +5746,7 @@ autoComplete="off"
                 <div className="space-y-4">
                   <p className="text-sm text-gray-600">
                     {accountAccessRecord?.companies?.name && (
-                      <>{t('youre_accessing')} <strong>{accountAccessRecord.companies.name}</strong>.<br /></>
+                      <>{t('youre_accessing')} <strong>{accountAccessRecord.is_seller ? t('whatidid_sellers') : accountAccessRecord.companies.name}</strong>.<br /></>
                     )}
                     {t('sent_code_to_email')}
                     <br /><span className="text-xs text-gray-500">{t('check_spam_folder')}</span>
@@ -6199,26 +6204,26 @@ autoComplete="off"
         Logout ADM
       </button>
     </div>
-    {!isSellerManagingOwnCompany && companyViewMode === 'sample' && (
-      <div className="flex flex-col gap-1 mt-2">
-        <div className="flex items-center gap-2">
-          <label className="text-sm font-medium text-gray-700">{t('language')}</label>
-          <select
-            value={viewingLanguage}
-            onChange={(e) => setViewingLanguage(e.target.value)}
-            className="p-2 border-2 border-gray-300 rounded-lg text-sm font-medium"
-          >
-            <option value="en">English</option>
-            <option value="es">Español</option>
-            <option value="pt">Português</option>
-            <option value="zh">中文 (Chinese)</option>
-          </select>
-        </div>
+    <div className="flex flex-col gap-1 mt-2">
+      <div className="flex items-center gap-2">
+        <label className="text-sm font-medium text-gray-700">{t('language')}</label>
+        <select
+          value={viewingLanguage}
+          onChange={(e) => setViewingLanguage(e.target.value)}
+          className="p-2 border-2 border-gray-300 rounded-lg text-sm font-medium"
+        >
+          <option value="en">English</option>
+          <option value="es">Español</option>
+          <option value="pt">Português</option>
+          <option value="zh">中文 (Chinese)</option>
+        </select>
+      </div>
+      {!isSellerManagingOwnCompany && companyViewMode === 'sample' && (
         <span className="text-sm font-semibold text-blue-700 flex items-center gap-1">
           👁️ Read-only preview of ADM Default's content.
         </span>
-      </div>
-    )}
+      )}
+    </div>
   </div>
 )}
 
