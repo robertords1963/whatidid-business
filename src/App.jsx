@@ -81,9 +81,16 @@ const HIDDEN_PRACTICE_NAMES = ['General', 'Corporate Areas'];
 // ============================================================
 // TRADUÇÃO DE UI (não confundir com o idioma do CONTEÚDO, que já
 // é resolvido por effectiveViewingLanguage). Isso traduz os textos
-// fixos da interface — títulos de seção, botões, labels — nos
-// mesmos 4 idiomas. Sendo feito por lotes: esse é o primeiro
-// (títulos das seções administrativas).
+// fixos da interface — títulos de seção, botões, labels.
+//
+// A partir de agora, a FONTE PRINCIPAL é a tabela `ui_translations`
+// no banco — carregada em loadUITranslations() e guardada em
+// uiTranslationsDB. Esse objeto aqui embaixo (UI_STRINGS) vira só uma
+// RESERVA embutida no código: garante que o app nunca mostra texto
+// quebrado, mesmo se o banco estiver fora do ar ou ainda carregando.
+// Pra adicionar um idioma novo, não precisa mexer aqui — basta
+// cadastrar linhas na tabela `ui_translations` com o novo código de
+// idioma (e nas telas onde o idioma é selecionado, adicionar a opção).
 const UI_STRINGS = {
   section_settings: { en: 'Section Settings', es: 'Configuración de Secciones', pt: 'Configurações de Seção', zh: '版块设置' },
   manage_companies: { en: 'Manage Companies', es: 'Gestionar Empresas', pt: 'Gerenciar Empresas', zh: '管理公司' },
@@ -209,6 +216,84 @@ const UI_STRINGS = {
   loading_experiences: { en: 'Loading experiences...', es: 'Cargando experiencias...', pt: 'Carregando experiências...', zh: '正在加载经验……' },
   no_change: { en: 'No Change', es: 'Sin Cambios', pt: 'Sem Mudança', zh: '无变化' },
   got_worse: { en: 'Got Worse', es: 'Empeoró', pt: 'Piorou', zh: '更糟' },
+  hide_all_comments: { en: 'Hide all comments', es: 'Ocultar todos los comentarios', pt: 'Ocultar todos os comentários', zh: '隐藏所有评论' },
+  // Lote 16 — tela de login e fluxo de 1st Access / Reset Password
+  employee_login: { en: 'Employee Login', es: 'Inicio de Sesión de Empleado', pt: 'Login de Funcionário', zh: '员工登录' },
+  employee_id: { en: 'Employee ID', es: 'ID de Empleado', pt: 'ID do Funcionário', zh: '员工 ID' },
+  enter_your_employee_id: { en: 'Enter your Employee ID', es: 'Ingresa tu ID de Empleado', pt: 'Digite seu ID de Funcionário', zh: '请输入员工 ID' },
+  password: { en: 'Password', es: 'Contraseña', pt: 'Senha', zh: '密码' },
+  enter_your_password: { en: 'Enter your password', es: 'Ingresa tu contraseña', pt: 'Digite sua senha', zh: '请输入密码' },
+  login: { en: 'Login', es: 'Iniciar Sesión', pt: 'Entrar', zh: '登录' },
+  back: { en: '← Back', es: '← Atrás', pt: '← Voltar', zh: '← 返回' },
+  first_access_reset: { en: '1st Access or Set / Reset Password', es: 'Primer Acceso o Crear / Restablecer Contraseña', pt: '1º Acesso ou Criar / Redefinir Senha', zh: '首次访问或设置/重置密码' },
+  password_set: { en: 'Password Set!', es: '¡Contraseña Configurada!', pt: 'Senha Definida!', zh: '密码已设置！' },
+  enter_email_employee_id_code: { en: "Enter your email and Employee ID. We'll send a verification code to confirm it's you.", es: 'Ingresa tu correo y tu ID de Empleado. Te enviaremos un código de verificación para confirmar que eres tú.', pt: 'Digite seu e-mail e seu ID de Funcionário. Enviaremos um código de verificação para confirmar que é você.', zh: '请输入您的邮箱和员工 ID。我们将发送验证码以确认身份。' },
+  email: { en: 'Email', es: 'Correo Electrónico', pt: 'E-mail', zh: '邮箱' },
+  enter_your_email: { en: 'Enter your email', es: 'Ingresa tu correo', pt: 'Digite seu e-mail', zh: '请输入邮箱' },
+  send_verification_code: { en: 'Send Verification Code', es: 'Enviar Código de Verificación', pt: 'Enviar Código de Verificação', zh: '发送验证码' },
+  found_more_than_one_account: { en: 'We found more than one account with that email and Employee ID. Please select the correct one:', es: 'Encontramos más de una cuenta con ese correo e ID de Empleado. Selecciona la correcta:', pt: 'Encontramos mais de uma conta com esse e-mail e ID de Funcionário. Selecione a correta:', zh: '我们发现使用该邮箱和员工 ID 的账户不止一个，请选择正确的一个：' },
+  company_fallback: { en: 'Company', es: 'Empresa', pt: 'Empresa', zh: '公司' },
+  we_found_you_at: { en: 'We found you at:', es: 'Te encontramos en:', pt: 'Encontramos você em:', zh: '我们在以下公司找到了您：' },
+  unknown_company: { en: 'Unknown Company', es: 'Empresa Desconocida', pt: 'Empresa Desconhecida', zh: '未知公司' },
+  is_this_your_company: { en: 'Is this your company?', es: '¿Es esta tu empresa?', pt: 'Esta é a sua empresa?', zh: '这是您的公司吗？' },
+  not_me: { en: "No, that's not me", es: 'No, no soy yo', pt: 'Não, não sou eu', zh: '不，这不是我' },
+  yes_thats_me: { en: "Yes, that's me", es: 'Sí, soy yo', pt: 'Sim, sou eu', zh: '是的，就是我' },
+  contact_hr_if_wrong: { en: "If this doesn't look right, contact your company's HR or Admin instead of continuing.", es: 'Si esto no parece correcto, contacta a RR.HH. o al Admin de tu empresa en lugar de continuar.', pt: 'Se isso não parecer certo, entre em contato com o RH ou Admin da sua empresa em vez de continuar.', zh: '如果这不正确，请联系贵公司的人力资源或管理员，而不要继续操作。' },
+  sent_code_to_email: { en: 'We sent a 6-digit code to your email. Enter it below.', es: 'Enviamos un código de 6 dígitos a tu correo. Ingrésalo abajo.', pt: 'Enviamos um código de 6 dígitos para o seu e-mail. Digite-o abaixo.', zh: '我们已向您的邮箱发送了 6 位验证码，请在下方输入。' },
+  check_spam_folder: { en: "Don't see it? Check your spam/junk folder too.", es: '¿No lo ves? Revisa también tu carpeta de spam/correo no deseado.', pt: 'Não encontrou? Verifique também sua pasta de spam/lixo eletrônico.', zh: '没看到？也请检查垃圾邮件文件夹。' },
+  youre_accessing: { en: "You're accessing", es: 'Estás accediendo a', pt: 'Você está acessando', zh: '您正在访问' },
+  verification_code: { en: 'Verification Code', es: 'Código de Verificación', pt: 'Código de Verificação', zh: '验证码' },
+  six_digit_code: { en: '6-digit code', es: 'Código de 6 dígitos', pt: 'Código de 6 dígitos', zh: '6 位验证码' },
+  verify_code: { en: 'Verify Code', es: 'Verificar Código', pt: 'Verificar Código', zh: '验证代码' },
+  new_password: { en: 'New Password', es: 'Nueva Contraseña', pt: 'Nova Senha', zh: '新密码' },
+  choose_a_password: { en: 'Choose a password', es: 'Elige una contraseña', pt: 'Escolha uma senha', zh: '设置密码' },
+  confirm_password: { en: 'Confirm Password', es: 'Confirmar Contraseña', pt: 'Confirmar Senha', zh: '确认密码' },
+  repeat_your_password: { en: 'Repeat your password', es: 'Repite tu contraseña', pt: 'Repita sua senha', zh: '再次输入密码' },
+  save_password: { en: 'Save Password', es: 'Guardar Contraseña', pt: 'Salvar Senha', zh: '保存密码' },
+  can_now_login: { en: 'You can now login with your Employee ID and new password.', es: 'Ahora puedes iniciar sesión con tu ID de Empleado y tu nueva contraseña.', pt: 'Agora você pode fazer login com seu ID de Funcionário e a nova senha.', zh: '您现在可以使用员工 ID 和新密码登录了。' },
+  go_to_login: { en: 'Go to Login', es: 'Ir a Iniciar Sesión', pt: 'Ir para o Login', zh: '前往登录' },
+  password_rule_8_chars: { en: 'At least 8 characters', es: 'Al menos 8 caracteres', pt: 'Pelo menos 8 caracteres', zh: '至少 8 个字符' },
+  password_rule_uppercase: { en: 'At least one uppercase letter (A-Z)', es: 'Al menos una letra mayúscula (A-Z)', pt: 'Pelo menos uma letra maiúscula (A-Z)', zh: '至少一个大写字母（A-Z）' },
+  password_rule_lowercase: { en: 'At least one lowercase letter (a-z)', es: 'Al menos una letra minúscula (a-z)', pt: 'Pelo menos uma letra minúscula (a-z)', zh: '至少一个小写字母（a-z）' },
+  password_rule_number: { en: 'At least one number (0-9)', es: 'Al menos un número (0-9)', pt: 'Pelo menos um número (0-9)', zh: '至少一个数字（0-9）' },
+  please_enter_email_employee_id: { en: 'Please enter both your email and Employee ID.', es: 'Por favor, ingresa tu correo y tu ID de Empleado.', pt: 'Por favor, digite seu e-mail e seu ID de Funcionário.', zh: '请输入您的邮箱和员工 ID。' },
+  no_account_found: { en: 'No account found with that email and Employee ID. Check with your company Admin.', es: 'No se encontró ninguna cuenta con ese correo e ID de Empleado. Consulta con el Admin de tu empresa.', pt: 'Nenhuma conta encontrada com esse e-mail e ID de Funcionário. Verifique com o Admin da sua empresa.', zh: '未找到使用该邮箱和员工 ID 的账户，请联系贵公司管理员确认。' },
+  please_enter_id_password: { en: 'Please enter Employee ID and Password', es: 'Por favor, ingresa tu ID de Empleado y Contraseña', pt: 'Por favor, digite o ID de Funcionário e a Senha', zh: '请输入员工 ID 和密码' },
+  invalid_id_password: { en: 'Invalid Employee ID or Password', es: 'ID de Empleado o Contraseña inválidos', pt: 'ID de Funcionário ou Senha inválidos', zh: '员工 ID 或密码无效' },
+  set_your_new_password: { en: 'Set Your New Password', es: 'Configura Tu Nueva Contraseña', pt: 'Defina Sua Nova Senha', zh: '设置您的新密码' },
+  save_new_password: { en: 'Save New Password', es: 'Guardar Nueva Contraseña', pt: 'Salvar Nova Senha', zh: '保存新密码' },
+  temp_password_notice: { en: 'You logged in with a temporary password. Please set a permanent one.', es: 'Iniciaste sesión con una contraseña temporal. Por favor, configura una permanente.', pt: 'Você entrou com uma senha temporária. Por favor, defina uma permanente.', zh: '您使用的是临时密码登录。请设置一个永久密码。' },
+  at_least_6_chars: { en: 'At least 6 characters', es: 'Al menos 6 caracteres', pt: 'Pelo menos 6 caracteres', zh: '至少 6 个字符' },
+  skip_for_now: { en: 'Skip for now', es: 'Omitir por ahora', pt: 'Pular por enquanto', zh: '暂时跳过' },
+  please_enter_new_password: { en: 'Please enter a new password', es: 'Por favor, ingresa una nueva contraseña', pt: 'Por favor, digite uma nova senha', zh: '请输入新密码' },
+  password_min_6_chars: { en: 'Password must be at least 6 characters', es: 'La contraseña debe tener al menos 6 caracteres', pt: 'A senha deve ter pelo menos 6 caracteres', zh: '密码至少需要 6 个字符' },
+  passwords_do_not_match: { en: 'Passwords do not match', es: 'Las contraseñas no coinciden', pt: 'As senhas não coincidem', zh: '两次密码不一致' },
+  password_updated_success: { en: 'Password updated successfully!', es: '¡Contraseña actualizada con éxito!', pt: 'Senha atualizada com sucesso!', zh: '密码更新成功！' },
+  // Lote 17 — CV Preview
+  cv_preview: { en: 'CV Preview', es: 'Vista Previa del CV', pt: 'Pré-visualização do Currículo', zh: '简历预览' },
+  download_pdf: { en: '⬇️ Download PDF', es: '⬇️ Descargar PDF', pt: '⬇️ Baixar PDF', zh: '⬇️ 下载 PDF' },
+  category_guide: { en: 'Category Guide', es: 'Guía de Categorías', pt: 'Guia de Categorias', zh: '分类指南' },
+  search_placeholder: { en: 'Search...', es: 'Buscar...', pt: 'Buscar...', zh: '搜索……' },
+  previous_videos: { en: 'Previous videos', es: 'Videos anteriores', pt: 'Vídeos anteriores', zh: '上一批视频' },
+  next_videos: { en: 'Next videos', es: 'Videos siguientes', pt: 'Próximos vídeos', zh: '下一批视频' },
+  close_video: { en: 'Close video', es: 'Cerrar video', pt: 'Fechar vídeo', zh: '关闭视频' },
+  no_problem_blocked: { en: "No problem — for your security, this account has been blocked until your Admin reviews it. Please contact your company's HR or Admin", es: 'No hay problema — por tu seguridad, esta cuenta ha sido bloqueada hasta que tu Admin la revise. Por favor contacta a RR.HH. o al Admin de tu empresa', pt: 'Sem problema — por segurança, esta conta foi bloqueada até que seu Admin a revise. Por favor, entre em contato com o RH ou Admin da sua empresa', zh: '没问题——出于安全考虑，此账户已被暂时锁定，等待管理员审核。请联系贵公司的人力资源或管理员' },
+  no_experiences_found: { en: 'No experiences found.', es: 'No se encontraron experiencias.', pt: 'Nenhuma experiência encontrada.', zh: '未找到任何经验。' },
+};
+
+// Reserva embutida dos TEMPLATES (frases com variáveis tipo {count}) —
+// mesmo princípio do UI_STRINGS acima: usado só se a tabela `ui_translations`
+// ainda não tiver a chave, ou estiver fora do ar.
+const TEMPLATE_STRINGS = {
+  pagination_template: { en: 'Page {current} of {total} • Showing {from}-{to} of {count} experiences', es: 'Página {current} de {total} • Mostrando {from}-{to} de {count} experiencias', pt: 'Página {current} de {total} • Mostrando {from}-{to} de {count} experiências', zh: '第 {current} 页，共 {total} 页 • 显示第 {from}-{to} 条，共 {count} 条经验' },
+  show_all_comments_singular: { en: 'Show all {count} comment', es: 'Mostrar {count} comentario', pt: 'Mostrar {count} comentário', zh: '显示全部 {count} 条评论' },
+  show_all_comments_singular_previous: { en: 'Show all {count} previous comment', es: 'Mostrar {count} comentario anterior', pt: 'Mostrar {count} comentário anterior', zh: '显示全部 {count} 条以前的评论' },
+  show_all_comments_plural: { en: 'Show all {count} comments', es: 'Mostrar los {count} comentarios', pt: 'Mostrar os {count} comentários', zh: '显示全部 {count} 条评论' },
+  show_all_comments_plural_previous: { en: 'Show all {count} previous comments', es: 'Mostrar los {count} comentarios anteriores', pt: 'Mostrar os {count} comentários anteriores', zh: '显示全部 {count} 条以前的评论' },
+  count_found_experiences_singular: { en: '{count} experience found - Listed below', es: '{count} experiencia encontrada - Listada abajo', pt: '{count} experiência encontrada - Listada abaixo', zh: '找到 {count} 条经验 - 列表如下' },
+  count_found_experiences_plural: { en: '{count} experiences found - Listed below', es: '{count} experiencias encontradas - Listadas abajo', pt: '{count} experiências encontradas - Listadas abaixo', zh: '找到 {count} 条经验 - 列表如下' },
+  count_found_common_cases_singular: { en: '{count} common case found - Listed below', es: '{count} caso común encontrado - Listado abajo', pt: '{count} caso comum encontrado - Listado abaixo', zh: '找到 {count} 条共性案例 - 列表如下' },
+  count_found_common_cases_plural: { en: '{count} common cases found - Listed below', es: '{count} casos comunes encontrados - Listados abajo', pt: '{count} casos comuns encontrados - Listados abaixo', zh: '找到 {count} 条共性案例 - 列表如下' },
 };
 
 // Badge de Function/Practice + Category exibido no bloco "Problem".
@@ -307,6 +392,10 @@ export default function WhatIDid() {
   const [expandedSellerContact, setExpandedSellerContact] = useState({});
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [loading, setLoading] = useState(true);
+  // Traduções de UI carregadas do banco (tabela ui_translations) — formato
+  // { chave: { en: '...', es: '...', pt: '...', zh: '...', ... } }.
+  // Começa vazio; até carregar, t()/tt() usam a reserva embutida no código.
+  const [uiTranslationsDB, setUiTranslationsDB] = useState({});
   const [experiences, setExperiences] = useState([]);
   const shuffleOrderRef = useRef(null);
   // Lembra de qual empresa era o embaralhamento salvo — se a empresa mudar,
@@ -521,51 +610,40 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   // junto com o mesmo idioma que já controla o conteúdo (effectiveViewingLanguage),
   // então quando o Demo Mode muda de idioma, a interface administrativa
   // muda junto, não só o conteúdo.
-  const t = (key) => UI_STRINGS[key]?.[effectiveViewingLanguage] || UI_STRINGS[key]?.en || key;
-  // Frase de paginação "Página X de Y • Mostrando A-B de C" — função própria
-  // porque a ordem das palavras muda bastante entre os idiomas.
-  const tPagination = (current, total, from, to, count) => {
-    const templates = {
-      en: `Page ${current} of ${total} • Showing ${from}-${to} of ${count} experiences`,
-      es: `Página ${current} de ${total} • Mostrando ${from}-${to} de ${count} experiencias`,
-      pt: `Página ${current} de ${total} • Mostrando ${from}-${to} de ${count} experiências`,
-      zh: `第 ${current} 页，共 ${total} 页 • 显示第 ${from}-${to} 条，共 ${count} 条经验`,
-    };
-    return templates[effectiveViewingLanguage] || templates.en;
+  // Traduz textos fixos da UI. Prioridade: banco (uiTranslationsDB, carregado
+  // em loadUITranslations) → reserva embutida no código (UI_STRINGS) → a
+  // própria chave, como último recurso pra nunca quebrar a tela.
+  const t = (key) =>
+    uiTranslationsDB[key]?.[effectiveViewingLanguage] ||
+    uiTranslationsDB[key]?.en ||
+    UI_STRINGS[key]?.[effectiveViewingLanguage] ||
+    UI_STRINGS[key]?.en ||
+    key;
+  // Substitui {variavel} num template — usado pelas frases com números/contagens.
+  const tt = (key, vars) => {
+    const raw =
+      uiTranslationsDB[key]?.[effectiveViewingLanguage] ||
+      uiTranslationsDB[key]?.en ||
+      TEMPLATE_STRINGS[key]?.[effectiveViewingLanguage] ||
+      TEMPLATE_STRINGS[key]?.en ||
+      '';
+    return raw.replace(/\{(\w+)\}/g, (_, name) => (vars[name] !== undefined ? vars[name] : `{${name}}`));
   };
-  // "Hide all comments" / "Show all N (previous) comment(s)" — função própria
-  // pela pluralização e presença opcional da palavra "previous".
-  const tHideAllComments = () => {
-    const templates = { en: 'Hide all comments', es: 'Ocultar todos los comentarios', pt: 'Ocultar todos os comentários', zh: '隐藏所有评论' };
-    return templates[effectiveViewingLanguage] || templates.en;
-  };
+  const tPagination = (current, total, from, to, count) =>
+    tt('pagination_template', { current, total, from, to, count });
+  const tHideAllComments = () => t('hide_all_comments');
   const tShowAllComments = (count, includesPrevious) => {
-    const plural = count === 1;
-    const templates = {
-      en: `Show all ${count}${includesPrevious ? ' previous' : ''} ${plural ? 'comment' : 'comments'}`,
-      es: `Mostrar los ${count} comentarios${includesPrevious ? ' anteriores' : ''}`,
-      pt: `Mostrar os ${count} comentários${includesPrevious ? ' anteriores' : ''}`,
-      zh: `显示全部 ${count} 条${includesPrevious ? '以前的' : ''}评论`,
-    };
-    return templates[effectiveViewingLanguage] || templates.en;
+    const key = count === 1
+      ? (includesPrevious ? 'show_all_comments_singular_previous' : 'show_all_comments_singular')
+      : (includesPrevious ? 'show_all_comments_plural_previous' : 'show_all_comments_plural');
+    return tt(key, { count });
   };
-  // "N experience(s) found - Listed below" / "N common case(s) found - Listed below"
   const tCountFound = (count, isCommonCase) => {
-    const singular = count === 1;
-    const noun = { en: singular ? 'experience' : 'experiences', es: 'experiencias', pt: 'experiências', zh: '条经验' };
-    const nounCC = { en: singular ? 'common case' : 'common cases', es: 'casos comunes', pt: 'casos comuns', zh: '条共性案例' };
-    const templates = {
-      en: `${count} ${isCommonCase ? nounCC.en : noun.en} found - Listed below`,
-      es: `${count} ${isCommonCase ? nounCC.es : noun.es} encontrada${singular ? '' : 's'} - Listadas abajo`,
-      pt: `${count} ${isCommonCase ? nounCC.pt : noun.pt} encontrada${singular ? '' : 's'} - Listadas abaixo`,
-      zh: `找到 ${count} ${isCommonCase ? nounCC.zh : noun.zh} - 列表如下`,
-    };
-    return templates[effectiveViewingLanguage] || templates.en;
+    const base = isCommonCase ? 'count_found_common_cases' : 'count_found_experiences';
+    const key = count === 1 ? `${base}_singular` : `${base}_plural`;
+    return tt(key, { count });
   };
-  const tNoExperiencesFound = () => {
-    const templates = { en: 'No experiences found.', es: 'No se encontraron experiencias.', pt: 'Nenhuma experiência encontrada.', zh: '未找到任何经验。' };
-    return templates[effectiveViewingLanguage] || templates.en;
-  };
+  const tNoExperiencesFound = () => t('no_experiences_found');
   // true só quando é o Admin do Default DE VERDADE, olhando pro próprio Default
   // (não um Admin de empresa espiando o Sample, que também usa dados do Default,
   // mas não deve ver as 5 seções exclusivas do Default).
@@ -643,6 +721,7 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   detectUserCountry();
   loadCompanies();
   loadSellers();
+  loadUITranslations();
   (async () => {
     await runExpiredDemoCleanup();
     await loadDemoGroups();
@@ -1729,6 +1808,27 @@ const loadCompanies = async () => {
   }
 };
 
+// Carrega as traduções de UI do banco (tabela ui_translations) e monta um
+// objeto { chave: { idioma: texto } }, igual ao formato do UI_STRINGS/
+// TEMPLATE_STRINGS embutidos no código — assim t()/tt() usam o mesmo
+// formato não importa se o texto veio do banco ou da reserva local.
+const loadUITranslations = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('ui_translations')
+      .select('key, language, text');
+    if (error) throw error;
+    const grouped = {};
+    (data || []).forEach(row => {
+      if (!grouped[row.key]) grouped[row.key] = {};
+      grouped[row.key][row.language] = row.text;
+    });
+    setUiTranslationsDB(grouped);
+  } catch (error) {
+    console.error('Error loading UI translations (usando reserva embutida no código):', error);
+  }
+};
+
 const addCompany = async () => {
   if (!newCompany.name.trim()) {
     alert('Company name is required');
@@ -2636,7 +2736,7 @@ const sendEmailJs = async (toEmail, name, message) => {
 const handleAccountAccessLookup = async () => {
   setAccountAccessError('');
   if (!accountAccessEmail.trim() || !accountAccessEmployeeId.trim()) {
-    setAccountAccessError('Please enter both your email and Employee ID.');
+    setAccountAccessError(t('please_enter_email_employee_id'));
     return;
   }
   try {
@@ -2648,7 +2748,7 @@ const handleAccountAccessLookup = async () => {
       .eq('active', true);
     if (error) throw error;
     if (!data || data.length === 0) {
-      setAccountAccessError('No account found with that email and Employee ID. Check with your company Admin.');
+      setAccountAccessError(t('no_account_found'));
       return;
     }
     const usableMatches = data.filter(r => r.status !== 'blocked');
@@ -2739,7 +2839,7 @@ const handleSetAccountAccessPassword = async () => {
     return;
   }
   if (accountAccessPassword !== accountAccessConfirmPassword) {
-    setAccountAccessError('Passwords do not match.');
+    setAccountAccessError(t('passwords_do_not_match') + '.');
     return;
   }
   try {
@@ -2776,7 +2876,7 @@ const handleEmployeeLogin = async () => {
   setLoginError('');
   
   if (!employeeId.trim() || !employeePassword.trim()) {
-    setLoginError('Please enter Employee ID and Password');
+    setLoginError(t('please_enter_id_password'));
     return;
   }
   
@@ -2790,7 +2890,7 @@ const handleEmployeeLogin = async () => {
       .single();
     
     if (error || !data) {
-      setLoginError('Invalid Employee ID or Password');
+      setLoginError(t('invalid_id_password'));
       return;
     }
 
@@ -3916,15 +4016,15 @@ const prevVideo = () => {
   const handleChangePassword = async () => {
   setChangePasswordError('');
   if (!changePasswordNew.trim()) {
-    setChangePasswordError('Please enter a new password');
+    setChangePasswordError(t('please_enter_new_password'));
     return;
   }
   if (changePasswordNew.length < 6) {
-    setChangePasswordError('Password must be at least 6 characters');
+    setChangePasswordError(t('password_min_6_chars'));
     return;
   }
   if (changePasswordNew !== changePasswordConfirm) {
-    setChangePasswordError('Passwords do not match');
+    setChangePasswordError(t('passwords_do_not_match'));
     return;
   }
   try {
@@ -3936,7 +4036,7 @@ const prevVideo = () => {
     setShowChangePassword(false);
     setChangePasswordNew('');
     setChangePasswordConfirm('');
-    alert('Password updated successfully!');
+    alert(t('password_updated_success'));
   } catch (error) {
     console.error('Change password error:', error);
     setChangePasswordError('Error updating password. Please try again.');
@@ -5425,15 +5525,15 @@ useEffect(() => {
             className="absolute top-4 left-4 text-sm text-gray-400 hover:text-gray-600 font-medium"
             aria-label="Back"
           >
-            ← Back
+            {t('back')}
           </button>
         )}
-        <p className="text-gray-600 text-center mb-6">Employee Login</p>
+        <p className="text-gray-600 text-center mb-6">{t('employee_login')}</p>
           
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Employee ID
+                {t('employee_id')}
               </label>
               <input
                 type="text"
@@ -5441,14 +5541,14 @@ useEffect(() => {
                 onChange={(e) => setEmployeeId(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleEmployeeLogin()}
                 className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-placeholder="Enter your Employee ID"
+placeholder={t('enter_your_employee_id')}
 autoComplete="off"
               />
             </div>
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Password
+                {t('password')}
               </label>
               <input
                 type="password"
@@ -5456,7 +5556,7 @@ autoComplete="off"
                 onChange={(e) => setEmployeePassword(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleEmployeeLogin()}
                 className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-                placeholder="Enter your password"
+                placeholder={t('enter_your_password')}
               />
             </div>
             
@@ -5470,7 +5570,7 @@ autoComplete="off"
               onClick={handleEmployeeLogin}
               className="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 font-semibold transition-colors"
             >
-              Login
+              {t('login')}
             </button>
 
             <div className="flex justify-center mt-3">
@@ -5478,7 +5578,7 @@ autoComplete="off"
                 onClick={() => { resetAccountAccessFlow(); setShowAccountAccess(true); }}
                 className="text-sm text-purple-600 hover:text-purple-800 font-medium"
               >
-                1st Access or Set / Reset Password
+                {t('first_access_reset')}
               </button>
             </div>
           </div>
@@ -5490,7 +5590,7 @@ autoComplete="off"
             <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold text-gray-800">
-                  {accountAccessStep === 'done' ? 'Password Set!' : '1st Access or Set / Reset Password'}
+                  {accountAccessStep === 'done' ? t('password_set') : t('first_access_reset')}
                 </h3>
                 <button onClick={resetAccountAccessFlow} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">×</button>
               </div>
@@ -5498,19 +5598,19 @@ autoComplete="off"
               {/* Passo 1: e-mail + Employee ID */}
               {accountAccessStep === 'lookup' && (
                 <div className="space-y-4">
-                  <p className="text-sm text-gray-600">Enter your email and Employee ID. We'll send a verification code to confirm it's you.</p>
+                  <p className="text-sm text-gray-600">{t('enter_email_employee_id_code')}</p>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('email')}</label>
                     <input type="email" value={accountAccessEmail} onChange={(e) => { setAccountAccessEmail(e.target.value); setAccountAccessJustBlocked(false); }}
                       className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-                      placeholder="Enter your email" autoComplete="off" />
+                      placeholder={t('enter_your_email')} autoComplete="off" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Employee ID</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('employee_id')}</label>
                     <input type="text" value={accountAccessEmployeeId} onChange={(e) => { setAccountAccessEmployeeId(e.target.value); setAccountAccessJustBlocked(false); }}
                       onKeyPress={(e) => e.key === 'Enter' && !accountAccessJustBlocked && handleAccountAccessLookup()}
                       className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-                      placeholder="Enter your Employee ID" autoComplete="off" />
+                      placeholder={t('enter_your_employee_id')} autoComplete="off" />
                   </div>
                   {accountAccessError && (
                     <div className="bg-red-50 border-2 border-red-200 rounded-lg p-3">
@@ -5520,7 +5620,7 @@ autoComplete="off"
                   {!accountAccessJustBlocked && (
                   <button onClick={handleAccountAccessLookup}
                     className="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 font-semibold transition-colors">
-                    Send Verification Code
+                    {t('send_verification_code')}
                   </button>
                   )}
                 </div>
@@ -5529,12 +5629,12 @@ autoComplete="off"
               {/* Passo 1b: escolher qual empresa, se houver mais de um match */}
               {accountAccessStep === 'choose-match' && (
                 <div className="space-y-3">
-                  <p className="text-sm text-gray-600">We found more than one account with that email and Employee ID. Please select the correct one:</p>
+                  <p className="text-sm text-gray-600">{t('found_more_than_one_account')}</p>
                   {accountAccessMatches.map((m) => (
                     <label key={m.id} className="flex items-center gap-3 p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-purple-400">
                       <input type="checkbox" checked={false} readOnly onClick={() => handleChooseAccountAccessMatch(m)} className="w-4 h-4" />
                       <div>
-                        <p className="text-sm font-medium text-gray-800">{m.companies?.name || 'Company'}</p>
+                        <p className="text-sm font-medium text-gray-800">{m.companies?.name || t('company_fallback')}</p>
                       </div>
                     </label>
                   ))}
@@ -5549,11 +5649,11 @@ autoComplete="off"
               {/* Passo 1c: confirmação explícita da empresa (mesmo com um único resultado) */}
               {accountAccessStep === 'confirm-company' && (
                 <div className="space-y-4">
-                  <p className="text-sm text-gray-600">We found you at:</p>
+                  <p className="text-sm text-gray-600">{t('we_found_you_at')}</p>
                   <div className="bg-purple-50 border-2 border-purple-200 rounded-lg p-4 text-center">
-                    <p className="text-lg font-semibold text-purple-800">{accountAccessRecord?.companies?.name || 'Unknown Company'}</p>
+                    <p className="text-lg font-semibold text-purple-800">{accountAccessRecord?.companies?.name || t('unknown_company')}</p>
                   </div>
-                  <p className="text-sm text-gray-600">Is this your company?</p>
+                  <p className="text-sm text-gray-600">{t('is_this_your_company')}</p>
                   {accountAccessError && (
                     <div className="bg-red-50 border-2 border-red-200 rounded-lg p-3">
                       <p className="text-red-700 text-sm whitespace-pre-line">{accountAccessError}</p>
@@ -5584,17 +5684,17 @@ autoComplete="off"
                         setAccountAccessStep('lookup');
                         setAccountAccessRecord(null);
                         setAccountAccessJustBlocked(true);
-                        setAccountAccessError(`No problem — for your security, this account has been blocked until your Admin reviews it. Please contact your company's HR or Admin${adminEmailsText}`);
+                        setAccountAccessError(`${t('no_problem_blocked')}${adminEmailsText}`);
                       }}
                       className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 font-semibold transition-colors">
-                      No, that's not me
+                      {t('not_me')}
                     </button>
                     <button onClick={handleConfirmCompany}
                       className="flex-1 bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 font-semibold transition-colors">
-                      Yes, that's me
+                      {t('yes_thats_me')}
                     </button>
                   </div>
-                  <p className="text-xs text-gray-500 text-center">If this doesn't look right, contact your company's HR or Admin instead of continuing.</p>
+                  <p className="text-xs text-gray-500 text-center">{t('contact_hr_if_wrong')}</p>
                 </div>
               )}
 
@@ -5603,17 +5703,17 @@ autoComplete="off"
                 <div className="space-y-4">
                   <p className="text-sm text-gray-600">
                     {accountAccessRecord?.companies?.name && (
-                      <>You're accessing <strong>{accountAccessRecord.companies.name}</strong>.<br /></>
+                      <>{t('youre_accessing')} <strong>{accountAccessRecord.companies.name}</strong>.<br /></>
                     )}
-                    We sent a 6-digit code to your email. Enter it below.
-                    <br /><span className="text-xs text-gray-500">Don't see it? Check your spam/junk folder too.</span>
+                    {t('sent_code_to_email')}
+                    <br /><span className="text-xs text-gray-500">{t('check_spam_folder')}</span>
                   </p>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Verification Code</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('verification_code')}</label>
                     <input type="text" value={accountAccessCodeInput} onChange={(e) => setAccountAccessCodeInput(e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && handleVerifyAccountAccessCode()}
                       className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-                      placeholder="6-digit code" maxLength={6} autoComplete="off" />
+                      placeholder={t('six_digit_code')} maxLength={6} autoComplete="off" />
                   </div>
                   {accountAccessError && (
                     <div className="bg-red-50 border-2 border-red-200 rounded-lg p-3">
@@ -5622,7 +5722,7 @@ autoComplete="off"
                   )}
                   <button onClick={handleVerifyAccountAccessCode}
                     className="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 font-semibold transition-colors">
-                    Verify Code
+                    {t('verify_code')}
                   </button>
                 </div>
               )}
@@ -5631,28 +5731,34 @@ autoComplete="off"
               {accountAccessStep === 'set-password' && (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('new_password')}</label>
                     <input type="password" value={accountAccessPassword} onChange={(e) => setAccountAccessPassword(e.target.value)}
                       className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-                      placeholder="Choose a password" />
+                      placeholder={t('choose_a_password')} />
                   </div>
                   <div className="space-y-1">
                     {PASSWORD_RULES.map((rule, i) => {
                       const passed = rule.test(accountAccessPassword);
+                      const ruleKeys = {
+                        'At least 8 characters': 'password_rule_8_chars',
+                        'At least one uppercase letter (A-Z)': 'password_rule_uppercase',
+                        'At least one lowercase letter (a-z)': 'password_rule_lowercase',
+                        'At least one number (0-9)': 'password_rule_number',
+                      };
                       return (
                         <div key={i} className={`text-xs flex items-center gap-1.5 ${passed ? 'text-green-600' : 'text-gray-400'}`}>
                           <span>{passed ? '✓' : '○'}</span>
-                          <span>{rule.label}</span>
+                          <span>{t(ruleKeys[rule.label] || rule.label)}</span>
                         </div>
                       );
                     })}
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('confirm_password')}</label>
                     <input type="password" value={accountAccessConfirmPassword} onChange={(e) => setAccountAccessConfirmPassword(e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && handleSetAccountAccessPassword()}
                       className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-                      placeholder="Repeat your password" />
+                      placeholder={t('repeat_your_password')} />
                   </div>
                   {accountAccessError && (
                     <div className="bg-red-50 border-2 border-red-200 rounded-lg p-3">
@@ -5661,7 +5767,7 @@ autoComplete="off"
                   )}
                   <button onClick={handleSetAccountAccessPassword}
                     className="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 font-semibold transition-colors">
-                    Save Password
+                    {t('save_password')}
                   </button>
                 </div>
               )}
@@ -5670,13 +5776,13 @@ autoComplete="off"
               {accountAccessStep === 'done' && (
                 <div className="text-center py-4">
                   <div className="text-4xl mb-3">✅</div>
-                  <h4 className="text-lg font-bold text-gray-800 mb-2">Password Set!</h4>
-                  <p className="text-gray-600 text-sm mb-4">You can now login with your Employee ID and new password.</p>
+                  <h4 className="text-lg font-bold text-gray-800 mb-2">{t('password_set')}</h4>
+                  <p className="text-gray-600 text-sm mb-4">{t('can_now_login')}</p>
                   <button
                     onClick={resetAccountAccessFlow}
                     className="w-full bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 font-semibold"
                   >
-                    Go to Login
+                    {t('go_to_login')}
                   </button>
                 </div>
               )}
@@ -5764,7 +5870,7 @@ autoComplete="off"
         <button
           onClick={() => setCarouselStartIndex(Math.max(0, carouselStartIndex - 1))}
           className="text-black hover:text-gray-600 transition-colors cursor-pointer"
-          aria-label="Previous videos"
+          aria-label={t('previous_videos')}
         >
           <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -5848,7 +5954,7 @@ autoComplete="off"
         <button
           onClick={() => setCarouselStartIndex(Math.min(promotionalVideos.length - videosPerPage, carouselStartIndex + 1))}
           className="text-black hover:text-gray-600 transition-colors cursor-pointer"
-          aria-label="Next videos"
+          aria-label={t('next_videos')}
         >
           <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
@@ -9838,7 +9944,7 @@ onClick={() => {
                       type="text"
                       value={filters.searchText}
                       onChange={(e) => setFilters({...filters, searchText: e.target.value})}
-                      placeholder="Search..."
+                      placeholder={t('search_placeholder')}
                       className="w-full h-9 px-2 py-1 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
                     />
                   </div>
@@ -11872,7 +11978,7 @@ if (selected.length === 0) {
               closeVideoModal();
             }}
             className={`video-modal-close-btn fixed sm:absolute top-4 left-4 z-[99999] text-black sm:text-black hover:text-gray-700 w-10 h-10 sm:w-10 sm:h-10 font-bold transition-colors flex items-center justify-center ${promotionalVideos[currentVideoIndex]?.fileType === 'presentation' ? 'hidden' : ''}`}
-            aria-label="Close video"
+            aria-label={t('close_video')}
             style={{ 
               touchAction: 'manipulation', 
               WebkitTapHighlightColor: 'transparent',
@@ -12134,29 +12240,29 @@ if (selected.length === 0) {
         <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full">
           <div className="text-center mb-5">
             <div className="text-4xl mb-3">🔐</div>
-            <h3 className="text-xl font-bold text-gray-800">Set Your New Password</h3>
-            <p className="text-sm text-gray-500 mt-1">You logged in with a temporary password. Please set a permanent one.</p>
+            <h3 className="text-xl font-bold text-gray-800">{t('set_your_new_password')}</h3>
+            <p className="text-sm text-gray-500 mt-1">{t('temp_password_notice')}</p>
           </div>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('new_password')}</label>
               <input
                 type="password"
                 value={changePasswordNew}
                 onChange={(e) => setChangePasswordNew(e.target.value)}
                 className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-                placeholder="At least 6 characters"
+                placeholder={t('at_least_6_chars')}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('confirm_password')}</label>
               <input
                 type="password"
                 value={changePasswordConfirm}
                 onChange={(e) => setChangePasswordConfirm(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleChangePassword()}
                 className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-                placeholder="Repeat your password"
+                placeholder={t('repeat_your_password')}
               />
             </div>
             {changePasswordError && (
@@ -12168,13 +12274,13 @@ if (selected.length === 0) {
               onClick={handleChangePassword}
               className="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 font-semibold transition-colors"
             >
-              Save New Password
+              {t('save_new_password')}
             </button>
             <button
               onClick={() => setShowChangePassword(false)}
               className="w-full text-gray-500 hover:text-gray-700 text-sm py-1"
             >
-              Skip for now
+              {t('skip_for_now')}
             </button>
           </div>
         </div>
@@ -12186,7 +12292,7 @@ if (selected.length === 0) {
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
         <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] flex flex-col">
           <div className="flex items-center justify-between p-4 border-b">
-            <h3 className="text-lg font-semibold">CV Preview</h3>
+            <h3 className="text-lg font-semibold">{t('cv_preview')}</h3>
             <button
               onClick={() => {
                 setShowCvModal(false);
@@ -12214,7 +12320,7 @@ if (selected.length === 0) {
               rel="noopener noreferrer"
               className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2"
             >
-              ⬇️ Download PDF
+              {t('download_pdf')}
             </a>
           </div>
         </div>
@@ -12236,7 +12342,7 @@ if (selected.length === 0) {
         <div className="w-10 h-1 bg-gray-300 rounded-full" />
       </div>
       <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
-        <h3 className="font-semibold text-gray-800 text-base">Category Guide</h3>
+        <h3 className="font-semibold text-gray-800 text-base">{t('category_guide')}</h3>
         <button
           onClick={() => setShowCategoryDrawer(false)}
           className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
