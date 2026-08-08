@@ -581,6 +581,40 @@ const UI_STRINGS = {
   seller_status_active: { en: 'Active', es: 'Activo', pt: 'Ativo', zh: '活跃' },
   seller_status_blocked: { en: 'Blocked', es: 'Bloqueado', pt: 'Bloqueado', zh: '已封禁' },
   seller_status_pending: { en: 'Pending', es: 'Pendiente', pt: 'Pendente', zh: '待处理' },
+  // Lote final — Manage Companies/Sellers/Demo Groups/Quotes/Videos/Employees boxes
+  company_name_star: { en: 'Company Name *', es: 'Nombre de la Empresa *', pt: 'Nome da Empresa *', zh: '公司名称 *' },
+  company_code_hint: { en: 'Company Code (optional, auto-generated if blank)', es: 'Código de la Empresa (opcional, se genera automáticamente si se deja en blanco)', pt: 'Código da Empresa (opcional, gerado automaticamente se em branco)', zh: '公司代码（选填，留空则自动生成）' },
+  unknown_seller: { en: 'Unknown seller', es: 'Vendedor desconocido', pt: 'Vendedor desconhecido', zh: '未知销售代表' },
+  default_admin_label: { en: 'Default Admin', es: 'Admin del Default', pt: 'Admin do Default', zh: 'Default 管理员' },
+  set_as_context_company: { en: "Set as the 'Company' the context dropdown points to", es: "Marcar como la 'Company' a la que apunta el menú de contexto", pt: "Definir como a 'Company' para a qual o menu de contexto aponta", zh: "设为上下文下拉菜单指向的'Company'" },
+  name_star: { en: 'Name *', es: 'Nombre *', pt: 'Nome *', zh: '姓名 *' },
+  seller_id_star: { en: 'Seller ID *', es: 'ID de Vendedor *', pt: 'ID do Vendedor *', zh: '销售代表 ID *' },
+  email_star: { en: 'Email *', es: 'Correo *', pt: 'E-mail *', zh: '邮箱 *' },
+  pros_count_label: { en: '#Pros:', es: '#Pros:', pt: '#Pros:', zh: '#潜在:' },
+  plt_count_label: { en: '#Plt:', es: '#Plt:', pt: '#Plt:', zh: '#试点:' },
+  cust_count_label: { en: '#Cust:', es: '#Cli:', pt: '#Cli:', zh: '#客户:' },
+  please_select_company: { en: 'Please select a company', es: 'Por favor, selecciona una empresa', pt: 'Por favor, selecione uma empresa', zh: '请选择一家公司' },
+  company_not_found: { en: 'Company not found', es: 'Empresa no encontrada', pt: 'Empresa não encontrada', zh: '未找到该公司' },
+  error_creating_group: { en: 'Error creating group:', es: 'Error al crear el grupo:', pt: 'Erro ao criar o grupo:', zh: '创建分组时出错：' },
+  read_only_sample: { en: '(read-only — Sample)', es: '(solo lectura — Muestra)', pt: '(somente leitura — Amostra)', zh: '（只读 — 示例）' },
+  url_label: { en: 'URL', es: 'URL', pt: 'URL', zh: 'URL' },
+  all_languages: { en: '🌐 All languages', es: '🌐 Todos los idiomas', pt: '🌐 Todos os idiomas', zh: '🌐 所有语言' },
+  uploading_ellipsis: { en: 'Uploading...', es: 'Subiendo...', pt: 'Enviando...', zh: '上传中……' },
+  file_label_colon: { en: 'File:', es: 'Archivo:', pt: 'Arquivo:', zh: '文件：' },
+  show_in_carousel: { en: '👁️ Show in carousel', es: '👁️ Mostrar en el carrusel', pt: '👁️ Mostrar no carrossel', zh: '👁️ 在轮播中显示' },
+  hide_from_carousel: { en: '🙈 Hide from carousel', es: '🙈 Ocultar del carrusel', pt: '🙈 Ocultar do carrossel', zh: '🙈 从轮播中隐藏' },
+  which_language_item_appears: { en: 'Which language this item should appear in — blank shows in every language', es: 'En qué idioma debe aparecer este elemento — en blanco se muestra en todos los idiomas', pt: 'Em qual idioma este item deve aparecer — em branco aparece em todos os idiomas', zh: '此项目应显示在哪种语言下——留空则在所有语言中显示' },
+  error_exporting: { en: 'Error exporting:', es: 'Error al exportar:', pt: 'Erro ao exportar:', zh: '导出时出错：' },
+  name_placeholder: { en: 'Name', es: 'Nombre', pt: 'Nome', zh: '姓名' },
+  admin_label_short: { en: 'Admin', es: 'Admin', pt: 'Admin', zh: '管理员' },
+  employee_id_star: { en: 'Employee ID *', es: 'ID de Empleado *', pt: 'ID do Funcionário *', zh: '员工 ID *' },
+  full_name_star: { en: 'Full Name *', es: 'Nombre Completo *', pt: 'Nome Completo *', zh: '全名 *' },
+  top_above_top3: { en: 'Top (above Top 3)', es: 'Arriba (encima del Top 3)', pt: 'Topo (acima do Top 3)', zh: '顶部（Top 3 上方）' },
+  bottom_below_top3: { en: 'Bottom (below Top 3)', es: 'Abajo (debajo del Top 3)', pt: 'Base (abaixo do Top 3)', zh: '底部（Top 3 下方）' },
+  video_word: { en: 'Video', es: 'Video', pt: 'Vídeo', zh: '视频' },
+  presentation_word: { en: 'Presentation', es: 'Presentación', pt: 'Apresentação', zh: '演示文稿' },
+  link_word: { en: 'Link', es: 'Enlace', pt: 'Link', zh: '链接' },
+  edit_pencil: { en: '✏️ Edit', es: '✏️ Editar', pt: '✏️ Editar', zh: '✏️ 编辑' },
   no_experiences_found: { en: 'No experiences found.', es: 'No se encontraron experiencias.', pt: 'Nenhuma experiência encontrada.', zh: '未找到任何经验。' },
 };
 
@@ -597,6 +631,8 @@ const TEMPLATE_STRINGS = {
   count_found_experiences_plural: { en: '{count} experiences found - Listed below', es: '{count} experiencias encontradas - Listadas abajo', pt: '{count} experiências encontradas - Listadas abaixo', zh: '找到 {count} 条经验 - 列表如下' },
   count_found_common_cases_singular: { en: '{count} common case found - Listed below', es: '{count} caso común encontrado - Listado abajo', pt: '{count} caso comum encontrado - Listado abaixo', zh: '找到 {count} 条共性案例 - 列表如下' },
   count_found_common_cases_plural: { en: '{count} common cases found - Listed below', es: '{count} casos comunes encontrados - Listados abajo', pt: '{count} casos comuns encontrados - Listados abaixo', zh: '找到 {count} 条共性案例 - 列表如下' },
+  demo_ids_no_limit: { en: 'You have {count} active Demo ID(s) — no limit set.', es: 'Tienes {count} ID(s) Demo activo(s) — sin límite establecido.', pt: 'Você tem {count} ID(s) Demo ativo(s) — sem limite definido.', zh: '您有 {count} 个活跃的演示 ID — 未设置上限。' },
+  demo_ids_available: { en: 'You have {remaining} of {limit} Demo ID(s) available right now.', es: 'Tienes {remaining} de {limit} ID(s) Demo disponibles ahora mismo.', pt: 'Você tem {remaining} de {limit} ID(s) Demo disponíveis agora.', zh: '您现在有 {remaining}/{limit} 个演示 ID 可用。' },
 };
 
 // Badge de Function/Practice + Category exibido no bloco "Problem".
@@ -6913,9 +6949,9 @@ autoComplete="off"
       <h4 className="font-medium text-gray-700 mb-3">{t('add_company')}</h4>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
         <input type="text" value={newCompany.name} onChange={(e) => setNewCompany({...newCompany, name: e.target.value})}
-          placeholder="Company Name *" className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
+          placeholder={t('company_name_star')} className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
         <input type="text" value={newCompany.code} onChange={(e) => setNewCompany({...newCompany, code: e.target.value})}
-          placeholder="Company Code (optional, auto-generated if blank)" className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
+          placeholder={t('company_code_hint')} className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
       </div>
       <button onClick={addCompany} className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700">
         {t('add_company_btn')}
@@ -6947,15 +6983,15 @@ autoComplete="off"
               </button>
               <input type="radio" name="context-company" checked={selectedCompanyForContext === c.id}
                 onChange={() => { setSelectedCompanyForContext(c.id); if (adminCompanyContext) setAdminCompanyContext(c.id); }}
-                title="Set as the 'Company' the context dropdown points to" className="w-4 h-4 flex-shrink-0" />
+                title={t('set_as_context_company')} className="w-4 h-4 flex-shrink-0" />
               <span className="text-sm font-medium text-gray-800 text-left whitespace-nowrap w-32 flex-shrink-0 truncate">{c.name}</span>
               <span className="text-xs text-gray-500 text-left whitespace-nowrap w-24 flex-shrink-0">
                 {t('since_label')} {c.created_at ? new Date(c.created_at).toLocaleDateString() : '—'}
               </span>
               <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-slate-100 text-slate-600 text-left whitespace-nowrap w-32 flex-shrink-0 truncate">
-                By: {c.created_by_seller_id
-                  ? (sellers.find(s => s.id === c.created_by_seller_id)?.name || 'Unknown seller')
-                  : 'Default Admin'}
+                {t('by_short')} {c.created_by_seller_id
+                  ? (sellers.find(s => s.id === c.created_by_seller_id)?.name || t('unknown_seller'))
+                  : t('default_admin_label')}
               </span>
               <select
                 value={c.status || 'prospect'}
@@ -6984,7 +7020,7 @@ autoComplete="off"
               </select>
               <button onClick={() => deleteCompany(c.id, c.name)}
                 className="px-2 py-1 rounded text-xs bg-red-600 hover:bg-red-700 text-white whitespace-nowrap flex-shrink-0">
-                🗑️ Delete
+                {t('delete_trash')}
               </button>
             </div>
             {expandedCompanyContact[c.id] && (
@@ -6993,7 +7029,7 @@ autoComplete="off"
                   <input type="text" defaultValue={c.contact_name || ''} id={`contact-name-${c.id}`}
                     placeholder={t('contact_name_placeholder')} className="p-1.5 border border-gray-300 rounded text-sm" />
                   <input type="email" defaultValue={c.contact_email || ''} id={`contact-email-${c.id}`}
-                    placeholder="Email" className="p-1.5 border border-gray-300 rounded text-sm" />
+                    placeholder={t('email')} className="p-1.5 border border-gray-300 rounded text-sm" />
                   <input type="text" defaultValue={c.contact_phone || ''} id={`contact-phone-${c.id}`}
                     placeholder={t('phone')} className="p-1.5 border border-gray-300 rounded text-sm" />
                   <input type="text" defaultValue={c.contact_location || ''} id={`contact-location-${c.id}`}
@@ -7039,11 +7075,11 @@ autoComplete="off"
       <p className="text-xs text-gray-500 mb-3">{t('seller_id_hint_intro')} <strong>{t('suggested_id_format')}</strong> {t('seller_id_hint_example')} <span className="font-mono">RR072026</span> {t('seller_id_hint_registered')}</p>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
         <input type="text" value={newSeller.name} onChange={(e) => setNewSeller({...newSeller, name: e.target.value})}
-          placeholder="Name *" className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
+          placeholder={t('name_star')} className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
         <input type="text" value={newSeller.employee_id} onChange={(e) => setNewSeller({...newSeller, employee_id: e.target.value})}
-          placeholder="Seller ID *" className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
+          placeholder={t('seller_id_star')} className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
         <input type="email" value={newSeller.email} onChange={(e) => setNewSeller({...newSeller, email: e.target.value})}
-          placeholder="Email *" className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
+          placeholder={t('email_star')} className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
       </div>
       <button onClick={createSeller} disabled={creatingSeller}
         className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm hover:bg-teal-700 disabled:opacity-50">
@@ -7087,9 +7123,9 @@ autoComplete="off"
                 }`}>
                   {s.status === 'active' ? t('seller_status_active') : s.status === 'blocked' ? t('seller_status_blocked') : t('seller_status_pending')}
                 </span>
-                <span className="text-xs text-yellow-700 whitespace-nowrap w-14 flex-shrink-0">#Pros: {prospectCount}</span>
-                <span className="text-xs text-blue-700 whitespace-nowrap w-12 flex-shrink-0">#Plt: {pilotCount}</span>
-                <span className="text-xs text-green-700 whitespace-nowrap w-14 flex-shrink-0">#Cust: {customerCount}</span>
+                <span className="text-xs text-yellow-700 whitespace-nowrap w-14 flex-shrink-0">{t('pros_count_label')} {prospectCount}</span>
+                <span className="text-xs text-blue-700 whitespace-nowrap w-12 flex-shrink-0">{t('plt_count_label')} {pilotCount}</span>
+                <span className="text-xs text-green-700 whitespace-nowrap w-14 flex-shrink-0">{t('cust_count_label')} {customerCount}</span>
                 <select
                   value={s.active ? 'active' : 'inactive'}
                   onChange={(e) => toggleSellerActive(s.id, e.target.value === 'active')}
@@ -7109,7 +7145,7 @@ autoComplete="off"
                     <input type="text" defaultValue={s.contact_name || s.name || ''} id={`seller-contact-name-${s.id}`}
                       placeholder={t('contact_name_placeholder')} className="p-1.5 border border-gray-300 rounded text-sm" />
                     <input type="email" defaultValue={s.contact_email || s.email || ''} id={`seller-contact-email-${s.id}`}
-                      placeholder="Email" className="p-1.5 border border-gray-300 rounded text-sm" />
+                      placeholder={t('email')} className="p-1.5 border border-gray-300 rounded text-sm" />
                     <input type="text" defaultValue={s.contact_phone || ''} id={`seller-contact-phone-${s.id}`}
                       placeholder={t('phone')} className="p-1.5 border border-gray-300 rounded text-sm" />
                     <input type="text" defaultValue={s.contact_location || ''} id={`seller-contact-location-${s.id}`}
@@ -7161,8 +7197,8 @@ autoComplete="off"
       return (
         <p className={`text-sm font-medium mb-4 ${remaining === 0 ? 'text-red-600' : 'text-pink-700'}`}>
           {remaining === null
-            ? `You have ${myActiveCount} active Demo ID(s) — no limit set.`
-            : `You have ${remaining} of ${myLimit} Demo ID(s) available right now.`}
+            ? tt('demo_ids_no_limit', { count: myActiveCount })
+            : tt('demo_ids_available', { remaining, limit: myLimit })}
         </p>
       );
     })()}
@@ -7186,14 +7222,14 @@ autoComplete="off"
         <button
           onClick={async () => {
             const companyId = document.getElementById('new-group-company').value;
-            if (!companyId) { alert('Please select a company'); return; }
+            if (!companyId) { alert(t('please_select_company')); return; }
             const company = companies.find(c => String(c.id) === companyId);
-            if (!company) { alert('Company not found'); return; }
+            if (!company) { alert(t('company_not_found')); return; }
             const { data, error } = await supabase
               .from('demo_groups')
               .insert([{ name: company.name, company_id: company.id, created_by_seller_id: isSeller ? loggedInSellerId : null }])
               .select();
-            if (error) { alert('Error creating group: ' + error.message); return; }
+            if (error) { alert(t('error_creating_group') + ' ' + error.message); return; }
             document.getElementById('new-group-company').value = '';
             await loadDemoGroups();
             alert(tAlert('group_created_named', { name: company.name }));
@@ -7229,15 +7265,15 @@ autoComplete="off"
                           : status === 'pilot' ? 'bg-blue-100 text-blue-700'
                           : 'bg-yellow-100 text-yellow-700'
                         }`}>
-                          {status === 'customer' ? 'Customer' : status === 'pilot' ? 'Pilot' : 'Prospect'}
+                          {status === 'customer' ? t('customer') : status === 'pilot' ? t('pilot') : t('prospect')}
                         </span>
                       );
                     })()}
                   </h5>
                   <p className="text-xs text-gray-500">
-                    By: {group.created_by_seller_id
-                      ? (sellers.find(s => s.id === group.created_by_seller_id)?.name || 'Unknown seller')
-                      : 'Default Admin'}
+                    {t('by_short')} {group.created_by_seller_id
+                      ? (sellers.find(s => s.id === group.created_by_seller_id)?.name || t('unknown_seller'))
+                      : t('default_admin_label')}
                     {group.created_at && ` · ${new Date(group.created_at).toLocaleDateString()}`}
                   </p>
                 </div>
@@ -7517,7 +7553,7 @@ autoComplete="off"
   <div className="mt-4 bg-indigo-50 border-2 border-indigo-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
       {t('app_configuration_title')}
-      {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">(read-only — Sample)</span>}
+      {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">{t('read_only_sample')}</span>}
     </h3>
     
     <div className={`bg-white rounded p-4 space-y-4 ${isReadOnlyOrMasterManaging ? 'pointer-events-none opacity-60' : ''}`}>
@@ -7802,7 +7838,7 @@ autoComplete="off"
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 <MessageCircle size={20} />
                 {t('manage_inspirational_quotes')}
-                {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">(read-only — Sample)</span>}
+                {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">{t('read_only_sample')}</span>}
               </h3>
 
               <div className={isReadOnlyOrMasterManaging ? 'pointer-events-none opacity-60' : ''}>
@@ -7848,8 +7884,8 @@ autoComplete="off"
                       onChange={(e) => setNewQuote({...newQuote, position: e.target.value})}
                       className="w-full p-2 border-2 border-gray-300 rounded-lg"
                     >
-                      <option value="top">Top (above Top 3)</option>
-                      <option value="bottom">Bottom (below Top 3)</option>
+                      <option value="top">{t('top_above_top3')}</option>
+                      <option value="bottom">{t('bottom_below_top3')}</option>
                     </select>
                   </div>
                   <button
@@ -7888,8 +7924,8 @@ autoComplete="off"
                               id={`edit-position-${quote.id}`}
                               className="w-full p-2 border-2 border-gray-300 rounded"
                             >
-                              <option value="top">Top (above Top 3)</option>
-                              <option value="bottom">Bottom (below Top 3)</option>
+                              <option value="top">{t('top_above_top3')}</option>
+                              <option value="bottom">{t('bottom_below_top3')}</option>
                             </select>
                             <div className="flex gap-2">
                               <button
@@ -7901,13 +7937,13 @@ autoComplete="off"
                                 }}
                                 className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
                               >
-                                Save
+                                {t('save')}
                               </button>
                               <button
                                 onClick={() => setEditingQuote(null)}
                                 className="px-3 py-1 bg-gray-500 text-white rounded text-sm hover:bg-gray-600"
                               >
-                                Cancel
+                                {t('cancel')}
                               </button>
                             </div>
                           </div>
@@ -7954,7 +7990,7 @@ autoComplete="off"
             <div className="mt-4 bg-purple-50 border-2 border-purple-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 🎬 {t('manage_promotional_videos')}
-                {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">(read-only — Sample)</span>}
+                {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">{t('read_only_sample')}</span>}
               </h3>
               
               <div className={`bg-white rounded p-4 mb-4 ${isReadOnlyOrMasterManaging ? "pointer-events-none opacity-60" : ""}`}>
@@ -8000,7 +8036,7 @@ autoComplete="off"
                   {newItemType === 'link' ? (
                     <div className="space-y-3">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">URL</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">{t('url_label')}</label>
                         <input
                           type="url"
                           value={newLinkUrl}
@@ -8056,7 +8092,7 @@ autoComplete="off"
                       onChange={(e) => setNewItemLanguage(e.target.value)}
                       className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm"
                     >
-                      <option value="">🌐 All languages</option>
+                      <option value="">{t('all_languages')}</option>
                       <option value="en">English</option>
                       <option value="es">Español</option>
                       <option value="pt">Português</option>
@@ -8083,7 +8119,7 @@ autoComplete="off"
                     disabled={uploadingVideo && newItemType !== 'link'}
                     className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {uploadingVideo ? 'Uploading...' : `Add ${newItemType === 'video' ? 'Video' : newItemType === 'presentation' ? 'Presentation' : 'Link'}`}
+                    {uploadingVideo ? t('uploading_ellipsis') : `${t('add_btn_generic')} ${newItemType === 'video' ? t('video_word') : newItemType === 'presentation' ? t('presentation_word') : t('link_word')}`}
                   </button>
                 </div>
               </div>
@@ -8146,13 +8182,13 @@ autoComplete="off"
                                     }}
                                     className="px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700"
                                   >
-                                    Save
+                                    {t('save')}
                                   </button>
                                   <button
                                     onClick={() => setEditingVideoDuration({})}
                                     className="px-2 py-1 bg-gray-500 text-white rounded text-xs hover:bg-gray-600"
                                   >
-                                    Cancel
+                                    {t('cancel')}
                                   </button>
                                 </div>
                               ) : (
@@ -8180,13 +8216,13 @@ autoComplete="off"
                                   }}
                                   className="px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700"
                                 >
-                                  Save
+                                  {t('save')}
                                 </button>
                                 <button
                                   onClick={() => setEditingVideoName({})}
                                   className="px-2 py-1 bg-gray-500 text-white rounded text-xs hover:bg-gray-600"
                                 >
-                                  Cancel
+                                  {t('cancel')}
                                 </button>
                               </div>
                             ) : (
@@ -8195,7 +8231,7 @@ autoComplete="off"
                               </p>
                             )}
                             <p className="text-xs text-gray-500 truncate mb-2" title={video.url}>
-                              File: {video.url ? decodeURIComponent(video.url.split('/').pop()) : '—'}
+                              {t('file_label_colon')} {video.url ? decodeURIComponent(video.url.split('/').pop()) : '—'}
                             </p>
                             <div className="flex gap-2 mb-2">
                               <select
@@ -8207,8 +8243,8 @@ autoComplete="off"
                                 }}
                                 className={`text-xs px-2 py-1 rounded-full font-medium border-0 ${video.visible ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}
                               >
-                                <option value="show">👁️ Show in carousel</option>
-                                <option value="hide">🙈 Hide from carousel</option>
+                                <option value="show">{t('show_in_carousel')}</option>
+                                <option value="hide">{t('hide_from_carousel')}</option>
                               </select>
                               <select
                                 value={video.language || ''}
@@ -8218,9 +8254,9 @@ autoComplete="off"
                                   await loadPromotionalVideos();
                                 }}
                                 className="text-xs px-2 py-1 rounded-full font-medium border-0 bg-blue-50 text-blue-700"
-                                title="Which language this item should appear in — blank shows in every language"
+                                title={t('which_language_item_appears')}
                               >
-                                <option value="">🌐 All languages</option>
+                                <option value="">{t('all_languages')}</option>
                                 <option value="en">English</option>
                                 <option value="es">Español</option>
                                 <option value="pt">Português</option>
@@ -8234,21 +8270,21 @@ autoComplete="off"
                                 onClick={() => setEditingVideoName({ [video.id]: true })}
                                 className="px-2 py-1 bg-indigo-600 text-white rounded text-xs hover:bg-indigo-700"
                               >
-                                ✏️ Edit
+                                {t('edit_pencil')}
                               </button>
                               <button
                                 onClick={() => moveVideoUp(index)}
                                 disabled={index === 0}
                                 className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 disabled:opacity-30 disabled:cursor-not-allowed"
                               >
-                                ↑ Up
+                                {t('up_arrow')}
                               </button>
                               <button
                                 onClick={() => moveVideoDown(index)}
                                 disabled={index === allPromotionalVideosAdmin.length - 1}
                                 className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 disabled:opacity-30 disabled:cursor-not-allowed"
                               >
-                                ↓ Down
+                                {t('down_arrow')}
                               </button>
                               <button
                                 onClick={() => {
@@ -8258,7 +8294,7 @@ autoComplete="off"
                                 }}
                                 className="px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700"
                               >
-                                🗑️ Delete
+                                {t('delete_trash')}
                               </button>
                             </div>
                           </div>
@@ -8276,7 +8312,7 @@ autoComplete="off"
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 <MessageCircle size={20} />
                 {t('manage_content_pages')}
-                {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">(read-only — Sample)</span>}
+                {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">{t('read_only_sample')}</span>}
               </h3>
               
               <div className={`space-y-4 ${isReadOnlyOrMasterManaging ? 'pointer-events-none opacity-60' : ''}`}>
@@ -8353,9 +8389,9 @@ autoComplete="off"
       <h4 className="font-medium text-gray-700 mb-3">{t('add_employee')}</h4>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
         <input type="text" value={newEmployee.employee_id} onChange={(e) => setNewEmployee({...newEmployee, employee_id: e.target.value})}
-          placeholder="Employee ID *" className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
+          placeholder={t('employee_id_star')} className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
         <input type="text" value={newEmployee.name} onChange={(e) => setNewEmployee({...newEmployee, name: e.target.value})}
-          placeholder="Full Name *" className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
+          placeholder={t('full_name_star')} className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
         <input type="text" value={newEmployee.country} onChange={(e) => setNewEmployee({...newEmployee, country: e.target.value})}
           placeholder={t('country')} className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
         <input type="email" value={newEmployee.email} onChange={(e) => setNewEmployee({...newEmployee, email: e.target.value})}
@@ -8389,7 +8425,7 @@ autoComplete="off"
               const wb = XLSX.utils.book_new();
               XLSX.utils.book_append_sheet(wb, ws, 'Employees');
               XLSX.writeFile(wb, `employees_${new Date().toISOString().slice(0,10)}.xlsx`);
-            } catch(err) { alert('Error exporting: ' + err.message); }
+            } catch(err) { alert(t('error_exporting') + ' ' + err.message); }
           }}
           className="px-4 py-2 bg-gray-600 text-white rounded-lg text-sm hover:bg-gray-700"
         >
@@ -8417,14 +8453,14 @@ autoComplete="off"
               <>
                 <span className="text-xs font-bold text-gray-500 w-20 shrink-0">{emp.employee_id}</span>
                 <input type="text" defaultValue={emp.name} onChange={(e) => setEditingEmployeeData({...editingEmployeeData, name: e.target.value})}
-                  className="flex-1 min-w-24 p-1 border border-gray-300 rounded text-sm" placeholder="Name" />
+                  className="flex-1 min-w-24 p-1 border border-gray-300 rounded text-sm" placeholder={t('name_placeholder')} />
                 <input type="text" defaultValue={emp.country} onChange={(e) => setEditingEmployeeData({...editingEmployeeData, country: e.target.value})}
                   className="flex-1 min-w-20 p-1 border border-gray-300 rounded text-sm" placeholder={t('country')} />
                 <input type="email" defaultValue={emp.email} onChange={(e) => setEditingEmployeeData({...editingEmployeeData, email: e.target.value})}
                   className="flex-1 min-w-32 p-1 border border-gray-300 rounded text-sm" placeholder={t('email')} />
                 <label className="flex items-center gap-1 text-xs text-gray-600 shrink-0">
                   <input type="checkbox" defaultChecked={emp.is_admin} onChange={(e) => setEditingEmployeeData({...editingEmployeeData, is_admin: e.target.checked})} />
-                  Admin
+                  {t("admin_label_short")}
                 </label>
                 <select defaultValue={emp.status || 'pending'} onChange={(e) => setEditingEmployeeData({...editingEmployeeData, status: e.target.value})}
                   className="text-xs p-1 border border-gray-300 rounded shrink-0">
@@ -8508,7 +8544,7 @@ autoComplete="off"
   <div className="mt-4 bg-teal-50 border-2 border-teal-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
       {t('manage_problem_categories')}
-      {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">(read-only — Sample)</span>}
+      {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">{t('read_only_sample')}</span>}
     </h3>
 
     <div className="">
@@ -8636,7 +8672,7 @@ autoComplete="off"
               const wb = XLSX.utils.book_new();
               XLSX.utils.book_append_sheet(wb, ws, 'Categories');
               XLSX.writeFile(wb, `categories_${practiceName.replace(/\s+/g,'_')}.xlsx`);
-            } catch(err) { alert('Error exporting: ' + err.message); }
+            } catch(err) { alert(t('error_exporting') + ' ' + err.message); }
           }}
           className="px-3 py-1.5 bg-gray-600 text-white rounded-lg text-xs hover:bg-gray-700 flex items-center gap-1"
         >{t('export_excel_btn')}</button>
