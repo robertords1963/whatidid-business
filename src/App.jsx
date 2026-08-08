@@ -208,6 +208,92 @@ const UI_STRINGS = {
   add_to_phone: { en: 'Add to Phone', es: 'Agregar al Teléfono', pt: 'Adicionar ao Celular', zh: '添加到手机' },
   clear_all: { en: 'Clear All', es: 'Limpiar Todo', pt: 'Limpar Tudo', zh: '清空全部' },
   follow_on_to: { en: '🔗 Follow-On to:', es: '🔗 Continuación de:', pt: '🔗 Continuação de:', zh: '🔗 续写自：' },
+  require_employee_id: { en: 'Require Employee ID for access', es: 'Requerir ID de Empleado para acceder', pt: 'Exigir ID de Funcionário para acesso', zh: '需要员工 ID 才能访问' },
+  allow_document_upload: { en: 'Allow Document Upload', es: 'Permitir Subida de Documentos', pt: 'Permitir Envio de Documentos', zh: '允许上传文件' },
+  document_type_label: { en: 'Document Type:', es: 'Tipo de Documento:', pt: 'Tipo de Documento:', zh: '文件类型：' },
+  show_top3_experiences: { en: 'Show Top 3 Experiences', es: 'Mostrar Top 3 Experiencias', pt: 'Mostrar Top 3 Experiências', zh: '显示前三名经验' },
+  show_inspirational_quotes: { en: 'Show Inspirational Quotes (Marquee)', es: 'Mostrar Citas Inspiradoras (Marquesina)', pt: 'Mostrar Citações Inspiradoras (Faixa)', zh: '显示励志语录（滚动条）' },
+  doc_type_cv: { en: '📄 CV (PDF only) - for Pro edition', es: '📄 CV (solo PDF) - para la edición Pro', pt: '📄 Currículo (apenas PDF) - para a edição Pro', zh: '📄 简历（仅限 PDF）— 适用于 Pro 版' },
+  doc_type_other: { en: '📎 Other Docs (PPT, XLS, PDF, DOCX) - for Corp edition', es: '📎 Otros Documentos (PPT, XLS, PDF, DOCX) - para la edición Corp', pt: '📎 Outros Documentos (PPT, XLS, PDF, DOCX) - para a edição Corp', zh: '📎 其他文件（PPT、XLS、PDF、DOCX）— 适用于 Corp 版' },
+  error_updating_doc_type: { en: 'Error updating document type', es: 'Error al actualizar el tipo de documento', pt: 'Erro ao atualizar o tipo de documento', zh: '更新文件类型时出错' },
+  start_visible_top3: { en: 'Start visible (users can still hide/show it)', es: 'Comenzar visible (los usuarios aún pueden ocultarlo/mostrarlo)', pt: 'Começar visível (usuários ainda podem ocultar/mostrar)', zh: '默认可见（用户仍可隐藏/显示）' },
+  quote_text: { en: 'Quote Text', es: 'Texto de la Cita', pt: 'Texto da Citação', zh: '语录内容' },
+  position: { en: 'Position', es: 'Posición', pt: 'Posição', zh: '位置' },
+  name_optional: { en: 'Name (optional)', es: 'Nombre (opcional)', pt: 'Nome (opcional)', zh: '名称（选填）' },
+  only_without_ratings: { en: 'Only experiences WITHOUT ratings (safe)', es: 'Solo experiencias SIN calificaciones (seguro)', pt: 'Apenas experiências SEM avaliações (seguro)', zh: '仅限没有评分的经验（安全）' },
+  all_done: { en: 'All done!', es: '¡Todo listo!', pt: 'Tudo pronto!', zh: '全部完成！' },
+  type_next_stop: { en: 'Just type your next stop in the address bar below.', es: 'Escribe tu próximo destino en la barra de direcciones abajo.', pt: 'Digite seu próximo destino na barra de endereço abaixo.', zh: '请在下方地址栏中输入下一个网址。' },
+  promotional_videos_label: { en: 'Promotional Videos', es: 'Videos Promocionales', pt: 'Vídeos Promocionais', zh: '宣传视频' },
+  metadata_model: { en: 'Metadata Model', es: 'Modelo de Metadatos', pt: 'Modelo de Metadados', zh: '元数据模型' },
+  functions_categories_desc: { en: 'Functions/Practices, Categories, Descriptions, Tags', es: 'Funciones/Prácticas, Categorías, Descripciones, Etiquetas', pt: 'Funções/Práticas, Categorias, Descrições, Tags', zh: '职能/领域、分类、描述、标签' },
+  synthetic_curated_content: { en: 'Synthetic/Curated Content', es: 'Contenido Sintético/Curado', pt: 'Conteúdo Sintético/Selecionado', zh: '合成/精选内容' },
+  loading_ellipsis: { en: 'Loading...', es: 'Cargando...', pt: 'Carregando...', zh: '加载中……' },
+  no_companies_yet: { en: 'No companies yet.', es: 'Aún no hay empresas.', pt: 'Ainda não há empresas.', zh: '暂无公司。' },
+  no_sellers_yet: { en: 'No sellers yet.', es: 'Aún no hay vendedores.', pt: 'Ainda não há vendedores.', zh: '暂无销售代表。' },
+  no_employees_yet: { en: 'No employees yet.', es: 'Aún no hay empleados.', pt: 'Ainda não há funcionários.', zh: '暂无员工。' },
+  no_categories_match: { en: 'No Categories match this Source.', es: 'Ninguna Categoría coincide con esta Fuente.', pt: 'Nenhuma Categoria corresponde a esta Fonte.', zh: '没有分类与该来源匹配。' },
+  no_functions_match: { en: 'No Functions/Practices match this Source.', es: 'Ninguna Función/Práctica coincide con esta Fuente.', pt: 'Nenhuma Função/Prática corresponde a esta Fonte.', zh: '没有职能/领域与该来源匹配。' },
+  save_contact_info: { en: 'Save Contact Info', es: 'Guardar Información de Contacto', pt: 'Salvar Informações de Contato', zh: '保存联系信息' },
+  clear: { en: 'Clear', es: 'Limpiar', pt: 'Limpar', zh: '清除' },
+  delete_whole_function: { en: 'Delete the whole Function/Practice instead', es: 'Eliminar toda la Función/Práctica en su lugar', pt: 'Excluir toda a Função/Prática em vez disso', zh: '改为删除整个职能/领域' },
+  react_tooltip: { en: 'React', es: 'Reaccionar', pt: 'Reagir', zh: '表态' },
+  contact_info_tooltip: { en: 'Contact info', es: 'Información de contacto', pt: 'Informações de contato', zh: '联系信息' },
+  retires_id_permanently: { en: 'Retires this ID/PW permanently', es: 'Retira este ID/Contraseña permanentemente', pt: 'Aposenta este ID/Senha permanentemente', zh: '永久停用此 ID/密码' },
+  demo_language_tooltip: { en: 'Language the demo will show', es: 'Idioma en que se mostrará la demo', pt: 'Idioma que a demo vai mostrar', zh: '演示将显示的语言' },
+  max_active_demo_ids: { en: 'Max active Demo IDs this seller can have at once', es: 'Máximo de IDs Demo activos que este vendedor puede tener a la vez', pt: 'Máximo de IDs Demo ativos que este vendedor pode ter ao mesmo tempo', zh: '该销售代表可同时拥有的最大活跃演示 ID 数量' },
+  delete_file_tooltip: { en: 'Delete file', es: 'Eliminar archivo', pt: 'Excluir arquivo', zh: '删除文件' },
+  cv_preview_tooltip: { en: 'CV Preview', es: 'Vista Previa del CV', pt: 'Pré-visualização do Currículo', zh: '简历预览' },
+  select_industry_sector: { en: 'Select your industry sector...', es: 'Selecciona tu sector industrial...', pt: 'Selecione seu setor de atuação...', zh: '选择你的行业领域……' },
+  select_country: { en: 'Select country', es: 'Selecciona el país', pt: 'Selecione o país', zh: '选择国家' },
+  all_sectors: { en: 'All Sectors', es: 'Todos los Sectores', pt: 'Todos os Setores', zh: '所有行业' },
+  my_seller_view: { en: 'My Seller View', es: 'Mi Vista de Vendedor', pt: 'Minha Visão de Vendedor', zh: '我的销售代表视图' },
+  my_company: { en: 'My Company', es: 'Mi Empresa', pt: 'Minha Empresa', zh: '我的公司' },
+  prospect: { en: 'Prospect', es: 'Prospecto', pt: 'Prospect', zh: '潜在客户' },
+  pilot: { en: 'Pilot', es: 'Piloto', pt: 'Piloto', zh: '试点' },
+  customer: { en: 'Customer', es: 'Cliente', pt: 'Cliente', zh: '正式客户' },
+  pending: { en: 'Pending', es: 'Pendiente', pt: 'Pendente', zh: '待处理' },
+  blocked: { en: 'Blocked', es: 'Bloqueado', pt: 'Bloqueado', zh: '已封禁' },
+  upload_user_experiences: { en: 'Upload (User Experiences)', es: 'Subida (Experiencias de Usuarios)', pt: 'Upload (Experiências de Usuários)', zh: '上传（用户经验）' },
+  key_insights_curated: { en: 'Key Insights (Curated)', es: 'Key Insights (Curados)', pt: 'Key Insights (Selecionados)', zh: 'Key Insights（精选）' },
+  both: { en: 'Both', es: 'Ambos', pt: 'Ambos', zh: '两者都' },
+  metadata: { en: 'Metadata', es: 'Metadatos', pt: 'Metadados', zh: '元数据' },
+  individual_experiences_opt: { en: 'Individual Experiences', es: 'Experiencias Individuales', pt: 'Experiências Individuais', zh: '个人经验' },
+  common_cases_key_insights: { en: 'Common Cases / Key Insights', es: 'Casos Comunes / Key Insights', pt: 'Casos Comuns / Key Insights', zh: '共性案例 / Key Insights' },
+  curated_sample: { en: 'Curated / Sample', es: 'Curado / Muestra', pt: 'Selecionado / Amostra', zh: '精选 / 示例' },
+  entered_by_users: { en: 'Entered by Users', es: 'Ingresado por Usuarios', pt: 'Inserido por Usuários', zh: '用户输入' },
+  none_option: { en: 'None', es: 'Ninguno', pt: 'Nenhum', zh: '无' },
+  app_configuration: { en: 'App Configuration', es: 'Configuración de la App', pt: 'Configuração do App', zh: '应用配置' },
+  quotes_label: { en: 'Quotes', es: 'Citas', pt: 'Citações', zh: '语录' },
+  content_pages_label: { en: 'Content Pages', es: 'Páginas de Contenido', pt: 'Páginas de Conteúdo', zh: '内容页面' },
+  seller_id_hint_intro: { en: "Creates the seller's own account (goes through 1st Access like any employee) — both the Seller ID and email need to match exactly what's entered here.", es: 'Crea la cuenta propia del vendedor (pasa por el Primer Acceso como cualquier empleado) — tanto el ID de Vendedor como el correo deben coincidir exactamente con lo ingresado aquí.', pt: 'Cria a conta do próprio vendedor (passa pelo 1º Acesso como qualquer funcionário) — tanto o ID do Vendedor quanto o e-mail precisam bater exatamente com o que foi digitado aqui.', zh: '创建销售代表自己的账户（和任何员工一样需要经过首次访问流程）——Seller ID 和邮箱都必须与此处输入的内容完全一致。' },
+  suggested_id_format: { en: 'Suggested ID format:', es: 'Formato de ID sugerido:', pt: 'Formato de ID sugerido:', zh: '建议的 ID 格式：' },
+  seller_id_hint_example: { en: 'first two letters of first + last name, plus month/year — e.g.', es: 'las dos primeras letras del nombre + apellido, más mes/año — ej.', pt: 'as duas primeiras letras do primeiro nome + sobrenome, mais mês/ano — ex.', zh: '名字和姓氏的前两个字母，加上月份/年份——例如' },
+  seller_id_hint_registered: { en: 'for "Roberto Rodrigues", registered July 2026.', es: 'para "Roberto Rodrigues", registrado en julio de 2026.', pt: 'para "Roberto Rodrigues", registrado em julho de 2026.', zh: '适用于"Roberto Rodrigues"，注册于 2026 年 7 月。' },
+  expires_in: { en: 'Expires in:', es: 'Expira en:', pt: 'Expira em:', zh: '过期时间：' },
+  markdown_tips: { en: 'Markdown Tips:', es: 'Consejos de Markdown:', pt: 'Dicas de Markdown:', zh: 'Markdown 提示：' },
+  markdown_tips_text: { en: 'Use # for titles, ## for subtitles, ### for sections, - for bullet points', es: 'Usa # para títulos, ## para subtítulos, ### para secciones, - para viñetas', pt: 'Use # para títulos, ## para subtítulos, ### para seções, - para marcadores', zh: '使用 # 表示标题，## 表示副标题，### 表示章节，- 表示项目符号' },
+  excel_columns_employee: { en: 'Excel columns:', es: 'Columnas de Excel:', pt: 'Colunas do Excel:', zh: 'Excel 列：' },
+  keyword_found: { en: 'Keyword found:', es: 'Palabra clave encontrada:', pt: 'Palavra-chave encontrada:', zh: '找到关键词：' },
+  set_as_top: { en: 'Set as Top:', es: 'Marcar como Top:', pt: 'Definir como Top:', zh: '设为精选：' },
+  import_content_in: { en: 'Import content in:', es: 'Importar contenido en:', pt: 'Importar conteúdo em:', zh: '导入内容语言：' },
+  section_header: { en: 'Section', es: 'Sección', pt: 'Seção', zh: '版块' },
+  view_edit_access: { en: 'View & Edit access', es: 'Acceso de Vista y Edición', pt: 'Acesso de Visualização e Edição', zh: '查看与编辑权限' },
+  select_registered_company: { en: 'Select a registered company...', es: 'Selecciona una empresa registrada...', pt: 'Selecione uma empresa registrada...', zh: '选择一家已注册的公司……' },
+  seller_col: { en: 'Seller', es: 'Vendedor', pt: 'Vendedor', zh: '销售代表' },
+  companies_col: { en: 'Companies', es: 'Empresas', pt: 'Empresas', zh: '公司' },
+  groups_col: { en: 'Groups', es: 'Grupos', pt: 'Grupos', zh: '分组' },
+  max_demo_ids_col: { en: 'Max DEMO IDs', es: 'Máx. IDs Demo', pt: 'Máx. IDs Demo', zh: '最大演示 ID 数' },
+  active_ids_col: { en: 'Active IDs', es: 'IDs Activos', pt: 'IDs Ativos', zh: '活跃 ID' },
+  available_unassigned_col: { en: 'Available (unassigned)', es: 'Disponibles (sin asignar)', pt: 'Disponíveis (não atribuídos)', zh: '可用（未分配）' },
+  expired_pending_col: { en: 'Expired (pending cleanup)', es: 'Expirados (pendientes de limpieza)', pt: 'Expirados (aguardando limpeza)', zh: '已过期（待清理）' },
+  size_label: { en: 'Size:', es: 'Tamaño:', pt: 'Tamanho:', zh: '大小：' },
+  function_practice_colon: { en: 'Function/Practice:', es: 'Función/Práctica:', pt: 'Função/Prática:', zh: '职能/领域：' },
+  none_not_rated: { en: 'None (Not rated)', es: 'Ninguno (Sin calificar)', pt: 'Nenhum (Sem avaliação)', zh: '无（未评分）' },
+  for_adm_master: { en: 'for ADM Master', es: 'para ADM Master', pt: 'para ADM Master', zh: '面向 ADM Master' },
+  to_word: { en: 'to', es: 'a', pt: 'a', zh: '至' },
+  ratings_word: { en: 'ratings', es: 'calificaciones', pt: 'avaliações', zh: '条评分' },
+  importing_ellipsis: { en: 'Importing...', es: 'Importando...', pt: 'Importando...', zh: '导入中……' },
+  import_update: { en: 'Import/Update', es: 'Importar/Actualizar', pt: 'Importar/Atualizar', zh: '导入/更新' },
   // Lote 2 — botões e labels genéricos usados nas seções administrativas
   save: { en: 'Save', es: 'Guardar', pt: 'Salvar', zh: '保存' },
   cancel: { en: 'Cancel', es: 'Cancelar', pt: 'Cancelar', zh: '取消' },
@@ -405,6 +491,15 @@ const UI_STRINGS = {
   portal_link: { en: 'Portal →', es: 'Portal →', pt: 'Portal →', zh: '门户 →' },
   whatidid_sellers: { en: 'WhatIDid.app Sellers', es: 'WhatIDid.app Sellers', pt: 'WhatIDid.app Sellers', zh: 'WhatIDid.app Sellers' },
   no_problem_blocked: { en: "No problem — for your security, this account has been blocked until your Admin reviews it. Please contact your company's HR or Admin", es: 'No hay problema — por tu seguridad, esta cuenta ha sido bloqueada hasta que tu Admin la revise. Por favor contacta a RR.HH. o al Admin de tu empresa', pt: 'Sem problema — por segurança, esta conta foi bloqueada até que seu Admin a revise. Por favor, entre em contato com o RH ou Admin da sua empresa', zh: '没问题——出于安全考虑，此账户已被暂时锁定，等待管理员审核。请联系贵公司的人力资源或管理员' },
+  account_blocked_security: { en: "This account has been blocked for security reasons. Please contact your company's HR or Admin", es: 'Esta cuenta ha sido bloqueada por razones de seguridad. Por favor contacta a RR.HH. o al Admin de tu empresa', pt: 'Esta conta foi bloqueada por motivos de segurança. Por favor, entre em contato com o RH ou Admin da sua empresa', zh: '出于安全原因，此账户已被锁定，请联系贵公司的人力资源或管理员' },
+  no_email_registered: { en: 'No email registered for this account. Please contact your Admin.', es: 'No hay correo registrado para esta cuenta. Por favor, contacta a tu Admin.', pt: 'Nenhum e-mail registrado para esta conta. Por favor, entre em contato com seu Admin.', zh: '该账户未注册邮箱，请联系您的管理员。' },
+  error_sending_verification: { en: 'Error sending verification email. Please try again.', es: 'Error al enviar el correo de verificación. Por favor, inténtalo de nuevo.', pt: 'Erro ao enviar o e-mail de verificação. Por favor, tente novamente.', zh: '发送验证邮件出错，请重试。' },
+  incorrect_code: { en: 'Incorrect code. Please check your email and try again.', es: 'Código incorrecto. Por favor, revisa tu correo e inténtalo de nuevo.', pt: 'Código incorreto. Por favor, verifique seu e-mail e tente novamente.', zh: '验证码不正确，请检查邮箱后重试。' },
+  password_requirements_not_met: { en: 'Password does not meet all requirements below.', es: 'La contraseña no cumple con todos los requisitos abajo.', pt: 'A senha não atende a todos os requisitos abaixo.', zh: '密码不满足以下所有要求。' },
+  error_saving_password: { en: 'Error saving your password. Please try again.', es: 'Error al guardar tu contraseña. Por favor, inténtalo de nuevo.', pt: 'Erro ao salvar sua senha. Por favor, tente novamente.', zh: '保存密码出错，请重试。' },
+  demo_account_inactive: { en: 'This demo account is not currently active. Please contact your Admin.', es: 'Esta cuenta demo no está activa actualmente. Por favor, contacta a tu Admin.', pt: 'Esta conta demo não está ativa no momento. Por favor, entre em contato com seu Admin.', zh: '该演示账户目前未激活，请联系您的管理员。' },
+  login_failed: { en: 'Login failed. Please try again.', es: 'Error al iniciar sesión. Por favor, inténtalo de nuevo.', pt: 'Falha no login. Por favor, tente novamente.', zh: '登录失败，请重试。' },
+  error_updating_password: { en: 'Error updating password. Please try again.', es: 'Error al actualizar la contraseña. Por favor, inténtalo de nuevo.', pt: 'Erro ao atualizar a senha. Por favor, tente novamente.', zh: '更新密码出错，请重试。' },
   no_experiences_found: { en: 'No experiences found.', es: 'No se encontraron experiencias.', pt: 'Nenhuma experiência encontrada.', zh: '未找到任何经验。' },
 };
 
@@ -803,6 +898,194 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
       zh: `🔗 续写经验 ${threadIndex}`,
     };
     return templates[effectiveViewingLanguage] || templates.en;
+  };
+  // Diálogos de confirmação do admin que têm nomes/números embutidos —
+  // uma função só, com todos os templates, pra não espalhar 16 funções.
+  const tConfirm = (key, vars = {}) => {
+    const templates = {
+      delete_seller: {
+        en: (v) => `Delete seller "${v.name}"? Their 10 demo IDs will be removed. Companies/groups they created will stay, just unlinked from them.`,
+        es: (v) => `¿Eliminar al vendedor "${v.name}"? Sus 10 IDs demo serán eliminados. Las empresas/grupos que creó permanecerán, solo desvinculados de él.`,
+        pt: (v) => `Excluir o vendedor "${v.name}"? Os 10 IDs demo dele serão removidos. As empresas/grupos que ele criou vão permanecer, só ficam desvinculados dele.`,
+        zh: (v) => `删除销售代表 "${v.name}"？其 10 个演示 ID 将被移除。他创建的公司/分组会保留，只是不再与其关联。`,
+      },
+      delete_company: {
+        en: (v) => `Delete "${v.name}" permanently? This removes ALL its employees, experiences, comments and settings. This cannot be undone.`,
+        es: (v) => `¿Eliminar "${v.name}" permanentemente? Esto elimina TODOS sus empleados, experiencias, comentarios y configuraciones. Esto no se puede deshacer.`,
+        pt: (v) => `Excluir "${v.name}" permanentemente? Isso remove TODOS os funcionários, experiências, comentários e configurações dela. Isso não pode ser desfeito.`,
+        zh: (v) => `永久删除 "${v.name}"？这将移除其所有员工、经验、评论和设置。此操作无法撤销。`,
+      },
+      delete_category_full: {
+        en: (v) => `Delete "${v.name}"? This will also delete all Experiences, Key Insights and comments linked to this category, and any employee left with no other content. This cannot be undone.`,
+        es: (v) => `¿Eliminar "${v.name}"? Esto también eliminará todas las Experiencias, Key Insights y comentarios vinculados a esta categoría, y a cualquier empleado que quede sin otro contenido. Esto no se puede deshacer.`,
+        pt: (v) => `Excluir "${v.name}"? Isso também vai excluir todas as Experiências, Key Insights e comentários vinculados a esta categoria, e qualquer funcionário que fique sem outro conteúdo. Isso não pode ser desfeito.`,
+        zh: (v) => `删除 "${v.name}"？这也会删除与该分类关联的所有经验、Key Insights 和评论，以及因此不再有任何内容的员工。此操作无法撤销。`,
+      },
+      delete_employee: {
+        en: (v) => `Delete employee ${v.id}? This will not delete their experiences.`,
+        es: (v) => `¿Eliminar al empleado ${v.id}? Esto no eliminará sus experiencias.`,
+        pt: (v) => `Excluir o funcionário ${v.id}? Isso não vai excluir as experiências dele.`,
+        zh: (v) => `删除员工 ${v.id}？这不会删除其经验。`,
+      },
+      delete_experiences_comments: {
+        en: (v) => `Delete ${v.exp} experience(s) and ${v.com} comment(s)? This cannot be undone.`,
+        es: (v) => `¿Eliminar ${v.exp} experiencia(s) y ${v.com} comentario(s)? Esto no se puede deshacer.`,
+        pt: (v) => `Excluir ${v.exp} experiência(s) e ${v.com} comentário(s)? Isso não pode ser desfeito.`,
+        zh: (v) => `删除 ${v.exp} 条经验和 ${v.com} 条评论？此操作无法撤销。`,
+      },
+      delete_group: {
+        en: (v) => `Delete group "${v.name}"? All experiences and comments from its members will be deleted.`,
+        es: (v) => `¿Eliminar el grupo "${v.name}"? Se eliminarán todas las experiencias y comentarios de sus miembros.`,
+        pt: (v) => `Excluir o grupo "${v.name}"? Todas as experiências e comentários dos membros dele serão excluídos.`,
+        zh: (v) => `删除分组 "${v.name}"？其成员的所有经验和评论都将被删除。`,
+      },
+      delete_id_retire: {
+        en: (v) => `Delete ID "${v.id}"? This retires it permanently — it can never be reused.`,
+        es: (v) => `¿Eliminar el ID "${v.id}"? Esto lo retira permanentemente — nunca podrá reutilizarse.`,
+        pt: (v) => `Excluir o ID "${v.id}"? Isso o aposenta permanentemente — nunca poderá ser reutilizado.`,
+        zh: (v) => `删除 ID "${v.id}"？这会将其永久停用——再也无法重复使用。`,
+      },
+      delete_all_by_employee: {
+        en: (v) => `Delete all experiences and comments by ${v.id}? This cannot be undone.`,
+        es: (v) => `¿Eliminar todas las experiencias y comentarios de ${v.id}? Esto no se puede deshacer.`,
+        pt: (v) => `Excluir todas as experiências e comentários de ${v.id}? Isso não pode ser desfeito.`,
+        zh: (v) => `删除 ${v.id} 的所有经验和评论？此操作无法撤销。`,
+      },
+      delete_practice_keep_categories: {
+        en: (v) => `Delete practice "${v.name}"? Categories will not be deleted.`,
+        es: (v) => `¿Eliminar la práctica "${v.name}"? Las categorías no se eliminarán.`,
+        pt: (v) => `Excluir a prática "${v.name}"? As categorias não serão excluídas.`,
+        zh: (v) => `删除领域 "${v.name}"？其分类不会被删除。`,
+      },
+      delete_category_ki: {
+        en: (v) => `Delete Category "${v.name}"? This also deletes its Experiences, Key Insights and comments. This cannot be undone.`,
+        es: (v) => `¿Eliminar la Categoría "${v.name}"? Esto también elimina sus Experiencias, Key Insights y comentarios. Esto no se puede deshacer.`,
+        pt: (v) => `Excluir a Categoria "${v.name}"? Isso também exclui suas Experiências, Key Insights e comentários. Isso não pode ser desfeito.`,
+        zh: (v) => `删除分类 "${v.name}"？这也会删除其经验、Key Insights 和评论。此操作无法撤销。`,
+      },
+      delete_all_categories_listed: {
+        en: (v) => `Delete all ${v.count} Categories listed below (and their Experiences/Key Insights/comments)? This cannot be undone.`,
+        es: (v) => `¿Eliminar las ${v.count} Categorías listadas abajo (y sus Experiencias/Key Insights/comentarios)? Esto no se puede deshacer.`,
+        pt: (v) => `Excluir todas as ${v.count} Categorias listadas abaixo (e suas Experiências/Key Insights/comentários)? Isso não pode ser desfeito.`,
+        zh: (v) => `删除下方列出的全部 ${v.count} 个分类（及其经验/Key Insights/评论）？此操作无法撤销。`,
+      },
+      delete_whole_function_named: {
+        en: (v) => `Delete the whole Function/Practice "${v.name}" (all its Categories, regardless of Source)? This cannot be undone.`,
+        es: (v) => `¿Eliminar toda la Función/Práctica "${v.name}" (todas sus Categorías, sin importar la Fuente)? Esto no se puede deshacer.`,
+        pt: (v) => `Excluir toda a Função/Prática "${v.name}" (todas as suas Categorias, independente da Fonte)? Isso não pode ser desfeito.`,
+        zh: (v) => `删除整个职能/领域 "${v.name}"（其所有分类，无论来源）？此操作无法撤销。`,
+      },
+      delete_all_functions_listed: {
+        en: (v) => `Delete all ${v.count} Functions/Practices listed below (and everything under them)? This cannot be undone.`,
+        es: (v) => `¿Eliminar las ${v.count} Funciones/Prácticas listadas abajo (y todo lo que contienen)? Esto no se puede deshacer.`,
+        pt: (v) => `Excluir todas as ${v.count} Funções/Práticas listadas abaixo (e tudo que está sob elas)? Isso não pode ser desfeito.`,
+        zh: (v) => `删除下方列出的全部 ${v.count} 个职能/领域（及其下的所有内容）？此操作无法撤销。`,
+      },
+      delete_function_named: {
+        en: (v) => `Delete Function/Practice "${v.name}" (all its Categories)? This cannot be undone.`,
+        es: (v) => `¿Eliminar la Función/Práctica "${v.name}" (todas sus Categorías)? Esto no se puede deshacer.`,
+        pt: (v) => `Excluir a Função/Prática "${v.name}" (todas as suas Categorias)? Isso não pode ser desfeito.`,
+        zh: (v) => `删除职能/领域 "${v.name}"（其所有分类）？此操作无法撤销。`,
+      },
+    };
+    const dict = templates[key];
+    if (!dict) return key;
+    const fn = dict[effectiveViewingLanguage] || dict.en;
+    return fn(vars);
+  };
+  // Mesma lógica do tConfirm, só que pros alert() de sucesso/aviso com
+  // nomes/números embutidos.
+  const tAlert = (key, vars = {}) => {
+    const templates = {
+      seller_created: {
+        en: (v) => `Seller "${v.name}" created. Demo IDs are generated on demand when you add them to a Demo Group.`,
+        es: (v) => `Vendedor "${v.name}" creado. Los IDs Demo se generan bajo demanda cuando los agregas a un Grupo Demo.`,
+        pt: (v) => `Vendedor "${v.name}" criado. Os IDs Demo são gerados sob demanda quando você os adiciona a um Grupo Demo.`,
+        zh: (v) => `销售代表 "${v.name}" 已创建。演示 ID 会在您将其添加到演示分组时按需生成。`,
+      },
+      seller_deleted: {
+        en: (v) => `Seller "${v.name}" deleted.`, es: (v) => `Vendedor "${v.name}" eliminado.`,
+        pt: (v) => `Vendedor "${v.name}" excluído.`, zh: (v) => `销售代表 "${v.name}" 已删除。`,
+      },
+      company_deleted: {
+        en: (v) => `"${v.name}" deleted.`, es: (v) => `"${v.name}" eliminada.`,
+        pt: (v) => `"${v.name}" excluída.`, zh: (v) => `"${v.name}" 已删除。`,
+      },
+      metadata_updated: {
+        en: (v) => `Metadata Model updated — ${v.practices} new Practice(s), ${v.categories} new Categor${v.categories === 1 ? 'y' : 'ies'}.`,
+        es: (v) => `Modelo de Metadatos actualizado — ${v.practices} nueva(s) Práctica(s), ${v.categories} nueva(s) Categoría(s).`,
+        pt: (v) => `Modelo de Metadados atualizado — ${v.practices} nova(s) Prática(s), ${v.categories} nova(s) Categoria(s).`,
+        zh: (v) => `元数据模型已更新——新增 ${v.practices} 个领域，${v.categories} 个分类。`,
+      },
+      synthetic_content_updated: {
+        en: (v) => `Synthetic/Curated Content updated — ${v.employees} new Employee(s), ${v.experiences} new Experience(s)/Key Insight(s), ${v.top3} new Top 3 item(s).`,
+        es: (v) => `Contenido Sintético/Curado actualizado — ${v.employees} nuevo(s) Empleado(s), ${v.experiences} nueva(s) Experiencia(s)/Key Insight(s), ${v.top3} nuevo(s) elemento(s) Top 3.`,
+        pt: (v) => `Conteúdo Sintético/Selecionado atualizado — ${v.employees} novo(s) Funcionário(s), ${v.experiences} nova(s) Experiência(s)/Key Insight(s), ${v.top3} novo(s) item(s) Top 3.`,
+        zh: (v) => `合成/精选内容已更新——新增 ${v.employees} 名员工，${v.experiences} 条经验/Key Insights，${v.top3} 个 Top 3 项目。`,
+      },
+      quotes_updated: {
+        en: (v) => `Quotes updated — ${v.added} new item(s).`, es: (v) => `Citas actualizadas — ${v.added} nuevo(s) elemento(s).`,
+        pt: (v) => `Citações atualizadas — ${v.added} novo(s) item(ns).`, zh: (v) => `语录已更新——新增 ${v.added} 项。`,
+      },
+      videos_updated: {
+        en: (v) => `Promotional Videos updated — ${v.added} new item(s).`, es: (v) => `Videos Promocionales actualizados — ${v.added} nuevo(s) elemento(s).`,
+        pt: (v) => `Vídeos Promocionais atualizados — ${v.added} novo(s) item(ns).`, zh: (v) => `宣传视频已更新——新增 ${v.added} 项。`,
+      },
+      content_pages_updated: {
+        en: (v) => `Content Pages updated — ${v.added} new item(s).`, es: (v) => `Páginas de Contenido actualizadas — ${v.added} nuevo(s) elemento(s).`,
+        pt: (v) => `Páginas de Conteúdo atualizadas — ${v.added} novo(s) item(ns).`, zh: (v) => `内容页面已更新——新增 ${v.added} 项。`,
+      },
+      employee_added_to_company: {
+        en: (v) => `Employee added successfully to ${v.company}!`, es: (v) => `¡Empleado agregado con éxito a ${v.company}!`,
+        pt: (v) => `Funcionário adicionado com sucesso a ${v.company}!`, zh: (v) => `已成功将员工添加到 ${v.company}！`,
+      },
+      upload_complete: {
+        en: (v) => `Upload complete! Added: ${v.added}, Errors/Skipped: ${v.errors}`, es: (v) => `¡Carga completa! Agregados: ${v.added}, Errores/Omitidos: ${v.errors}`,
+        pt: (v) => `Upload concluído! Adicionados: ${v.added}, Erros/Ignorados: ${v.errors}`, zh: (v) => `上传完成！已添加：${v.added}，出错/跳过：${v.errors}`,
+      },
+      already_top_position: {
+        en: (v) => `This experience is already set as Top ${v.position}`, es: (v) => `Esta experiencia ya está marcada como Top ${v.position}`,
+        pt: (v) => `Esta experiência já está definida como Top ${v.position}`, zh: (v) => `这条经验已被设为 Top ${v.position}`,
+      },
+      deleted_experiences_comments: {
+        en: (v) => `Deleted ${v.exp} experience(s) and ${v.com} comment(s).`, es: (v) => `Se eliminaron ${v.exp} experiencia(s) y ${v.com} comentario(s).`,
+        pt: (v) => `Excluídas ${v.exp} experiência(s) e ${v.com} comentário(s).`, zh: (v) => `已删除 ${v.exp} 条经验和 ${v.com} 条评论。`,
+      },
+      group_created_named: {
+        en: (v) => `Group "${v.name}" created!`, es: (v) => `¡Grupo "${v.name}" creado!`,
+        pt: (v) => `Grupo "${v.name}" criado!`, zh: (v) => `分组 "${v.name}" 已创建！`,
+      },
+      group_deleted_named: {
+        en: (v) => `Group "${v.name}" deleted and data cleared!`, es: (v) => `¡Grupo "${v.name}" eliminado y datos borrados!`,
+        pt: (v) => `Grupo "${v.name}" excluído e dados apagados!`, zh: (v) => `分组 "${v.name}" 已删除，数据已清空！`,
+      },
+      demo_id_limit_reached: {
+        en: (v) => `You've reached your limit of ${v.limit} active Demo ID(s). Wait for one to expire, or ask the Default Admin to raise your limit.`,
+        es: (v) => `Has alcanzado tu límite de ${v.limit} ID(s) Demo activos. Espera a que uno expire, o pide al Admin Default que aumente tu límite.`,
+        pt: (v) => `Você atingiu seu limite de ${v.limit} ID(s) Demo ativo(s). Aguarde um expirar, ou peça ao Admin Default para aumentar seu limite.`,
+        zh: (v) => `您已达到 ${v.limit} 个活跃演示 ID 的上限。请等待其中一个到期，或联系 Default 管理员提高您的限额。`,
+      },
+      employee_login_toggled: {
+        en: (v) => `Employee login ${v.state}!`, es: (v) => `¡Inicio de sesión de empleado ${v.state}!`,
+        pt: (v) => `Login de funcionário ${v.state}!`, zh: (v) => `员工登录已${v.state}！`,
+      },
+      document_upload_toggled: {
+        en: (v) => `Document upload ${v.state}!`, es: (v) => `¡Subida de documentos ${v.state}!`,
+        pt: (v) => `Envio de documentos ${v.state}!`, zh: (v) => `文件上传已${v.state}！`,
+      },
+      all_data_cleared_for: {
+        en: (v) => `All data cleared for ${v.id}!`, es: (v) => `¡Todos los datos borrados para ${v.id}!`,
+        pt: (v) => `Todos os dados apagados para ${v.id}!`, zh: (v) => `已清空 ${v.id} 的所有数据！`,
+      },
+      practice_created_named: {
+        en: (v) => `Practice "${v.name}" created!`, es: (v) => `¡Práctica "${v.name}" creada!`,
+        pt: (v) => `Prática "${v.name}" criada!`, zh: (v) => `领域 "${v.name}" 已创建！`,
+      },
+    };
+    const dict = templates[key];
+    if (!dict) return key;
+    const fn = dict[effectiveViewingLanguage] || dict.en;
+    return fn(vars);
   };
   // true só quando é o Admin do Default DE VERDADE, olhando pro próprio Default
   // (não um Admin de empresa espiando o Sample, que também usa dados do Default,
@@ -1706,7 +1989,7 @@ const createSeller = async () => {
 
     setNewSeller({ employee_id: '', name: '', email: '' });
     await loadSellers();
-    alert(`Seller "${sellerName}" created. Demo IDs are generated on demand when you add them to a Demo Group.`);
+    alert(tAlert('seller_created', { name: sellerName }));
   } catch (error) {
     console.error('Error creating seller:', error);
     alert(t('error_creating_seller'));
@@ -1731,7 +2014,7 @@ const toggleSellerActive = async (sellerRowId, active) => {
 // pé), limpa e apaga o pool de 10 Demo IDs dele, e por fim apaga a própria
 // conta do seller.
 const deleteSeller = async (sellerRowId, sellerName) => {
-  if (!window.confirm(`Delete seller "${sellerName}"? Their 10 demo IDs will be removed. Companies/groups they created will stay, just unlinked from them.`)) return;
+  if (!window.confirm(tConfirm('delete_seller', { name: sellerName }))) return;
   try {
     await supabase.from('companies').update({ created_by_seller_id: null }).eq('created_by_seller_id', sellerRowId);
     await supabase.from('demo_groups').update({ created_by_seller_id: null }).eq('created_by_seller_id', sellerRowId);
@@ -1752,7 +2035,7 @@ const deleteSeller = async (sellerRowId, sellerName) => {
     await loadSellers();
     await loadCompanies();
     await loadDemoGroups();
-    alert(`Seller "${sellerName}" deleted.`);
+    alert(tAlert('seller_deleted', { name: sellerName }));
   } catch (error) {
     console.error('Error deleting seller:', error);
     alert(t('error_deleting_seller') + ' ' + error.message);
@@ -2035,7 +2318,7 @@ const deleteCompany = async (companyId, companyName) => {
     alert(t('default_company_cannot_delete'));
     return;
   }
-  if (!window.confirm(`Delete "${companyName}" permanently? This removes ALL its employees, experiences, comments and settings. This cannot be undone.`)) return;
+  if (!window.confirm(tConfirm('delete_company', { name: companyName }))) return;
   try {
     // Pega todas as experiences dessa empresa PRIMEIRO, pra poder limpar
     // comments e top_experiences por experience_id antes de apagar as
@@ -2072,7 +2355,7 @@ const deleteCompany = async (companyId, companyName) => {
     }
     await loadCompanies();
     if (adminCompanyContext === companyId) setAdminCompanyContext(null);
-    alert(`"${companyName}" deleted.`);
+    alert(tAlert('company_deleted', { name: companyName }));
   } catch (error) {
     console.error('Error deleting company:', error);
     alert(t('error_deleting_company') + ' ' + error.message);
@@ -2223,7 +2506,7 @@ const importMetadataModel = async () => {
 
     await loadPractices();
     await loadProblemCategories();
-    alert(`Metadata Model updated — ${addedPractices} new Practice(s), ${addedCategories} new Categor${addedCategories === 1 ? 'y' : 'ies'}.`);
+    alert(tAlert('metadata_updated', { practices: addedPractices, categories: addedCategories }));
     return true;
   } catch (error) {
     console.error('Error importing Metadata Model:', error);
@@ -2456,7 +2739,7 @@ const importSyntheticContent = async () => {
     await loadEmployees(effectiveCompanyId);
     await loadExperiences(true);
     await loadTopExperiences();
-    alert(`Synthetic/Curated Content updated — ${addedEmployees} new Employee(s), ${addedExperiences} new Experience(s)/Key Insight(s), ${addedTop3} new Top 3 item(s).`);
+    alert(tAlert('synthetic_content_updated', { employees: addedEmployees, experiences: addedExperiences, top3: addedTop3 }));
   } catch (error) {
     console.error('Error importing Synthetic Content:', error);
     alert(t('error_during_import') + ' ' + error.message);
@@ -2490,7 +2773,7 @@ const importQuotesFromDefault = async () => {
       added++;
     }
     await loadQuotes();
-    alert(`Quotes updated — ${added} new item(s).`);
+    alert(tAlert('quotes_updated', { added }));
   } catch (error) {
     console.error('Error importing quotes:', error);
     alert(t('error_importing_quotes') + ' ' + error.message);
@@ -2527,7 +2810,7 @@ const importPromotionalVideos = async () => {
       added++;
     }
     await loadPromotionalVideos();
-    alert(`Promotional Videos updated — ${added} new item(s).`);
+    alert(tAlert('videos_updated', { added }));
   } catch (error) {
     console.error('Error importing promotional videos:', error);
     alert(t('generic_error') + ' ' + error.message);
@@ -2562,7 +2845,7 @@ const importContentPages = async () => {
       added++;
     }
     await loadContentPages();
-    alert(`Content Pages updated — ${added} new item(s).`);
+    alert(tAlert('content_pages_updated', { added }));
   } catch (error) {
     console.error('Error importing content pages:', error);
     alert(t('generic_error') + ' ' + error.message);
@@ -2637,7 +2920,7 @@ const runImportForSelected = async () => {
 // (mesmo nome de categoria), os comentários delas, e o Employee autor — mas só
 // se esse Employee não tiver mais nenhuma outra experience sobrando.
 const deleteCategoryCascade = async (cat) => {
-  if (!window.confirm(`Delete "${cat.name}"? This will also delete all Experiences, Key Insights and comments linked to this category, and any employee left with no other content. This cannot be undone.`)) return;
+  if (!window.confirm(tConfirm('delete_category_full', { name: cat.name }))) return;
   try {
     const { data: exps, error: expErr } = await supabase
       .from('experiences').select('id, employee_id')
@@ -2790,7 +3073,7 @@ const addEmployee = async () => {
     if (error) throw error;
     setNewEmployee({ employee_id: '', name: '', country: '', email: '', is_admin: false });
     await loadEmployees();
-    alert(`Employee added successfully to ${effectiveCompanyName}!`);
+    alert(tAlert('employee_added_to_company', { company: effectiveCompanyName }));
   } catch (error) {
     console.error('Error adding employee:', error);
     alert(t('error_adding_employee'));
@@ -2825,7 +3108,7 @@ const updateEmployee = async (empId) => {
 };
 
 const deleteEmployee = async (empId) => {
-  if (!window.confirm(`Delete employee ${empId}? This will not delete their experiences.`)) return;
+  if (!window.confirm(tConfirm('delete_employee', { id: empId }))) return;
   try {
     const { error } = await supabase.from('employees').delete().eq('employee_id', empId);
     if (error) throw error;
@@ -2857,7 +3140,7 @@ const handleExcelUpload = async (file) => {
       if (error) { errors++; } else { added++; }
     }
     await loadEmployees();
-    alert(`Upload complete! Added: ${added}, Errors/Skipped: ${errors}`);
+    alert(tAlert('upload_complete', { added, errors }));
   } catch (error) {
     console.error('Error uploading Excel:', error);
     alert(t('error_reading_excel'));
@@ -2932,7 +3215,7 @@ const handleAccountAccessLookup = async () => {
         console.error('Error fetching company admins:', err);
         adminEmailsText = '.';
       }
-      setAccountAccessError(`This account has been blocked for security reasons. Please contact your company's HR or Admin${adminEmailsText}`);
+      setAccountAccessError(`${t('account_blocked_security')}${adminEmailsText}`);
       return;
     }
     if (usableMatches.length > 1) {
@@ -2962,7 +3245,7 @@ const handleConfirmCompany = async () => {
 
 const proceedWithAccountAccessRecord = async (record) => {
   if (!record.email) {
-    setAccountAccessError('No email registered for this account. Please contact your Admin.');
+    setAccountAccessError(t('no_email_registered'));
     return;
   }
   const code = Math.floor(100000 + Math.random() * 900000).toString();
@@ -2977,7 +3260,7 @@ const proceedWithAccountAccessRecord = async (record) => {
     setAccountAccessStep('verify');
   } catch (err) {
     console.error('Error sending verification code:', err);
-    setAccountAccessError('Error sending verification email. Please try again.');
+    setAccountAccessError(t('error_sending_verification'));
   }
 };
 
@@ -2985,7 +3268,7 @@ const proceedWithAccountAccessRecord = async (record) => {
 const handleVerifyAccountAccessCode = () => {
   setAccountAccessError('');
   if (accountAccessCodeInput.trim() !== accountAccessCode) {
-    setAccountAccessError('Incorrect code. Please check your email and try again.');
+    setAccountAccessError(t('incorrect_code'));
     return;
   }
   setAccountAccessStep('set-password');
@@ -2995,7 +3278,7 @@ const handleVerifyAccountAccessCode = () => {
 const handleSetAccountAccessPassword = async () => {
   setAccountAccessError('');
   if (!isPasswordValid(accountAccessPassword)) {
-    setAccountAccessError('Password does not meet all requirements below.');
+    setAccountAccessError(t('password_requirements_not_met'));
     return;
   }
   if (accountAccessPassword !== accountAccessConfirmPassword) {
@@ -3011,7 +3294,7 @@ const handleSetAccountAccessPassword = async () => {
     setAccountAccessStep('done');
   } catch (err) {
     console.error('Error setting password:', err);
-    setAccountAccessError('Error saving your password. Please try again.');
+    setAccountAccessError(t('error_saving_password'));
   }
 };
 
@@ -3056,7 +3339,7 @@ const handleEmployeeLogin = async () => {
 
     // Se é demo ID, só pode logar se estiver em um grupo
     if (data.is_demo && !data.group_id) {
-      setLoginError('This demo account is not currently active. Please contact your Admin.');
+      setLoginError(t('demo_account_inactive'));
       return;
     }
 
@@ -3151,7 +3434,7 @@ const handleEmployeeLogin = async () => {
   
   } catch (error) {
     console.error('Login error:', error);
-    setLoginError('Login failed. Please try again.');
+    setLoginError(t('login_failed'));
   }
 };
 
@@ -3272,7 +3555,7 @@ const deleteFileFromStorage = async (fileUrl) => {
       );
       
       if (currentPosition) {
-        alert(`This experience is already set as Top ${currentPosition[0]}`);
+        alert(tAlert('already_top_position', { position: currentPosition[0] }));
         return;
       }
 
@@ -4199,7 +4482,7 @@ const prevVideo = () => {
     alert(t('password_updated_success'));
   } catch (error) {
     console.error('Change password error:', error);
-    setChangePasswordError('Error updating password. Please try again.');
+    setChangePasswordError(t('error_updating_password'));
   }
 };
 
@@ -4981,7 +5264,7 @@ const handleDeleteAllMatches = async () => {
   const commentMatches = matches.filter(m => m.type === 'comment');
   if (expIds.length === 0 && commentMatches.length === 0) return;
 
-  if (!window.confirm(`Delete ${expIds.length} experience(s) and ${commentMatches.length} comment(s)? This cannot be undone.`)) return;
+  if (!window.confirm(tConfirm('delete_experiences_comments', { exp: expIds.length, com: commentMatches.length }))) return;
   try {
     // Comentários que bateram individualmente (sem apagar a experience pai)
     if (commentMatches.length > 0) {
@@ -5003,7 +5286,7 @@ const handleDeleteAllMatches = async () => {
       if (error) throw error;
     }
     await loadExperiences(true);
-    alert(`Deleted ${expIds.length} experience(s) and ${commentMatches.length} comment(s).`);
+    alert(tAlert('deleted_experiences_comments', { exp: expIds.length, com: commentMatches.length }));
     resetDeletionFilters();
   } catch (error) {
     console.error('Error deleting matches:', error);
@@ -5443,7 +5726,7 @@ useEffect(() => {
                               </button>
                             ))}
                             <div className="relative group">
-                              <button className="flex items-center justify-center w-7 h-7 rounded-full border border-gray-300 bg-white text-gray-400 hover:border-purple-400 hover:text-purple-500 transition-colors" title="React">
+                              <button className="flex items-center justify-center w-7 h-7 rounded-full border border-gray-300 bg-white text-gray-400 hover:border-purple-400 hover:text-purple-500 transition-colors" title={t('react_tooltip')}>
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
                               </button>
                               <div className="hidden group-hover:block absolute bottom-0 left-0 z-50" style={{ paddingBottom: '28px', width: '196px' }}>
@@ -5496,7 +5779,7 @@ useEffect(() => {
                             </button>
                           ))}
                           <div className="relative group">
-                            <button className="flex items-center justify-center w-7 h-7 rounded-full border border-gray-300 bg-white text-gray-400 hover:border-purple-400 hover:text-purple-500 transition-colors" title="React">
+                            <button className="flex items-center justify-center w-7 h-7 rounded-full border border-gray-300 bg-white text-gray-400 hover:border-purple-400 hover:text-purple-500 transition-colors" title={t('react_tooltip')}>
                               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
                             </button>
                             <div className="hidden group-hover:block absolute bottom-0 left-0 z-50" style={{ paddingBottom: '28px', width: '196px' }}>
@@ -5591,8 +5874,8 @@ useEffect(() => {
 {exitRequested ? (
   <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center p-6 text-center">
     <div>
-      <p className="text-xl text-gray-700 font-semibold mb-2">All done!</p>
-      <p className="text-gray-500">Just type your next stop in the address bar below.</p>
+      <p className="text-xl text-gray-700 font-semibold mb-2">{t('all_done')}</p>
+      <p className="text-gray-500">{t('type_next_stop')}</p>
     </div>
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 text-purple-500 animate-bounce pointer-events-none select-none" style={{ fontSize: '36px', lineHeight: 1 }}>
       ↓
@@ -6305,7 +6588,7 @@ autoComplete="off"
         }}
         className="p-2 border-2 border-gray-300 rounded-lg text-sm font-medium"
       >
-        <option value="seller">My Seller View</option>
+        <option value="seller">{t('my_seller_view')}</option>
         <option value="company">{t('company_word')}</option>
         <option value="sample">Sample (Default's ADM content)</option>
       </select>
@@ -6353,7 +6636,7 @@ autoComplete="off"
         onChange={(e) => setCompanyViewMode(e.target.value)}
         className="p-2 border-2 border-gray-300 rounded-lg text-sm font-medium"
       >
-        <option value="own">My Company</option>
+        <option value="own">{t('my_company')}</option>
         <option value="sample">Sample (Default's ADM content)</option>
       </select>
       {companyViewMode === 'sample' && (
@@ -6389,7 +6672,7 @@ autoComplete="off"
     <h3 className="font-semibold text-gray-800 mb-1">{t('section_settings')}</h3>
     <p className="text-xs text-gray-500 mb-3">"View & Edit access for ADM Master" lets the Master see/edit that section for support. Check a row and click "Import/Update" to bring starter content from Default (synthetic examples, not real people) — running it again only brings new items, it never duplicates or overwrites what you already have. To remove something, delete it directly in its own section (Manage Employees, Manage Categories, etc.) — deleting a Category also removes its linked Experiences, Key Insights and comments.</p>
     <div className="flex items-center gap-2 mb-3">
-      <label className="text-sm font-medium text-gray-700">Import content in:</label>
+      <label className="text-sm font-medium text-gray-700">{t('import_content_in')}</label>
       <select value={importLanguage} onChange={(e) => setImportLanguage(e.target.value)}
         className="p-1.5 border-2 border-gray-300 rounded-lg text-sm">
         <option value="en">English</option>
@@ -6401,12 +6684,12 @@ autoComplete="off"
     <table className="w-full text-sm border-collapse">
       <thead>
         <tr className="text-left text-gray-600 border-b">
-          <th className="py-1 align-bottom">Section</th>
-          <th className="py-1 text-center align-bottom">View & Edit access<br/>for ADM Master</th>
+          <th className="py-1 align-bottom">{t('section_header')}</th>
+          <th className="py-1 text-center align-bottom">{t('view_edit_access')}<br/>{t('for_adm_master')}</th>
           <th className="py-2 text-center">
             <button onClick={runImportForSelected} disabled={importingBundle || importingQuotes}
               className="px-3 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 disabled:opacity-50 w-40">
-              {(importingBundle || importingQuotes) ? 'Importing...' : 'Import/Update'}
+              {(importingBundle || importingQuotes) ? t('importing_ellipsis') : t('import_update')}
             </button>
             <p className="text-xs text-gray-500 mt-1">in {importLanguage === 'en' ? 'English' : importLanguage === 'es' ? 'Español' : importLanguage === 'pt' ? 'Português' : '中文'}</p>
           </th>
@@ -6430,7 +6713,7 @@ autoComplete="off"
         </tr>
 
         <tr className="border-b">
-          <td className="py-2">App Configuration</td>
+          <td className="py-2">{t('app_configuration')}</td>
           <td className="py-2 text-center">
             <input type="checkbox" checked={companyMasterVisibility.includes('app_config')}
               onChange={(e) => toggleMasterVisibility('app_config', e.target.checked)} className="w-4 h-4" />
@@ -6443,7 +6726,7 @@ autoComplete="off"
         </tr>
 
         <tr className="border-b">
-          <td className="py-2">Quotes</td>
+          <td className="py-2">{t('quotes_label')}</td>
           <td className="py-2 text-center">
             <input type="checkbox" checked={companyMasterVisibility.includes('quotes')}
               onChange={(e) => toggleMasterVisibility('quotes', e.target.checked)} className="w-4 h-4" />
@@ -6457,7 +6740,7 @@ autoComplete="off"
 
         <tr className="border-b">
           <td className="py-2">
-            <p>Promotional Videos</p>
+            <p>{t('promotional_videos_label')}</p>
             <p className="text-xs text-gray-400 font-normal">Useful for internal trainings — bring Default's presentations as a starting point</p>
           </td>
           <td className="py-2 text-center">
@@ -6472,7 +6755,7 @@ autoComplete="off"
         </tr>
 
         <tr className="border-b">
-          <td className="py-2">Content Pages</td>
+          <td className="py-2">{t('content_pages_label')}</td>
           <td className="py-2 text-center">
             <input type="checkbox" checked={companyMasterVisibility.includes('content_pages')}
               onChange={(e) => toggleMasterVisibility('content_pages', e.target.checked)} className="w-4 h-4" />
@@ -6486,8 +6769,8 @@ autoComplete="off"
 
         <tr className="border-b">
           <td className="py-2">
-            <p>Metadata Model</p>
-            <p className="text-xs text-gray-400 font-normal">Functions/Practices, Categories, Descriptions, Tags</p>
+            <p>{t('metadata_model')}</p>
+            <p className="text-xs text-gray-400 font-normal">{t('functions_categories_desc')}</p>
             {practices.length > 0 && (
               <p className="text-xs text-amber-600 font-normal">⚠️ Already imported. Re-importing in a different language would mix languages together — delete existing Categories first if you need to switch.</p>
             )}
@@ -6505,7 +6788,7 @@ autoComplete="off"
 
         <tr className="border-b">
           <td className="py-2">
-            <p>Synthetic/Curated Content</p>
+            <p>{t('synthetic_curated_content')}</p>
             <p className="text-xs text-gray-400 font-normal">Individual Experiences, Top 3, Employees, Key Insights</p>
             {!selectedForImport.includes('metadata') && (
               <p className="text-xs text-amber-600 font-normal">⚠️ Check "Metadata Model" above too — Content can only be imported together with it, to stay linked to the right Categories.</p>
@@ -6564,9 +6847,9 @@ autoComplete="off"
       </h4>
       <p className="text-xs text-gray-400 mb-3">The ⚪ marks which company "Company" in the context dropdown points to.</p>
       {!companiesLoaded ? (
-        <p className="text-sm text-gray-400">Loading...</p>
+        <p className="text-sm text-gray-400">{t('loading_ellipsis')}</p>
       ) : companies.filter(c => c.code !== 'default' && (!isSeller || c.created_by_seller_id === loggedInSellerId)).length === 0 ? (
-        <p className="text-sm text-gray-400">No companies yet.</p>
+        <p className="text-sm text-gray-400">{t('no_companies_yet')}</p>
       ) : (
         <div className="space-y-2">
           {companies.filter(c => c.code !== 'default' && (!isSeller || c.created_by_seller_id === loggedInSellerId)).map(c => (
@@ -6575,7 +6858,7 @@ autoComplete="off"
               <button
                 onClick={() => setExpandedCompanyContact(prev => ({ ...prev, [c.id]: !prev[c.id] }))}
                 className="text-gray-500 hover:text-gray-800 font-bold text-sm w-5 h-5 flex-shrink-0 flex items-center justify-center border border-gray-300 rounded"
-                title="Contact info"
+                title={t('contact_info_tooltip')}
               >
                 {expandedCompanyContact[c.id] ? '−' : '+'}
               </button>
@@ -6604,9 +6887,9 @@ autoComplete="off"
                   : 'bg-yellow-100 text-yellow-700'
                 }`}
               >
-                <option value="prospect">Prospect</option>
-                <option value="pilot">Pilot</option>
-                <option value="customer">Customer</option>
+                <option value="prospect">{t('prospect')}</option>
+                <option value="pilot">{t('pilot')}</option>
+                <option value="customer">{t('customer')}</option>
               </select>
               <select
                 value={c.active ? 'active' : 'inactive'}
@@ -6650,7 +6933,7 @@ autoComplete="off"
                     alert(t('contact_info_saved'));
                   }}
                   className="px-3 py-1 bg-indigo-600 text-white rounded text-xs hover:bg-indigo-700"
-                >Save Contact Info</button>
+                >{t('save_contact_info')}</button>
               </div>
             )}
             </div>
@@ -6670,7 +6953,7 @@ autoComplete="off"
     {/* Add Seller */}
     <div className="bg-white rounded p-4 mb-4">
       <h4 className="font-medium text-gray-700 mb-3">{t('add_seller')}</h4>
-      <p className="text-xs text-gray-500 mb-3">Creates the seller's own account (goes through 1st Access like any employee) — both the Seller ID and email need to match exactly what's entered here. <strong>Suggested ID format:</strong> first two letters of first + last name, plus month/year — e.g. <span className="font-mono">RR072026</span> for "Roberto Rodrigues", registered July 2026.</p>
+      <p className="text-xs text-gray-500 mb-3">{t('seller_id_hint_intro')} <strong>{t('suggested_id_format')}</strong> {t('seller_id_hint_example')} <span className="font-mono">RR072026</span> {t('seller_id_hint_registered')}</p>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
         <input type="text" value={newSeller.name} onChange={(e) => setNewSeller({...newSeller, name: e.target.value})}
           placeholder="Name *" className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
@@ -6689,9 +6972,9 @@ autoComplete="off"
     <div className="bg-white rounded p-4">
       <h4 className="font-medium text-gray-700 mb-3">Registered Sellers ({sellers.length})</h4>
       {!sellersLoaded ? (
-        <p className="text-sm text-gray-400">Loading...</p>
+        <p className="text-sm text-gray-400">{t('loading_ellipsis')}</p>
       ) : sellers.length === 0 ? (
-        <p className="text-sm text-gray-400">No sellers yet.</p>
+        <p className="text-sm text-gray-400">{t('no_sellers_yet')}</p>
       ) : (
         <div className="space-y-2">
           {sellers.map(s => {
@@ -6705,7 +6988,7 @@ autoComplete="off"
                 <button
                   onClick={() => setExpandedSellerContact(prev => ({ ...prev, [s.id]: !prev[s.id] }))}
                   className="text-gray-500 hover:text-gray-800 font-bold text-sm w-5 h-5 flex-shrink-0 flex items-center justify-center border border-gray-300 rounded"
-                  title="Contact info"
+                  title={t('contact_info_tooltip')}
                 >
                   {expandedSellerContact[s.id] ? '−' : '+'}
                 </button>
@@ -6766,7 +7049,7 @@ autoComplete="off"
                       alert(t('contact_info_saved'));
                     }}
                     className="px-3 py-1 bg-indigo-600 text-white rounded text-xs hover:bg-indigo-700"
-                  >Save Contact Info</button>
+                  >{t('save_contact_info')}</button>
                 </div>
               )}
               </div>
@@ -6810,7 +7093,7 @@ autoComplete="off"
           className="flex-1 p-2 border-2 border-gray-300 rounded-lg text-sm"
           defaultValue=""
         >
-          <option value="" disabled>Select a registered company...</option>
+          <option value="" disabled>{t('select_registered_company')}</option>
           {companies.filter(c => c.code !== 'default' && (!isSeller || c.created_by_seller_id === loggedInSellerId)).map(c => (
             <option key={c.id} value={c.id}>
               {c.name} ({c.status === 'customer' ? 'Customer' : c.status === 'pilot' ? 'Pilot' : 'Prospect'})
@@ -6830,7 +7113,7 @@ autoComplete="off"
             if (error) { alert('Error creating group: ' + error.message); return; }
             document.getElementById('new-group-company').value = '';
             await loadDemoGroups();
-            alert(`Group "${company.name}" created!`);
+            alert(tAlert('group_created_named', { name: company.name }));
           }}
           className="px-4 py-2 bg-pink-600 text-white rounded-lg text-sm hover:bg-pink-700"
         >+ Create Group</button>
@@ -6877,7 +7160,7 @@ autoComplete="off"
                 </div>
                 <button
                   onClick={async () => {
-                    if (!window.confirm(`Delete group "${group.name}"? All experiences and comments from its members will be deleted.`)) return;
+                    if (!window.confirm(tConfirm('delete_group', { name: group.name }))) return;
                     try {
                       // Get group members
                       const { data: members } = await supabase
@@ -6903,7 +7186,7 @@ autoComplete="off"
                       await loadDemoGroups();
                       await loadEmployees();
                       await loadExperiences(true);
-                      alert(`Group "${group.name}" deleted and data cleared!`);
+                      alert(tAlert('group_deleted_named', { name: group.name }));
                     } catch (error) {
                       alert('Error deleting group: ' + error.message);
                     }
@@ -6943,7 +7226,7 @@ autoComplete="off"
                       </span>
                       <button
                         onClick={async () => {
-                          if (!window.confirm(`Delete ID "${emp.employee_id}"? This retires it permanently — it can never be reused.`)) return;
+                          if (!window.confirm(tConfirm('delete_id_retire', { id: emp.employee_id }))) return;
                           try {
                             await supabase.from('comments').delete().eq('employee_id', emp.employee_id);
                             const { data: exps } = await supabase.from('experiences').select('id, cv_url').eq('employee_id', emp.employee_id);
@@ -6963,7 +7246,7 @@ autoComplete="off"
                           }
                         }}
                         className="px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 flex-shrink-0 whitespace-nowrap"
-                        title="Retires this ID/PW permanently"
+                        title={t('retires_id_permanently')}
                       >🗑️ Del</button>
                     </div>
                     );
@@ -6982,7 +7265,7 @@ autoComplete="off"
               <div className="flex gap-2 items-center flex-wrap">
                 <select
                   id={`add-member-lang-${group.id}`}
-                  title="Language the demo will show"
+                  title={t('demo_language_tooltip')}
                   defaultValue="en"
                   className="p-2 border-2 border-gray-200 rounded-lg text-sm"
                 >
@@ -6992,7 +7275,7 @@ autoComplete="off"
                   <option value="zh">中文</option>
                 </select>
                 <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <span>Expires in:</span>
+                  <span>{t('expires_in')}</span>
                   {[3, 5, 7].map(days => (
                     <label key={days} className="flex items-center gap-1">
                       <input type="radio" name={`add-member-expiry-${group.id}`} value={days}
@@ -7022,7 +7305,7 @@ autoComplete="off"
                         (!e.demo_expires_at || new Date(e.demo_expires_at) >= now)
                       ).length;
                       if (myLimit > 0 && myActiveCount >= myLimit) {
-                        alert(`You've reached your limit of ${myLimit} active Demo ID(s). Wait for one to expire, or ask the Default Admin to raise your limit.`);
+                        alert(tAlert('demo_id_limit_reached', { limit: myLimit }));
                         return;
                       }
                     }
@@ -7077,13 +7360,13 @@ autoComplete="off"
         <table className="w-full text-xs" style={{tableLayout: 'fixed'}}>
           <thead>
             <tr className="border-b-2 border-gray-200 text-gray-500">
-              <th className="py-2 pr-2 text-left" style={{width: '22%'}}>Seller</th>
-              <th className="py-2 pr-2 text-center" style={{width: '13%'}}>Companies</th>
-              <th className="py-2 pr-2 text-center" style={{width: '13%'}}>Groups</th>
-              <th className="py-2 pr-2 text-center" style={{width: '13%'}}>Max DEMO IDs</th>
-              <th className="py-2 pr-2 text-center" style={{width: '13%'}}>Active IDs</th>
-              <th className="py-2 pr-2 text-center" style={{width: '13%'}}>Available (unassigned)</th>
-              <th className="py-2 pr-2 text-center" style={{width: '13%'}}>Expired (pending cleanup)</th>
+              <th className="py-2 pr-2 text-left" style={{width: '22%'}}>{t('seller_col')}</th>
+              <th className="py-2 pr-2 text-center" style={{width: '13%'}}>{t('companies_col')}</th>
+              <th className="py-2 pr-2 text-center" style={{width: '13%'}}>{t('groups_col')}</th>
+              <th className="py-2 pr-2 text-center" style={{width: '13%'}}>{t('max_demo_ids_col')}</th>
+              <th className="py-2 pr-2 text-center" style={{width: '13%'}}>{t('active_ids_col')}</th>
+              <th className="py-2 pr-2 text-center" style={{width: '13%'}}>{t('available_unassigned_col')}</th>
+              <th className="py-2 pr-2 text-center" style={{width: '13%'}}>{t('expired_pending_col')}</th>
             </tr>
           </thead>
           <tbody>
@@ -7108,7 +7391,7 @@ autoComplete="off"
               });
               if (rows.length === 0) {
                 return (
-                  <tr><td colSpan="7" className="py-4 text-center text-gray-400">No sellers yet.</td></tr>
+                  <tr><td colSpan="7" className="py-4 text-center text-gray-400">{t('no_sellers_yet')}</td></tr>
                 );
               }
               return rows.map(r => (
@@ -7121,7 +7404,7 @@ autoComplete="off"
                       type="number"
                       min="0"
                       defaultValue={r.seller.demo_id_limit ?? 10}
-                      title="Max active Demo IDs this seller can have at once"
+                      title={t('max_active_demo_ids')}
                       onBlur={async (e) => {
                         const val = parseInt(e.target.value);
                         if (isNaN(val) || val < 0) { e.target.value = r.seller.demo_id_limit ?? 10; return; }
@@ -7208,13 +7491,13 @@ autoComplete="off"
               alert('Error updating setting');
               console.error(error);
             } else {
-              alert(`Employee login ${e.target.checked ? 'enabled' : 'disabled'}!`);
+              alert(tAlert('employee_login_toggled', { state: e.target.checked ? 'enabled' : 'disabled' }));
             }
           }}
           className="w-5 h-5"
         />
         <label htmlFor="employeeLogin" className="text-sm font-medium text-gray-700 cursor-pointer">
-          Require Employee ID for access
+          {t('require_employee_id')}
         </label>
       </div>
       
@@ -7238,20 +7521,20 @@ autoComplete="off"
                 alert('Error updating setting');
                 console.error(error);
               } else {
-                alert(`Document upload ${e.target.checked ? 'enabled' : 'disabled'}!`);
+                alert(tAlert('document_upload_toggled', { state: e.target.checked ? 'enabled' : 'disabled' }));
               }
             }}
             className="w-5 h-5"
           />
           <label htmlFor="cvUpload" className="text-sm font-medium text-gray-700 cursor-pointer">
-            Allow Document Upload
+            {t('allow_document_upload')}
           </label>
         </div>
         
         {/* Radio buttons - só aparecem se upload estiver habilitado */}
         {appSettings.allowCvUpload && (
           <div className="ml-8 space-y-2 bg-gray-50 p-3 rounded">
-            <label className="block text-xs font-medium text-gray-600 mb-2">Document Type:</label>
+            <label className="block text-xs font-medium text-gray-600 mb-2">{t('document_type_label')}</label>
             
             <label className="flex items-center gap-2 cursor-pointer">
               <input
@@ -7269,13 +7552,13 @@ autoComplete="off"
                     .eq('company_id', effectiveCompanyId);
                   
                   if (error) {
-                    alert('Error updating document type');
+                    alert(t('error_updating_doc_type'));
                     console.error(error);
                   }
                 }}
                 className="w-4 h-4"
               />
-              <span className="text-sm">📄 CV (PDF only) - for Pro edition</span>
+              <span className="text-sm">{t('doc_type_cv')}</span>
             </label>
             
             <label className="flex items-center gap-2 cursor-pointer">
@@ -7294,13 +7577,13 @@ autoComplete="off"
                     .eq('company_id', effectiveCompanyId);
                   
                   if (error) {
-                    alert('Error updating document type');
+                    alert(t('error_updating_doc_type'));
                     console.error(error);
                   }
                 }}
                 className="w-4 h-4"
               />
-              <span className="text-sm">📎 Other Docs (PPT, XLS, PDF, DOCX) - for Corp edition</span>
+              <span className="text-sm">{t('doc_type_other')}</span>
             </label>
           </div>
         )}
@@ -7315,7 +7598,7 @@ autoComplete="off"
             setAppSettings({...appSettings, showTop3: e.target.checked});
             await supabase.from('app_settings').update({ show_top3: e.target.checked }).eq('company_id', effectiveCompanyId);
           }} className="w-5 h-5" />
-        <label htmlFor="showTop3" className="text-sm font-medium text-gray-700 cursor-pointer">Show Top 3 Experiences</label>
+        <label htmlFor="showTop3" className="text-sm font-medium text-gray-700 cursor-pointer">{t('show_top3_experiences')}</label>
       </div>
 
       {appSettings.showTop3 && (
@@ -7326,7 +7609,7 @@ autoComplete="off"
               setTop3VisibleInSession(e.target.checked);
               await supabase.from('app_settings').update({ top3_start_visible: e.target.checked }).eq('company_id', effectiveCompanyId);
             }} className="w-4 h-4" />
-          <label htmlFor="top3StartVisible" className="text-xs text-gray-600 cursor-pointer">Start visible (users can still hide/show it)</label>
+          <label htmlFor="top3StartVisible" className="text-xs text-gray-600 cursor-pointer">{t('start_visible_top3')}</label>
         </div>
       )}
 
@@ -7351,11 +7634,11 @@ autoComplete="off"
               <button onClick={async () => {
                 setCompanyName('');
                 await supabase.from('app_settings').update({ company_name: null }).eq('company_id', effectiveCompanyId);
-              }} className="px-3 py-2 bg-gray-400 text-white rounded-lg text-sm hover:bg-gray-500">Clear</button>
+              }} className="px-3 py-2 bg-gray-400 text-white rounded-lg text-sm hover:bg-gray-500">{t('clear')}</button>
             )}
           </div>
           <div className="flex gap-3 bg-gray-50 p-2 rounded-lg">
-            <span className="text-xs text-gray-500 self-center">Size:</span>
+            <span className="text-xs text-gray-500 self-center">{t('size_label')}</span>
             {['small', 'medium', 'large'].map(size => (
               <label key={size} className="flex items-center gap-1 cursor-pointer">
                 <input type="radio" name="companyNameSize" value={size}
@@ -7408,7 +7691,7 @@ autoComplete="off"
           </label>
           <p className="text-xs text-gray-400 mt-1">💡 Recommended: PNG or SVG with transparent background, min 200px wide.</p>
           <div className="flex gap-3 bg-gray-50 p-2 rounded-lg mt-2">
-            <span className="text-xs text-gray-500 self-center">Size:</span>
+            <span className="text-xs text-gray-500 self-center">{t('size_label')}</span>
             {['small', 'medium', 'large'].map(size => (
               <label key={size} className="flex items-center gap-1 cursor-pointer">
                 <input type="radio" name="companyLogoSize" value={size}
@@ -7447,14 +7730,14 @@ autoComplete="off"
             setAppSettings({...appSettings, showMarquee: e.target.checked});
             await supabase.from('app_settings').update({ show_marquee: e.target.checked }).eq('company_id', effectiveCompanyId);
           }} className="w-5 h-5" />
-        <label htmlFor="showMarquee" className="text-sm font-medium text-gray-700 cursor-pointer">Show Inspirational Quotes (Marquee)</label>
+        <label htmlFor="showMarquee" className="text-sm font-medium text-gray-700 cursor-pointer">{t('show_inspirational_quotes')}</label>
       </div>
               
               <div className="bg-white rounded p-4 mb-4">
                 <h4 className="font-medium text-gray-700 mb-3">{t('add_new_quote')}</h4>
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Quote Text</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('quote_text')}</label>
                     <textarea
                       value={newQuote.text}
                       onChange={(e) => setNewQuote({...newQuote, text: e.target.value})}
@@ -7476,7 +7759,7 @@ autoComplete="off"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Position</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('position')}</label>
                     <select
                       value={newQuote.position}
                       onChange={(e) => setNewQuote({...newQuote, position: e.target.value})}
@@ -7673,7 +7956,7 @@ autoComplete="off"
                   )}
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Name (optional)</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('name_optional')}</label>
                     <input
                       type="text"
                       value={newLinkLabel}
@@ -7684,7 +7967,7 @@ autoComplete="off"
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Language</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('language')}</label>
                     <select
                       value={newItemLanguage}
                       onChange={(e) => setNewItemLanguage(e.target.value)}
@@ -7942,7 +8225,7 @@ autoComplete="off"
                             placeholder={t('enter_content_markdown')}
                           />
                           <div className="text-xs text-gray-600 mb-2">
-                            <strong>Markdown Tips:</strong> Use # for titles, ## for subtitles, ### for sections, - for bullet points
+                            <strong>{t('markdown_tips')}</strong> {t('markdown_tips_text')}
                           </div>
                           <div className="flex gap-2">
                             <button
@@ -8028,7 +8311,7 @@ autoComplete="off"
         >
           📤 Export Excel
         </button>
-        <span className="text-xs text-gray-500 self-center">Excel columns: Employee ID, Name, Country, Email</span>
+        <span className="text-xs text-gray-500 self-center">{t('excel_columns_employee')} Employee ID, Name, Country, Email</span>
       </div>
     </div>
     )}
@@ -8061,9 +8344,9 @@ autoComplete="off"
                 </label>
                 <select defaultValue={emp.status || 'pending'} onChange={(e) => setEditingEmployeeData({...editingEmployeeData, status: e.target.value})}
                   className="text-xs p-1 border border-gray-300 rounded shrink-0">
-                  <option value="pending">Pending</option>
+                  <option value="pending">{t('pending')}</option>
                   <option value="active">{t('active')}</option>
-                  <option value="blocked">Blocked</option>
+                  <option value="blocked">{t('blocked')}</option>
                 </select>
                 <button onClick={() => updateEmployee(emp.employee_id)} className="px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700">{t('save')}</button>
                 <button onClick={() => { setEditingEmployee(null); setEditingEmployeeData({}); }} className="px-2 py-1 bg-gray-400 text-white rounded text-xs">{t('cancel')}</button>
@@ -8087,7 +8370,7 @@ autoComplete="off"
                 <button onClick={() => { setEditingEmployee(emp.employee_id); setEditingEmployeeData({ name: emp.name, country: emp.country, email: emp.email, is_admin: emp.is_admin, status: emp.status || 'pending' }); }}
                   className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700">{t('edit')}</button>
                 <button onClick={async () => {
-                  if (!window.confirm(`Delete all experiences and comments by ${emp.employee_id}? This cannot be undone.`)) return;
+                  if (!window.confirm(tConfirm('delete_all_by_employee', { id: emp.employee_id }))) return;
                   try {
                     // Deletar comments do employee
                     const { error: commentsError } = await supabase
@@ -8117,7 +8400,7 @@ autoComplete="off"
                     if (expsError) throw expsError;
 
                     await loadExperiences(true);
-                    alert(`All data cleared for ${emp.employee_id}!`);
+                    alert(tAlert('all_data_cleared_for', { id: emp.employee_id }));
                   } catch (error) {
                     console.error('Error clearing data:', error);
                     alert('Error clearing data: ' + error.message);
@@ -8131,7 +8414,7 @@ autoComplete="off"
             )}
           </div>
         ))}
-        {employees.length === 0 && <p className="text-sm text-gray-500 text-center py-4">No employees yet.</p>}
+        {employees.length === 0 && <p className="text-sm text-gray-500 text-center py-4">{t('no_employees_yet')}</p>}
       </div>
     </div>
   </div>
@@ -8148,7 +8431,7 @@ autoComplete="off"
     {/* Practice selector + New Practice */}
     <div className="bg-white rounded p-4 mb-4">
       <div className="flex items-center gap-3 mb-4">
-        <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Function/Practice:</label>
+        <label className="text-sm font-medium text-gray-700 whitespace-nowrap">{t('function_practice_colon')}</label>
         <select
           value={selectedPracticeId || ''}
           onChange={(e) => {
@@ -8197,7 +8480,7 @@ autoComplete="off"
               setSelectedPracticeId(data[0].id);
               loadProblemCategories(data[0].id);
             }
-            alert(`Practice "${name.trim()}" created!`);
+            alert(tAlert('practice_created_named', { name: name.trim() }));
           }}
           disabled={isReadOnlyOrMasterManaging}
           className={`px-3 py-2 bg-teal-600 text-white rounded-lg text-sm hover:bg-teal-700 whitespace-nowrap ${isReadOnlyOrMasterManaging ? 'opacity-40 cursor-not-allowed' : ''}`}
@@ -8206,7 +8489,7 @@ autoComplete="off"
           <button
             onClick={async () => {
               const practice = practices.find(p => p.id === selectedPracticeId);
-              if (!window.confirm(`Delete practice "${practice?.name}"? Categories will not be deleted.`)) return;
+              if (!window.confirm(tConfirm('delete_practice_keep_categories', { name: practice?.name }))) return;
               const { error } = await supabase
                 .from('practices')
                 .update({ active: false })
@@ -8341,7 +8624,7 @@ for (const row of rows) {
             }}
           />
         </label>
-        <span className="text-xs text-gray-400 self-center">Excel columns: Practice, Category, Description, Tags</span>
+        <span className="text-xs text-gray-400 self-center">{t('excel_columns_employee')} Practice, Category, Description, Tags</span>
       </div>
     </div>
     <div className="bg-white rounded p-4">
@@ -8468,9 +8751,9 @@ for (const row of rows) {
             className="w-full p-2 border-2 border-gray-300 rounded"
             defaultValue="upload"
           >
-            <option value="upload">Upload (User Experiences)</option>
-            <option value="key_insights">Key Insights (Curated)</option>
-            <option value="both">Both</option>
+            <option value="upload">{t('upload_user_experiences')}</option>
+            <option value="key_insights">{t('key_insights_curated')}</option>
+            <option value="both">{t('both')}</option>
           </select>
         </div>
 
@@ -8488,7 +8771,7 @@ for (const row of rows) {
                 defaultChecked
                 className="w-4 h-4"
               />
-              <span className="text-sm">Only experiences WITHOUT ratings (safe)</span>
+              <span className="text-sm">{t('only_without_ratings')}</span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
               <input
@@ -8534,7 +8817,7 @@ for (const row of rows) {
               defaultValue="1"
               className="w-24 p-2 border-2 border-gray-300 rounded"
             />
-            <span className="text-sm text-gray-600">to</span>
+            <span className="text-sm text-gray-600">{t('to_word')}</span>
             <input
               type="number"
               id="rating-max"
@@ -8542,7 +8825,7 @@ for (const row of rows) {
               defaultValue="100"
               className="w-24 p-2 border-2 border-gray-300 rounded"
             />
-            <span className="text-sm text-gray-600">ratings</span>
+            <span className="text-sm text-gray-600">{t('ratings_word')}</span>
           </div>
           <p className="text-xs text-gray-500 mt-1">e.g., 1-100, or 20-30</p>
         </div>
@@ -8972,9 +9255,9 @@ onClick={() => {
                       className="w-full h-9 px-2 py-1 border-2 border-gray-300 rounded-lg bg-white"
                     >
                       <option value="all">All</option>
-                      <option value="metadata">Metadata</option>
-                      <option value="individual">Individual Experiences</option>
-                      <option value="key_insights">Common Cases / Key Insights</option>
+                      <option value="metadata">{t('metadata')}</option>
+                      <option value="individual">{t('individual_experiences_opt')}</option>
+                      <option value="key_insights">{t('common_cases_key_insights')}</option>
                     </select>
                   </div>
                   <div>
@@ -8986,12 +9269,12 @@ onClick={() => {
                       className="w-full h-9 px-2 py-1 border-2 border-gray-300 rounded-lg bg-white"
                     >
                       <option value="all">All</option>
-                      <option value="curated">Curated / Sample</option>
-                      <option value="users">Entered by Users</option>
+                      <option value="curated">{t('curated_sample')}</option>
+                      <option value="users">{t('entered_by_users')}</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-2">Function / Practice</label>
+                    <label className="block text-sm font-medium text-gray-600 mb-2">{t('function_practice')}</label>
                     <div className="relative">
                       <select
                         key={`prac-${deletionFiltersRemountKey}`}
@@ -9055,7 +9338,7 @@ onClick={() => {
                             <span className="text-sm text-gray-800">🗂️ {cat.name}</span>
                             <button
                               onClick={async () => {
-                                if (!window.confirm(`Delete Category "${cat.name}"? This also deletes its Experiences, Key Insights and comments. This cannot be undone.`)) return;
+                                if (!window.confirm(tConfirm('delete_category_ki', { name: cat.name }))) return;
                                 try { await deleteCategoryCascade(cat); } catch (e) { alert('Error: ' + e.message); }
                               }}
                               className="px-2 py-1 rounded text-xs bg-red-600 hover:bg-red-700 text-white"
@@ -9075,7 +9358,7 @@ onClick={() => {
                               {items.length > 0 && (
                                 <button
                                   onClick={async () => {
-                                    if (!window.confirm(`Delete all ${items.length} Categories listed below (and their Experiences/Key Insights/comments)? This cannot be undone.`)) return;
+                                    if (!window.confirm(tConfirm('delete_all_categories_listed', { count: items.length }))) return;
                                     try {
                                       await deleteCategoriesBatch(items);
                                       await loadAdminCategories(selectedPracticeId);
@@ -9090,13 +9373,13 @@ onClick={() => {
                               )}
                             </div>
                             {items.length === 0 ? (
-                              <p className="text-sm text-gray-500">No Categories match this Source.</p>
+                              <p className="text-sm text-gray-500">{t('no_categories_match')}</p>
                             ) : items.map(cat => (
                               <div key={cat.id} className="flex items-center justify-between p-2 border border-gray-200 rounded-lg">
                                 <span className="text-sm text-gray-800">🗂️ {cat.name}</span>
                                 <button
                                   onClick={async () => {
-                                    if (!window.confirm(`Delete Category "${cat.name}"? This also deletes its Experiences, Key Insights and comments. This cannot be undone.`)) return;
+                                    if (!window.confirm(tConfirm('delete_category_ki', { name: cat.name }))) return;
                                     try { await deleteCategoryCascade(cat); } catch (e) { alert('Error: ' + e.message); }
                                   }}
                                   className="px-2 py-1 rounded text-xs bg-red-600 hover:bg-red-700 text-white"
@@ -9106,11 +9389,11 @@ onClick={() => {
                             <button
                               onClick={async () => {
                                 const practice = uiPractices.find(p => p.id === deletionPracticeId);
-                                if (!window.confirm(`Delete the whole Function/Practice "${practice.name}" (all its Categories, regardless of Source)? This cannot be undone.`)) return;
+                                if (!window.confirm(tConfirm('delete_whole_function_named', { name: practice.name }))) return;
                                 try { await deletePracticeCascade(practice); alert(`"${practice.name}" deleted.`); } catch (e) { alert('Error: ' + e.message); }
                               }}
                               className="text-xs text-red-700 hover:text-red-900 underline mt-1"
-                            >Delete the whole Function/Practice instead</button>
+                            >{t('delete_whole_function')}</button>
                           </div>
                         );
                       }
@@ -9124,7 +9407,7 @@ onClick={() => {
                             {items.length > 0 && (
                               <button
                                 onClick={async () => {
-                                  if (!window.confirm(`Delete all ${items.length} Functions/Practices listed below (and everything under them)? This cannot be undone.`)) return;
+                                  if (!window.confirm(tConfirm('delete_all_functions_listed', { count: items.length }))) return;
                                   try {
                                     await deletePracticesBatch(items);
                                     await loadPractices();
@@ -9139,13 +9422,13 @@ onClick={() => {
                             )}
                           </div>
                           {items.length === 0 ? (
-                            <p className="text-sm text-gray-500">No Functions/Practices match this Source.</p>
+                            <p className="text-sm text-gray-500">{t('no_functions_match')}</p>
                           ) : items.map(p => (
                             <div key={p.id} className="flex items-center justify-between p-2 border border-gray-200 rounded-lg">
                               <span className="text-sm text-gray-800">📁 {p.name}</span>
                               <button
                                 onClick={async () => {
-                                  if (!window.confirm(`Delete Function/Practice "${p.name}" (all its Categories)? This cannot be undone.`)) return;
+                                  if (!window.confirm(tConfirm('delete_function_named', { name: p.name }))) return;
                                   try { await deletePracticeCascade(p); alert(`"${p.name}" deleted.`); } catch (e) { alert('Error: ' + e.message); }
                                 }}
                                 className="px-2 py-1 rounded text-xs bg-red-600 hover:bg-red-700 text-white"
@@ -9251,7 +9534,7 @@ onClick={() => {
                             </div>
                             {match.keyword && (
                               <p className="text-sm text-gray-700 mb-1">
-                                <span className="font-medium">Keyword found:</span>{' '}
+                                <span className="font-medium">{t('keyword_found')}</span>{' '}
                                 <span className="bg-yellow-300 px-1 rounded font-semibold">{match.keyword}</span>
                               </p>
                             )}
@@ -9513,7 +9796,7 @@ onClick={() => {
       className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
       required
     >
-      <option value="">Select your industry sector...</option>
+      <option value="">{t('select_industry_sector')}</option>
       {industrySectors.map(sector => (
         <option key={sector} value={sector}>{sector}</option>
       ))}
@@ -9657,7 +9940,7 @@ onClick={() => {
         onChange={(e) => setCurrentEntry({...currentEntry, country: e.target.value})}
         className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
       >
-        <option value="">Select country</option>
+        <option value="">{t('select_country')}</option>
         {countryOptions.map(country => (
           <option key={country} value={country}>{country}</option>
         ))}
@@ -10076,7 +10359,7 @@ onClick={() => {
       onChange={(e) => setFilters({...filters, industrySector: e.target.value})}
       className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
     >
-      <option value="">All Sectors</option>
+      <option value="">{t('all_sectors')}</option>
       {industrySectors.map(sector => (
         <option key={sector} value={sector}>{sector}</option>
       ))}
@@ -10137,7 +10420,7 @@ onClick={() => {
         <option value="3">⭐⭐⭐ (3)</option>
         <option value="2">⭐⭐ (2)</option>
         <option value="1">⭐ (1)</option>
-        <option value="0">None (Not rated)</option>
+        <option value="0">{t('none_not_rated')}</option>
       </select>
     </div>
     
@@ -10763,7 +11046,7 @@ onClick={() => {
           }
         }}
         className="text-red-600 hover:text-red-800 text-xs"
-        title="Delete file"
+        title={t('delete_file_tooltip')}
       >
         ✕
       </button>
@@ -11054,7 +11337,7 @@ onClick={() => {
                           
                           {/* Top 3 Checkboxes */}
                           <div className="flex gap-3 ml-4 items-center">
-                            <span className="text-sm font-medium text-gray-700">Set as Top:</span>
+                            <span className="text-sm font-medium text-gray-700">{t('set_as_top')}</span>
                             {[1, 2, 3].map(position => (
                               <label key={position} className="flex items-center gap-1 cursor-pointer">
                                 <input
@@ -11230,7 +11513,7 @@ onClick={() => {
           }
         }}
         className="text-red-600 hover:text-red-800 text-xs"
-        title="Delete file"
+        title={t('delete_file_tooltip')}
       >
         ✕
       </button>
@@ -11305,7 +11588,7 @@ onClick={() => {
           <div className="relative group">
             <button
               className="flex items-center justify-center w-7 h-7 rounded-full border border-gray-300 bg-white text-gray-400 hover:border-purple-400 hover:text-purple-500 transition-colors"
-              title="React"
+              title={t('react_tooltip')}
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
             </button>
@@ -11390,7 +11673,7 @@ onClick={() => {
           }
         }}
         className="text-red-600 hover:text-red-800 text-xs"
-        title="Delete file"
+        title={t('delete_file_tooltip')}
       >
         ✕
       </button>
@@ -11464,7 +11747,7 @@ onClick={() => {
             <div className="relative group">
               <button
                 className="flex items-center justify-center w-7 h-7 rounded-full border border-gray-300 bg-white text-gray-400 hover:border-purple-400 hover:text-purple-500 transition-colors"
-                title="React"
+                title={t('react_tooltip')}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
               </button>
@@ -11709,7 +11992,7 @@ onClick={() => {
                           onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), gender: e.target.value}})}
                           className="w-full p-2 border-2 border-gray-300 rounded"
                         >
-                          <option value="">None</option>
+                          <option value="">{t("none_option")}</option>
                           {genderOptions.map(g => (
                             <option key={g} value={g}>{g}</option>
                           ))}
@@ -11723,7 +12006,7 @@ onClick={() => {
                           onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), age: e.target.value}})}
                           className="w-full p-2 border-2 border-gray-300 rounded"
                         >
-                          <option value="">None</option>
+                          <option value="">{t("none_option")}</option>
                           {ageOptions.map(a => (
                             <option key={a} value={a}>{a}</option>
                           ))}
@@ -12355,14 +12638,14 @@ if (selected.length === 0) {
           <div>
             <label className="block text-sm font-medium mb-1">{t('gender')}</label>
             <select value={editingData[exp.id]?.gender || exp.gender} onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), gender: e.target.value}})} className="w-full p-2 border-2 border-gray-300 rounded">
-              <option value="">None</option>
+              <option value="">{t("none_option")}</option>
               {genderOptions.map(g => (<option key={g} value={g}>{g}</option>))}
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Age</label>
+            <label className="block text-sm font-medium mb-1">{t('age')}</label>
             <select value={editingData[exp.id]?.age || exp.age} onChange={(e) => setEditingData({...editingData, [exp.id]: {...(editingData[exp.id] || exp), age: e.target.value}})} className="w-full p-2 border-2 border-gray-300 rounded">
-              <option value="">None</option>
+              <option value="">{t("none_option")}</option>
               {ageOptions.map(a => (<option key={a} value={a}>{a}</option>))}
             </select>
           </div>
@@ -12468,7 +12751,7 @@ if (selected.length === 0) {
             <iframe
               src={currentCvUrl}
               className="w-full h-[600px] border-2 border-gray-200 rounded"
-              title="CV Preview"
+              title={t('cv_preview_tooltip')}
             />
           </div>
           
