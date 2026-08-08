@@ -578,6 +578,9 @@ const UI_STRINGS = {
   status_active_badge: { en: '✓ Active', es: '✓ Activo', pt: '✓ Ativo', zh: '✓ 已激活' },
   status_blocked_badge: { en: '🚫 Blocked', es: '🚫 Bloqueado', pt: '🚫 Bloqueado', zh: '🚫 已封禁' },
   status_pending_badge: { en: '⏳ Pending', es: '⏳ Pendiente', pt: '⏳ Pendente', zh: '⏳ 待处理' },
+  seller_status_active: { en: 'Active', es: 'Activo', pt: 'Ativo', zh: '活跃' },
+  seller_status_blocked: { en: 'Blocked', es: 'Bloqueado', pt: 'Bloqueado', zh: '已封禁' },
+  seller_status_pending: { en: 'Pending', es: 'Pendiente', pt: 'Pendente', zh: '待处理' },
   no_experiences_found: { en: 'No experiences found.', es: 'No se encontraron experiencias.', pt: 'Nenhuma experiência encontrada.', zh: '未找到任何经验。' },
 };
 
@@ -7082,7 +7085,7 @@ autoComplete="off"
                   : s.status === 'blocked' ? 'bg-red-100 text-red-700'
                   : 'bg-yellow-100 text-yellow-700'
                 }`}>
-                  {s.status === 'active' ? 'Active' : s.status === 'blocked' ? 'Blocked' : 'Pending'}
+                  {s.status === 'active' ? t('seller_status_active') : s.status === 'blocked' ? t('seller_status_blocked') : t('seller_status_pending')}
                 </span>
                 <span className="text-xs text-yellow-700 whitespace-nowrap w-14 flex-shrink-0">#Pros: {prospectCount}</span>
                 <span className="text-xs text-blue-700 whitespace-nowrap w-12 flex-shrink-0">#Plt: {pilotCount}</span>
@@ -7176,7 +7179,7 @@ autoComplete="off"
           <option value="" disabled>{t('select_registered_company')}</option>
           {companies.filter(c => c.code !== 'default' && (!isSeller || c.created_by_seller_id === loggedInSellerId)).map(c => (
             <option key={c.id} value={c.id}>
-              {c.name} ({c.status === 'customer' ? 'Customer' : c.status === 'pilot' ? 'Pilot' : 'Prospect'})
+              {c.name} ({c.status === 'customer' ? t('customer') : c.status === 'pilot' ? t('pilot') : t('prospect')})
             </option>
           ))}
         </select>
