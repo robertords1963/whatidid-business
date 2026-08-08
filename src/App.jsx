@@ -13093,7 +13093,7 @@ if (selected.length === 0) {
 ) : (
   <button
     onClick={() => {
-      setShowIosInstallModal(false);
+      setShowIosInstallModal(false); 
       if (isEmployeeLoggedIn) {
         handleEmployeeLogout();
         setInstallLogoutMessage(true);
