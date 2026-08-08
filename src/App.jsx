@@ -578,6 +578,12 @@ const UI_STRINGS = {
   status_active_badge: { en: '✓ Active', es: '✓ Activo', pt: '✓ Ativo', zh: '✓ 已激活' },
   status_blocked_badge: { en: '🚫 Blocked', es: '🚫 Bloqueado', pt: '🚫 Bloqueado', zh: '🚫 已封禁' },
   status_pending_badge: { en: '⏳ Pending', es: '⏳ Pendiente', pt: '⏳ Pendente', zh: '⏳ 待处理' },
+  members_count_label: { en: 'Members', es: 'Miembros', pt: 'Membros', zh: '成员' },
+  expired_word: { en: 'Expired', es: 'Expirado', pt: 'Expirado', zh: '已过期' },
+  active_word: { en: 'Active', es: 'Activo', pt: 'Ativo', zh: '活跃' },
+  exp_label: { en: 'Exp:', es: 'Exp:', pt: 'Exp:', zh: '到期：' },
+  d_left_suffix: { en: 'd left', es: 'd restantes', pt: 'd restantes', zh: '天剩余' },
+  error_deleting_group: { en: 'Error deleting group:', es: 'Error al eliminar el grupo:', pt: 'Erro ao excluir o grupo:', zh: '删除分组时出错：' },
   seller_status_active: { en: 'Active', es: 'Activo', pt: 'Ativo', zh: '活跃' },
   seller_status_blocked: { en: 'Blocked', es: 'Bloqueado', pt: 'Bloqueado', zh: '已封禁' },
   seller_status_pending: { en: 'Pending', es: 'Pendiente', pt: 'Pendente', zh: '待处理' },
@@ -947,7 +953,7 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   const effectiveViewingLanguage = (
     isDemoModeActive ||
     (isAdmin && isSeller) || // Seller: o idioma escolhido vale em qualquer modo do ADM (My Seller View, Company, Sample), não só Sample
-    (isAdmin && !isDefaultAdmin && !isSeller && companyViewMode === 'sample') // Admin de empresa comum: só no modo Sample
+    (isAdmin && !isDefaultAdmin && !isSeller) // Admin de empresa comum: vale em qualquer modo (própria empresa ou Sample) — controla só a UI, nunca o conteúdo real dos funcionários
   ) ? viewingLanguage : (loggedInEmployeeLanguage || 'en');
   // Traduz textos fixos da UI (títulos de seção, botões, labels) — troca
   // junto com o mesmo idioma que já controla o conteúdo (effectiveViewingLanguage),
@@ -6561,7 +6567,7 @@ autoComplete="off"
 </div>
           
 {isDemoModeActive && !(isSeller && isAdmin) && !(isDefaultAdmin && isAdmin) && (
-  <div className="mt-4 max-w-2xl mx-auto bg-purple-50 border-2 border-purple-300 rounded-2xl p-3 flex items-center justify-evenly gap-2 flex-wrap">
+  <div className="mt-4 max-w-3xl mx-auto bg-purple-50 border-2 border-purple-300 rounded-2xl p-3 flex items-center justify-evenly gap-2 flex-wrap">
     <select
       value={viewingLanguage}
       onChange={(e) => setViewingLanguage(e.target.value)}
@@ -6588,7 +6594,7 @@ autoComplete="off"
 )}
 
 {isEmployeeLoggedIn && loggedInIsDemoId && (
-  <div className="mt-4 max-w-2xl mx-auto bg-purple-50 border-2 border-purple-300 rounded-2xl p-3 flex items-center justify-between gap-2">
+  <div className="mt-4 max-w-2xl mx-auto bg-purple-50 border-2 border-purple-300 rounded-2xl p-3 flex items-center justify-between gap-2 flex-wrap">
     <div className="flex-1 min-w-0">
       <p className="text-purple-800 text-sm font-medium">
         {t('demo_mode_expires')}
@@ -6609,6 +6615,20 @@ autoComplete="off"
         );
       })()}
     </div>
+    <select
+      value={loggedInEmployeeLanguage || 'en'}
+      onChange={(e) => {
+        setLoggedInEmployeeLanguage(e.target.value);
+        localStorage.setItem('loggedInEmployeeLanguage', e.target.value);
+      }}
+      className="p-1.5 border-2 border-purple-300 rounded-lg text-xs font-medium bg-white flex-shrink-0"
+      title={t('language')}
+    >
+      <option value="en">English</option>
+      <option value="es">Español</option>
+      <option value="pt">Português</option>
+      <option value="zh">中文 (Chinese)</option>
+    </select>
     {experiences.some(e => e.employeeId === employeeId || (e.comments || []).some(c => c.employeeId === employeeId)) && (
     <button
       onClick={async () => {
@@ -6639,18 +6659,9 @@ autoComplete="off"
 {isAdmin && isDefaultAdmin && (
   <div className={`mt-4 rounded-lg shadow-md p-4 max-w-4xl mx-auto border-2 ${adminCompanyContext ? 'bg-amber-50 border-amber-400' : 'bg-gray-50 border-gray-300'}`}>
     <div className="flex items-center gap-3 flex-wrap">
-      <label className="text-sm font-medium text-gray-700">{t('viewing')}</label>
-      <select
-        value={adminCompanyContext ? 'company' : 'default'}
-        onChange={(e) => setAdminCompanyContext(e.target.value === 'company' ? (selectedCompanyForContext || companies.filter(c => c.code !== 'default').slice(-1)[0]?.id || null) : null)}
-        className="p-2 border-2 border-gray-300 rounded-lg text-sm font-medium"
-      >
-        <option value="default">{t('default_word')}</option>
-        <option value="company">{t('company_word')}</option>
-      </select>
       {!adminCompanyContext && (
         <>
-          <label className="text-sm font-medium text-gray-700 ml-2">{t('language')}</label>
+          <label className="text-sm font-medium text-gray-700">{t('language')}</label>
           <select
             value={viewingLanguage}
             onChange={(e) => setViewingLanguage(e.target.value)}
@@ -6661,15 +6672,24 @@ autoComplete="off"
             <option value="pt">Português</option>
             <option value="zh">中文 (Chinese)</option>
           </select>
-          {currentDemoSessionId && (
-            <button
-              onClick={() => { if (window.confirm(t('confirm_delete_demo_session'))) deleteDemoSession(currentDemoSessionId); }}
-              className="px-2 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-medium whitespace-nowrap"
-            >
-              {t('delete_now')}
-            </button>
-          )}
         </>
+      )}
+      <label className="text-sm font-medium text-gray-700 ml-2">{t('viewing')}</label>
+      <select
+        value={adminCompanyContext ? 'company' : 'default'}
+        onChange={(e) => setAdminCompanyContext(e.target.value === 'company' ? (selectedCompanyForContext || companies.filter(c => c.code !== 'default').slice(-1)[0]?.id || null) : null)}
+        className="p-2 border-2 border-gray-300 rounded-lg text-sm font-medium"
+      >
+        <option value="default">{t('default_word')}</option>
+        <option value="company">{t('company_word')}</option>
+      </select>
+      {!adminCompanyContext && currentDemoSessionId && (
+        <button
+          onClick={() => { if (window.confirm(t('confirm_delete_demo_session'))) deleteDemoSession(currentDemoSessionId); }}
+          className="px-2 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-medium whitespace-nowrap"
+        >
+          {t('delete_now')}
+        </button>
       )}
       {adminCompanyContext && (
         <span className="text-sm font-semibold text-amber-700 flex items-center gap-1">
@@ -6689,7 +6709,18 @@ autoComplete="off"
 {isAdmin && isSeller && (
   <div className={`mt-4 rounded-lg shadow-md p-4 max-w-4xl mx-auto border-2 ${isSellerManagingOwnCompany ? 'bg-amber-50 border-amber-400' : companyViewMode === 'sample' ? 'bg-blue-50 border-blue-400' : 'bg-gray-50 border-gray-300'}`}>
     <div className="flex items-center gap-3 flex-wrap">
-      <label className="text-sm font-medium text-gray-700">{t('viewing')}</label>
+      <label className="text-sm font-medium text-gray-700">{t('language')}</label>
+      <select
+        value={viewingLanguage}
+        onChange={(e) => setViewingLanguage(e.target.value)}
+        className="p-2 border-2 border-gray-300 rounded-lg text-sm font-medium"
+      >
+        <option value="en">English</option>
+        <option value="es">Español</option>
+        <option value="pt">Português</option>
+        <option value="zh">中文 (Chinese)</option>
+      </select>
+      <label className="text-sm font-medium text-gray-700 ml-2">{t('viewing')}</label>
       <select
         value={adminCompanyContext ? 'company' : (companyViewMode === 'sample' ? 'sample' : 'seller')}
         onChange={(e) => {
@@ -6716,6 +6747,11 @@ autoComplete="off"
           ⚠️ You are viewing/editing the data fields <strong>{effectiveCompanyName}</strong> has authorized.
         </span>
       )}
+      {!isSellerManagingOwnCompany && companyViewMode === 'sample' && (
+        <span className="text-sm font-semibold text-blue-700 flex items-center gap-1">
+          👁️ Read-only preview of ADM Default's content.
+        </span>
+      )}
       <button
         onClick={exitAdminMode}
         className="ml-auto px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors"
@@ -6723,33 +6759,24 @@ autoComplete="off"
         {t('logout_adm')}
       </button>
     </div>
-    <div className="flex flex-col gap-1 mt-2">
-      <div className="flex items-center gap-2">
-        <label className="text-sm font-medium text-gray-700">{t('language')}</label>
-        <select
-          value={viewingLanguage}
-          onChange={(e) => setViewingLanguage(e.target.value)}
-          className="p-2 border-2 border-gray-300 rounded-lg text-sm font-medium"
-        >
-          <option value="en">English</option>
-          <option value="es">Español</option>
-          <option value="pt">Português</option>
-          <option value="zh">中文 (Chinese)</option>
-        </select>
-      </div>
-      {!isSellerManagingOwnCompany && companyViewMode === 'sample' && (
-        <span className="text-sm font-semibold text-blue-700 flex items-center gap-1">
-          👁️ Read-only preview of ADM Default's content.
-        </span>
-      )}
-    </div>
   </div>
 )}
 
 {isAdmin && !isDefaultAdmin && !isSeller && (
   <div className={`mt-4 rounded-lg shadow-md p-4 max-w-4xl mx-auto border-2 ${companyViewMode === 'sample' ? 'bg-blue-50 border-blue-400' : 'bg-gray-50 border-gray-300'}`}>
     <div className="flex items-center gap-3 flex-wrap">
-      <label className="text-sm font-medium text-gray-700">{t('viewing')}</label>
+      <label className="text-sm font-medium text-gray-700">{t('language')}</label>
+      <select
+        value={viewingLanguage}
+        onChange={(e) => setViewingLanguage(e.target.value)}
+        className="p-2 border-2 border-gray-300 rounded-lg text-sm font-medium"
+      >
+        <option value="en">English</option>
+        <option value="es">Español</option>
+        <option value="pt">Português</option>
+        <option value="zh">中文 (Chinese)</option>
+      </select>
+      <label className="text-sm font-medium text-gray-700 ml-2">{t('viewing')}</label>
       <select
         value={companyViewMode}
         onChange={(e) => setCompanyViewMode(e.target.value)}
@@ -6759,22 +6786,9 @@ autoComplete="off"
         <option value="sample">Sample (Default's ADM content)</option>
       </select>
       {companyViewMode === 'sample' && (
-        <>
-          <span className="text-sm font-semibold text-blue-700 flex items-center gap-1">
-            👁️ Read-only preview — browse Default's content to decide what to import.
-          </span>
-          <label className="text-sm font-medium text-gray-700 ml-2">{t('language')}</label>
-          <select
-            value={viewingLanguage}
-            onChange={(e) => setViewingLanguage(e.target.value)}
-            className="p-2 border-2 border-gray-300 rounded-lg text-sm font-medium"
-          >
-            <option value="en">English</option>
-            <option value="es">Español</option>
-            <option value="pt">Português</option>
-            <option value="zh">中文 (Chinese)</option>
-          </select>
-        </>
+        <span className="text-sm font-semibold text-blue-700 flex items-center gap-1">
+          👁️ Read-only preview — browse Default's content to decide what to import.
+        </span>
       )}
       <button
         onClick={exitAdminMode}
@@ -6937,6 +6951,123 @@ autoComplete="off"
     </table>
   </div>
 )}
+{isAdmin && showDefaultOnlyTools && !isSeller && (
+  <div className="mt-4 bg-teal-50 border-2 border-teal-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
+    <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+      🧑‍💼 {t('manage_sellers')}
+    </h3>
+
+    {/* Add Seller */}
+    <div className="bg-white rounded p-4 mb-4">
+      <h4 className="font-medium text-gray-700 mb-3">{t('add_seller')}</h4>
+      <p className="text-xs text-gray-500 mb-3">{t('seller_id_hint_intro')} <strong>{t('suggested_id_format')}</strong> {t('seller_id_hint_example')} <span className="font-mono">RR072026</span> {t('seller_id_hint_registered')}</p>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+        <input type="text" value={newSeller.name} onChange={(e) => setNewSeller({...newSeller, name: e.target.value})}
+          placeholder={t('name_star')} className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
+        <input type="text" value={newSeller.employee_id} onChange={(e) => setNewSeller({...newSeller, employee_id: e.target.value})}
+          placeholder={t('seller_id_star')} className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
+        <input type="email" value={newSeller.email} onChange={(e) => setNewSeller({...newSeller, email: e.target.value})}
+          placeholder={t('email_star')} className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
+      </div>
+      <button onClick={createSeller} disabled={creatingSeller}
+        className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm hover:bg-teal-700 disabled:opacity-50">
+        {creatingSeller ? t('creating_ellipsis') : t('add_seller_btn')}
+      </button>
+    </div>
+
+    {/* Seller List */}
+    <div className="bg-white rounded p-4">
+      <h4 className="font-medium text-gray-700 mb-3">{t('registered_sellers_title')} ({sellers.length})</h4>
+      {!sellersLoaded ? (
+        <p className="text-sm text-gray-400">{t('loading_ellipsis')}</p>
+      ) : sellers.length === 0 ? (
+        <p className="text-sm text-gray-400">{t('no_sellers_yet')}</p>
+      ) : (
+        <div className="space-y-2">
+          {sellers.map(s => {
+            const sellerCompanies = companies.filter(c => c.created_by_seller_id === s.id);
+            const prospectCount = sellerCompanies.filter(c => (c.status || 'prospect') === 'prospect').length;
+            const pilotCount = sellerCompanies.filter(c => c.status === 'pilot').length;
+            const customerCount = sellerCompanies.filter(c => c.status === 'customer').length;
+            return (
+              <div key={s.id} className="border border-gray-200 rounded-lg">
+              <div className="flex items-center gap-2 p-2 flex-wrap">
+                <button
+                  onClick={() => setExpandedSellerContact(prev => ({ ...prev, [s.id]: !prev[s.id] }))}
+                  className="text-gray-500 hover:text-gray-800 font-bold text-sm w-5 h-5 flex-shrink-0 flex items-center justify-center border border-gray-300 rounded"
+                  title={t('contact_info_tooltip')}
+                >
+                  {expandedSellerContact[s.id] ? '−' : '+'}
+                </button>
+                <span className="text-sm font-medium text-gray-800 text-left whitespace-nowrap w-28 flex-shrink-0 truncate">{s.name}</span>
+                <span className="text-xs text-gray-500 font-mono text-left whitespace-nowrap w-20 flex-shrink-0">{s.employee_id}</span>
+                <span className="text-xs text-gray-500 text-left whitespace-nowrap w-24 flex-shrink-0">
+                  {t('since_label')} {s.created_at ? new Date(s.created_at).toLocaleDateString() : '—'}
+                </span>
+                <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium text-left whitespace-nowrap w-16 flex-shrink-0 text-center ${
+                  s.status === 'active' ? 'bg-green-100 text-green-700'
+                  : s.status === 'blocked' ? 'bg-red-100 text-red-700'
+                  : 'bg-yellow-100 text-yellow-700'
+                }`}>
+                  {s.status === 'active' ? t('seller_status_active') : s.status === 'blocked' ? t('seller_status_blocked') : t('seller_status_pending')}
+                </span>
+                <span className="text-xs text-yellow-700 whitespace-nowrap w-14 flex-shrink-0">{t('pros_count_label')} {prospectCount}</span>
+                <span className="text-xs text-blue-700 whitespace-nowrap w-12 flex-shrink-0">{t('plt_count_label')} {pilotCount}</span>
+                <span className="text-xs text-green-700 whitespace-nowrap w-14 flex-shrink-0">{t('cust_count_label')} {customerCount}</span>
+                <select
+                  value={s.active ? 'active' : 'inactive'}
+                  onChange={(e) => toggleSellerActive(s.id, e.target.value === 'active')}
+                  className={`text-xs px-1.5 py-1 rounded-full font-medium w-24 flex-shrink-0 border-0 ${s.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}
+                >
+                  <option value="active">{t('enabled')}</option>
+                  <option value="inactive">{t('disabled')}</option>
+                </select>
+                <button onClick={() => deleteSeller(s.id, s.name)}
+                  className="px-2 py-1 rounded text-xs bg-red-600 hover:bg-red-700 text-white whitespace-nowrap flex-shrink-0">
+                  {t('del_short')}
+                </button>
+              </div>
+              {expandedSellerContact[s.id] && (
+                <div className="border-t border-gray-200 p-3 bg-gray-50 space-y-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <input type="text" defaultValue={s.contact_name || s.name || ''} id={`seller-contact-name-${s.id}`}
+                      placeholder={t('contact_name_placeholder')} className="p-1.5 border border-gray-300 rounded text-sm" />
+                    <input type="email" defaultValue={s.contact_email || s.email || ''} id={`seller-contact-email-${s.id}`}
+                      placeholder={t('email')} className="p-1.5 border border-gray-300 rounded text-sm" />
+                    <input type="text" defaultValue={s.contact_phone || ''} id={`seller-contact-phone-${s.id}`}
+                      placeholder={t('phone')} className="p-1.5 border border-gray-300 rounded text-sm" />
+                    <input type="text" defaultValue={s.contact_location || ''} id={`seller-contact-location-${s.id}`}
+                      placeholder={t('city_country')} className="p-1.5 border border-gray-300 rounded text-sm" />
+                  </div>
+                  <textarea defaultValue={s.contact_notes || ''} id={`seller-contact-notes-${s.id}`}
+                    placeholder={t('comments_optional')} rows="2"
+                    className="w-full p-1.5 border border-gray-300 rounded text-sm" />
+                  <button
+                    onClick={async () => {
+                      const { error } = await supabase.from('employees').update({
+                        contact_name: document.getElementById(`seller-contact-name-${s.id}`).value.trim() || null,
+                        contact_email: document.getElementById(`seller-contact-email-${s.id}`).value.trim() || null,
+                        contact_phone: document.getElementById(`seller-contact-phone-${s.id}`).value.trim() || null,
+                        contact_location: document.getElementById(`seller-contact-location-${s.id}`).value.trim() || null,
+                        contact_notes: document.getElementById(`seller-contact-notes-${s.id}`).value.trim() || null
+                      }).eq('id', s.id);
+                      if (error) { alert(t('error_saving_contact_info') + ' ' + error.message); return; }
+                      await loadSellers();
+                      alert(t('contact_info_saved'));
+                    }}
+                    className="px-3 py-1 bg-indigo-600 text-white rounded text-xs hover:bg-indigo-700"
+                  >{t('save_contact_info')}</button>
+                </div>
+              )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  </div>
+)}
+
 
 {isAdmin && (showDefaultOnlyTools || (isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample')) && (
   <div className="mt-4 bg-indigo-50 border-2 border-indigo-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
@@ -7057,123 +7188,6 @@ autoComplete="off"
             )}
             </div>
           ))}
-        </div>
-      )}
-    </div>
-  </div>
-)}
-
-{isAdmin && showDefaultOnlyTools && !isSeller && (
-  <div className="mt-4 bg-teal-50 border-2 border-teal-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
-    <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
-      🧑‍💼 {t('manage_sellers')}
-    </h3>
-
-    {/* Add Seller */}
-    <div className="bg-white rounded p-4 mb-4">
-      <h4 className="font-medium text-gray-700 mb-3">{t('add_seller')}</h4>
-      <p className="text-xs text-gray-500 mb-3">{t('seller_id_hint_intro')} <strong>{t('suggested_id_format')}</strong> {t('seller_id_hint_example')} <span className="font-mono">RR072026</span> {t('seller_id_hint_registered')}</p>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
-        <input type="text" value={newSeller.name} onChange={(e) => setNewSeller({...newSeller, name: e.target.value})}
-          placeholder={t('name_star')} className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
-        <input type="text" value={newSeller.employee_id} onChange={(e) => setNewSeller({...newSeller, employee_id: e.target.value})}
-          placeholder={t('seller_id_star')} className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
-        <input type="email" value={newSeller.email} onChange={(e) => setNewSeller({...newSeller, email: e.target.value})}
-          placeholder={t('email_star')} className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
-      </div>
-      <button onClick={createSeller} disabled={creatingSeller}
-        className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm hover:bg-teal-700 disabled:opacity-50">
-        {creatingSeller ? t('creating_ellipsis') : t('add_seller_btn')}
-      </button>
-    </div>
-
-    {/* Seller List */}
-    <div className="bg-white rounded p-4">
-      <h4 className="font-medium text-gray-700 mb-3">{t('registered_sellers_title')} ({sellers.length})</h4>
-      {!sellersLoaded ? (
-        <p className="text-sm text-gray-400">{t('loading_ellipsis')}</p>
-      ) : sellers.length === 0 ? (
-        <p className="text-sm text-gray-400">{t('no_sellers_yet')}</p>
-      ) : (
-        <div className="space-y-2">
-          {sellers.map(s => {
-            const sellerCompanies = companies.filter(c => c.created_by_seller_id === s.id);
-            const prospectCount = sellerCompanies.filter(c => (c.status || 'prospect') === 'prospect').length;
-            const pilotCount = sellerCompanies.filter(c => c.status === 'pilot').length;
-            const customerCount = sellerCompanies.filter(c => c.status === 'customer').length;
-            return (
-              <div key={s.id} className="border border-gray-200 rounded-lg">
-              <div className="flex items-center gap-2 p-2 flex-wrap">
-                <button
-                  onClick={() => setExpandedSellerContact(prev => ({ ...prev, [s.id]: !prev[s.id] }))}
-                  className="text-gray-500 hover:text-gray-800 font-bold text-sm w-5 h-5 flex-shrink-0 flex items-center justify-center border border-gray-300 rounded"
-                  title={t('contact_info_tooltip')}
-                >
-                  {expandedSellerContact[s.id] ? '−' : '+'}
-                </button>
-                <span className="text-sm font-medium text-gray-800 text-left whitespace-nowrap w-28 flex-shrink-0 truncate">{s.name}</span>
-                <span className="text-xs text-gray-500 font-mono text-left whitespace-nowrap w-20 flex-shrink-0">{s.employee_id}</span>
-                <span className="text-xs text-gray-500 text-left whitespace-nowrap w-24 flex-shrink-0">
-                  {t('since_label')} {s.created_at ? new Date(s.created_at).toLocaleDateString() : '—'}
-                </span>
-                <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium text-left whitespace-nowrap w-16 flex-shrink-0 text-center ${
-                  s.status === 'active' ? 'bg-green-100 text-green-700'
-                  : s.status === 'blocked' ? 'bg-red-100 text-red-700'
-                  : 'bg-yellow-100 text-yellow-700'
-                }`}>
-                  {s.status === 'active' ? t('seller_status_active') : s.status === 'blocked' ? t('seller_status_blocked') : t('seller_status_pending')}
-                </span>
-                <span className="text-xs text-yellow-700 whitespace-nowrap w-14 flex-shrink-0">{t('pros_count_label')} {prospectCount}</span>
-                <span className="text-xs text-blue-700 whitespace-nowrap w-12 flex-shrink-0">{t('plt_count_label')} {pilotCount}</span>
-                <span className="text-xs text-green-700 whitespace-nowrap w-14 flex-shrink-0">{t('cust_count_label')} {customerCount}</span>
-                <select
-                  value={s.active ? 'active' : 'inactive'}
-                  onChange={(e) => toggleSellerActive(s.id, e.target.value === 'active')}
-                  className={`text-xs px-1.5 py-1 rounded-full font-medium w-24 flex-shrink-0 border-0 ${s.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}
-                >
-                  <option value="active">{t('enabled')}</option>
-                  <option value="inactive">{t('disabled')}</option>
-                </select>
-                <button onClick={() => deleteSeller(s.id, s.name)}
-                  className="px-2 py-1 rounded text-xs bg-red-600 hover:bg-red-700 text-white whitespace-nowrap flex-shrink-0">
-                  🗑️ Del
-                </button>
-              </div>
-              {expandedSellerContact[s.id] && (
-                <div className="border-t border-gray-200 p-3 bg-gray-50 space-y-2">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <input type="text" defaultValue={s.contact_name || s.name || ''} id={`seller-contact-name-${s.id}`}
-                      placeholder={t('contact_name_placeholder')} className="p-1.5 border border-gray-300 rounded text-sm" />
-                    <input type="email" defaultValue={s.contact_email || s.email || ''} id={`seller-contact-email-${s.id}`}
-                      placeholder={t('email')} className="p-1.5 border border-gray-300 rounded text-sm" />
-                    <input type="text" defaultValue={s.contact_phone || ''} id={`seller-contact-phone-${s.id}`}
-                      placeholder={t('phone')} className="p-1.5 border border-gray-300 rounded text-sm" />
-                    <input type="text" defaultValue={s.contact_location || ''} id={`seller-contact-location-${s.id}`}
-                      placeholder={t('city_country')} className="p-1.5 border border-gray-300 rounded text-sm" />
-                  </div>
-                  <textarea defaultValue={s.contact_notes || ''} id={`seller-contact-notes-${s.id}`}
-                    placeholder={t('comments_optional')} rows="2"
-                    className="w-full p-1.5 border border-gray-300 rounded text-sm" />
-                  <button
-                    onClick={async () => {
-                      const { error } = await supabase.from('employees').update({
-                        contact_name: document.getElementById(`seller-contact-name-${s.id}`).value.trim() || null,
-                        contact_email: document.getElementById(`seller-contact-email-${s.id}`).value.trim() || null,
-                        contact_phone: document.getElementById(`seller-contact-phone-${s.id}`).value.trim() || null,
-                        contact_location: document.getElementById(`seller-contact-location-${s.id}`).value.trim() || null,
-                        contact_notes: document.getElementById(`seller-contact-notes-${s.id}`).value.trim() || null
-                      }).eq('id', s.id);
-                      if (error) { alert(t('error_saving_contact_info') + ' ' + error.message); return; }
-                      await loadSellers();
-                      alert(t('contact_info_saved'));
-                    }}
-                    className="px-3 py-1 bg-indigo-600 text-white rounded text-xs hover:bg-indigo-700"
-                  >{t('save_contact_info')}</button>
-                </div>
-              )}
-              </div>
-            );
-          })}
         </div>
       )}
     </div>
@@ -7307,7 +7321,7 @@ autoComplete="off"
                       await loadExperiences(true);
                       alert(tAlert('group_deleted_named', { name: group.name }));
                     } catch (error) {
-                      alert('Error deleting group: ' + error.message);
+                      alert(t('error_deleting_group') + ' ' + error.message);
                     }
                   }}
                   className="px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700"
@@ -7316,7 +7330,7 @@ autoComplete="off"
 
               {/* Members */}
               <div className="mb-3">
-                <p className="text-xs font-medium text-gray-600 mb-2">Members ({memberCount}/2):</p>
+                <p className="text-xs font-medium text-gray-600 mb-2">{t('members_count_label')} ({memberCount}/2):</p>
                 <div className="flex flex-col gap-2">
                   {(group.employees || []).map(emp => {
                     const isExpired = emp.demo_expires_at && new Date(emp.demo_expires_at) < new Date();
@@ -7332,16 +7346,16 @@ autoComplete="off"
                       <span className="text-xs font-medium text-pink-800 text-left whitespace-nowrap w-20 flex-shrink-0">ID: {emp.employee_id}</span>
                       <span className="text-xs font-medium text-pink-800 text-left whitespace-nowrap w-24 flex-shrink-0">PW: {emp.password}</span>
                       <span className="text-xs text-pink-500 uppercase text-left w-10 flex-shrink-0">[{emp.language || 'en'}]</span>
-                      <span className={`text-xs px-1 py-0.5 rounded-full font-semibold text-left whitespace-nowrap w-14 flex-shrink-0 text-center ${isExpired ? 'bg-red-200 text-red-800' : 'bg-green-200 text-green-800'}`}>{isExpired ? 'Expired' : 'Active'}</span>
+                      <span className={`text-xs px-1 py-0.5 rounded-full font-semibold text-left whitespace-nowrap w-14 flex-shrink-0 text-center ${isExpired ? 'bg-red-200 text-red-800' : 'bg-green-200 text-green-800'}`}>{isExpired ? t('expired_word') : t('active_word')}</span>
                       <span className={`text-xs px-1 py-0.5 rounded-full font-semibold text-left whitespace-nowrap w-16 flex-shrink-0 text-center ${isUsed ? 'bg-amber-200 text-amber-800' : 'bg-gray-200 text-gray-600'}`}>{isUsed ? t('used_word') : t('not_used')}</span>
                       <span className="text-xs text-pink-500 text-left whitespace-nowrap w-28 flex-shrink-0">
                         {emp.created_at ? `${t('since_label')} ${new Date(emp.created_at).toLocaleDateString()}` : ''}
                       </span>
                       <span className="text-xs text-pink-500 text-left whitespace-nowrap w-28 flex-shrink-0">
-                        {emp.demo_expires_at ? `Exp: ${new Date(emp.demo_expires_at).toLocaleDateString()}` : ''}
+                        {emp.demo_expires_at ? `${t('exp_label')} ${new Date(emp.demo_expires_at).toLocaleDateString()}` : ''}
                       </span>
                       <span className="text-xs text-pink-500 text-left whitespace-nowrap w-16 flex-shrink-0">
-                        {daysLeft !== null ? `${isExpired ? '0' : daysLeft}/${totalDays}d left` : ''}
+                        {daysLeft !== null ? `${isExpired ? '0' : daysLeft}/${totalDays}${t('d_left_suffix')}` : ''}
                       </span>
                       <button
                         onClick={async () => {
