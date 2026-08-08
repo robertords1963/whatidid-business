@@ -575,6 +575,7 @@ const UI_STRINGS = {
   used_word: { en: 'Used', es: 'Usado', pt: 'Usado', zh: '已使用' },
   add_btn_generic: { en: 'Add', es: 'Agregar', pt: 'Adicionar', zh: '添加' },
   admin_badge: { en: '🛡️ Admin', es: '🛡️ Admin', pt: '🛡️ Admin', zh: '🛡️ 管理员' },
+  seller_badge: { en: '🧑‍💼 Seller', es: '🧑‍💼 Vendedor', pt: '🧑‍💼 Vendedor', zh: '🧑‍💼 销售代表' },
   status_active_badge: { en: '✓ Active', es: '✓ Activo', pt: '✓ Ativo', zh: '✓ 已激活' },
   status_blocked_badge: { en: '🚫 Blocked', es: '🚫 Bloqueado', pt: '🚫 Bloqueado', zh: '🚫 已封禁' },
   status_pending_badge: { en: '⏳ Pending', es: '⏳ Pendiente', pt: '⏳ Pendente', zh: '⏳ 待处理' },
@@ -8494,6 +8495,11 @@ autoComplete="off"
                 {emp.is_admin && (
                   <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-purple-100 text-purple-700">
                     {t('admin_badge')}
+                  </span>
+                )}
+                {emp.is_seller && (
+                  <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-teal-100 text-teal-700">
+                    {t('seller_badge')}
                   </span>
                 )}
                 <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${emp.status === 'active' ? 'bg-green-100 text-green-700' : emp.status === 'blocked' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>
