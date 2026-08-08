@@ -817,6 +817,7 @@ const [expandedFollowOns, setExpandedFollowOns] = useState({});
 const [expandedGaps, setExpandedGaps] = useState({}); // { [gapKey]: true }
 const [top3VisibleInSession, setTop3VisibleInSession] = useState(true);
 const [activeMainTab, setActiveMainTab] = useState('see'); // 'see' | 'share'
+const [activeAdminNavTab, setActiveAdminNavTab] = useState('settings'); // 'settings' | 'preview' — só estilo/scroll, nenhuma seção fica escondida
 // ⭐ Snapshot para o botão Back contextual — guarda de onde o usuário veio ao clicar
 // em Browse / Top3 / Share no rodapé de um card, e para onde deve voltar
 const [navSnapshot, setNavSnapshot] = useState(null); // { destination: 'browse'|'top3'|'share', state: {...}, scrollY: number }
@@ -6694,8 +6695,46 @@ autoComplete="off"
 
 
 {isAdmin && (
-  <h2 className="text-lg font-bold text-gray-700 mt-6 mb-1 max-w-4xl mx-auto px-1">{t('admin_settings_title')}</h2>
+  <div className="max-w-4xl mx-auto mt-6 mb-1 px-1">
+    <div id="admin-nav-tabs-anchor" className="flex relative">
+      <button
+        onClick={() => {
+          setActiveAdminNavTab('settings');
+          const el = document.getElementById('admin-settings-anchor');
+          if (el) { const y = el.getBoundingClientRect().top + window.pageYOffset - 12; window.scrollTo({ top: y, behavior: 'smooth' }); }
+        }}
+        className={`flex-1 px-4 py-2 font-bold text-sm md:text-base transition-all rounded-t-2xl border-2 border-b-0 relative ${
+          activeAdminNavTab === 'settings'
+            ? 'bg-white text-gray-700 border-gray-300 relative z-10'
+            : 'bg-gray-100 text-gray-400 border-gray-200 hover:bg-gray-200'
+        }`}
+      >
+        {t('admin_settings_title')}
+      </button>
+      <button
+        onClick={() => {
+          setActiveAdminNavTab('preview');
+          const el = document.getElementById('live-preview-anchor');
+          if (el) { const y = el.getBoundingClientRect().top + window.pageYOffset - 12; window.scrollTo({ top: y, behavior: 'smooth' }); }
+        }}
+        className={`flex-1 px-4 py-2 font-bold text-sm md:text-base transition-all rounded-t-2xl border-2 border-b-0 -ml-px relative ${
+          activeAdminNavTab === 'preview'
+            ? 'bg-white text-indigo-700 border-indigo-300 relative z-10'
+            : 'bg-gray-100 text-gray-400 border-gray-200 hover:bg-gray-200'
+        }`}
+      >
+        {t('live_preview_title')}
+      </button>
+      <div
+        className={`absolute bottom-0 h-0.5 ${activeAdminNavTab === 'settings' ? 'bg-gray-300 right-0 left-1/2' : 'bg-indigo-300 left-0 right-1/2'}`}
+      ></div>
+    </div>
+  </div>
 )}
+{isAdmin && (
+  <div id="admin-settings-anchor"></div>
+)}
+<div className={activeAdminNavTab !== 'settings' && isAdmin ? 'hidden' : ''}>
 {isAdmin && isDefaultAdmin && (
   <div className={`mt-4 rounded-lg shadow-md p-4 max-w-4xl mx-auto border-2 ${adminCompanyContext ? 'bg-amber-50 border-amber-400' : 'bg-gray-50 border-gray-300'}`}>
     <div className="flex items-center gap-3 flex-wrap">
@@ -9544,8 +9583,10 @@ for (const row of rows) {
               </div>
             </div>
           )}
+</div>
+<div className={activeAdminNavTab !== 'preview' && isAdmin ? 'hidden' : ''}>
         {isAdmin && (
-          <h2 className="text-lg font-bold text-gray-700 mt-6 mb-1 max-w-4xl mx-auto px-1">{t('live_preview_title')}</h2>
+          <h2 id="live-preview-anchor" className="text-lg font-bold text-gray-700 mt-6 mb-1 max-w-4xl mx-auto px-1">{t('live_preview_title')}</h2>
         )}
         {/* Inspirational Quotes Marquee - Top */}
         {appSettings.showMarquee && !isSellerBaseView && (() => {
@@ -12511,6 +12552,7 @@ onClick={() => {
             </div>
           </div>
         </footer>
+</div>
       </div>
     </div>
 
