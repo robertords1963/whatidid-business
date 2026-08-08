@@ -8462,6 +8462,10 @@ autoComplete="off"
         {employees.filter(emp => {
           const q = employeeSearch.toLowerCase();
           return !q || emp.employee_id?.toLowerCase().includes(q) || emp.name?.toLowerCase().includes(q) || emp.email?.toLowerCase().includes(q);
+        }).sort((a, b) => {
+          // Admin (de verdade, não Seller) -> Seller -> Outros
+          const rank = (e) => (e.is_admin && !e.is_seller) ? 0 : e.is_seller ? 1 : 2;
+          return rank(a) - rank(b);
         }).map(emp => (
           <div key={emp.employee_id} className="flex items-center gap-2 p-2 border border-gray-200 rounded-lg flex-wrap">
             {editingEmployee === emp.employee_id ? (
@@ -8492,7 +8496,7 @@ autoComplete="off"
                 <span className="text-sm text-gray-700 flex-1 min-w-24">{emp.name}</span>
                 <span className="text-xs text-gray-500 min-w-16">{emp.country}</span>
                 <span className="text-xs text-gray-500 flex-1 min-w-32 truncate">{emp.email}</span>
-                {emp.is_admin && (
+                {emp.is_admin && !emp.is_seller && (
                   <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-purple-100 text-purple-700">
                     {t('admin_badge')}
                   </span>
