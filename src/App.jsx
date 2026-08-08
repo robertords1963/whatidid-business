@@ -385,6 +385,7 @@ const UI_STRINGS = {
   // Lote 13 — labels "Viewing/Language/Default/Company" (Default Admin e Seller)
   viewing: { en: 'Viewing:', es: 'Viendo:', pt: 'Visualizando:', zh: '正在查看：' },
   language: { en: 'Language:', es: 'Idioma:', pt: 'Idioma:', zh: '语言：' },
+  labels_language: { en: 'Labels Language:', es: 'Idioma de Etiquetas:', pt: 'Idioma dos Rótulos:', zh: '界面标签语言：' },
   default_word: { en: 'Default', es: 'Predeterminado', pt: 'Padrão', zh: '默认' },
   company_word: { en: 'Company', es: 'Empresa', pt: 'Empresa', zh: '公司' },
   // Lote 14 — Follow-On, navegação inferior, upload
@@ -6660,7 +6661,7 @@ autoComplete="off"
         localStorage.setItem('loggedInEmployeeLanguage', e.target.value);
       }}
       className="p-1.5 border-2 border-purple-300 rounded-lg text-xs font-medium bg-white flex-shrink-0"
-      title={t('language')}
+      title={t('labels_language')}
     >
       <option value="en">English</option>
       <option value="es">Español</option>
@@ -6733,8 +6734,7 @@ autoComplete="off"
 {isAdmin && (
   <div id="admin-settings-anchor"></div>
 )}
-<div className={activeAdminNavTab !== 'settings' && isAdmin ? 'hidden' : ''}>
-{isAdmin && isDefaultAdmin && (
+{isAdmin && isDefaultAdmin && activeAdminNavTab === 'settings' && (
   <div className={`mt-4 rounded-lg shadow-md p-4 max-w-4xl mx-auto border-2 ${adminCompanyContext ? 'bg-amber-50 border-amber-400' : 'bg-gray-50 border-gray-300'}`}>
     <div className="flex items-center gap-3 flex-wrap">
       {!adminCompanyContext && (
@@ -6784,7 +6784,7 @@ autoComplete="off"
   </div>
 )}
 
-{isAdmin && isSeller && (
+{isAdmin && isSeller && activeAdminNavTab === 'settings' && (
   <div className={`mt-4 rounded-lg shadow-md p-4 max-w-4xl mx-auto border-2 ${isSellerManagingOwnCompany ? 'bg-amber-50 border-amber-400' : companyViewMode === 'sample' ? 'bg-blue-50 border-blue-400' : 'bg-gray-50 border-gray-300'}`}>
     <div className="flex items-center gap-3 flex-wrap">
       <label className="text-sm font-medium text-gray-700">{t('language')}</label>
@@ -6840,10 +6840,10 @@ autoComplete="off"
   </div>
 )}
 
-{isAdmin && !isDefaultAdmin && !isSeller && (
+{isAdmin && !isDefaultAdmin && !isSeller && activeAdminNavTab === 'settings' && (
   <div className={`mt-4 rounded-lg shadow-md p-4 max-w-4xl mx-auto border-2 ${companyViewMode === 'sample' ? 'bg-blue-50 border-blue-400' : 'bg-gray-50 border-gray-300'}`}>
     <div className="flex items-center gap-3 flex-wrap">
-      <label className="text-sm font-medium text-gray-700">{t('language')}</label>
+      <label className="text-sm font-medium text-gray-700">{t("labels_language")}</label>
       <select
         value={viewingLanguage}
         onChange={(e) => setViewingLanguage(e.target.value)}
@@ -6878,7 +6878,7 @@ autoComplete="off"
   </div>
 )}
 
-{isAdmin && !isDefaultAdmin && !isSeller && companyViewMode === 'own' && (
+{isAdmin && !isDefaultAdmin && !isSeller && companyViewMode === 'own' && activeAdminNavTab === 'settings' && (
   <div className="mt-4 bg-white border-2 border-gray-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-1">{t('section_settings')}</h3>
     <p className="text-xs text-gray-500 mb-3">"View & Edit access for ADM Master" lets the Master see/edit that section for support. Check a row and click "Import/Update" to bring starter content from Default (synthetic examples, not real people) — running it again only brings new items, it never duplicates or overwrites what you already have. To remove something, delete it directly in its own section (Manage Employees, Manage Categories, etc.) — deleting a Category also removes its linked Experiences, Key Insights and comments.</p>
@@ -7029,7 +7029,7 @@ autoComplete="off"
     </table>
   </div>
 )}
-{isAdmin && showDefaultOnlyTools && !isSeller && (
+{isAdmin && showDefaultOnlyTools && !isSeller && activeAdminNavTab === 'settings' && (
   <div className="mt-4 bg-teal-50 border-2 border-teal-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
       🧑‍💼 {t('manage_sellers')}
@@ -7147,7 +7147,7 @@ autoComplete="off"
 )}
 
 
-{isAdmin && (showDefaultOnlyTools || (isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample')) && (
+{isAdmin && (showDefaultOnlyTools || (isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample')) && activeAdminNavTab === 'settings' && (
   <div className="mt-4 bg-indigo-50 border-2 border-indigo-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
       🏢 {t('manage_companies')}
@@ -7272,7 +7272,7 @@ autoComplete="off"
   </div>
 )}
 
-{isAdmin && (showDefaultOnlyTools || (isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample')) && (
+{isAdmin && (showDefaultOnlyTools || (isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample')) && activeAdminNavTab === 'settings' && (
   <div className="mt-4 bg-pink-50 border-2 border-pink-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
       🎯 {t('manage_demo_groups')}
@@ -7560,7 +7560,7 @@ autoComplete="off"
   </div>
 )}
 
-{isAdmin && showDefaultOnlyTools && !isSeller && (
+{isAdmin && showDefaultOnlyTools && !isSeller && activeAdminNavTab === 'settings' && (
   <div className="mt-4 bg-cyan-50 border-2 border-cyan-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
       📊 {t('sellers_demo_activity_overview')}
@@ -7641,7 +7641,7 @@ autoComplete="off"
 )}
 
 
-{isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('app_config')) && (
+{isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('app_config')) && activeAdminNavTab === 'settings' && (
   <div className="mt-4 bg-indigo-50 border-2 border-indigo-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
       {t('app_configuration_title')}
@@ -7925,7 +7925,7 @@ autoComplete="off"
           
 
 
-          {isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('quotes')) && (
+          {isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('quotes')) && activeAdminNavTab === 'settings' && (
             <div className="mt-4 bg-green-50 border-2 border-green-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 <MessageCircle size={20} />
@@ -8078,7 +8078,7 @@ autoComplete="off"
             </div>
           )}
 
-          {isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('promotional_videos')) && (
+          {isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('promotional_videos')) && activeAdminNavTab === 'settings' && (
             <div className="mt-4 bg-purple-50 border-2 border-purple-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 🎬 {t('manage_promotional_videos')}
@@ -8399,7 +8399,7 @@ autoComplete="off"
             </div>
           )}
 
-          {isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('content_pages')) && (
+          {isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('content_pages')) && activeAdminNavTab === 'settings' && (
             <div className="mt-4 bg-blue-50 border-2 border-blue-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 <MessageCircle size={20} />
@@ -8472,7 +8472,7 @@ autoComplete="off"
 
        
 
-{isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('synthetic') || canBootstrapFirstAdmin) && (
+{isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('synthetic') || canBootstrapFirstAdmin) && activeAdminNavTab === 'settings' && (
   <div className="mt-4 bg-slate-50 border-2 border-slate-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
       👥 {t('manage_employees')}
@@ -8644,7 +8644,7 @@ autoComplete="off"
   </div>
 )}
 
-{isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('metadata')) && (
+{isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('metadata')) && activeAdminNavTab === 'settings' && (
   <div className="mt-4 bg-teal-50 border-2 border-teal-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
       {t('manage_problem_categories')}
@@ -8958,7 +8958,7 @@ for (const row of rows) {
   </div>
 )}
 
-{isAdmin && showDefaultOnlyTools && !isSeller && (
+{isAdmin && showDefaultOnlyTools && !isSeller && activeAdminNavTab === 'settings' && (
   <div className="mt-4 bg-orange-50 border-2 border-orange-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
       {t('assign_ratings_title')}
@@ -9264,7 +9264,7 @@ for (const row of rows) {
     </div>
   </div>
 )}
-          {isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('keyword_filter')) && (
+          {isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('keyword_filter')) && activeAdminNavTab === 'settings' && (
             <div className="mt-4 bg-yellow-50 border-2 border-yellow-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 <Search size={20} />
@@ -9582,13 +9582,11 @@ for (const row of rows) {
               </div>
             </div>
           )}
-</div>
-<div className={activeAdminNavTab !== 'preview' && isAdmin ? 'hidden' : ''}>
         {isAdmin && (
           <h2 id="live-preview-anchor" className="text-lg font-bold text-gray-700 mt-6 mb-1 max-w-4xl mx-auto px-1">{t('live_preview_title')}</h2>
         )}
         {/* Inspirational Quotes Marquee - Top */}
-        {appSettings.showMarquee && !isSellerBaseView && (() => {
+        {(!isAdmin || activeAdminNavTab === 'preview') && appSettings.showMarquee && !isSellerBaseView && (() => {
           const topQuotes = quotes.filter(q => q.position === 'top');
           if (topQuotes.length === 0) return null;
           return (
@@ -9606,7 +9604,7 @@ for (const row of rows) {
         })()}
 
         {/* Top 3 Experiences This Week - MOVED TO TOP */}
-        {appSettings.showTop3 && top3VisibleInSession && !isSellerBaseView && (() => {
+        {(!isAdmin || activeAdminNavTab === 'preview') && appSettings.showTop3 && top3VisibleInSession && !isSellerBaseView && (() => {
           const top3Data = [1, 2, 3]
             .map(pos => experiences.find(exp => exp.id === topExperiences[pos]))
             .filter(Boolean);
@@ -9764,7 +9762,7 @@ onClick={() => {
         })()}
 
         {/* Inspirational Quotes Marquee - Bottom */}
-        {appSettings.showMarquee && !isSellerBaseView && (() => {
+        {(!isAdmin || activeAdminNavTab === 'preview') && appSettings.showMarquee && !isSellerBaseView && (() => {
           const bottomQuotes = quotes.filter(q => q.position === 'bottom');
           if (bottomQuotes.length === 0) return null;
           return (
@@ -9783,14 +9781,14 @@ onClick={() => {
 
 {/* Tabs estilo fichário — substitui os botões de navegação */}
           
-{masterBlockedFromPublicTabs && !isSellerBaseView && !isSellerManagingOwnCompany && !(isDefaultAdmin && !!adminCompanyContext) && (
+{(!isAdmin || activeAdminNavTab === 'preview') && masterBlockedFromPublicTabs && !isSellerBaseView && !isSellerManagingOwnCompany && !(isDefaultAdmin && !!adminCompanyContext) && (
   <div className="mt-5 mb-8 max-w-2xl mx-auto bg-amber-50 border-2 border-amber-300 rounded-2xl p-6 text-center">
     <p className="text-amber-800 font-medium">🔒 {effectiveCompanyName} hasn't authorized ADM Master to view "Synthetic/Curated Content" yet.</p>
     <p className="text-amber-700 text-sm mt-1">Ask the company to check that box in their own "Section Settings" if you need to preview this.</p>
   </div>
 )}
 
-<div className={`mt-5 mb-8 ${masterBlockedFromPublicTabs ? 'hidden' : ''}`}>
+<div className={`mt-5 mb-8 ${masterBlockedFromPublicTabs || (isAdmin && activeAdminNavTab !== 'preview') ? 'hidden' : ''}`}>
 <div id="main-tabs-anchor" className="flex justify-center mb-0 relative">
   <div className="flex w-full">
     <button
@@ -9862,7 +9860,7 @@ onClick={() => {
   />
 </div>
 
-<div id="share-section" className={`bg-white p-8 rounded-b-2xl border-2 border-t-0 border-blue-300 ${activeMainTab !== 'share' ? 'hidden' : ''} ${isReadOnlyOrMasterManaging ? 'pointer-events-none opacity-60' : ''}`}>
+<div id="share-section" className={`bg-white p-8 rounded-b-2xl border-2 border-t-0 border-blue-300 ${activeMainTab !== 'share' || (isAdmin && activeAdminNavTab !== 'preview') ? 'hidden' : ''} ${isReadOnlyOrMasterManaging ? 'pointer-events-none opacity-60' : ''}`}>
 
   {/* Clear All — limpa só o que o usuário digitou */}
   <div className="flex justify-end mb-3">
@@ -10252,7 +10250,7 @@ onClick={() => {
 )}
         </div>
         
-<div className={`space-y-6 ${activeMainTab !== 'see' ? 'hidden' : ''} p-4 rounded-b-2xl border-2 border-t-0 border-purple-300`} id="experiences-section">
+<div className={`space-y-6 ${activeMainTab !== 'see' || (isAdmin && activeAdminNavTab !== 'preview') ? 'hidden' : ''} p-4 rounded-b-2xl border-2 border-t-0 border-purple-300`} id="experiences-section">
           
           
           
@@ -12494,6 +12492,7 @@ onClick={() => {
         )}
 
         {/* Footer */}
+{(!isAdmin || activeAdminNavTab === 'preview') && (
 <footer className="mt-12 pt-8 border-t-2 border-gray-200">
   <div className="flex flex-col items-center gap-4">
     <div className="flex gap-3 text-sm flex-wrap justify-center">
@@ -12551,7 +12550,7 @@ onClick={() => {
             </div>
           </div>
         </footer>
-</div>
+)}
       </div>
     </div>
 
@@ -13093,7 +13092,7 @@ if (selected.length === 0) {
 ) : (
   <button
     onClick={() => {
-      setShowIosInstallModal(false); 
+      setShowIosInstallModal(false);
       if (isEmployeeLoggedIn) {
         handleEmployeeLogout();
         setInstallLogoutMessage(true);
