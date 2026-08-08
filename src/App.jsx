@@ -9582,9 +9582,6 @@ for (const row of rows) {
               </div>
             </div>
           )}
-        {isAdmin && (
-          <h2 id="live-preview-anchor" className="text-lg font-bold text-gray-700 mt-6 mb-1 max-w-4xl mx-auto px-1">{t('live_preview_title')}</h2>
-        )}
         {/* Inspirational Quotes Marquee - Top */}
         {(!isAdmin || activeAdminNavTab === 'preview') && appSettings.showMarquee && !isSellerBaseView && (() => {
           const topQuotes = quotes.filter(q => q.position === 'top');
