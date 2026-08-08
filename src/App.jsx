@@ -6700,7 +6700,7 @@ autoComplete="off"
       <button
         onClick={() => {
           setActiveAdminNavTab('settings');
-          const el = document.getElementById('admin-settings-anchor');
+          const el = document.getElementById('admin-nav-tabs-anchor');
           if (el) { const y = el.getBoundingClientRect().top + window.pageYOffset - 12; window.scrollTo({ top: y, behavior: 'smooth' }); }
         }}
         className={`flex-1 px-4 py-2 font-bold text-sm md:text-base transition-all rounded-t-2xl border-2 border-b-0 relative ${
@@ -6714,8 +6714,7 @@ autoComplete="off"
       <button
         onClick={() => {
           setActiveAdminNavTab('preview');
-          const el = document.getElementById('live-preview-anchor');
-          if (el) { const y = el.getBoundingClientRect().top + window.pageYOffset - 12; window.scrollTo({ top: y, behavior: 'smooth' }); }
+          window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
         className={`flex-1 px-4 py-2 font-bold text-sm md:text-base transition-all rounded-t-2xl border-2 border-b-0 -ml-px relative ${
           activeAdminNavTab === 'preview'
@@ -11529,7 +11528,7 @@ onClick={() => {
 
 
                   
-                  {isAdmin && !isReadOnlyOrMasterManaging && (() => {
+                  {isAdmin && activeAdminNavTab !== 'preview' && !isReadOnlyOrMasterManaging && (() => {
                     const confirmKey = `exp-${exp.id}`;
                     const isConfirming = confirmDelete === confirmKey;
                     return (
@@ -11759,7 +11758,7 @@ onClick={() => {
         )}
         
         {/* Botão delete admin */}
-        {isAdmin && !isReadOnlyOrMasterManaging && (() => {
+        {isAdmin && activeAdminNavTab !== 'preview' && !isReadOnlyOrMasterManaging && (() => {
           const confirmKey = `comment-${exp.id}-${comment.id}`;
           const isConfirming = confirmDelete === confirmKey;
           return (
@@ -11919,7 +11918,7 @@ onClick={() => {
           )}
           
           {/* Botão delete admin */}
-          {isAdmin && !isReadOnlyOrMasterManaging && (() => {
+          {isAdmin && activeAdminNavTab !== 'preview' && !isReadOnlyOrMasterManaging && (() => {
             const confirmKey = `comment-${exp.id}-${lastComment.id}`;
             const isConfirming = confirmDelete === confirmKey;
             return (
@@ -12140,7 +12139,7 @@ onClick={() => {
                     </div>
                   </div>
 
-              {isAdmin && editingExperience === -1 && (
+              {isAdmin && activeAdminNavTab !== 'preview' && editingExperience === -1 && (
                   <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-4 mt-4">
                     <h4 className="font-semibold text-gray-800 mb-3">Edit Experience #{exp.id}</h4>
                     
@@ -12823,7 +12822,7 @@ if (selected.length === 0) {
       </div>
     )}
 
-  {isAdmin && editingExperience && (() => {
+  {isAdmin && activeAdminNavTab !== 'preview' && editingExperience && (() => {
   const exp = experiences.find(e => e.id === editingExperience);
   if (!exp) return null;
   return (
