@@ -576,6 +576,10 @@ const UI_STRINGS = {
   add_btn_generic: { en: 'Add', es: 'Agregar', pt: 'Adicionar', zh: '添加' },
   admin_badge: { en: '🛡️ Admin', es: '🛡️ Admin', pt: '🛡️ Admin', zh: '🛡️ 管理员' },
   seller_badge: { en: '🧑‍💼 Seller', es: '🧑‍💼 Vendedor', pt: '🧑‍💼 Vendedor', zh: '🧑‍💼 销售代表' },
+  editing_in_language: { en: 'Editing in:', es: 'Editando en:', pt: 'Editando em:', zh: '正在编辑语言：' },
+  excel_columns_employee_full: { en: 'Excel columns: Employee ID, Name, Country, Email', es: 'Columnas de Excel: ID de Empleado, Nombre, País, Correo', pt: 'Colunas do Excel: ID do Funcionário, Nome, País, E-mail', zh: 'Excel 列：员工 ID、姓名、国家、邮箱' },
+  excel_columns_practice_full: { en: 'Excel columns: Practice, Category, Description, Tags', es: 'Columnas de Excel: Práctica, Categoría, Descripción, Etiquetas', pt: 'Colunas do Excel: Prática, Categoria, Descrição, Tags', zh: 'Excel 列：职能/领域、分类、描述、标签' },
+  max_2_ids_per_group: { en: 'Maximum of 2 IDs per group reached.', es: 'Se alcanzó el máximo de 2 IDs por grupo.', pt: 'Máximo de 2 IDs por grupo atingido.', zh: '每个分组最多 2 个 ID，已达上限。' },
   status_active_badge: { en: '✓ Active', es: '✓ Activo', pt: '✓ Ativo', zh: '✓ 已激活' },
   status_blocked_badge: { en: '🚫 Blocked', es: '🚫 Bloqueado', pt: '🚫 Bloqueado', zh: '🚫 已封禁' },
   status_pending_badge: { en: '⏳ Pending', es: '⏳ Pendiente', pt: '⏳ Pendente', zh: '⏳ 待处理' },
@@ -612,6 +616,10 @@ const UI_STRINGS = {
   hide_from_carousel: { en: '🙈 Hide from carousel', es: '🙈 Ocultar del carrusel', pt: '🙈 Ocultar do carrossel', zh: '🙈 从轮播中隐藏' },
   which_language_item_appears: { en: 'Which language this item should appear in — blank shows in every language', es: 'En qué idioma debe aparecer este elemento — en blanco se muestra en todos los idiomas', pt: 'Em qual idioma este item deve aparecer — em branco aparece em todos os idiomas', zh: '此项目应显示在哪种语言下——留空则在所有语言中显示' },
   error_exporting: { en: 'Error exporting:', es: 'Error al exportar:', pt: 'Erro ao exportar:', zh: '导出时出错：' },
+  error_adding_category: { en: 'Error adding category', es: 'Error al agregar la categoría', pt: 'Erro ao adicionar a categoria', zh: '添加分类时出错' },
+  new_practice_name_prompt: { en: 'New Practice name:', es: 'Nombre de la nueva Práctica:', pt: 'Nome da nova Prática:', zh: '新领域名称：' },
+  error_updating_practice: { en: 'Error updating practice:', es: 'Error al actualizar la práctica:', pt: 'Erro ao atualizar a prática:', zh: '更新领域时出错：' },
+  error_creating_practice: { en: 'Error creating practice:', es: 'Error al crear la práctica:', pt: 'Erro ao criar a prática:', zh: '创建领域时出错：' },
   name_placeholder: { en: 'Name', es: 'Nombre', pt: 'Nome', zh: '姓名' },
   admin_label_short: { en: 'Admin', es: 'Admin', pt: 'Admin', zh: '管理员' },
   employee_id_star: { en: 'Employee ID *', es: 'ID de Empleado *', pt: 'ID do Funcionário *', zh: '员工 ID *' },
@@ -2921,7 +2929,8 @@ const importPromotionalVideos = async () => {
     const importedIds = new Set((alreadyImported || []).map(r => r.imported_from_id));
 
     const { data: defaultItems, error } = await supabase
-      .from('promotional_videos').select('*').eq('company_id', defaultCompanyId);
+      .from('promotional_videos').select('*').eq('company_id', defaultCompanyId)
+      .or(`language.eq.${importLanguage},language.is.null`);
     if (error) throw error;
 
     let added = 0;
@@ -2930,6 +2939,7 @@ const importPromotionalVideos = async () => {
       const { error: insErr } = await supabase.from('promotional_videos').insert([{
         video_url: v.video_url, duration: v.duration, display_order: v.display_order,
         file_type: v.file_type, link_url: v.link_url, link_label: v.link_label,
+        language: v.language,
         company_id: effectiveCompanyId, imported_from_id: v.id, import_batch_id: batchId
       }]);
       if (insErr) throw insErr;
@@ -2953,18 +2963,20 @@ const importContentPages = async () => {
   setImportingBundle(true);
   try {
     const { data: existing } = await supabase
-      .from('content_pages').select('page_key').eq('company_id', effectiveCompanyId);
-    const existingKeys = new Set((existing || []).map(r => r.page_key));
+      .from('content_pages').select('page_key, language').eq('company_id', effectiveCompanyId);
+    const existingKeys = new Set((existing || []).map(r => `${r.page_key}::${r.language || 'en'}`));
 
     const { data: defaultPages, error } = await supabase
-      .from('content_pages').select('*').eq('company_id', defaultCompanyId);
+      .from('content_pages').select('*').eq('company_id', defaultCompanyId).eq('language', importLanguage);
     if (error) throw error;
 
     let added = 0;
     for (const p of (defaultPages || [])) {
-      if (existingKeys.has(p.page_key)) continue;
+      const key = `${p.page_key}::${p.language || 'en'}`;
+      if (existingKeys.has(key)) continue;
       const { error: insErr } = await supabase.from('content_pages').insert([{
         page_key: p.page_key, title: p.title, content: p.content,
+        language: p.language || 'en',
         company_id: effectiveCompanyId, imported_from_id: p.id
       }]);
       if (insErr) throw insErr;
@@ -3255,10 +3267,10 @@ const handleExcelUpload = async (file) => {
     
     let added = 0, errors = 0;
     for (const row of rows) {
-      const empId = String(row['Employee ID'] || row['employee_id'] || '').trim();
-      const name = String(row['Name'] || row['name'] || '').trim();
-      const country = String(row['Country'] || row['country'] || '').trim();
-      const email = String(row['Email'] || row['email'] || '').trim();
+      const empId = String(row['Employee ID'] || row['employee_id'] || row['ID de Empleado'] || row['ID do Funcionário'] || row['员工 ID'] || '').trim();
+      const name = String(row['Name'] || row['name'] || row['Nombre'] || row['Nome'] || row['姓名'] || '').trim();
+      const country = String(row['Country'] || row['country'] || row['País'] || row['国家'] || '').trim();
+      const email = String(row['Email'] || row['email'] || row['Correo'] || row['E-mail'] || row['邮箱'] || '').trim();
       if (!empId || !name) { errors++; continue; }
       const { error } = await supabase.from('employees').insert([{
         employee_id: empId, name, country, email, status: 'pending', active: true
@@ -4926,14 +4938,32 @@ useEffect(() => {
       const { data, error } = await supabase
         .from('content_pages')
         .select('*')
-        .eq('company_id', effectiveCompanyId);
-      
+        .eq('company_id', effectiveCompanyId)
+        .eq('language', effectiveViewingLanguage);
       if (error) throw error;
-      
+
       const pagesObj = {};
       data?.forEach(page => {
         pagesObj[page.page_key] = page;
       });
+
+      // Fallback pra inglês nas páginas que ainda não têm versão traduzida
+      // pro idioma atual (igual já funciona pra experiences) — cobre tanto
+      // o Default (conteúdo do Curador) quanto uma empresa que só escreveu
+      // em um idioma até agora.
+      if (effectiveViewingLanguage !== 'en') {
+        const missingKeys = ['community_guidelines', 'how_it_works', 'about'].filter(k => !pagesObj[k]);
+        if (missingKeys.length > 0) {
+          const { data: fallback } = await supabase
+            .from('content_pages')
+            .select('*')
+            .eq('company_id', effectiveCompanyId)
+            .eq('language', 'en')
+            .in('page_key', missingKeys);
+          (fallback || []).forEach(page => { pagesObj[page.page_key] = page; });
+        }
+      }
+
       setContentPages(pagesObj);
     } catch (error) {
       console.error('Error loading content pages:', error);
@@ -4947,8 +4977,10 @@ useEffect(() => {
         .from('content_pages')
         .upsert({
           page_key: pageKey, content, title,
-          company_id: effectiveCompanyId, updated_at: new Date().toISOString()
-        }, { onConflict: 'company_id,page_key' });
+          company_id: effectiveCompanyId,
+          language: effectiveViewingLanguage,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'company_id,page_key,language' });
       
       if (error) throw error;
       
@@ -7394,7 +7426,7 @@ autoComplete="off"
               {/* Add member — cria o ID na hora (não escolhe de um pool pré-criado)
                   — desabilitado ao atingir o limite de 2 */}
               {atLimit ? (
-                <p className="text-xs text-amber-600 font-medium">Maximum of 2 IDs per group reached.</p>
+                <p className="text-xs text-amber-600 font-medium">{t('max_2_ids_per_group')}</p>
               ) : (
               <div className="flex gap-2 items-center flex-wrap">
                 <select
@@ -8327,6 +8359,9 @@ autoComplete="off"
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 <MessageCircle size={20} />
                 {t('manage_content_pages')}
+                <span className="text-xs font-normal text-blue-600">
+                  {t('editing_in_language')} {{en:'English',es:'Español',pt:'Português',zh:'中文'}[effectiveViewingLanguage] || effectiveViewingLanguage}
+                </span>
                 {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">{t('read_only_sample')}</span>}
               </h3>
               
@@ -8446,7 +8481,7 @@ autoComplete="off"
         >
           {t('export_excel_btn')}
         </button>
-        <span className="text-xs text-gray-500 self-center">{t('excel_columns_employee')} Employee ID, Name, Country, Email</span>
+        <span className="text-xs text-gray-500 self-center">{t('excel_columns_employee_full')}</span>
       </div>
     </div>
     )}
@@ -8601,7 +8636,7 @@ autoComplete="off"
                   .from('practices')
                   .update({ show_in_ui: e.target.checked })
                   .eq('id', selectedPracticeId);
-                if (error) { alert('Error updating practice: ' + error.message); return; }
+                if (error) { alert(t('error_updating_practice') + ' ' + error.message); return; }
                 await loadPractices();
               }}
               className="w-4 h-4"
@@ -8611,14 +8646,14 @@ autoComplete="off"
         )}
         <button
           onClick={async () => {
-            const name = window.prompt('New Practice name:');
+            const name = window.prompt(t('new_practice_name_prompt'));
             if (!name?.trim()) return;
             const maxOrder = practices.length > 0 ? Math.max(...practices.map(p => p.display_order || 0)) : 0;
             const { data, error } = await supabase
               .from('practices')
-              .insert([{ name: name.trim(), show_in_ui: true, display_order: maxOrder + 1, active: true }])
+              .insert([{ name: name.trim(), show_in_ui: true, display_order: maxOrder + 1, active: true, company_id: effectiveCompanyId, language: effectiveViewingLanguage }])
               .select();
-            if (error) { alert('Error creating practice: ' + error.message); return; }
+            if (error) { alert(t('error_creating_practice') + ' ' + error.message); return; }
             await loadPractices();
             if (data && data[0]) {
               setSelectedPracticeId(data[0].id);
@@ -8661,18 +8696,18 @@ autoComplete="off"
           className="flex-1 p-2 border-2 border-gray-300 rounded-lg text-sm"
           onKeyPress={(e) => e.key === 'Enter' && newCategoryName.trim() && (async () => {
             const maxOrder = adminCategories.length;
-            const { error } = await supabase.from('problem_categories').insert([{ name: newCategoryName.trim(), display_order: maxOrder + 1, active: true, practice_id: selectedPracticeId }]);
+            const { error } = await supabase.from('problem_categories').insert([{ name: newCategoryName.trim(), display_order: maxOrder + 1, active: true, practice_id: selectedPracticeId, company_id: effectiveCompanyId, language: effectiveViewingLanguage }]);
             if (!error) { setNewCategoryName(''); await loadAdminCategories(selectedPracticeId); await loadProblemCategories(selectedPracticeId); }
-            else alert('Error adding category');
+            else alert(t('error_adding_category'));
           })()}
         />
         <button
           onClick={async () => {
             if (!newCategoryName.trim()) return;
             const maxOrder = adminCategories.length;
-            const { error } = await supabase.from('problem_categories').insert([{ name: newCategoryName.trim(), display_order: maxOrder + 1, active: true, practice_id: selectedPracticeId }]);
+            const { error } = await supabase.from('problem_categories').insert([{ name: newCategoryName.trim(), display_order: maxOrder + 1, active: true, practice_id: selectedPracticeId, company_id: effectiveCompanyId, language: effectiveViewingLanguage }]);
             if (!error) { setNewCategoryName(''); await loadAdminCategories(selectedPracticeId); await loadProblemCategories(selectedPracticeId); }
-            else alert('Error adding category');
+            else alert(t('error_adding_category'));
           }}
           className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm hover:bg-teal-700"
         >{t('add_btn_generic')}</button>
@@ -8720,13 +8755,13 @@ autoComplete="off"
 let updated = 0, added = 0, errors = 0;
 
 // Buscar todas as categories do banco
-const { data: allCats } = await supabase.from('problem_categories').select('*').eq('active', true);
+const { data: allCats } = await supabase.from('problem_categories').select('*').eq('active', true).eq('company_id', effectiveCompanyId);
 
 for (const row of rows) {
-  const practiceName = String(row['Practice'] || '').trim();
-  const catName = String(row['Category'] || '').trim();
-  const desc = String(row['Description'] || '').trim();
-  const tagsRaw = String(row['Tags'] || '').trim();
+  const practiceName = String(row['Practice'] || row['Práctica'] || row['Prática'] || row['职能/领域'] || '').trim();
+  const catName = String(row['Category'] || row['Categoría'] || row['Categoria'] || row['分类'] || '').trim();
+  const desc = String(row['Description'] || row['Descripción'] || row['Descrição'] || row['描述'] || '').trim();
+  const tagsRaw = String(row['Tags'] || row['Etiquetas'] || row['标签'] || '').trim();
   const tags = tagsRaw ? tagsRaw.split(',').map(t => t.trim()).filter(Boolean) : [];
   if (!catName) { errors++; continue; }
 
@@ -8758,17 +8793,18 @@ for (const row of rows) {
     const maxOrder = (allCats || []).filter(c => c.practice_id === practiceId).length + added;
     const { error } = await supabase.from('problem_categories').insert([{
       name: catName, description: desc || null, tags: tags,
-      display_order: maxOrder + 1, active: true, practice_id: practiceId
+      display_order: maxOrder + 1, active: true, practice_id: practiceId,
+      company_id: effectiveCompanyId, language: effectiveViewingLanguage
     }]);
     if (error) { errors++; } else { added++; }
   }
 }
-              } catch(err) { alert('Error importing: ' + err.message); }
+              } catch(err) { alert(t('error_during_import') + ' ' + err.message); }
               e.target.value = '';
             }}
           />
         </label>
-        <span className="text-xs text-gray-400 self-center">{t('excel_columns_employee')} Practice, Category, Description, Tags</span>
+        <span className="text-xs text-gray-400 self-center">{t('excel_columns_practice_full')}</span>
       </div>
     </div>
     <div className="bg-white rounded p-4">
