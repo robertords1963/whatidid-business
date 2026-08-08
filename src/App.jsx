@@ -500,6 +500,74 @@ const UI_STRINGS = {
   demo_account_inactive: { en: 'This demo account is not currently active. Please contact your Admin.', es: 'Esta cuenta demo no está activa actualmente. Por favor, contacta a tu Admin.', pt: 'Esta conta demo não está ativa no momento. Por favor, entre em contato com seu Admin.', zh: '该演示账户目前未激活，请联系您的管理员。' },
   login_failed: { en: 'Login failed. Please try again.', es: 'Error al iniciar sesión. Por favor, inténtalo de nuevo.', pt: 'Falha no login. Por favor, tente novamente.', zh: '登录失败，请重试。' },
   error_updating_password: { en: 'Error updating password. Please try again.', es: 'Error al actualizar la contraseña. Por favor, inténtalo de nuevo.', pt: 'Erro ao atualizar a senha. Por favor, tente novamente.', zh: '更新密码出错，请重试。' },
+  // Lote ADM Default — grande
+  add_company_btn: { en: '+ Add Company', es: '+ Agregar Empresa', pt: '+ Adicionar Empresa', zh: '+ 添加公司' },
+  add_seller_btn: { en: '+ Add Seller', es: '+ Agregar Vendedor', pt: '+ Adicionar Vendedor', zh: '+ 添加销售代表' },
+  creating_ellipsis: { en: 'Creating...', es: 'Creando...', pt: 'Criando...', zh: '创建中……' },
+  add_employee_btn: { en: '+ Add Employee', es: '+ Agregar Empleado', pt: '+ Adicionar Funcionário', zh: '+ 添加员工' },
+  create_group_btn: { en: '+ Create Group', es: '+ Crear Grupo', pt: '+ Criar Grupo', zh: '+ 创建分组' },
+  add_new_id_btn: { en: '+ Add New ID', es: '+ Agregar Nuevo ID', pt: '+ Adicionar Novo ID', zh: '+ 添加新 ID' },
+  new_practice_btn: { en: '+ New Practice', es: '+ Nueva Práctica', pt: '+ Nova Prática', zh: '+ 新领域' },
+  add_video_btn: { en: 'Add Video', es: 'Agregar Video', pt: 'Adicionar Vídeo', zh: '添加视频' },
+  add_quote_btn: { en: 'Add Quote', es: 'Agregar Cita', pt: 'Adicionar Citação', zh: '添加语录' },
+  registered_companies_title: { en: 'Registered Companies', es: 'Empresas Registradas', pt: 'Empresas Registradas', zh: '已注册公司' },
+  registered_sellers_title: { en: 'Registered Sellers', es: 'Vendedores Registrados', pt: 'Vendedores Registrados', zh: '已注册销售代表' },
+  active_groups_title: { en: 'Active Groups', es: 'Grupos Activos', pt: 'Grupos Ativos', zh: '活跃分组' },
+  promotional_videos_title: { en: 'Promotional Videos', es: 'Videos Promocionales', pt: 'Vídeos Promocionais', zh: '宣传视频' },
+  existing_quotes_title: { en: 'Existing Quotes', es: 'Citas Existentes', pt: 'Citações Existentes', zh: '现有语录' },
+  circle_marks_context: { en: 'The ⚪ marks which company "Company" in the context dropdown points to.', es: 'El ⚪ marca a qué empresa apunta "Company" en el menú de contexto.', pt: 'O ⚪ indica para qual empresa a opção "Company" no menu de contexto está apontando.', zh: '⚪ 标记表示上下文下拉菜单中的"Company"当前指向哪家公司。' },
+  since_label: { en: 'Since:', es: 'Desde:', pt: 'Desde:', zh: '自：' },
+  not_used: { en: 'Not Used', es: 'No Usado', pt: 'Não Usado', zh: '未使用' },
+  expired_ids_autoclear: { en: '"Expired" IDs auto-clear the next time anyone loads the app.', es: 'Los IDs "Expirados" se limpian automáticamente la próxima vez que alguien cargue la app.', pt: 'IDs "Expirados" são limpos automaticamente na próxima vez que alguém carregar o app.', zh: '"已过期"的 ID 会在下次有人打开应用时自动清除。' },
+  app_configuration_title: { en: '⚙️ App Configuration', es: '⚙️ Configuración de la App', pt: '⚙️ Configuração do App', zh: '⚙️ 应用配置' },
+  edition_name: { en: 'Edition Name', es: 'Nombre de Edición', pt: 'Nome da Edição', zh: '版本名称' },
+  company_branding_title: { en: '🏢 Company Branding', es: '🏢 Identidad de la Empresa', pt: '🏢 Identidade da Empresa', zh: '🏢 公司品牌形象' },
+  displayed_below_header: { en: 'Displayed below "WhatIDid Corp" in the header', es: 'Se muestra debajo de "WhatIDid Corp" en el encabezado', pt: 'Exibido abaixo de "WhatIDid Corp" no cabeçalho', zh: '显示在页眉"WhatIDid Corp"下方' },
+  size_small: { en: 'small', es: 'pequeño', pt: 'pequeno', zh: '小' },
+  size_medium: { en: 'medium', es: 'mediano', pt: 'médio', zh: '中' },
+  size_large: { en: 'large', es: 'grande', pt: 'grande', zh: '大' },
+  logo_position_hint: { en: 'Top-right on desktop, below header on mobile (PNG, JPG, SVG — max 2MB)', es: 'Arriba a la derecha en escritorio, debajo del encabezado en móvil (PNG, JPG, SVG — máx 2MB)', pt: 'Canto superior direito no desktop, abaixo do cabeçalho no mobile (PNG, JPG, SVG — máx 2MB)', zh: '桌面端显示在右上角，移动端显示在页眉下方（PNG、JPG、SVG — 最大 2MB）' },
+  remove_x: { en: '✕ Remove', es: '✕ Quitar', pt: '✕ Remover', zh: '✕ 移除' },
+  upload_logo_btn: { en: '📷 Upload Logo', es: '📷 Subir Logo', pt: '📷 Enviar Logotipo', zh: '📷 上传徽标' },
+  logo_recommendation: { en: '💡 Recommended: PNG or SVG with transparent background, min 200px wide.', es: '💡 Recomendado: PNG o SVG con fondo transparente, mín 200px de ancho.', pt: '💡 Recomendado: PNG ou SVG com fundo transparente, mín. 200px de largura.', zh: '💡 建议使用透明背景的 PNG 或 SVG 图片，宽度至少 200 像素。' },
+  manage_inspirational_quotes: { en: 'Manage Inspirational Quotes', es: 'Gestionar Citas Inspiradoras', pt: 'Gerenciar Citações Inspiradoras', zh: '管理励志语录' },
+  author_optional_top: { en: 'Author (optional for Top)', es: 'Autor (opcional para Top)', pt: 'Autor (opcional para Top)', zh: '作者（Top 位置选填）' },
+  video_mp4_webm: { en: '🎬 Video (MP4, WebM)', es: '🎬 Video (MP4, WebM)', pt: '🎬 Vídeo (MP4, WebM)', zh: '🎬 视频（MP4、WebM）' },
+  presentation_pdf: { en: '📊 Presentation (PDF)', es: '📊 Presentación (PDF)', pt: '📊 Apresentação (PDF)', zh: '📊 演示文稿（PDF）' },
+  link_url_option: { en: '🔗 Link (URL)', es: '🔗 Enlace (URL)', pt: '🔗 Link (URL)', zh: '🔗 链接（URL）' },
+  video_file_label: { en: 'Video File', es: 'Archivo de Video', pt: 'Arquivo de Vídeo', zh: '视频文件' },
+  supported_mp4_webm: { en: 'Supported: MP4, WebM', es: 'Compatible: MP4, WebM', pt: 'Suportado: MP4, WebM', zh: '支持格式：MP4、WebM' },
+  carousel_language_hint: { en: 'Only shows in the carousel when this language is being viewed. Leave as "All languages" to show always.', es: 'Solo se muestra en el carrusel cuando se está viendo este idioma. Deja "Todos los idiomas" para mostrarlo siempre.', pt: 'Só aparece no carrossel quando este idioma está sendo visualizado. Deixe "Todos os idiomas" para mostrar sempre.', zh: '仅在浏览该语言时显示于轮播中。保留"所有语言"则始终显示。' },
+  duration_example: { en: 'Duration (e.g., 1:30)', es: 'Duración (ej. 1:30)', pt: 'Duração (ex: 1:30)', zh: '时长（例如 1:30）' },
+  community_guidelines_default: { en: 'Community Guidelines - Be respectful, honest, and constructive....', es: 'Normas de la Comunidad - Sé respetuoso, honesto y constructivo....', pt: 'Diretrizes da Comunidade - Seja respeitoso, honesto e construtivo....', zh: '社区规范 - 请保持尊重、诚实和建设性……' },
+  edit_content_btn: { en: 'Edit Content', es: 'Editar Contenido', pt: 'Editar Conteúdo', zh: '编辑内容' },
+  how_it_works_default: { en: 'Share your experience, help others, and learn from the community....', es: 'Comparte tu experiencia, ayuda a otros y aprende de la comunidad....', pt: 'Compartilhe sua experiência, ajude os outros e aprenda com a comunidade....', zh: '分享你的经验，帮助他人，并向社区学习……' },
+  about_default: { en: 'WhatIDid Business & Professional - A platform for sharing business experiences....', es: 'WhatIDid Business & Professional - Una plataforma para compartir experiencias empresariales....', pt: 'WhatIDid Business & Professional - Uma plataforma para compartilhar experiências profissionais....', zh: 'WhatIDid Business & Professional - 一个分享职场经验的平台……' },
+  is_admin_hint: { en: 'Is Admin (this person can also access the Admin panel)', es: 'Es Admin (esta persona también puede acceder al panel de Admin)', pt: 'É Admin (esta pessoa também pode acessar o painel de Admin)', zh: '是管理员（此人也可以访问管理员面板）' },
+  import_excel_btn: { en: '📊 Import Excel', es: '📊 Importar Excel', pt: '📊 Importar Excel', zh: '📊 导入 Excel' },
+  export_excel_btn: { en: '📤 Export Excel', es: '📤 Exportar Excel', pt: '📤 Exportar Excel', zh: '📤 导出 Excel' },
+  search_employees_title: { en: 'Search Employees', es: 'Buscar Empleados', pt: 'Buscar Funcionários', zh: '搜索员工' },
+  manage_problem_categories: { en: '🗂️ Manage Problem Categories', es: '🗂️ Gestionar Categorías de Problemas', pt: '🗂️ Gerenciar Categorias de Problemas', zh: '🗂️ 管理问题分类' },
+  import_excel_btn2: { en: '📥 Import Excel', es: '📥 Importar Excel', pt: '📥 Importar Excel', zh: '📥 导入 Excel' },
+  assign_ratings_title: { en: '⭐ Assign Ratings to Experiences', es: '⭐ Asignar Calificaciones a Experiencias', pt: '⭐ Atribuir Avaliações às Experiências', zh: '⭐ 为经验分配评分' },
+  select_target_step: { en: '1. Select Target:', es: '1. Selecciona el Objetivo:', pt: '1. Selecione o Alvo:', zh: '1. 选择目标：' },
+  apply_to_step: { en: '2. Apply To:', es: '2. Aplicar A:', pt: '2. Aplicar A:', zh: '2. 应用范围：' },
+  all_experiences_reset_warning: { en: 'ALL experiences (will RESET all ratings to 0 first, then assign new ones!)', es: 'TODAS las experiencias (¡primero RESETEARÁ todas las calificaciones a 0, luego asignará nuevas!)', pt: 'TODAS as experiências (vai RESETAR todas as avaliações para 0 primeiro, depois atribuir novas!)', zh: '所有经验（将先把所有评分重置为 0，然后重新分配！）' },
+  percentage_step: { en: '3. Percentage of Target to Receive Ratings:', es: '3. Porcentaje del Objetivo que Recibirá Calificaciones:', pt: '3. Porcentagem do Alvo que Receberá Avaliações:', zh: '3. 目标中获得评分的百分比：' },
+  ratings_range_step: { en: '4. Number of Ratings per Experience (Range):', es: '4. Número de Calificaciones por Experiencia (Rango):', pt: '4. Número de Avaliações por Experiência (Intervalo):', zh: '4. 每条经验的评分数量（范围）：' },
+  stars_distribution_step: { en: '5. Stars Distribution (Default):', es: '5. Distribución de Estrellas (Predeterminado):', pt: '5. Distribuição de Estrelas (Padrão):', zh: '5. 星级分布（默认）：' },
+  execute_assign_ratings: { en: '⭐ Execute: Assign Ratings', es: '⭐ Ejecutar: Asignar Calificaciones', pt: '⭐ Executar: Atribuir Avaliações', zh: '⭐ 执行：分配评分' },
+  pdf_file_label: { en: 'PDF File', es: 'Archivo PDF', pt: 'Arquivo PDF', zh: 'PDF 文件' },
+  supported_pdf: { en: 'Supported: PDF', es: 'Compatible: PDF', pt: 'Suportado: PDF', zh: '支持格式：PDF' },
+  optional_for_top: { en: '(optional for Top)', es: '(opcional para Top)', pt: '(opcional para Top)', zh: '（Top 位置选填）' },
+  up_arrow: { en: '↑ Up', es: '↑ Subir', pt: '↑ Subir', zh: '↑ 上移' },
+  down_arrow: { en: '↓ Down', es: '↓ Bajar', pt: '↓ Descer', zh: '↓ 下移' },
+  delete_trash: { en: '🗑️ Delete', es: '🗑️ Eliminar', pt: '🗑️ Excluir', zh: '🗑️ 删除' },
+  promotional_videos_count_title: { en: 'Promotional Videos', es: 'Videos Promocionales', pt: 'Vídeos Promocionais', zh: '宣传视频' },
+  community_guidelines_nav: { en: 'Community Guidelines', es: 'Normas de la Comunidad', pt: 'Diretrizes da Comunidade', zh: '社区规范' },
+  how_it_works_nav: { en: 'How It Works', es: 'Cómo Funciona', pt: 'Como Funciona', zh: '使用说明' },
+  about_nav: { en: 'About', es: 'Acerca de', pt: 'Sobre', zh: '关于' },
+  not_set_up_yet: { en: 'Not set up yet — write your own above, or import from Default in Section Settings.', es: 'Aún no configurado — escribe el tuyo arriba, o impórtalo desde Default en Configuración de Secciones.', pt: 'Ainda não configurado — escreva o seu acima, ou importe do Default em Configurações de Seção.', zh: '尚未设置——请在上方撰写内容，或在版块设置中从 Default 导入。' },
   no_experiences_found: { en: 'No experiences found.', es: 'No se encontraron experiencias.', pt: 'Nenhuma experiência encontrada.', zh: '未找到任何经验。' },
 };
 
@@ -995,6 +1063,8 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   };
   // Mesma lógica do tConfirm, só que pros alert() de sucesso/aviso com
   // nomes/números embutidos.
+  // Traduz o rótulo exibido (small/medium/large), mantendo o valor salvo em inglês
+  const tSizeLabel = (size) => t(size === 'small' ? 'size_small' : size === 'large' ? 'size_large' : 'size_medium');
   const tAlert = (key, vars = {}) => {
     const templates = {
       seller_created: {
@@ -6835,7 +6905,7 @@ autoComplete="off"
           placeholder="Company Code (optional, auto-generated if blank)" className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
       </div>
       <button onClick={addCompany} className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700">
-        + Add Company
+        {t('add_company_btn')}
       </button>
     </div>
 
@@ -6843,9 +6913,9 @@ autoComplete="off"
         mesmo criou. Um painel só, uma lista só — nunca mais dessincroniza. */}
     <div className="bg-white rounded p-4">
       <h4 className="font-medium text-gray-700 mb-1">
-        Registered Companies ({companies.filter(c => c.code !== 'default' && (!isSeller || c.created_by_seller_id === loggedInSellerId)).length})
+        {t('registered_companies_title')} ({companies.filter(c => c.code !== 'default' && (!isSeller || c.created_by_seller_id === loggedInSellerId)).length})
       </h4>
-      <p className="text-xs text-gray-400 mb-3">The ⚪ marks which company "Company" in the context dropdown points to.</p>
+      <p className="text-xs text-gray-400 mb-3">{t('circle_marks_context')}</p>
       {!companiesLoaded ? (
         <p className="text-sm text-gray-400">{t('loading_ellipsis')}</p>
       ) : companies.filter(c => c.code !== 'default' && (!isSeller || c.created_by_seller_id === loggedInSellerId)).length === 0 ? (
@@ -6964,13 +7034,13 @@ autoComplete="off"
       </div>
       <button onClick={createSeller} disabled={creatingSeller}
         className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm hover:bg-teal-700 disabled:opacity-50">
-        {creatingSeller ? 'Creating...' : '+ Add Seller'}
+        {creatingSeller ? t('creating_ellipsis') : t('add_seller_btn')}
       </button>
     </div>
 
     {/* Seller List */}
     <div className="bg-white rounded p-4">
-      <h4 className="font-medium text-gray-700 mb-3">Registered Sellers ({sellers.length})</h4>
+      <h4 className="font-medium text-gray-700 mb-3">{t('registered_sellers_title')} ({sellers.length})</h4>
       {!sellersLoaded ? (
         <p className="text-sm text-gray-400">{t('loading_ellipsis')}</p>
       ) : sellers.length === 0 ? (
@@ -7116,13 +7186,13 @@ autoComplete="off"
             alert(tAlert('group_created_named', { name: company.name }));
           }}
           className="px-4 py-2 bg-pink-600 text-white rounded-lg text-sm hover:bg-pink-700"
-        >+ Create Group</button>
+        >{t('create_group_btn')}</button>
       </div>
     </div>
 
     {/* Existing Groups — pro seller, só os que ele criou (loadDemoGroups já filtra) */}
     <div className="bg-white rounded p-4">
-      <h4 className="font-medium text-gray-700 mb-3">Active Groups ({demoGroups.length})</h4>
+      <h4 className="font-medium text-gray-700 mb-3">{t('active_groups_title')} ({demoGroups.length})</h4>
       {demoGroups.length === 0 ? (
         <p className="text-sm text-gray-500">{t('no_groups_yet')}</p>
       ) : (
@@ -7337,7 +7407,7 @@ autoComplete="off"
                     }
                   }}
                   className="px-3 py-2 bg-pink-600 text-white rounded-lg text-sm hover:bg-pink-700"
-                >+ Add New ID</button>
+                >{t('add_new_id_btn')}</button>
               </div>
               )}
             </div>
@@ -7355,7 +7425,7 @@ autoComplete="off"
       📊 {t('sellers_demo_activity_overview')}
     </h3>
     <div className="bg-white rounded p-4">
-      <p className="text-xs text-gray-400 mb-3">"Expired" IDs auto-clear the next time anyone loads the app.</p>
+      <p className="text-xs text-gray-400 mb-3">{t('expired_ids_autoclear')}</p>
       <div className="overflow-x-auto">
         <table className="w-full text-xs" style={{tableLayout: 'fixed'}}>
           <thead>
@@ -7433,7 +7503,7 @@ autoComplete="off"
 {isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('app_config')) && (
   <div className="mt-4 bg-indigo-50 border-2 border-indigo-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
-      ⚙️ App Configuration
+      {t('app_configuration_title')}
       {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">(read-only — Sample)</span>}
     </h3>
     
@@ -7442,7 +7512,7 @@ autoComplete="off"
       {showDefaultOnlyTools && (
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Edition Name
+          {t('edition_name')}
         </label>
         <select
           value={appSettings.editionName}
@@ -7616,11 +7686,11 @@ autoComplete="off"
 
       {/* 🏢 Company Branding */}
       <div className="border-t pt-4 mt-2">
-        <label className="block text-sm font-semibold text-gray-700 mb-3">🏢 Company Branding</label>
+        <label className="block text-sm font-semibold text-gray-700 mb-3">{t('company_branding_title')}</label>
 
         <div className="mb-4">
           <label className="block text-xs font-medium text-gray-600 mb-1">{t('company_name')}</label>
-          <p className="text-xs text-gray-400 mb-2">Displayed below "WhatIDid Corp" in the header</p>
+          <p className="text-xs text-gray-400 mb-2">{t('displayed_below_header')}</p>
           <div className="flex gap-2 mb-2">
             <input type="text" value={companyName} onChange={(e) => setCompanyName(e.target.value)}
               placeholder="e.g. XYZ Financial Services"
@@ -7648,7 +7718,7 @@ autoComplete="off"
                     await supabase.from('app_settings').update({ company_name_size: size }).eq('company_id', effectiveCompanyId);
                   }}
                   className="w-3 h-3" />
-                <span className="text-xs capitalize">{size}</span>
+                <span className="text-xs capitalize">{tSizeLabel(size)}</span>
               </label>
             ))}
           </div>
@@ -7656,7 +7726,7 @@ autoComplete="off"
 
         <div>
           <label className="block text-xs font-medium text-gray-600 mb-1">{t('company_logo')}</label>
-          <p className="text-xs text-gray-400 mb-2">Top-right on desktop, below header on mobile (PNG, JPG, SVG — max 2MB)</p>
+          <p className="text-xs text-gray-400 mb-2">{t('logo_position_hint')}</p>
           {companyLogoUrl && (
             <div className="mb-3 flex items-center gap-3 p-2 bg-gray-50 rounded-lg border border-gray-200">
               <img src={companyLogoUrl} alt="logo" className="h-10 object-contain border border-gray-200 rounded p-1 bg-white" />
@@ -7664,7 +7734,7 @@ autoComplete="off"
               <button onClick={async () => {
                 const { error } = await supabase.from('app_settings').update({ company_logo_url: null }).eq('company_id', effectiveCompanyId);
                 if (!error) { setCompanyLogoUrl(''); alert('Logo removed!'); }
-              }} className="text-xs text-red-600 hover:text-red-800 font-medium">✕ Remove</button>
+              }} className="text-xs text-red-600 hover:text-red-800 font-medium">{t('remove_x')}</button>
             </div>
           )}
           <label className="px-3 py-2 bg-gray-100 border-2 border-gray-200 rounded-lg hover:bg-gray-200 cursor-pointer inline-flex items-center gap-1 text-sm">
@@ -7687,9 +7757,9 @@ autoComplete="off"
                 e.target.value = '';
               
               }} />
-            📷 Upload Logo
+            {t('upload_logo_btn')}
           </label>
-          <p className="text-xs text-gray-400 mt-1">💡 Recommended: PNG or SVG with transparent background, min 200px wide.</p>
+          <p className="text-xs text-gray-400 mt-1">{t('logo_recommendation')}</p>
           <div className="flex gap-3 bg-gray-50 p-2 rounded-lg mt-2">
             <span className="text-xs text-gray-500 self-center">{t('size_label')}</span>
             {['small', 'medium', 'large'].map(size => (
@@ -7701,7 +7771,7 @@ autoComplete="off"
                     await supabase.from('app_settings').update({ company_logo_size: size }).eq('company_id', effectiveCompanyId);
                   }}
                   className="w-3 h-3" />
-                <span className="text-xs capitalize">{size}</span>
+                <span className="text-xs capitalize">{tSizeLabel(size)}</span>
               </label>
             ))}
           </div>
@@ -7718,7 +7788,7 @@ autoComplete="off"
             <div className="mt-4 bg-green-50 border-2 border-green-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 <MessageCircle size={20} />
-                Manage Inspirational Quotes
+                {t('manage_inspirational_quotes')}
                 {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">(read-only — Sample)</span>}
               </h3>
 
@@ -7748,7 +7818,7 @@ autoComplete="off"
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Author {newQuote.position === 'top' && <span className="text-gray-500 font-normal">(optional for Top)</span>}
+                      {t('author')} {newQuote.position === 'top' && <span className="text-gray-500 font-normal">{t('optional_for_top')}</span>}
                     </label>
                     <input
                       type="text"
@@ -7773,7 +7843,7 @@ autoComplete="off"
                     onClick={addQuote}
                     className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
                   >
-                    Add Quote
+                    {t('add_quote_btn')}
                   </button>
                 </div>
               </div>
@@ -7888,7 +7958,7 @@ autoComplete="off"
                         onChange={() => { setNewItemType('video'); setNewVideoFile(null); }}
                         className="w-4 h-4"
                       />
-                      <span className="text-sm font-medium">🎬 Video (MP4, WebM)</span>
+                      <span className="text-sm font-medium">{t('video_mp4_webm')}</span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
@@ -7899,7 +7969,7 @@ autoComplete="off"
                         onChange={() => { setNewItemType('presentation'); setNewVideoFile(null); setNewVideoDuration(''); }}
                         className="w-4 h-4"
                       />
-                      <span className="text-sm font-medium">📊 Presentation (PDF)</span>
+                      <span className="text-sm font-medium">{t('presentation_pdf')}</span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
@@ -7910,7 +7980,7 @@ autoComplete="off"
                         onChange={() => { setNewItemType('link'); setNewVideoFile(null); setNewVideoDuration(''); }}
                         className="w-4 h-4"
                       />
-                      <span className="text-sm font-medium">🔗 Link (URL)</span>
+                      <span className="text-sm font-medium">{t('link_url_option')}</span>
                     </label>
                   </div>
 
@@ -7930,7 +8000,7 @@ autoComplete="off"
                   ) : (
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        {newItemType === 'video' ? 'Video File' : 'PDF File'}
+                        {newItemType === 'video' ? t('video_file_label') : t('pdf_file_label')}
                       </label>
                       <input
                         type="file"
@@ -7950,7 +8020,7 @@ autoComplete="off"
                         className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm"
                       />
                       <p className="text-xs text-gray-500 mt-1">
-                        {newItemType === 'video' ? 'Supported: MP4, WebM' : 'Supported: PDF'}
+                        {newItemType === 'video' ? t('supported_mp4_webm') : t('supported_pdf')}
                       </p>
                     </div>
                   )}
@@ -7979,12 +8049,12 @@ autoComplete="off"
                       <option value="pt">Português</option>
                       <option value="zh">中文</option>
                     </select>
-                    <p className="text-xs text-gray-500 mt-1">Only shows in the carousel when this language is being viewed. Leave as "All languages" to show always.</p>
+                    <p className="text-xs text-gray-500 mt-1">{t('carousel_language_hint')}</p>
                   </div>
 
                   {newItemType === 'video' && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Duration (e.g., 1:30)</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('duration_example')}</label>
                       <input
                         type="text"
                         value={newVideoDuration}
@@ -8006,7 +8076,7 @@ autoComplete="off"
               </div>
 
               <div className={`bg-white rounded p-4 ${isReadOnlyOrMasterManaging ? "pointer-events-none opacity-60" : ""}`}>
-                <h4 className="font-medium text-gray-700 mb-3">Promotional Videos ({promotionalVideos.length})</h4>
+                <h4 className="font-medium text-gray-700 mb-3">{t('promotional_videos_count_title')} ({promotionalVideos.length})</h4>
                 {allPromotionalVideosAdmin.length === 0 ? (
                   <p className="text-sm text-gray-500">{t('no_videos_yet')}</p>
                 ) : (
@@ -8199,20 +8269,21 @@ autoComplete="off"
               <div className={`space-y-4 ${isReadOnlyOrMasterManaging ? 'pointer-events-none opacity-60' : ''}`}>
                 {['community_guidelines', 'how_it_works', 'about'].map(pageKey => {
                   const page = contentPages[pageKey] || { title: CONTENT_PAGE_DEFAULTS[pageKey], content: '' };
+                  const pageKeyLabels = { community_guidelines: t('community_guidelines_nav'), how_it_works: t('how_it_works_nav'), about: t('about_nav') };
                   
                   return (
                     <div key={pageKey} className="bg-white rounded p-4">
                       <div className="flex justify-between items-center mb-3">
-                        <h4 className="font-medium text-gray-700">{page.title}</h4>
+                        <h4 className="font-medium text-gray-700">{pageKeyLabels[pageKey]}</h4>
                         <button
                           onClick={() => setEditingContent({ key: pageKey, content: page.content })}
                           className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
                         >
-                          Edit Content
+                          {t('edit_content_btn')}
                         </button>
                       </div>
                       {!contentPages[pageKey] && editingContent.key !== pageKey && (
-                        <p className="text-sm text-gray-400 italic">Not set up yet — write your own above, or import from Default in Section Settings.</p>
+                        <p className="text-sm text-gray-400 italic">{t('not_set_up_yet')}</p>
                       )}
                       
                       {editingContent.key === pageKey ? (
@@ -8280,14 +8351,14 @@ autoComplete="off"
       <label className="flex items-center gap-2 mb-3 text-sm text-gray-700 cursor-pointer">
         <input type="checkbox" checked={newEmployee.is_admin} onChange={(e) => setNewEmployee({...newEmployee, is_admin: e.target.checked})}
           className="w-4 h-4" />
-        Is Admin (this person can also access the Admin panel)
+        {t('is_admin_hint')}
       </label>
       <div className="flex gap-2 flex-wrap">
         <button onClick={addEmployee} className="px-4 py-2 bg-slate-600 text-white rounded-lg text-sm hover:bg-slate-700">
-          + Add Employee
+          {t('add_employee_btn')}
         </button>
         <label className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 cursor-pointer">
-          📊 Import Excel
+          {t('import_excel_btn')}
           <input type="file" accept=".xlsx,.xls" className="hidden" onChange={(e) => { if(e.target.files[0]) handleExcelUpload(e.target.files[0]); e.target.value=''; }} />
         </label>
         <button
@@ -8309,7 +8380,7 @@ autoComplete="off"
           }}
           className="px-4 py-2 bg-gray-600 text-white rounded-lg text-sm hover:bg-gray-700"
         >
-          📤 Export Excel
+          {t('export_excel_btn')}
         </button>
         <span className="text-xs text-gray-500 self-center">{t('excel_columns_employee')} Employee ID, Name, Country, Email</span>
       </div>
@@ -8319,7 +8390,7 @@ autoComplete="off"
     {/* Search + List */}
     <div className="bg-white rounded p-4">
       <div className="flex items-center gap-3 mb-3">
-        <h4 className="font-medium text-gray-700">Search Employees ({employees.length})</h4>
+        <h4 className="font-medium text-gray-700">{t('search_employees_title')} ({employees.length})</h4>
         <input type="text" value={employeeSearch} onChange={(e) => setEmployeeSearch(e.target.value)}
           placeholder={t('search_by_id_name_email')} className="flex-1 p-2 border-2 border-gray-200 rounded-lg text-sm" />
       </div>
@@ -8423,7 +8494,7 @@ autoComplete="off"
 {isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('metadata')) && (
   <div className="mt-4 bg-teal-50 border-2 border-teal-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-      🗂️ Manage Problem Categories
+      {t('manage_problem_categories')}
       {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">(read-only — Sample)</span>}
     </h3>
 
@@ -8484,7 +8555,7 @@ autoComplete="off"
           }}
           disabled={isReadOnlyOrMasterManaging}
           className={`px-3 py-2 bg-teal-600 text-white rounded-lg text-sm hover:bg-teal-700 whitespace-nowrap ${isReadOnlyOrMasterManaging ? 'opacity-40 cursor-not-allowed' : ''}`}
-        >+ New Practice</button>
+        >{t('new_practice_btn')}</button>
         {selectedPracticeId && practices.find(p => p.id === selectedPracticeId)?.name !== 'General' && (
           <button
             onClick={async () => {
@@ -8555,11 +8626,11 @@ autoComplete="off"
             } catch(err) { alert('Error exporting: ' + err.message); }
           }}
           className="px-3 py-1.5 bg-gray-600 text-white rounded-lg text-xs hover:bg-gray-700 flex items-center gap-1"
-        >📤 Export Excel</button>
+        >{t('export_excel_btn')}</button>
 
         {/* Import */}
         <label className="px-3 py-1.5 bg-green-600 text-white rounded-lg text-xs hover:bg-green-700 cursor-pointer flex items-center gap-1">
-          📥 Import Excel
+          {t('import_excel_btn2')}
           <input
             type="file"
             accept=".xlsx,.xls"
@@ -8692,7 +8763,7 @@ for (const row of rows) {
                     }}
                     disabled={isReadOnlyOrMasterManaging || index === 0}
                     className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 disabled:opacity-30 disabled:cursor-not-allowed"
-                  >↑ Up</button>
+                  >{t('up_arrow')}</button>
                   <button
                     onClick={async () => {
                       if (isReadOnlyOrMasterManaging || index === adminCategories.length - 1) return;
@@ -8702,7 +8773,7 @@ for (const row of rows) {
                     }}
                     disabled={isReadOnlyOrMasterManaging || index === adminCategories.length - 1}
                     className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 disabled:opacity-30 disabled:cursor-not-allowed"
-                  >↓ Down</button>
+                  >{t('down_arrow')}</button>
                 <div className="flex-1 min-w-0">
                   <span className="text-sm text-gray-700 font-medium">{cat.name}</span>
                   {cat.description && (
@@ -8736,7 +8807,7 @@ for (const row of rows) {
 {isAdmin && showDefaultOnlyTools && !isSeller && (
   <div className="mt-4 bg-orange-50 border-2 border-orange-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-      ⭐ Assign Ratings to Experiences
+      {t('assign_ratings_title')}
     </h3>
     
     <div className="bg-white rounded p-4">
@@ -8744,7 +8815,7 @@ for (const row of rows) {
         {/* 1. TARGET SELECTION */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            1. Select Target:
+            {t('select_target_step')}
           </label>
           <select
             id="rating-target"
@@ -8760,7 +8831,7 @@ for (const row of rows) {
         {/* 2. MODE SELECTION */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            2. Apply To:
+            {t('apply_to_step')}
           </label>
           <div className="space-y-2">
             <label className="flex items-center gap-2 cursor-pointer">
@@ -8780,7 +8851,7 @@ for (const row of rows) {
                 value="all"
                 className="w-4 h-4"
               />
-              <span className="text-sm text-red-600 font-medium">ALL experiences (will RESET all ratings to 0 first, then assign new ones!)</span>
+              <span className="text-sm text-red-600 font-medium">{t('all_experiences_reset_warning')}</span>
             </label>
           </div>
         </div>
@@ -8788,7 +8859,7 @@ for (const row of rows) {
         {/* 3. PERCENTAGE */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            3. Percentage of Target to Receive Ratings:
+            {t('percentage_step')}
           </label>
           <div className="flex items-center gap-2">
             <input
@@ -8807,7 +8878,7 @@ for (const row of rows) {
         {/* 4. RATINGS RANGE */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            4. Number of Ratings per Experience (Range):
+            {t('ratings_range_step')}
           </label>
           <div className="flex items-center gap-2">
             <input
@@ -8833,7 +8904,7 @@ for (const row of rows) {
         {/* 5. STARS DISTRIBUTION */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            5. Stars Distribution (Default):
+            {t('stars_distribution_step')}
           </label>
           <div className="bg-gray-50 p-3 rounded text-xs space-y-1">
             <div className="flex justify-between">
@@ -9030,7 +9101,7 @@ for (const row of rows) {
         id="assign-ratings-btn"
         className="w-full px-6 py-3 bg-orange-600 text-white rounded hover:bg-orange-700 font-semibold transition-colors"
       >
-        ⭐ Execute: Assign Ratings
+        {t('execute_assign_ratings')}
       </button>
 
       <p className="text-xs text-gray-500 mt-3 text-center">
@@ -9342,7 +9413,7 @@ onClick={() => {
                                 try { await deleteCategoryCascade(cat); } catch (e) { alert('Error: ' + e.message); }
                               }}
                               className="px-2 py-1 rounded text-xs bg-red-600 hover:bg-red-700 text-white"
-                            >🗑️ Delete</button>
+                            >{t('delete_trash')}</button>
                           </div>
                         );
                       }
@@ -9383,7 +9454,7 @@ onClick={() => {
                                     try { await deleteCategoryCascade(cat); } catch (e) { alert('Error: ' + e.message); }
                                   }}
                                   className="px-2 py-1 rounded text-xs bg-red-600 hover:bg-red-700 text-white"
-                                >🗑️ Delete</button>
+                                >{t('delete_trash')}</button>
                               </div>
                             ))}
                             <button
@@ -9432,7 +9503,7 @@ onClick={() => {
                                   try { await deletePracticeCascade(p); alert(`"${p.name}" deleted.`); } catch (e) { alert('Error: ' + e.message); }
                                 }}
                                 className="px-2 py-1 rounded text-xs bg-red-600 hover:bg-red-700 text-white"
-                              >🗑️ Delete</button>
+                              >{t('delete_trash')}</button>
                             </div>
                           ))}
                         </div>
