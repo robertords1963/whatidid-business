@@ -568,6 +568,16 @@ const UI_STRINGS = {
   how_it_works_nav: { en: 'How It Works', es: 'Cómo Funciona', pt: 'Como Funciona', zh: '使用说明' },
   about_nav: { en: 'About', es: 'Acerca de', pt: 'Sobre', zh: '关于' },
   not_set_up_yet: { en: 'Not set up yet — write your own above, or import from Default in Section Settings.', es: 'Aún no configurado — escribe el tuyo arriba, o impórtalo desde Default en Configuración de Secciones.', pt: 'Ainda não configurado — escreva o seu acima, ou importe do Default em Configurações de Seção.', zh: '尚未设置——请在上方撰写内容，或在版块设置中从 Default 导入。' },
+  logout_adm: { en: 'Logout ADM', es: 'Salir del ADM', pt: 'Sair do ADM', zh: '退出 ADM' },
+  delete_group_btn: { en: '🗑️ Delete Group', es: '🗑️ Eliminar Grupo', pt: '🗑️ Excluir Grupo', zh: '🗑️ 删除分组' },
+  del_short: { en: '🗑️ Del', es: '🗑️ Elim.', pt: '🗑️ Exc.', zh: '🗑️ 删除' },
+  by_short: { en: 'By:', es: 'Por:', pt: 'Por:', zh: '发布者：' },
+  used_word: { en: 'Used', es: 'Usado', pt: 'Usado', zh: '已使用' },
+  add_btn_generic: { en: 'Add', es: 'Agregar', pt: 'Adicionar', zh: '添加' },
+  admin_badge: { en: '🛡️ Admin', es: '🛡️ Admin', pt: '🛡️ Admin', zh: '🛡️ 管理员' },
+  status_active_badge: { en: '✓ Active', es: '✓ Activo', pt: '✓ Ativo', zh: '✓ 已激活' },
+  status_blocked_badge: { en: '🚫 Blocked', es: '🚫 Bloqueado', pt: '🚫 Bloqueado', zh: '🚫 已封禁' },
+  status_pending_badge: { en: '⏳ Pending', es: '⏳ Pendiente', pt: '⏳ Pendente', zh: '⏳ 待处理' },
   no_experiences_found: { en: 'No experiences found.', es: 'No se encontraron experiencias.', pt: 'Nenhuma experiência encontrada.', zh: '未找到任何经验。' },
 };
 
@@ -6631,7 +6641,7 @@ autoComplete="off"
         onClick={exitAdminMode}
         className="ml-auto px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors"
       >
-        Logout ADM
+        {t('logout_adm')}
       </button>
     </div>
   </div>
@@ -6671,7 +6681,7 @@ autoComplete="off"
         onClick={exitAdminMode}
         className="ml-auto px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors"
       >
-        Logout ADM
+        {t('logout_adm')}
       </button>
     </div>
     <div className="flex flex-col gap-1 mt-2">
@@ -6731,7 +6741,7 @@ autoComplete="off"
         onClick={exitAdminMode}
         className="ml-auto px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors"
       >
-        Logout ADM
+        {t('logout_adm')}
       </button>
     </div>
   </div>
@@ -6937,7 +6947,7 @@ autoComplete="off"
                 title="Set as the 'Company' the context dropdown points to" className="w-4 h-4 flex-shrink-0" />
               <span className="text-sm font-medium text-gray-800 text-left whitespace-nowrap w-32 flex-shrink-0 truncate">{c.name}</span>
               <span className="text-xs text-gray-500 text-left whitespace-nowrap w-24 flex-shrink-0">
-                Since: {c.created_at ? new Date(c.created_at).toLocaleDateString() : '—'}
+                {t('since_label')} {c.created_at ? new Date(c.created_at).toLocaleDateString() : '—'}
               </span>
               <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-slate-100 text-slate-600 text-left whitespace-nowrap w-32 flex-shrink-0 truncate">
                 By: {c.created_by_seller_id
@@ -7065,7 +7075,7 @@ autoComplete="off"
                 <span className="text-sm font-medium text-gray-800 text-left whitespace-nowrap w-28 flex-shrink-0 truncate">{s.name}</span>
                 <span className="text-xs text-gray-500 font-mono text-left whitespace-nowrap w-20 flex-shrink-0">{s.employee_id}</span>
                 <span className="text-xs text-gray-500 text-left whitespace-nowrap w-24 flex-shrink-0">
-                  Since: {s.created_at ? new Date(s.created_at).toLocaleDateString() : '—'}
+                  {t('since_label')} {s.created_at ? new Date(s.created_at).toLocaleDateString() : '—'}
                 </span>
                 <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium text-left whitespace-nowrap w-16 flex-shrink-0 text-center ${
                   s.status === 'active' ? 'bg-green-100 text-green-700'
@@ -7262,7 +7272,7 @@ autoComplete="off"
                     }
                   }}
                   className="px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700"
-                >🗑️ Delete Group</button>
+                >{t('delete_group_btn')}</button>
               </div>
 
               {/* Members */}
@@ -7284,9 +7294,9 @@ autoComplete="off"
                       <span className="text-xs font-medium text-pink-800 text-left whitespace-nowrap w-24 flex-shrink-0">PW: {emp.password}</span>
                       <span className="text-xs text-pink-500 uppercase text-left w-10 flex-shrink-0">[{emp.language || 'en'}]</span>
                       <span className={`text-xs px-1 py-0.5 rounded-full font-semibold text-left whitespace-nowrap w-14 flex-shrink-0 text-center ${isExpired ? 'bg-red-200 text-red-800' : 'bg-green-200 text-green-800'}`}>{isExpired ? 'Expired' : 'Active'}</span>
-                      <span className={`text-xs px-1 py-0.5 rounded-full font-semibold text-left whitespace-nowrap w-16 flex-shrink-0 text-center ${isUsed ? 'bg-amber-200 text-amber-800' : 'bg-gray-200 text-gray-600'}`}>{isUsed ? 'Used' : 'Not Used'}</span>
+                      <span className={`text-xs px-1 py-0.5 rounded-full font-semibold text-left whitespace-nowrap w-16 flex-shrink-0 text-center ${isUsed ? 'bg-amber-200 text-amber-800' : 'bg-gray-200 text-gray-600'}`}>{isUsed ? t('used_word') : t('not_used')}</span>
                       <span className="text-xs text-pink-500 text-left whitespace-nowrap w-28 flex-shrink-0">
-                        {emp.created_at ? `Since: ${new Date(emp.created_at).toLocaleDateString()}` : ''}
+                        {emp.created_at ? `${t('since_label')} ${new Date(emp.created_at).toLocaleDateString()}` : ''}
                       </span>
                       <span className="text-xs text-pink-500 text-left whitespace-nowrap w-28 flex-shrink-0">
                         {emp.demo_expires_at ? `Exp: ${new Date(emp.demo_expires_at).toLocaleDateString()}` : ''}
@@ -7317,7 +7327,7 @@ autoComplete="off"
                         }}
                         className="px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 flex-shrink-0 whitespace-nowrap"
                         title={t('retires_id_permanently')}
-                      >🗑️ Del</button>
+                      >{t('del_short')}</button>
                     </div>
                     );
                   })}
@@ -7849,7 +7859,7 @@ autoComplete="off"
               </div>
 
               <div className="bg-white rounded p-4">
-                <h4 className="font-medium text-gray-700 mb-3">Existing Quotes ({quotes.length})</h4>
+                <h4 className="font-medium text-gray-700 mb-3">{t('existing_quotes_title')} ({quotes.length})</h4>
                 {quotes.length === 0 ? (
                   <p className="text-sm text-gray-500">{t('no_quotes_yet')}</p>
                 ) : (
@@ -8430,11 +8440,11 @@ autoComplete="off"
                 <span className="text-xs text-gray-500 flex-1 min-w-32 truncate">{emp.email}</span>
                 {emp.is_admin && (
                   <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-purple-100 text-purple-700">
-                    🛡️ Admin
+                    {t('admin_badge')}
                   </span>
                 )}
                 <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${emp.status === 'active' ? 'bg-green-100 text-green-700' : emp.status === 'blocked' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                  {emp.status === 'active' ? '✓ Active' : emp.status === 'blocked' ? '🚫 Blocked' : '⏳ Pending'}
+                  {emp.status === 'active' ? t('status_active_badge') : emp.status === 'blocked' ? t('status_blocked_badge') : t('status_pending_badge')}
                 </span>
                 {!isReadOnlyOrMasterManaging && (
                 <>
@@ -8602,7 +8612,7 @@ autoComplete="off"
             else alert('Error adding category');
           }}
           className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm hover:bg-teal-700"
-        >Add</button>
+        >{t('add_btn_generic')}</button>
       </div>
 
       {/* Import / Export Excel */}
@@ -9610,7 +9620,7 @@ onClick={() => {
                               </p>
                             )}
                             {match.author && (
-                              <p className="text-xs text-gray-600 mb-1">By: {match.author}</p>
+                              <p className="text-xs text-gray-600 mb-1">{t('by_short')} {match.author}</p>
                             )}
                             <p className="text-sm text-gray-600 italic border-l-4 border-yellow-400 pl-2">
                               "{match.text.substring(0, 200)}{match.text.length > 200 ? '...' : ''}"
