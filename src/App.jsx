@@ -620,6 +620,8 @@ const UI_STRINGS = {
   new_practice_name_prompt: { en: 'New Practice name:', es: 'Nombre de la nueva Práctica:', pt: 'Nome da nova Prática:', zh: '新领域名称：' },
   error_updating_practice: { en: 'Error updating practice:', es: 'Error al actualizar la práctica:', pt: 'Erro ao atualizar a prática:', zh: '更新领域时出错：' },
   error_creating_practice: { en: 'Error creating practice:', es: 'Error al crear la práctica:', pt: 'Erro ao criar a prática:', zh: '创建领域时出错：' },
+  admin_settings_title: { en: 'Admin Settings', es: 'Configuración de Admin', pt: 'Configurações de Admin', zh: '管理员设置' },
+  live_preview_title: { en: 'Live Preview', es: 'Vista Previa en Vivo', pt: 'Pré-visualização ao Vivo', zh: '实时预览' },
   name_placeholder: { en: 'Name', es: 'Nombre', pt: 'Nome', zh: '姓名' },
   admin_label_short: { en: 'Admin', es: 'Admin', pt: 'Admin', zh: '管理员' },
   employee_id_star: { en: 'Employee ID *', es: 'ID de Empleado *', pt: 'ID do Funcionário *', zh: '员工 ID *' },
@@ -952,7 +954,9 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   // tudo que for criado é tratado como demo: efêmero, invisível pra mais
   // ninguém, apagado ao sair. Precisa vir ANTES de effectiveViewingLanguage,
   // que depende dela.
-  const isDemoModeActive = (isDefaultAdmin || isSeller) && isViewingDefault && companyViewMode !== 'sample';
+  const isDemoModeActive =
+    ((isDefaultAdmin || isSeller) && isViewingDefault && companyViewMode !== 'sample') ||
+    (employeeIsAdmin && !isAdmin && !isDefaultAdmin && !isSeller && !isViewingDefault); // Admin de empresa comum, fora do ADM, testando/apresentando o próprio front-end pra time interno
   // Idioma que efetivamente filtra o conteúdo do Default: se quem está
   // navegando é Master/Seller em modo demo (dentro OU fora do painel Admin —
   // por isso "isDemoModeActive" e não "isAdmin", já que o seletor manual
@@ -6689,6 +6693,9 @@ autoComplete="off"
 
 
 
+{isAdmin && (
+  <h2 className="text-lg font-bold text-gray-700 mt-6 mb-1 max-w-4xl mx-auto px-1">{t('admin_settings_title')}</h2>
+)}
 {isAdmin && isDefaultAdmin && (
   <div className={`mt-4 rounded-lg shadow-md p-4 max-w-4xl mx-auto border-2 ${adminCompanyContext ? 'bg-amber-50 border-amber-400' : 'bg-gray-50 border-gray-300'}`}>
     <div className="flex items-center gap-3 flex-wrap">
@@ -9219,202 +9226,6 @@ for (const row of rows) {
     </div>
   </div>
 )}
-        
-        {/* Inspirational Quotes Marquee - Top */}
-        {appSettings.showMarquee && !isSellerBaseView && (() => {
-          const topQuotes = quotes.filter(q => q.position === 'top');
-          if (topQuotes.length === 0) return null;
-          return (
-            <div className="overflow-hidden py-2 mb-8">
-              <div className="animate-marquee whitespace-nowrap inline-block">
-                {topQuotes.concat(topQuotes).map((quote, index) => (
-                  <span key={index} className="inline-block mx-8 text-gray-700" style={{ whiteSpace: 'pre' }}>
-                    <span className="italic">{quote.text}</span>
-                    {quote.author && <span className="text-indigo-600 ml-2">— {quote.author}</span>}
-                  </span>
-                ))}
-              </div>
-            </div>
-          );
-        })()}
-
-        {/* Top 3 Experiences This Week - MOVED TO TOP */}
-        {appSettings.showTop3 && top3VisibleInSession && !isSellerBaseView && (() => {
-          const top3Data = [1, 2, 3]
-            .map(pos => experiences.find(exp => exp.id === topExperiences[pos]))
-            .filter(Boolean);
-          
-          if (top3Data.length === 0) return null;
-          
-          return (
-            <div className="bg-gradient-to-r from-purple-100 to-blue-100 rounded-2xl shadow-xl p-8 mb-8 border-2 border-purple-300 relative">
-              {navSnapshot?.destination === 'top3' && (
-                <button
-                  onClick={goBackToSnapshot}
-                  className="absolute top-4 left-4 text-gray-500 hover:text-gray-700 text-sm bg-white bg-opacity-70 hover:bg-opacity-100 rounded-full px-3 py-1 transition-colors"
-                  title={t('back_to_where_you_were')}
-                >
-                  {t('back')}
-                </button>
-              )}
-              <button
-                onClick={() => handleTop3Toggle(false)}
-                className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-sm bg-white bg-opacity-70 hover:bg-opacity-100 rounded-full px-3 py-1 transition-colors"
-                title={t('hide_top3')}
-              >
-                {t("hide")}
-              </button>
-              <div className="text-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-800 flex items-center justify-center gap-3 mb-2">
-                  <Star className="text-yellow-500 fill-yellow-500" size={28} />
-                  {t('top3_this_week')}
-                  <Star className="text-yellow-500 fill-yellow-500" size={28} />
-                </h2>
-                <p className="text-gray-600">{t('handpicked_experiences')}</p>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                {top3Data.map((exp, index) => (
-                  <button
-                    key={exp.id}
-
-onClick={() => {
-  const expId = exp.id;
-  
-  // SEMPRE mudar para Individual e limpar TODOS os filtros
-  setActiveMainTab('see');
-  setFilterMode('individual');
-  setShowKeyInsights(false);
-  setKeyInsightCategory('');
-  setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '', industrySector: '' });
-  setMappedFilter(null);
-  // Aguardar React renderizar (reduzido)
-  setTimeout(() => {
-    const individualExps = experiences.filter(e => e.author !== 'key_insights');
-    const expIndex = individualExps.findIndex(e => e.id === expId);
-    
-    if (expIndex !== -1) {
-      const expPage = Math.ceil((expIndex + 1) / experiencesPerPage);
-      setCurrentPage(expPage);
-      
-      // Aguardar renderização e scrollar (MAIS RÁPIDO)
-      setTimeout(() => {
-        let attempts = 0;
-        const tryScroll = setInterval(() => {
-          const expElement = document.getElementById(`exp-${expId}`);
-          
-          if (expElement) {
-            clearInterval(tryScroll);
-            const yOffset = -100;
-            const y = expElement.getBoundingClientRect().top + window.pageYOffset + yOffset;
-            window.scrollTo({ top: y, behavior: 'smooth' });
-          } else if (attempts >= 15) {
-            clearInterval(tryScroll);
-          }
-          
-          attempts++;
-        }, 150);
-      }, 400);
-    }
-  }, 50);
-}}
-
-
-                    
-                    className="bg-white rounded-xl shadow-lg p-6 relative hover:shadow-2xl hover:scale-105 transition-all duration-300 text-left cursor-pointer"
-                  
-                >
-                    <div className="absolute -top-3 -left-3 bg-yellow-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg shadow-lg">
-                      #{index + 1}
-                    </div>
-                    
-                    <div className="space-y-4 mt-2">
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2 mb-2">
-                          <h4 className="font-semibold text-red-600 flex items-center gap-2">
-                            <AlertCircle size={16} />
-                            {t('problem')}
-                          </h4>
-                          <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full shrink-0 ml-auto">
-                            {exp.problemCategory}
-                          </span>
-                        </div>
-                        <p className="text-sm text-gray-700 line-clamp-3">{exp.problem}</p>
-                      </div>
-
-                      <div>
-                        <h4 className="font-semibold text-blue-600 flex items-center gap-2 mb-2">
-                          <TrendingUp size={16} />
-                          {t('action')}
-                        </h4>
-<p 
-  className={`text-sm text-gray-700 ${exp.author === 'key_insights' ? 'whitespace-pre-line' : 'line-clamp-3 whitespace-pre-line'}`}
->
-  {exp.solution}
-</p>
-                      </div>
-
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2 mb-2">
-                          <h4 className="font-semibold text-green-600 flex items-center gap-2">
-                            <Share2 size={16} />
-                            {t('result')}
-                          </h4>
-                          <span className={`text-xs px-3 py-1 rounded-full shrink-0 ml-auto ${getResultColor(exp.resultCategory)}`}>
-                            {getResultLabel(exp.resultCategory)}
-                          </span>
-                        </div>
-                        <p className="text-sm text-gray-700 line-clamp-3">{exp.result}</p>
-                      </div>
-                    </div>
-
-                    {/* Click to comment CTA */}
-                    <div className="mt-4 pt-4 border-t-2 border-purple-200">
-                    <p className="text-center text-lg">
-                      💬 ✍️
-                    </p>
-                    </div>
-                    
-                  </button>
-                ))}
-              </div>
-              
-              <div className="text-center">
-                <button
-                  onClick={() => {
-                    setActiveMainTab('see');
-                    scrollToTabs();
-                  }}
-                  className="text-purple-600 hover:text-purple-800 font-medium text-sm flex items-center gap-2 mx-auto transition-colors"
-                >
-                  <TrendingUp size={16} />
-                  {t("check_all_experiences_shared")}
-                  <TrendingUp size={16} className="rotate-180" />
-                </button>
-              </div>
-            </div>
-          );
-        })()}
-
-        {/* Inspirational Quotes Marquee - Bottom */}
-        {appSettings.showMarquee && !isSellerBaseView && (() => {
-          const bottomQuotes = quotes.filter(q => q.position === 'bottom');
-          if (bottomQuotes.length === 0) return null;
-          return (
-            <div className="overflow-hidden py-2 mb-8">
-              <div className="animate-marquee whitespace-nowrap inline-block">
-                {bottomQuotes.concat(bottomQuotes).map((quote, index) => (
-                  <span key={index} className="inline-block mx-8 text-gray-700">
-                    <span className="italic">"{quote.text}"</span>
-                    <span className="text-indigo-600 ml-2">— {quote.author}</span>
-                  </span>
-                ))}
-              </div>
-            </div>
-          );
-        })()}
-
-{/* Tabs estilo fichário — substitui os botões de navegação */}
           {isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('keyword_filter')) && (
             <div className="mt-4 bg-yellow-50 border-2 border-yellow-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
@@ -9733,6 +9544,204 @@ onClick={() => {
               </div>
             </div>
           )}
+        {isAdmin && (
+          <h2 className="text-lg font-bold text-gray-700 mt-6 mb-1 max-w-4xl mx-auto px-1">{t('live_preview_title')}</h2>
+        )}
+        {/* Inspirational Quotes Marquee - Top */}
+        {appSettings.showMarquee && !isSellerBaseView && (() => {
+          const topQuotes = quotes.filter(q => q.position === 'top');
+          if (topQuotes.length === 0) return null;
+          return (
+            <div className="overflow-hidden py-2 mb-8">
+              <div className="animate-marquee whitespace-nowrap inline-block">
+                {topQuotes.concat(topQuotes).map((quote, index) => (
+                  <span key={index} className="inline-block mx-8 text-gray-700" style={{ whiteSpace: 'pre' }}>
+                    <span className="italic">{quote.text}</span>
+                    {quote.author && <span className="text-indigo-600 ml-2">— {quote.author}</span>}
+                  </span>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* Top 3 Experiences This Week - MOVED TO TOP */}
+        {appSettings.showTop3 && top3VisibleInSession && !isSellerBaseView && (() => {
+          const top3Data = [1, 2, 3]
+            .map(pos => experiences.find(exp => exp.id === topExperiences[pos]))
+            .filter(Boolean);
+          
+          if (top3Data.length === 0) return null;
+          
+          return (
+            <div className="bg-gradient-to-r from-purple-100 to-blue-100 rounded-2xl shadow-xl p-8 mb-8 border-2 border-purple-300 relative">
+              {navSnapshot?.destination === 'top3' && (
+                <button
+                  onClick={goBackToSnapshot}
+                  className="absolute top-4 left-4 text-gray-500 hover:text-gray-700 text-sm bg-white bg-opacity-70 hover:bg-opacity-100 rounded-full px-3 py-1 transition-colors"
+                  title={t('back_to_where_you_were')}
+                >
+                  {t('back')}
+                </button>
+              )}
+              <button
+                onClick={() => handleTop3Toggle(false)}
+                className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-sm bg-white bg-opacity-70 hover:bg-opacity-100 rounded-full px-3 py-1 transition-colors"
+                title={t('hide_top3')}
+              >
+                {t("hide")}
+              </button>
+              <div className="text-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-800 flex items-center justify-center gap-3 mb-2">
+                  <Star className="text-yellow-500 fill-yellow-500" size={28} />
+                  {t('top3_this_week')}
+                  <Star className="text-yellow-500 fill-yellow-500" size={28} />
+                </h2>
+                <p className="text-gray-600">{t('handpicked_experiences')}</p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                {top3Data.map((exp, index) => (
+                  <button
+                    key={exp.id}
+
+onClick={() => {
+  const expId = exp.id;
+  
+  // SEMPRE mudar para Individual e limpar TODOS os filtros
+  setActiveMainTab('see');
+  setFilterMode('individual');
+  setShowKeyInsights(false);
+  setKeyInsightCategory('');
+  setFilters({ problemCategory: '', searchText: '', resultCategory: '', rating: '', gender: '', age: '', country: '', industrySector: '' });
+  setMappedFilter(null);
+  // Aguardar React renderizar (reduzido)
+  setTimeout(() => {
+    const individualExps = experiences.filter(e => e.author !== 'key_insights');
+    const expIndex = individualExps.findIndex(e => e.id === expId);
+    
+    if (expIndex !== -1) {
+      const expPage = Math.ceil((expIndex + 1) / experiencesPerPage);
+      setCurrentPage(expPage);
+      
+      // Aguardar renderização e scrollar (MAIS RÁPIDO)
+      setTimeout(() => {
+        let attempts = 0;
+        const tryScroll = setInterval(() => {
+          const expElement = document.getElementById(`exp-${expId}`);
+          
+          if (expElement) {
+            clearInterval(tryScroll);
+            const yOffset = -100;
+            const y = expElement.getBoundingClientRect().top + window.pageYOffset + yOffset;
+            window.scrollTo({ top: y, behavior: 'smooth' });
+          } else if (attempts >= 15) {
+            clearInterval(tryScroll);
+          }
+          
+          attempts++;
+        }, 150);
+      }, 400);
+    }
+  }, 50);
+}}
+
+
+                    
+                    className="bg-white rounded-xl shadow-lg p-6 relative hover:shadow-2xl hover:scale-105 transition-all duration-300 text-left cursor-pointer"
+                  
+                >
+                    <div className="absolute -top-3 -left-3 bg-yellow-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg shadow-lg">
+                      #{index + 1}
+                    </div>
+                    
+                    <div className="space-y-4 mt-2">
+                      <div>
+                        <div className="flex flex-wrap items-center gap-2 mb-2">
+                          <h4 className="font-semibold text-red-600 flex items-center gap-2">
+                            <AlertCircle size={16} />
+                            {t('problem')}
+                          </h4>
+                          <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full shrink-0 ml-auto">
+                            {exp.problemCategory}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-700 line-clamp-3">{exp.problem}</p>
+                      </div>
+
+                      <div>
+                        <h4 className="font-semibold text-blue-600 flex items-center gap-2 mb-2">
+                          <TrendingUp size={16} />
+                          {t('action')}
+                        </h4>
+<p 
+  className={`text-sm text-gray-700 ${exp.author === 'key_insights' ? 'whitespace-pre-line' : 'line-clamp-3 whitespace-pre-line'}`}
+>
+  {exp.solution}
+</p>
+                      </div>
+
+                      <div>
+                        <div className="flex flex-wrap items-center gap-2 mb-2">
+                          <h4 className="font-semibold text-green-600 flex items-center gap-2">
+                            <Share2 size={16} />
+                            {t('result')}
+                          </h4>
+                          <span className={`text-xs px-3 py-1 rounded-full shrink-0 ml-auto ${getResultColor(exp.resultCategory)}`}>
+                            {getResultLabel(exp.resultCategory)}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-700 line-clamp-3">{exp.result}</p>
+                      </div>
+                    </div>
+
+                    {/* Click to comment CTA */}
+                    <div className="mt-4 pt-4 border-t-2 border-purple-200">
+                    <p className="text-center text-lg">
+                      💬 ✍️
+                    </p>
+                    </div>
+                    
+                  </button>
+                ))}
+              </div>
+              
+              <div className="text-center">
+                <button
+                  onClick={() => {
+                    setActiveMainTab('see');
+                    scrollToTabs();
+                  }}
+                  className="text-purple-600 hover:text-purple-800 font-medium text-sm flex items-center gap-2 mx-auto transition-colors"
+                >
+                  <TrendingUp size={16} />
+                  {t("check_all_experiences_shared")}
+                  <TrendingUp size={16} className="rotate-180" />
+                </button>
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* Inspirational Quotes Marquee - Bottom */}
+        {appSettings.showMarquee && !isSellerBaseView && (() => {
+          const bottomQuotes = quotes.filter(q => q.position === 'bottom');
+          if (bottomQuotes.length === 0) return null;
+          return (
+            <div className="overflow-hidden py-2 mb-8">
+              <div className="animate-marquee whitespace-nowrap inline-block">
+                {bottomQuotes.concat(bottomQuotes).map((quote, index) => (
+                  <span key={index} className="inline-block mx-8 text-gray-700">
+                    <span className="italic">"{quote.text}"</span>
+                    <span className="text-indigo-600 ml-2">— {quote.author}</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
+
+{/* Tabs estilo fichário — substitui os botões de navegação */}
           
 {masterBlockedFromPublicTabs && !isSellerBaseView && !isSellerManagingOwnCompany && !(isDefaultAdmin && !!adminCompanyContext) && (
   <div className="mt-5 mb-8 max-w-2xl mx-auto bg-amber-50 border-2 border-amber-300 rounded-2xl p-6 text-center">
