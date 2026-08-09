@@ -826,6 +826,7 @@ const [navSnapshot, setNavSnapshot] = useState(null); // { destination: 'browse'
   
   // ⭐ ADICIONAR AQUI - Estados para Employee Login ⭐
   const [isEmployeeLoggedIn, setIsEmployeeLoggedIn] = useState(false);
+  const [mySessionToken, setMySessionToken] = useState(() => localStorage.getItem('mySessionToken') || null);
   // ⭐ PWA Install
   const [deferredInstallPrompt, setDeferredInstallPrompt] = useState(null);
   const [isAppInstalled, setIsAppInstalled] = useState(false);
@@ -1589,7 +1590,17 @@ useEffect(() => {
       (payload) => {
         const wasDeleted = payload.eventType === 'DELETE';
         const wasRetired = payload.eventType === 'UPDATE' && (payload.new?.retired === true || payload.new?.active === false);
-        if (wasDeleted || wasRetired) {
+        // "Delete Group" não apaga nem aposenta o ID — só solta ele de
+        // volta pro pool (group_id: null), pra reuso futuro num grupo
+        // novo. Só conta como "derrubar" se for um Demo ID (is_demo) que
+        // tinha grupo e ficou sem — um employee comum sempre tem
+        // group_id nulo por natureza, isso sozinho não significa nada.
+        const wasReleasedFromGroup = payload.eventType === 'UPDATE' && payload.new?.is_demo === true && payload.new?.group_id === null;
+        // Sessão única por ID: se o token no banco mudou pra algo diferente
+        // do que EU tenho salvo, é porque alguém logou com o mesmo ID em
+        // outro lugar — a sessão mais nova vence, essa aqui se desconecta.
+        const wasSupersededByNewLogin = payload.eventType === 'UPDATE' && payload.new?.current_session_token && payload.new.current_session_token !== mySessionToken;
+        if (wasDeleted || wasRetired || wasReleasedFromGroup || wasSupersededByNewLogin) {
           alert(t('session_ended_by_admin'));
           handleEmployeeLogout();
         }
@@ -1600,7 +1611,38 @@ useEffect(() => {
   return () => {
     supabase.removeChannel(channel);
   };
-}, [isEmployeeLoggedIn, employeeId]);
+}, [isEmployeeLoggedIn, employeeId, mySessionToken]);
+
+// Rede de segurança pro caso do ID já ter sido apagado/aposentado/solto
+// do grupo (ou substituído por outro login) ANTES dessa proteção existir,
+// ou se o Realtime não estiver disponível por algum motivo — o Realtime só
+// avisa de mudanças que acontecem enquanto a escuta já está ativa, não
+// "recupera" algo que já aconteceu no passado. Essa checagem pergunta ao
+// banco, de tempos em tempos, "meu próprio ID ainda existe e está válido?".
+useEffect(() => {
+  if (!isEmployeeLoggedIn || !employeeId) return;
+
+  const checkStillValid = async () => {
+    const { data, error } = await supabase
+      .from('employees')
+      .select('retired, active, is_demo, group_id, current_session_token')
+      .eq('employee_id', employeeId)
+      .maybeSingle();
+    if (error) {
+      console.error('Kill-switch: erro na consulta de validade da sessão:', error);
+      return;
+    }
+    const wasReleasedFromGroup = data?.is_demo === true && data?.group_id === null;
+    const wasSupersededByNewLogin = data?.current_session_token && data.current_session_token !== mySessionToken;
+    if (!data || data.retired === true || data.active === false || wasReleasedFromGroup || wasSupersededByNewLogin) {
+      alert(t('session_ended_by_admin'));
+      handleEmployeeLogout();
+    }
+  };
+
+  const intervalId = setInterval(checkStillValid, 30000); // a cada 30s
+  return () => clearInterval(intervalId);
+}, [isEmployeeLoggedIn, employeeId, mySessionToken]);
   
   const detectUserCountry = async () => {
     try {
@@ -3542,6 +3584,17 @@ const handleEmployeeLogin = async () => {
     const { error: loginTrackError } = await supabase
       .from('employees').update({ last_login_at: new Date().toISOString() }).eq('id', data.id);
     if (loginTrackError) console.error('Error recording last_login_at:', loginTrackError);
+
+    // Sessão única por ID: gera um token novo e grava no banco — se já
+    // havia alguém logado com esse mesmo ID (outro navegador/dispositivo),
+    // essa troca de token é o que faz a sessão antiga se desconectar
+    // sozinha (ela está de olho nesse mesmo campo).
+    const newSessionToken = crypto.randomUUID();
+    const { error: sessionTokenError } = await supabase
+      .from('employees').update({ current_session_token: newSessionToken }).eq('id', data.id);
+    if (sessionTokenError) console.error('Error setting session token:', sessionTokenError);
+    setMySessionToken(newSessionToken);
+    localStorage.setItem('mySessionToken', newSessionToken);
     
 // Login bem-sucedido — tudo que é síncrono roda ANTES de qualquer await, pra
   // o React juntar isso numa única atualização de tela. Se isAdmin fosse
@@ -3638,6 +3691,14 @@ const handleEmployeeLogin = async () => {
   if (isDemoModeActive && currentDemoSessionId) {
     await deleteDemoSession(currentDemoSessionId, { silent: true });
   }
+  // Limpa o token de sessão única — só se ainda for o meu próprio token
+  // (evita apagar por engano o token de um login mais novo, no caso de
+  // essa função ter sido chamada justamente porque fomos substituídos).
+  if (employeeId && mySessionToken) {
+    await supabase.from('employees').update({ current_session_token: null }).eq('employee_id', employeeId).eq('current_session_token', mySessionToken);
+  }
+  setMySessionToken(null);
+  localStorage.removeItem('mySessionToken');
   setIsEmployeeLoggedIn(false);
   setEmployeeId('');
   localStorage.removeItem('employeeLoggedIn');
