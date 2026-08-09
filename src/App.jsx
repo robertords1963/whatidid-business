@@ -386,6 +386,7 @@ const UI_STRINGS = {
   viewing: { en: 'Viewing:', es: 'Viendo:', pt: 'Visualizando:', zh: '正在查看：' },
   language: { en: 'Language:', es: 'Idioma:', pt: 'Idioma:', zh: '语言：' },
   labels_language: { en: 'Labels Language:', es: 'Idioma de Etiquetas:', pt: 'Idioma dos Rótulos:', zh: '界面标签语言：' },
+  session_ended_by_admin: { en: 'Your access has been ended.', es: 'Tu acceso ha finalizado.', pt: 'Seu acesso foi encerrado.', zh: '您的访问已结束。' },
   default_word: { en: 'Default', es: 'Predeterminado', pt: 'Padrão', zh: '默认' },
   company_word: { en: 'Company', es: 'Empresa', pt: 'Empresa', zh: '公司' },
   // Lote 14 — Follow-On, navegação inferior, upload
@@ -892,6 +893,24 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   const [importLanguage, setImportLanguage] = useState(() => {
     return localStorage.getItem('importLanguage') || 'en';
   });
+  // Obstáculos leves contra cópia casual — não impedem alguém decidido
+  // (F12 pelo menu do navegador continua funcionando, "Ver código-fonte"
+  // via Ctrl+U geralmente não dá pra bloquear via JS), mas evitam o
+  // clique-direito → "Salvar como" e os atalhos mais comuns.
+  useEffect(() => {
+    const blockContextMenu = (e) => e.preventDefault();
+    const blockDevToolsShortcuts = (e) => {
+      if (e.key === 'F12') e.preventDefault();
+      if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) e.preventDefault();
+      if (e.ctrlKey && e.key === 'u') e.preventDefault();
+    };
+    document.addEventListener('contextmenu', blockContextMenu);
+    document.addEventListener('keydown', blockDevToolsShortcuts);
+    return () => {
+      document.removeEventListener('contextmenu', blockContextMenu);
+      document.removeEventListener('keydown', blockDevToolsShortcuts);
+    };
+  }, []);
   useEffect(() => {
     localStorage.setItem('importLanguage', importLanguage);
   }, [importLanguage]);
@@ -1551,6 +1570,37 @@ useEffect(() => {
     setEmployeeId(savedEmployeeId);
   }
 }, []);
+
+// "Chave de desligar na hora" — enquanto alguém está logado (Demo ID,
+// employee comum, Seller, Admin), o app escuta em tempo real (Supabase
+// Realtime) se o próprio registro dela na tabela employees foi apagado
+// OU marcado como "retired" (o botão de Delete de um Demo ID dentro de
+// um Grupo não apaga a linha, só aposenta com retired:true/active:false).
+// Em qualquer um dos dois casos, ela é deslogada imediatamente, mesmo
+// sem recarregar a página ou fazer qualquer ação.
+useEffect(() => {
+  if (!isEmployeeLoggedIn || !employeeId) return;
+
+  const channel = supabase
+    .channel(`employee-kill-switch-${employeeId}`)
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'employees', filter: `employee_id=eq.${employeeId}` },
+      (payload) => {
+        const wasDeleted = payload.eventType === 'DELETE';
+        const wasRetired = payload.eventType === 'UPDATE' && (payload.new?.retired === true || payload.new?.active === false);
+        if (wasDeleted || wasRetired) {
+          alert(t('session_ended_by_admin'));
+          handleEmployeeLogout();
+        }
+      }
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}, [isEmployeeLoggedIn, employeeId]);
   
   const detectUserCountry = async () => {
     try {
