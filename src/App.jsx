@@ -6717,69 +6717,81 @@ autoComplete="off"
 </div>
           
 {isDemoModeActive && !(isSeller && isAdmin) && !(isDefaultAdmin && isAdmin) && (
-  <div className="mt-4 max-w-3xl mx-auto bg-purple-50 border-2 border-purple-300 rounded-2xl p-3 flex items-center justify-evenly gap-2 flex-wrap">
-    <select
-      value={viewingLanguage}
-      onChange={(e) => setViewingLanguage(e.target.value)}
-      className="p-1.5 border-2 border-purple-300 rounded-lg text-xs font-medium bg-white flex-shrink-0"
-      title="Language"
-    >
-      <option value="en">English</option>
-      <option value="es">Español</option>
-      <option value="pt">Português</option>
-      <option value="zh">中文 (Chinese)</option>
-    </select>
-    <p className="text-purple-800 text-sm font-medium text-center flex-1 min-w-[180px]">
-      {t('demo_mode_leave')}
-    </p>
-    {currentDemoSessionId && (
-      <button
-        onClick={() => { if (window.confirm(t('confirm_delete_demo_session'))) deleteDemoSession(currentDemoSessionId); }}
-        className="flex-shrink-0 px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-medium whitespace-nowrap"
+  <>
+    {/* Desktop — layout original, sem nenhuma alteração */}
+    <div className="hidden md:flex mt-4 max-w-3xl mx-auto bg-purple-50 border-2 border-purple-300 rounded-2xl p-3 items-center justify-evenly gap-2 flex-wrap">
+      <select
+        value={viewingLanguage}
+        onChange={(e) => setViewingLanguage(e.target.value)}
+        className="p-1.5 border-2 border-purple-300 rounded-lg text-xs font-medium bg-white flex-shrink-0"
+        title="Language"
       >
-        {t('delete_now')}
-      </button>
-    )}
-  </div>
+        <option value="en">English</option>
+        <option value="es">Español</option>
+        <option value="pt">Português</option>
+        <option value="zh">中文 (Chinese)</option>
+      </select>
+      <p className="text-purple-800 text-sm font-medium text-center flex-1 min-w-[180px]">
+        {t('demo_mode_leave')}
+      </p>
+      {currentDemoSessionId && (
+        <button
+          onClick={() => { if (window.confirm(t('confirm_delete_demo_session'))) deleteDemoSession(currentDemoSessionId); }}
+          className="flex-shrink-0 px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-medium whitespace-nowrap"
+        >
+          {t('delete_now')}
+        </button>
+      )}
+    </div>
+
+    {/* Mobile — language sempre no topo centralizado; "Demo Mode..." centralizado
+        na linha seguinte, dividindo espaço com o botão Delete Now (centralizado
+        na altura do bloco) quando ele existir. */}
+    <div className="flex md:hidden flex-col items-center gap-2 mt-4 max-w-3xl mx-auto bg-purple-50 border-2 border-purple-300 rounded-2xl p-3">
+      <select
+        value={viewingLanguage}
+        onChange={(e) => setViewingLanguage(e.target.value)}
+        className="p-1.5 border-2 border-purple-300 rounded-lg text-xs font-medium bg-white flex-shrink-0"
+        title="Language"
+      >
+        <option value="en">English</option>
+        <option value="es">Español</option>
+        <option value="pt">Português</option>
+        <option value="zh">中文 (Chinese)</option>
+      </select>
+      <div className="flex items-center w-full gap-2">
+        <p className={`text-purple-800 text-sm font-medium ${currentDemoSessionId ? 'flex-1 text-center' : 'w-full text-center'}`}>
+          {t('demo_mode_leave')}
+        </p>
+        {currentDemoSessionId && (
+          <button
+            onClick={() => { if (window.confirm(t('confirm_delete_demo_session'))) deleteDemoSession(currentDemoSessionId); }}
+            className="flex-shrink-0 px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-medium whitespace-nowrap"
+          >
+            {t('delete_now')}
+          </button>
+        )}
+      </div>
+    </div>
+  </>
 )}
 
-{isEmployeeLoggedIn && loggedInIsDemoId && (
-  <div className="mt-4 max-w-2xl mx-auto bg-purple-50 border-2 border-purple-300 rounded-2xl p-3 flex items-center justify-between gap-2 flex-wrap">
-    <div className="flex-1 min-w-0">
-      <p className="text-purple-800 text-sm font-medium">
-        {t('demo_mode_expires')}
-      </p>
-      {(loggedInDemoCreatedAt || loggedInDemoExpiresAt) && (() => {
-        const totalDays = (loggedInDemoCreatedAt && loggedInDemoExpiresAt)
-          ? Math.round((new Date(loggedInDemoExpiresAt) - new Date(loggedInDemoCreatedAt)) / (1000 * 60 * 60 * 24))
-          : null;
-        const daysLeft = loggedInDemoExpiresAt
-          ? Math.max(0, Math.ceil((new Date(loggedInDemoExpiresAt) - new Date()) / (1000 * 60 * 60 * 24)))
-          : null;
-        return (
-          <p className="text-purple-600 text-xs mt-1">
-            {loggedInDemoCreatedAt && `(${t('created')} ${new Date(loggedInDemoCreatedAt).toLocaleDateString()})`}
-            {loggedInDemoExpiresAt && ` (${t('exp')} ${new Date(loggedInDemoExpiresAt).toLocaleDateString()})`}
-            {daysLeft !== null && totalDays !== null && ` (${daysLeft}/${totalDays} ${t('days_left')})`}
-          </p>
-        );
-      })()}
-    </div>
-    <select
-      value={loggedInEmployeeLanguage || 'en'}
-      onChange={(e) => {
-        setLoggedInEmployeeLanguage(e.target.value);
-        localStorage.setItem('loggedInEmployeeLanguage', e.target.value);
-      }}
-      className="p-1.5 border-2 border-purple-300 rounded-lg text-xs font-medium bg-white flex-shrink-0"
-      title={t('labels_language')}
-    >
-      <option value="en">English</option>
-      <option value="es">Español</option>
-      <option value="pt">Português</option>
-      <option value="zh">中文 (Chinese)</option>
-    </select>
-    {experiences.some(e => e.employeeId === employeeId || (e.comments || []).some(c => c.employeeId === employeeId)) && (
+{isEmployeeLoggedIn && loggedInIsDemoId && (() => {
+  const totalDays = (loggedInDemoCreatedAt && loggedInDemoExpiresAt)
+    ? Math.round((new Date(loggedInDemoExpiresAt) - new Date(loggedInDemoCreatedAt)) / (1000 * 60 * 60 * 24))
+    : null;
+  const daysLeft = loggedInDemoExpiresAt
+    ? Math.max(0, Math.ceil((new Date(loggedInDemoExpiresAt) - new Date()) / (1000 * 60 * 60 * 24)))
+    : null;
+  const createdText = (
+    <>
+      {loggedInDemoCreatedAt && `(${t('created')} ${new Date(loggedInDemoCreatedAt).toLocaleDateString()})`}
+      {loggedInDemoExpiresAt && ` (${t('exp')} ${new Date(loggedInDemoExpiresAt).toLocaleDateString()})`}
+      {daysLeft !== null && totalDays !== null && ` (${daysLeft}/${totalDays} ${t('days_left')})`}
+    </>
+  );
+  const hasDeleteButton = experiences.some(e => e.employeeId === employeeId || (e.comments || []).some(c => c.employeeId === employeeId));
+  const deleteButton = (
     <button
       onClick={async () => {
         if (!window.confirm(t('confirm_delete_demo_so_far'))) return;
@@ -6800,9 +6812,62 @@ autoComplete="off"
     >
       {t('delete_now')}
     </button>
-    )}
-  </div>
-)}
+  );
+  const languageSelect = (
+    <select
+      value={loggedInEmployeeLanguage || 'en'}
+      onChange={(e) => {
+        setLoggedInEmployeeLanguage(e.target.value);
+        localStorage.setItem('loggedInEmployeeLanguage', e.target.value);
+      }}
+      className="p-1.5 border-2 border-purple-300 rounded-lg text-xs font-medium bg-white flex-shrink-0"
+      title={t('labels_language')}
+    >
+      <option value="en">English</option>
+      <option value="es">Español</option>
+      <option value="pt">Português</option>
+      <option value="zh">中文 (Chinese)</option>
+    </select>
+  );
+  return (
+    <>
+      {/* Desktop — layout original, sem nenhuma alteração */}
+      <div className="hidden md:flex mt-4 max-w-2xl mx-auto bg-purple-50 border-2 border-purple-300 rounded-2xl p-3 items-center justify-between gap-2 flex-wrap">
+        <div className="flex-1 min-w-0">
+          <p className="text-purple-800 text-sm font-medium">
+            {t('demo_mode_expires')}
+          </p>
+          {(loggedInDemoCreatedAt || loggedInDemoExpiresAt) && (
+            <p className="text-purple-600 text-xs mt-1">
+              {createdText}
+            </p>
+          )}
+        </div>
+        {languageSelect}
+        {hasDeleteButton && deleteButton}
+      </div>
+
+      {/* Mobile — language sempre no topo centralizado; "Demo Mode..." centralizado
+          sozinho na linha seguinte; "(Created...)" na última linha, dividindo
+          espaço com o botão Delete Now (centralizado na altura do bloco) quando
+          ele existir. */}
+      <div className="flex md:hidden flex-col items-center gap-2 mt-4 max-w-2xl mx-auto bg-purple-50 border-2 border-purple-300 rounded-2xl p-3">
+        {languageSelect}
+        <p className="text-purple-800 text-sm font-medium text-center">
+          {t('demo_mode_expires')}
+        </p>
+        {(loggedInDemoCreatedAt || loggedInDemoExpiresAt) && (
+          <div className="flex items-center w-full gap-2">
+            <p className={`text-purple-600 text-xs ${hasDeleteButton ? 'flex-1 text-center' : 'w-full text-center'}`}>
+              {createdText}
+            </p>
+            {hasDeleteButton && deleteButton}
+          </div>
+        )}
+      </div>
+    </>
+  );
+})()}
 
 
 
