@@ -1100,6 +1100,15 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   const companyEdition = (!adminCompanyContext && isViewingDefault && (isDefaultAdmin || isSeller))
     ? viewingEdition
     : (companies.find(c => c.id === effectiveCompanyId)?.edition || 'corp');
+  // Edição específica pra decidir terminologia Employee/Member — diferente
+  // de companyEdition (que também controla o PREVIEW do Demo e pode ser
+  // trocada manualmente pelo dropdown). Gerenciar o roster interno da
+  // própria WID (Default: Master, Sellers, employees sintéticos) precisa
+  // SEMPRE ser "Employee", mesmo que o dropdown de preview esteja em
+  // Edu/Pro pra uma apresentação — por isso ignora o seletor manual
+  // especificamente quando isViewingDefault, e só usa companyEdition
+  // quando uma empresa real de verdade está em contexto.
+  const terminologyEdition = isViewingDefault ? 'corp' : companyEdition;
   // Idioma que efetivamente filtra o conteúdo do Default: se quem está
   // navegando é Master/Seller em modo demo (dentro OU fora do painel Admin —
   // por isso "isDemoModeActive" e não "isAdmin", já que o seletor manual
@@ -1122,7 +1131,7 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
     // Terminologia Employee/Member: se essa chave tem uma variante "_member"
     // definida e a empresa em contexto é Edu ou Pro, usa a variante — sem
     // precisar trocar nenhuma chamada t('xxx') espalhada pelo código.
-    const effectiveKey = (companyEdition === 'edu' || companyEdition === 'pro') && (UI_STRINGS[`${key}_member`] || uiTranslationsDB[`${key}_member`])
+    const effectiveKey = (terminologyEdition === 'edu' || terminologyEdition === 'pro') && (UI_STRINGS[`${key}_member`] || uiTranslationsDB[`${key}_member`])
       ? `${key}_member`
       : key;
     return (
@@ -7280,6 +7289,16 @@ autoComplete="off"
         <option value="pt">Português</option>
         <option value="zh">中文 (Chinese)</option>
       </select>
+      <select
+        value={viewingEdition}
+        onChange={(e) => setViewingEdition(e.target.value)}
+        className="p-1.5 border-2 border-purple-300 rounded-lg text-xs font-medium bg-white flex-shrink-0"
+        title={t('edition_label')}
+      >
+        <option value="corp">Corp</option>
+        <option value="pro">Pro</option>
+        <option value="edu">Edu</option>
+      </select>
       <p className="text-purple-800 text-sm font-medium text-center flex-1 min-w-[180px]">
         {t('demo_mode_leave')}
       </p>
@@ -7297,17 +7316,29 @@ autoComplete="off"
         na linha seguinte, dividindo espaço com o botão Delete Now (centralizado
         na altura do bloco) quando ele existir. */}
     <div className="flex md:hidden flex-col items-center gap-2 mt-4 max-w-3xl mx-auto bg-purple-50 border-2 border-purple-300 rounded-2xl p-3">
-      <select
-        value={viewingLanguage}
-        onChange={(e) => setViewingLanguage(e.target.value)}
-        className="p-1.5 border-2 border-purple-300 rounded-lg text-xs font-medium bg-white flex-shrink-0"
-        title="Language"
-      >
-        <option value="en">English</option>
-        <option value="es">Español</option>
-        <option value="pt">Português</option>
-        <option value="zh">中文 (Chinese)</option>
-      </select>
+      <div className="flex items-center gap-2">
+        <select
+          value={viewingLanguage}
+          onChange={(e) => setViewingLanguage(e.target.value)}
+          className="p-1.5 border-2 border-purple-300 rounded-lg text-xs font-medium bg-white flex-shrink-0"
+          title="Language"
+        >
+          <option value="en">English</option>
+          <option value="es">Español</option>
+          <option value="pt">Português</option>
+          <option value="zh">中文 (Chinese)</option>
+        </select>
+        <select
+          value={viewingEdition}
+          onChange={(e) => setViewingEdition(e.target.value)}
+          className="p-1.5 border-2 border-purple-300 rounded-lg text-xs font-medium bg-white flex-shrink-0"
+          title={t('edition_label')}
+        >
+          <option value="corp">Corp</option>
+          <option value="pro">Pro</option>
+          <option value="edu">Edu</option>
+        </select>
+      </div>
       <div className="flex items-center w-full gap-2">
         <p className={`text-purple-800 text-sm font-medium ${currentDemoSessionId ? 'flex-1 text-center' : 'w-full text-center'}`}>
           {t('demo_mode_leave')}
