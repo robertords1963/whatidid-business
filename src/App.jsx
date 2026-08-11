@@ -415,7 +415,8 @@ const UI_STRINGS = {
   industry_sector_label: { en: 'Industry Sector', es: 'Sector Industrial', pt: 'Setor de Atuação', zh: '行业领域' },
   attachment_type_suggestions_title: { en: 'Attachment Type Suggestions (by Edition)', es: 'Sugerencias de Tipo de Anexo (por Edición)', pt: 'Sugestões de Tipo de Anexo (por Edição)', zh: '按版本设置的附件类型建议' },
   doc_type_cv_neutral: { en: '📄 CV only (PDF)', es: '📄 Solo CV (PDF)', pt: '📄 Apenas Currículo (PDF)', zh: '📄 仅限简历（PDF）' },
-  doc_type_other_neutral: { en: '📎 Other document types', es: '📎 Otros tipos de documentos', pt: '📎 Outros tipos de documentos', zh: '📎 其他文件类型' },
+  no_uploads_option: { en: '🚫 No Uploads', es: '🚫 Sin Subidas', pt: '🚫 Sem Uploads', zh: '🚫 不允许上传' },
+  doc_type_other_neutral: { en: '📎 Other document types (PPT, XLS, PDF, DOCX)', es: '📎 Otros tipos de documentos (PPT, XLS, PDF, DOCX)', pt: '📎 Outros tipos de documentos (PPT, XLS, PDF, DOCX)', zh: '📎 其他文件类型（PPT、XLS、PDF、DOCX）' },
   use_default_suggestion: { en: 'Use suggestion from Default', es: 'Usar sugerencia de Default', pt: 'Usar sugestão do Default', zh: '使用 Default 的建议' },
   which_edition_item_appears: { en: 'Which edition this item should appear in — blank shows in every edition', es: 'En qué edición debe aparecer este elemento — en blanco se muestra en todas las ediciones', pt: 'Em qual edição este item deve aparecer — em branco aparece em todas as edições', zh: '此项目应显示在哪个版本下——留空则在所有版本中显示' },
   all_editions: { en: 'All editions', es: 'Todas las ediciones', pt: 'Todas as edições', zh: '所有版本' },
@@ -857,6 +858,17 @@ export default function WhatIDid() {
     (data || []).forEach(row => { obj[row.edition] = row; });
     setEditionDefaults(obj);
   };
+  // Branding (nome/logo) do Default por edição (Corp/Pro/Edu) — usado só
+  // quando Default Admin/Seller navegam o Default puro pra apresentação;
+  // empresas reais continuam com o próprio branding fixo, normal.
+  const [editionBranding, setEditionBranding] = useState({});
+  const loadEditionBranding = async () => {
+    const { data, error } = await supabase.from('edition_branding').select('*');
+    if (error) { console.error('Error loading edition_branding:', error); return; }
+    const obj = {};
+    (data || []).forEach(row => { obj[row.edition] = row; });
+    setEditionBranding(obj);
+  };
 
 const [companyName, setCompanyName] = useState('');
 const [companyLogoUrl, setCompanyLogoUrl] = useState('');
@@ -943,7 +955,7 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   const [employees, setEmployees] = useState([]);
   // Multi-empresa: lista de empresas cadastradas, formulário de nova empresa
   const [companies, setCompanies] = useState([]);
-  const [newCompany, setNewCompany] = useState({ name: '', code: '' });
+  const [newCompany, setNewCompany] = useState({ name: '', code: '', edition: 'corp' });
   const [companiesLoaded, setCompaniesLoaded] = useState(false);
   // Contexto de navegação do ADM Master: null = Default; caso contrário, id da empresa sendo gerenciada.
   // Sempre reseta pra null (Default) a cada reload da página, por segurança.
@@ -1109,6 +1121,16 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   // especificamente quando isViewingDefault, e só usa companyEdition
   // quando uma empresa real de verdade está em contexto.
   const terminologyEdition = isViewingDefault ? 'corp' : companyEdition;
+  // Company Branding: quando Default Admin/Seller navegam o Default puro
+  // pra apresentação (mesma condição de companyEdition usar o seletor
+  // manual), mostra/edita o branding daquela edição em vez do branding
+  // fixo do Default — empresas reais nunca entram nesse caminho, sempre
+  // usam o próprio branding normal.
+  const isPreviewingDefaultEdition = !adminCompanyContext && isViewingDefault && (isDefaultAdmin || isSeller);
+  const displayedCompanyName = isPreviewingDefaultEdition ? (editionBranding[companyEdition]?.company_name || '') : companyName;
+  const displayedCompanyLogoUrl = isPreviewingDefaultEdition ? (editionBranding[companyEdition]?.company_logo_url || '') : companyLogoUrl;
+  const displayedCompanyNameSize = isPreviewingDefaultEdition ? (editionBranding[companyEdition]?.company_name_size || 'medium') : companyNameSize;
+  const displayedCompanyLogoSize = isPreviewingDefaultEdition ? (editionBranding[companyEdition]?.company_logo_size || 'medium') : companyLogoSize;
   // Idioma que efetivamente filtra o conteúdo do Default: se quem está
   // navegando é Master/Seller em modo demo (dentro OU fora do painel Admin —
   // por isso "isDemoModeActive" e não "isAdmin", já que o seletor manual
@@ -1465,6 +1487,7 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   loadSellers();
   loadUITranslations();
   loadEditionDefaults();
+  loadEditionBranding();
   (async () => {
     await runExpiredDemoCleanup();
     await loadDemoGroups();
@@ -2673,11 +2696,12 @@ const addCompany = async () => {
     const { data, error } = await supabase.from('companies').insert([{
       name: newCompany.name.trim(),
       code: code,
+      edition: newCompany.edition,
       active: true,
       created_by_seller_id: isSeller ? loggedInSellerId : null
     }]).select().single();
     if (error) throw error;
-    setNewCompany({ name: '', code: '' });
+    setNewCompany({ name: '', code: '', edition: 'corp' });
     await loadCompanies();
     // A empresa recém-criada vira o default de "Company" no dropdown de
     // contexto — não muda o contexto sozinho, só fica pronta caso escolham
@@ -2832,11 +2856,18 @@ const importMetadataModel = async () => {
       .from('practices').select('*').eq('company_id', defaultCompanyId).eq('language', importLanguage);
     if (pErr) throw pErr;
 
+    // Só importa Practices cuja lista de edições inclui a da própria empresa
+    // (ou 'all') — evita uma empresa Corp trazer Practice marcada só como Edu.
+    const matchingPractices = (defaultPractices || []).filter(p =>
+      p.applicable_editions === 'all' || (p.applicable_editions || 'corp,pro').split(',').includes(companyEdition)
+    );
+
     let addedPractices = 0;
-    for (const p of (defaultPractices || [])) {
+    for (const p of matchingPractices) {
       if (importedPracticeIds.has(p.id)) continue; // já importado antes, pula
       const { error } = await supabase.from('practices').insert([{
         name: p.name, show_in_ui: p.show_in_ui, display_order: p.display_order, active: p.active,
+        applicable_editions: p.applicable_editions,
         company_id: effectiveCompanyId, imported_from_id: p.id, import_batch_id: batchId
       }]);
       if (error) throw error;
@@ -3149,8 +3180,10 @@ const importQuotesFromDefault = async () => {
       .from('quotes').select('imported_from_id').eq('company_id', effectiveCompanyId).not('imported_from_id', 'is', null);
     const importedIds = new Set((alreadyImported || []).map(r => r.imported_from_id));
 
+    // Só importa a edição da própria empresa — nunca faz sentido uma
+    // empresa Corp trazer quotes marcadas como Edu, etc.
     const { data: defaultQuotes, error } = await supabase
-      .from('quotes').select('*').eq('company_id', defaultCompanyId).eq('language', importLanguage);
+      .from('quotes').select('*').eq('company_id', defaultCompanyId).eq('language', importLanguage).eq('edition', companyEdition);
     if (error) throw error;
 
     let added = 0;
@@ -3158,6 +3191,7 @@ const importQuotesFromDefault = async () => {
       if (importedIds.has(q.id)) continue;
       const { error: insErr } = await supabase.from('quotes').insert([{
         text: q.text, author: q.author, position: q.position, active: q.active, language: q.language,
+        edition: q.edition,
         company_id: effectiveCompanyId, imported_from_id: q.id, import_batch_id: batchId
       }]);
       if (insErr) throw insErr;
@@ -7081,13 +7115,13 @@ autoComplete="off"
         {{corp: 'Corp', pro: 'Pro', edu: 'Edu'}[companyEdition] || 'Corp'}
       </span>
     </h1>
-    {companyName && !isSellerBaseView && (
+    {displayedCompanyName && !isSellerBaseView && (
   <div className={`flex items-center justify-center gap-3 mt-1 ${
-    companyNameSize === 'small' ? 'text-xs' :
-    companyNameSize === 'large' ? 'text-xl' : 'text-base'
+    displayedCompanyNameSize === 'small' ? 'text-xs' :
+    displayedCompanyNameSize === 'large' ? 'text-xl' : 'text-base'
   }`}>
     <div className="h-px w-8 bg-gray-600 opacity-80"></div>
-    <p className="font-semibold text-gray-500 tracking-wide">{companyName}</p>
+    <p className="font-semibold text-gray-500 tracking-wide">{displayedCompanyName}</p>
     <div className="h-px w-8 bg-gray-600 opacity-80"></div>
   </div>
 )}
@@ -7099,20 +7133,20 @@ autoComplete="off"
     >
       {t('portal_link')}
     </a>
-    {companyLogoUrl && !isSellerBaseView && (
-  <img src={companyLogoUrl} alt="Company logo"
+    {displayedCompanyLogoUrl && !isSellerBaseView && (
+  <img src={displayedCompanyLogoUrl} alt="Company logo"
     className={`hidden sm:block object-contain ${
-      companyLogoSize === 'small' ? 'h-8 max-w-[100px]' :
-      companyLogoSize === 'large' ? 'h-20 max-w-[280px]' : 'h-14 max-w-[220px]'
+      displayedCompanyLogoSize === 'small' ? 'h-8 max-w-[100px]' :
+      displayedCompanyLogoSize === 'large' ? 'h-20 max-w-[280px]' : 'h-14 max-w-[220px]'
     }`} />
 )}
   </div>
 </div>
-{companyLogoUrl && !isSellerBaseView && (
+{displayedCompanyLogoUrl && !isSellerBaseView && (
   <div className="flex justify-center sm:hidden mb-3">
-<img src={companyLogoUrl} alt="Company logo" className={`object-contain ${
-      companyLogoSize === 'small' ? 'h-10 max-w-[120px]' :
-      companyLogoSize === 'large' ? 'h-20 max-w-[220px]' : 'h-14 max-w-[160px]'
+<img src={displayedCompanyLogoUrl} alt="Company logo" className={`object-contain ${
+      displayedCompanyLogoSize === 'small' ? 'h-10 max-w-[120px]' :
+      displayedCompanyLogoSize === 'large' ? 'h-20 max-w-[220px]' : 'h-14 max-w-[160px]'
     }`} />
   </div>
 )}          
@@ -7949,11 +7983,17 @@ autoComplete="off"
     {/* Add Company */}
     <div className="bg-white rounded p-4 mb-4">
       <h4 className="font-medium text-gray-700 mb-3">{t('add_company')}</h4>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
         <input type="text" value={newCompany.name} onChange={(e) => setNewCompany({...newCompany, name: e.target.value})}
           placeholder={t('company_name_star')} className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
         <input type="text" value={newCompany.code} onChange={(e) => setNewCompany({...newCompany, code: e.target.value})}
           placeholder={t('company_code_hint')} className="p-2 border-2 border-gray-300 rounded-lg text-sm" />
+        <select value={newCompany.edition} onChange={(e) => setNewCompany({...newCompany, edition: e.target.value})}
+          className="p-2 border-2 border-gray-300 rounded-lg text-sm font-medium">
+          <option value="corp">Corp</option>
+          <option value="pro">Pro</option>
+          <option value="edu">Edu</option>
+        </select>
       </div>
       <button onClick={addCompany} className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700">
         {t('add_company_btn')}
@@ -7987,6 +8027,9 @@ autoComplete="off"
                 onChange={() => { setSelectedCompanyForContext(c.id); if (adminCompanyContext) setAdminCompanyContext(c.id); }}
                 title={t('set_as_context_company')} className="w-4 h-4 flex-shrink-0" />
               <span className="text-sm font-medium text-gray-800 text-left whitespace-nowrap w-32 flex-shrink-0 truncate">{c.name}</span>
+              <span className="text-xs px-1.5 py-0.5 rounded-full font-medium bg-indigo-100 text-indigo-700 text-left whitespace-nowrap w-12 flex-shrink-0 text-center">
+                {{corp:'Corp',pro:'Pro',edu:'Edu'}[c.edition] || 'Corp'}
+              </span>
               <span className="text-xs text-gray-500 text-left whitespace-nowrap w-24 flex-shrink-0">
                 {t('since_label')} {c.created_at ? new Date(c.created_at).toLocaleDateString() : '—'}
               </span>
@@ -8501,18 +8544,18 @@ autoComplete="off"
         <div key={ed} className="flex items-center gap-3">
           <span className="text-sm font-medium text-gray-600 w-14 capitalize">{ed}</span>
           <select
-            value={editionDefaults[ed]?.allow_cv_upload === false ? 'other' : 'cv'}
+            value={editionDefaults[ed]?.upload_mode || 'cv'}
             onChange={async (e) => {
-              const allow_cv_upload = e.target.value === 'cv';
               const { error } = await supabase
                 .from('edition_defaults')
-                .update({ allow_cv_upload, updated_at: new Date().toISOString() })
+                .update({ upload_mode: e.target.value, updated_at: new Date().toISOString() })
                 .eq('edition', ed);
               if (error) { alert('Error updating edition_defaults'); console.error(error); return; }
               await loadEditionDefaults();
             }}
             className="p-1.5 border-2 border-gray-300 rounded-lg text-sm flex-1"
           >
+            <option value="none">{t('no_uploads_option')}</option>
             <option value="cv">{t('doc_type_cv_neutral')}</option>
             <option value="other">{t('doc_type_other_neutral')}</option>
           </select>
@@ -8522,48 +8565,49 @@ autoComplete="off"
   </div>
 )}
 
-{/* 3. Upload Documents */}
-      <div className="space-y-3">
-        <div className="flex items-center gap-3">
-          <input
-            type="checkbox"
-            id="cvUpload"
-            checked={appSettings.allowCvUpload}
-            onChange={async (e) => {
-              const newSettings = {...appSettings, allowCvUpload: e.target.checked};
-              setAppSettings(newSettings);
-              
-              const { error } = await supabase
-                .from('app_settings')
-                .update({ allow_cv_upload: e.target.checked })
-                .eq('company_id', effectiveCompanyId);
-              
-              if (error) {
-                alert('Error updating setting');
-                console.error(error);
-              } else {
-                alert(tAlert('document_upload_toggled', { state: e.target.checked ? 'enabled' : 'disabled' }));
-              }
-            }}
-            className="w-5 h-5"
-          />
-          <label htmlFor="cvUpload" className="text-sm font-medium text-gray-700 cursor-pointer">
-            {t('allow_document_upload')}
-          </label>
-        </div>
+{/* 3. Upload Documents — dropdown único (Sem Upload / CV / Outros),
+    substitui o antigo checkbox + rádios separados. */}
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-gray-700">{t('document_type_label')}</label>
+        <select
+          value={!appSettings.allowCvUpload ? 'none' : appSettings.documentType}
+          onChange={async (e) => {
+            const mode = e.target.value;
+            const allowCvUpload = mode !== 'none';
+            const documentType = mode === 'none' ? appSettings.documentType : mode;
+            const newSettings = {...appSettings, allowCvUpload, documentType};
+            setAppSettings(newSettings);
+            const { error } = await supabase
+              .from('app_settings')
+              .update({ allow_cv_upload: allowCvUpload, document_type: documentType })
+              .eq('company_id', effectiveCompanyId);
+            if (error) { alert(t('error_updating_doc_type')); console.error(error); return; }
+          }}
+          className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm"
+        >
+          <option value="none">{t('no_uploads_option')}</option>
+          <option value="cv">{t('doc_type_cv_neutral')}</option>
+          <option value="other">{t('doc_type_other_neutral')}</option>
+        </select>
         {!showDefaultOnlyTools && editionDefaults[companyEdition] && (
-          <div className="ml-8 flex items-center gap-2 text-xs text-gray-500">
-            <span>{t('default_suggests')} {editionDefaults[companyEdition]?.allow_cv_upload === false ? t('doc_type_other_neutral') : t('doc_type_cv_neutral')}</span>
+          <div className="flex items-center gap-2 text-xs text-gray-500">
+            <span>{t('default_suggests')} {
+              editionDefaults[companyEdition]?.upload_mode === 'none' ? t('no_uploads_option')
+              : editionDefaults[companyEdition]?.upload_mode === 'other' ? t('doc_type_other_neutral')
+              : t('doc_type_cv_neutral')
+            }</span>
             <button
               onClick={async () => {
                 const suggestion = editionDefaults[companyEdition];
                 if (!suggestion) return;
-                const documentType = suggestion.allow_cv_upload === false ? 'other' : 'cv';
-                const newSettings = {...appSettings, allowCvUpload: true, documentType};
+                const mode = suggestion.upload_mode || 'cv';
+                const allowCvUpload = mode !== 'none';
+                const documentType = mode === 'none' ? 'cv' : mode;
+                const newSettings = {...appSettings, allowCvUpload, documentType};
                 setAppSettings(newSettings);
                 const { error } = await supabase
                   .from('app_settings')
-                  .update({ allow_cv_upload: true, document_type: documentType })
+                  .update({ allow_cv_upload: allowCvUpload, document_type: documentType })
                   .eq('company_id', effectiveCompanyId);
                 if (error) { alert('Error updating setting'); console.error(error); return; }
                 alert(t('app_config_copied'));
@@ -8572,63 +8616,6 @@ autoComplete="off"
             >
               {t('use_default_suggestion')}
             </button>
-          </div>
-        )}
-        
-        {/* Radio buttons - só aparecem se upload estiver habilitado */}
-        {appSettings.allowCvUpload && (
-          <div className="ml-8 space-y-2 bg-gray-50 p-3 rounded">
-            <label className="block text-xs font-medium text-gray-600 mb-2">{t('document_type_label')}</label>
-            
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="radio"
-                name="documentType"
-                value="cv"
-                checked={appSettings.documentType === 'cv'}
-                onChange={async (e) => {
-                  const newSettings = {...appSettings, documentType: 'cv'};
-                  setAppSettings(newSettings);
-                  
-                  const { error } = await supabase
-                    .from('app_settings')
-                    .update({ document_type: 'cv' })
-                    .eq('company_id', effectiveCompanyId);
-                  
-                  if (error) {
-                    alert(t('error_updating_doc_type'));
-                    console.error(error);
-                  }
-                }}
-                className="w-4 h-4"
-              />
-              <span className="text-sm">{t('doc_type_cv')}</span>
-            </label>
-            
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="radio"
-                name="documentType"
-                value="other"
-                checked={appSettings.documentType === 'other'}
-                onChange={async (e) => {
-                  const newSettings = {...appSettings, documentType: 'other'};
-                  setAppSettings(newSettings);
-                  
-                  const { error } = await supabase
-                    .from('app_settings')
-                    .update({ document_type: 'other' })
-                    .eq('company_id', effectiveCompanyId);
-                  
-                  if (error) {
-                    alert(t('error_updating_doc_type'));
-                    console.error(error);
-                  }
-                }}
-                className="w-4 h-4"
-              />
-              <span className="text-sm">{t('doc_type_other')}</span>
-            </label>
           </div>
         )}
       </div>
@@ -8660,24 +8647,46 @@ autoComplete="off"
 
       {/* 🏢 Company Branding */}
       <div className="border-t pt-4 mt-2">
-        <label className="block text-sm font-semibold text-gray-700 mb-3">{t('company_branding_title')}</label>
+        <label className="block text-sm font-semibold text-gray-700 mb-3">
+          {t('company_branding_title')}
+          {isPreviewingDefaultEdition && (
+            <span className="text-xs font-normal text-blue-600 ml-2">
+              {t('editing_in_language')} {{corp:'Corp',pro:'Pro',edu:'Edu'}[companyEdition] || companyEdition}
+            </span>
+          )}
+        </label>
 
         <div className="mb-4">
           <label className="block text-xs font-medium text-gray-600 mb-1">{t('company_name')}</label>
           <p className="text-xs text-gray-400 mb-2">{t('displayed_below_header')}</p>
           <div className="flex gap-2 mb-2">
-            <input type="text" value={companyName} onChange={(e) => setCompanyName(e.target.value)}
+            <input type="text" value={isPreviewingDefaultEdition ? displayedCompanyName : companyName}
+              onChange={(e) => {
+                if (isPreviewingDefaultEdition) {
+                  setEditionBranding(prev => ({ ...prev, [companyEdition]: { ...(prev[companyEdition] || {}), company_name: e.target.value } }));
+                } else {
+                  setCompanyName(e.target.value);
+                }
+              }}
               placeholder="e.g. XYZ Financial Services"
               className="flex-1 p-2 border-2 border-gray-300 rounded-lg text-sm" maxLength={60} />
             <button onClick={async () => {
-              const { error } = await supabase.from('app_settings').update({ company_name: companyName }).eq('company_id', effectiveCompanyId);
+              const value = isPreviewingDefaultEdition ? displayedCompanyName : companyName;
+              const { error } = isPreviewingDefaultEdition
+                ? await supabase.from('edition_branding').update({ company_name: value, updated_at: new Date().toISOString() }).eq('edition', companyEdition)
+                : await supabase.from('app_settings').update({ company_name: value }).eq('company_id', effectiveCompanyId);
               if (error) alert(t('generic_error') + ' ' + error.message);
-              else alert('Company name saved!');
+              else { alert('Company name saved!'); if (isPreviewingDefaultEdition) await loadEditionBranding(); }
             }} className="px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700">{t('save')}</button>
-            {companyName && (
+            {displayedCompanyName && (
               <button onClick={async () => {
-                setCompanyName('');
-                await supabase.from('app_settings').update({ company_name: null }).eq('company_id', effectiveCompanyId);
+                if (isPreviewingDefaultEdition) {
+                  setEditionBranding(prev => ({ ...prev, [companyEdition]: { ...(prev[companyEdition] || {}), company_name: null } }));
+                  await supabase.from('edition_branding').update({ company_name: null }).eq('edition', companyEdition);
+                } else {
+                  setCompanyName('');
+                  await supabase.from('app_settings').update({ company_name: null }).eq('company_id', effectiveCompanyId);
+                }
               }} className="px-3 py-2 bg-gray-400 text-white rounded-lg text-sm hover:bg-gray-500">{t('clear')}</button>
             )}
           </div>
@@ -8686,10 +8695,15 @@ autoComplete="off"
             {['small', 'medium', 'large'].map(size => (
               <label key={size} className="flex items-center gap-1 cursor-pointer">
                 <input type="radio" name="companyNameSize" value={size}
-                  checked={companyNameSize === size}
+                  checked={displayedCompanyNameSize === size}
                   onChange={async () => {
-                    setCompanyNameSize(size);
-                    await supabase.from('app_settings').update({ company_name_size: size }).eq('company_id', effectiveCompanyId);
+                    if (isPreviewingDefaultEdition) {
+                      setEditionBranding(prev => ({ ...prev, [companyEdition]: { ...(prev[companyEdition] || {}), company_name_size: size } }));
+                      await supabase.from('edition_branding').update({ company_name_size: size, updated_at: new Date().toISOString() }).eq('edition', companyEdition);
+                    } else {
+                      setCompanyNameSize(size);
+                      await supabase.from('app_settings').update({ company_name_size: size }).eq('company_id', effectiveCompanyId);
+                    }
                   }}
                   className="w-3 h-3" />
                 <span className="text-xs capitalize">{tSizeLabel(size)}</span>
@@ -8701,13 +8715,18 @@ autoComplete="off"
         <div>
           <label className="block text-xs font-medium text-gray-600 mb-1">{t('company_logo')}</label>
           <p className="text-xs text-gray-400 mb-2">{t('logo_position_hint')}</p>
-          {companyLogoUrl && (
+          {displayedCompanyLogoUrl && (
             <div className="mb-3 flex items-center gap-3 p-2 bg-gray-50 rounded-lg border border-gray-200">
-              <img src={companyLogoUrl} alt="logo" className="h-10 object-contain border border-gray-200 rounded p-1 bg-white" />
+              <img src={displayedCompanyLogoUrl} alt="logo" className="h-10 object-contain border border-gray-200 rounded p-1 bg-white" />
               <span className="text-xs text-gray-500 flex-1">{t('logo_active')}</span>
               <button onClick={async () => {
-                const { error } = await supabase.from('app_settings').update({ company_logo_url: null }).eq('company_id', effectiveCompanyId);
-                if (!error) { setCompanyLogoUrl(''); alert('Logo removed!'); }
+                if (isPreviewingDefaultEdition) {
+                  const { error } = await supabase.from('edition_branding').update({ company_logo_url: null }).eq('edition', companyEdition);
+                  if (!error) { await loadEditionBranding(); alert('Logo removed!'); }
+                } else {
+                  const { error } = await supabase.from('app_settings').update({ company_logo_url: null }).eq('company_id', effectiveCompanyId);
+                  if (!error) { setCompanyLogoUrl(''); alert('Logo removed!'); }
+                }
               }} className="text-xs text-red-600 hover:text-red-800 font-medium">{t('remove_x')}</button>
             </div>
           )}
@@ -8723,9 +8742,15 @@ autoComplete="off"
                   const { error: upErr } = await supabase.storage.from('cvs').upload(path, file);
                   if (upErr) throw upErr;
                   const { data: { publicUrl } } = supabase.storage.from('cvs').getPublicUrl(path);
-                  const { error: dbErr } = await supabase.from('app_settings').update({ company_logo_url: publicUrl }).eq('company_id', effectiveCompanyId);
-                  if (dbErr) throw dbErr;
-                  setCompanyLogoUrl(publicUrl);
+                  if (isPreviewingDefaultEdition) {
+                    const { error: dbErr } = await supabase.from('edition_branding').update({ company_logo_url: publicUrl, updated_at: new Date().toISOString() }).eq('edition', companyEdition);
+                    if (dbErr) throw dbErr;
+                    await loadEditionBranding();
+                  } else {
+                    const { error: dbErr } = await supabase.from('app_settings').update({ company_logo_url: publicUrl }).eq('company_id', effectiveCompanyId);
+                    if (dbErr) throw dbErr;
+                    setCompanyLogoUrl(publicUrl);
+                  }
                   alert('Logo uploaded!');
                 } catch(err) { alert('Error: ' + err.message); }
                 e.target.value = '';
@@ -8739,10 +8764,15 @@ autoComplete="off"
             {['small', 'medium', 'large'].map(size => (
               <label key={size} className="flex items-center gap-1 cursor-pointer">
                 <input type="radio" name="companyLogoSize" value={size}
-                  checked={companyLogoSize === size}
+                  checked={displayedCompanyLogoSize === size}
                   onChange={async () => {
-                    setCompanyLogoSize(size);
-                    await supabase.from('app_settings').update({ company_logo_size: size }).eq('company_id', effectiveCompanyId);
+                    if (isPreviewingDefaultEdition) {
+                      setEditionBranding(prev => ({ ...prev, [companyEdition]: { ...(prev[companyEdition] || {}), company_logo_size: size } }));
+                      await supabase.from('edition_branding').update({ company_logo_size: size, updated_at: new Date().toISOString() }).eq('edition', companyEdition);
+                    } else {
+                      setCompanyLogoSize(size);
+                      await supabase.from('app_settings').update({ company_logo_size: size }).eq('company_id', effectiveCompanyId);
+                    }
                   }}
                   className="w-3 h-3" />
                 <span className="text-xs capitalize">{tSizeLabel(size)}</span>
