@@ -620,6 +620,10 @@ const UI_STRINGS = {
   error_exporting: { en: 'Error exporting:', es: 'Error al exportar:', pt: 'Erro ao exportar:', zh: '导出时出错：' },
   error_adding_category: { en: 'Error adding category', es: 'Error al agregar la categoría', pt: 'Erro ao adicionar a categoria', zh: '添加分类时出错' },
   new_practice_name_prompt: { en: 'New Practice name:', es: 'Nombre de la nueva Práctica:', pt: 'Nome da nova Prática:', zh: '新领域名称：' },
+  new_practice_name_label: { en: 'Practice name', es: 'Nombre de la Práctica', pt: 'Nome da Prática', zh: '领域名称' },
+  applicable_editions_label: { en: 'Applicable Editions', es: 'Ediciones Aplicables', pt: 'Edições Aplicáveis', zh: '适用版本' },
+  create_practice_btn: { en: 'Create', es: 'Crear', pt: 'Criar', zh: '创建' },
+  select_at_least_one_edition: { en: 'Select at least one edition', es: 'Selecciona al menos una edición', pt: 'Selecione ao menos uma edição', zh: '请至少选择一个版本' },
   error_updating_practice: { en: 'Error updating practice:', es: 'Error al actualizar la práctica:', pt: 'Erro ao atualizar a prática:', zh: '更新领域时出错：' },
   error_creating_practice: { en: 'Error creating practice:', es: 'Error al crear la práctica:', pt: 'Erro ao criar a prática:', zh: '创建领域时出错：' },
   admin_settings_title: { en: 'Admin Settings', es: 'Configuración de Admin', pt: 'Configurações de Admin', zh: '管理员设置' },
@@ -810,6 +814,9 @@ const [companyNameSize, setCompanyNameSize] = useState('medium');
 const [companyLogoSize, setCompanyLogoSize] = useState('medium');
 const [practices, setPractices] = useState([]);
 const [selectedPracticeId, setSelectedPracticeId] = useState(null);
+const [showNewPracticeForm, setShowNewPracticeForm] = useState(false);
+const [newPracticeName, setNewPracticeName] = useState('');
+const [newPracticeEditions, setNewPracticeEditions] = useState(['corp', 'pro']); // padrão: mesmo valor default da migration
 const [shareFormPracticeId, setShareFormPracticeId] = useState(null); // practice escolhida no Share Your Experience
 const [filterPracticeId, setFilterPracticeId] = useState(null);
 const [adminCategories, setAdminCategories] = useState([]);
@@ -8906,25 +8913,77 @@ autoComplete="off"
           </label>
         )}
         <button
-          onClick={async () => {
-            const name = window.prompt(t('new_practice_name_prompt'));
-            if (!name?.trim()) return;
-            const maxOrder = practices.length > 0 ? Math.max(...practices.map(p => p.display_order || 0)) : 0;
-            const { data, error } = await supabase
-              .from('practices')
-              .insert([{ name: name.trim(), show_in_ui: true, display_order: maxOrder + 1, active: true, company_id: effectiveCompanyId, language: effectiveViewingLanguage }])
-              .select();
-            if (error) { alert(t('error_creating_practice') + ' ' + error.message); return; }
-            await loadPractices();
-            if (data && data[0]) {
-              setSelectedPracticeId(data[0].id);
-              loadProblemCategories(data[0].id);
-            }
-            alert(tAlert('practice_created_named', { name: name.trim() }));
+          onClick={() => {
+            setNewPracticeName('');
+            setNewPracticeEditions(['corp', 'pro']);
+            setShowNewPracticeForm(true);
           }}
           disabled={isReadOnlyOrMasterManaging}
           className={`px-3 py-2 bg-teal-600 text-white rounded-lg text-sm hover:bg-teal-700 whitespace-nowrap ${isReadOnlyOrMasterManaging ? 'opacity-40 cursor-not-allowed' : ''}`}
         >{t('new_practice_btn')}</button>
+        {showNewPracticeForm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6">
+              <h3 className="text-lg font-bold text-gray-800 mb-4">{t('new_practice_btn')}</h3>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('new_practice_name_label')}</label>
+              <input
+                type="text"
+                value={newPracticeName}
+                onChange={(e) => setNewPracticeName(e.target.value)}
+                autoFocus
+                className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm mb-4"
+              />
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('applicable_editions_label')}</label>
+              <div className="flex flex-wrap gap-3 mb-6">
+                {['corp', 'pro', 'edu'].map(ed => (
+                  <label key={ed} className="flex items-center gap-1.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={newPracticeEditions.includes(ed)}
+                      onChange={(e) => {
+                        setNewPracticeEditions(prev =>
+                          e.target.checked ? [...prev, ed] : prev.filter(x => x !== ed)
+                        );
+                      }}
+                    />
+                    <span className="text-sm text-gray-700 capitalize">{ed}</span>
+                  </label>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowNewPracticeForm(false)}
+                  className="flex-1 px-3 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm hover:bg-gray-300"
+                >{t('cancel')}</button>
+                <button
+                  onClick={async () => {
+                    const name = newPracticeName.trim();
+                    if (!name) return;
+                    if (newPracticeEditions.length === 0) { alert(t('select_at_least_one_edition')); return; }
+                    const maxOrder = practices.length > 0 ? Math.max(...practices.map(p => p.display_order || 0)) : 0;
+                    const { data, error } = await supabase
+                      .from('practices')
+                      .insert([{
+                        name, show_in_ui: true, display_order: maxOrder + 1, active: true,
+                        company_id: effectiveCompanyId, language: effectiveViewingLanguage,
+                        applicable_editions: newPracticeEditions.join(',')
+                      }])
+                      .select();
+                    if (error) { alert(t('error_creating_practice') + ' ' + error.message); return; }
+                    await loadPractices();
+                    if (data && data[0]) {
+                      setSelectedPracticeId(data[0].id);
+                      loadProblemCategories(data[0].id);
+                    }
+                    setShowNewPracticeForm(false);
+                    alert(tAlert('practice_created_named', { name }));
+                  }}
+                  className="flex-1 px-3 py-2 bg-teal-600 text-white rounded-lg text-sm hover:bg-teal-700"
+                >{t('create_practice_btn')}</button>
+              </div>
+            </div>
+          </div>
+        )}
         {selectedPracticeId && practices.find(p => p.id === selectedPracticeId)?.name !== 'General' && (
           <button
             onClick={async () => {
