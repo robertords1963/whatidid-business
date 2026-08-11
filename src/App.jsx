@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react';
 import { Share2, TrendingUp, AlertCircle, Star, MessageCircle, Send, Shield, Trash2, Search, Users, Target, Briefcase } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js'; 
 
@@ -386,6 +386,20 @@ const UI_STRINGS = {
   viewing: { en: 'Viewing:', es: 'Viendo:', pt: 'Visualizando:', zh: '正在查看：' },
   language: { en: 'Language:', es: 'Idioma:', pt: 'Idioma:', zh: '语言：' },
   labels_language: { en: 'Labels Language:', es: 'Idioma de Etiquetas:', pt: 'Idioma dos Rótulos:', zh: '界面标签语言：' },
+  edition_label: { en: 'Edition:', es: 'Edición:', pt: 'Edição:', zh: '版本：' },
+  industry_sector_label: { en: 'Industry Sector', es: 'Sector Industrial', pt: 'Setor de Atuação', zh: '行业领域' },
+  attachment_type_suggestions_title: { en: 'Attachment Type Suggestions (by Edition)', es: 'Sugerencias de Tipo de Anexo (por Edición)', pt: 'Sugestões de Tipo de Anexo (por Edição)', zh: '按版本设置的附件类型建议' },
+  doc_type_cv_neutral: { en: '📄 CV only (PDF)', es: '📄 Solo CV (PDF)', pt: '📄 Apenas Currículo (PDF)', zh: '📄 仅限简历（PDF）' },
+  doc_type_other_neutral: { en: '📎 Other document types', es: '📎 Otros tipos de documentos', pt: '📎 Outros tipos de documentos', zh: '📎 其他文件类型' },
+  use_default_suggestion: { en: 'Use suggestion from Default', es: 'Usar sugerencia de Default', pt: 'Usar sugestão do Default', zh: '使用 Default 的建议' },
+  which_edition_item_appears: { en: 'Which edition this item should appear in — blank shows in every edition', es: 'En qué edición debe aparecer este elemento — en blanco se muestra en todas las ediciones', pt: 'Em qual edição este item deve aparecer — em branco aparece em todas as edições', zh: '此项目应显示在哪个版本下——留空则在所有版本中显示' },
+  all_editions: { en: 'All editions', es: 'Todas las ediciones', pt: 'Todas as edições', zh: '所有版本' },
+  manage_subtitles_title: { en: 'Manage Page Subtitles', es: 'Gestionar Subtítulos de la Página', pt: 'Gerenciar Subtítulos da Página', zh: '管理页面副标题' },
+  max_3_subtitles: { en: 'Maximum of 3 subtitle pairs reached for this language.', es: 'Se alcanzó el máximo de 3 pares de subtítulos para este idioma.', pt: 'Máximo de 3 pares de subtítulos atingido para este idioma.', zh: '该语言下的副标题已达到最多 3 组的上限。' },
+  subtitle_line1_placeholder: { en: 'First line', es: 'Primera línea', pt: 'Primeira linha', zh: '第一行' },
+  subtitle_line2_placeholder: { en: 'Second line (optional)', es: 'Segunda línea (opcional)', pt: 'Segunda linha (opcional)', zh: '第二行（选填）' },
+  add_subtitle_btn: { en: 'Add Subtitle', es: 'Agregar Subtítulo', pt: 'Adicionar Subtítulo', zh: '添加副标题' },
+  default_suggests: { en: 'Default suggests:', es: 'Default sugiere:', pt: 'Default sugere:', zh: 'Default 建议：' },
   session_ended_by_admin: { en: 'Your access has been ended.', es: 'Tu acceso ha finalizado.', pt: 'Seu acesso foi encerrado.', zh: '您的访问已结束。' },
   default_word: { en: 'Default', es: 'Predeterminado', pt: 'Padrão', zh: '默认' },
   company_word: { en: 'Company', es: 'Empresa', pt: 'Empresa', zh: '公司' },
@@ -807,6 +821,17 @@ export default function WhatIDid() {
   top3StartVisible: true,
   showMarquee: false
 });
+  // Sugestões de tipo de anexo por edição (Corp/Pro/Edu) — só o Default
+  // Admin edita. Cada empresa vê a sugestão da própria edição e decide se
+  // quer copiar; nunca aplicado automaticamente.
+  const [editionDefaults, setEditionDefaults] = useState({});
+  const loadEditionDefaults = async () => {
+    const { data, error } = await supabase.from('edition_defaults').select('*');
+    if (error) { console.error('Error loading edition_defaults:', error); return; }
+    const obj = {};
+    (data || []).forEach(row => { obj[row.edition] = row; });
+    setEditionDefaults(obj);
+  };
 
 const [companyName, setCompanyName] = useState('');
 const [companyLogoUrl, setCompanyLogoUrl] = useState('');
@@ -958,6 +983,15 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   useEffect(() => {
     localStorage.setItem('viewingLanguage', viewingLanguage);
   }, [viewingLanguage]);
+  // Mesma lógica do viewingLanguage, mas pra Edition (Corp/Pro/Edu) — só
+  // aparece quando Default Admin/Seller navegam o Default puro, sem
+  // empresa selecionada. Padrão 'corp'.
+  const [viewingEdition, setViewingEdition] = useState(() => {
+    return localStorage.getItem('viewingEdition') || 'corp';
+  });
+  useEffect(() => {
+    localStorage.setItem('viewingEdition', viewingEdition);
+  }, [viewingEdition]);
   const defaultCompanyId = companies.find(c => c.code === 'default')?.id || null;
   // Só o Admin do Default pode navegar entre empresas pelo dropdown — qualquer
   // outra empresa só vê e opera sobre os próprios dados, sempre.
@@ -1002,11 +1036,6 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   // true quando o contexto ativo (seja por login direto, seja pelo dropdown do
   // Master) é o Default — usado só pra saber QUAL DADO está sendo mostrado.
   const isViewingDefault = effectiveCompanyId === defaultCompanyId;
-  // Edição da empresa em contexto (Corp/Pro/Edu) — Default sempre resolve
-  // pra 'corp' (é o valor padrão da coluna, e Default nunca é Edu/Pro de
-  // verdade), então gerenciar o roster interno da própria WID sempre usa
-  // terminologia "Employee", sem precisar de exceção nenhuma pra isso.
-  const companyEdition = companies.find(c => c.id === effectiveCompanyId)?.edition || 'corp';
   // true quando o Master ou um Seller está navegando o Default DIRETAMENTE —
   // não "Managing" nenhuma empresa real. Cobre os dois caminhos de entrada:
   // login direto (signin cai aqui por padrão, sem adminCompanyContext) e saída
@@ -1017,6 +1046,21 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   const isDemoModeActive =
     ((isDefaultAdmin || isSeller) && isViewingDefault && companyViewMode !== 'sample') ||
     (employeeIsAdmin && !isAdmin && !isDefaultAdmin && !isSeller && !isViewingDefault); // Admin de empresa comum, fora do ADM, testando/apresentando o próprio front-end pra time interno
+  // Edição da empresa em contexto (Corp/Pro/Edu) — Default sempre resolve
+  // pra 'corp' (é o valor padrão da coluna, e Default nunca é Edu/Pro de
+  // verdade), então gerenciar o roster interno da própria WID sempre usa
+  // terminologia "Employee", sem precisar de exceção nenhuma pra isso.
+  // Edição efetiva: quando Default Admin/Seller navegam o Default puro,
+  // sem empresa selecionada (mesma condição de isDemoModeActive), usa o
+  // seletor manual — senão, usa a edição real da empresa em contexto.
+  // Edição efetiva: quando Default Admin/Seller navegam o Default puro
+  // (sem empresa em adminCompanyContext) — cobre "My Seller View", "Sample"
+  // e o Default Admin sem empresa selecionada — usa o seletor manual.
+  // Assim que uma empresa real entra em contexto (adminCompanyContext),
+  // a edição passa a ser sempre a da própria empresa, sem seletor.
+  const companyEdition = (!adminCompanyContext && isViewingDefault && (isDefaultAdmin || isSeller))
+    ? viewingEdition
+    : (companies.find(c => c.id === effectiveCompanyId)?.edition || 'corp');
   // Idioma que efetivamente filtra o conteúdo do Default: se quem está
   // navegando é Master/Seller em modo demo (dentro OU fora do painel Admin —
   // por isso "isDemoModeActive" e não "isAdmin", já que o seletor manual
@@ -1372,6 +1416,7 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   loadCompanies();
   loadSellers();
   loadUITranslations();
+  loadEditionDefaults();
   (async () => {
     await runExpiredDemoCleanup();
     await loadDemoGroups();
@@ -1394,6 +1439,7 @@ useEffect(() => {
     loadPromotionalVideos();
     loadProblemCategories();
     loadPractices();
+    loadPageSubtitles();
     loadAppSettings();
     // Sem isso, "Manage Demo Groups" ficava com dado parado desde o carregamento
     // inicial do app — trocar de sessão (logar como um Demo ID, sair, entrar
@@ -1401,7 +1447,7 @@ useEffect(() => {
     // de página real.
     loadDemoGroups();
   }
-}, [effectiveCompanyId, effectiveViewingLanguage, defaultCompanyId, companies.length, loggedInSellerId]);
+}, [effectiveCompanyId, effectiveViewingLanguage, companyEdition, defaultCompanyId, companies.length, loggedInSellerId]);
 
 // Limpeza automática: assim que o Master/Seller troca o "Managing" pra uma
 // empresa real (saindo do Default direto), qualquer sessão de demo ativa é
@@ -4455,7 +4501,69 @@ const [currentCvUrl, setCurrentCvUrl] = useState(null);
   const [quotes, setQuotes] = useState([]);
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
   const [editingQuote, setEditingQuote] = useState(null);
-  const [newQuote, setNewQuote] = useState({ text: '', author: '', position: 'top' });
+  const [newQuote, setNewQuote] = useState({ text: '', author: '', position: 'top', edition: '' });
+  // Subtítulos da página (as duplas de frases embaixo do título) — até 3
+  // por empresa, cada uma com idioma e edições aplicáveis. Se a empresa
+  // não cadastrou nenhuma, cai no texto padrão fixo (hero_tagline_public +
+  // share_work_experiences/accelerate_org_learning) — nunca fica em branco.
+  const [pageSubtitles, setPageSubtitles] = useState([]);
+  const [newSubtitle, setNewSubtitle] = useState({ line1: '', line2: '', editions: ['corp', 'pro', 'edu'] });
+  const loadPageSubtitles = async () => {
+    if (!effectiveCompanyId) return;
+    try {
+      const { data, error } = await supabase
+        .from('page_subtitles')
+        .select('*')
+        .eq('company_id', effectiveCompanyId)
+        .eq('language', effectiveViewingLanguage)
+        .order('display_order', { ascending: true });
+      if (error) throw error;
+      const filtered = (data || []).filter(s =>
+        s.applicable_editions === 'all' || s.applicable_editions.split(',').includes(companyEdition)
+      );
+      setPageSubtitles(filtered);
+    } catch (error) {
+      console.error('Error loading page subtitles:', error);
+    }
+  };
+  const addSubtitle = async () => {
+    if (!newSubtitle.line1.trim()) { alert(t('please_enter_quote_text')); return; }
+    if (pageSubtitles.length >= 3) { alert(t('max_3_subtitles')); return; }
+    if (newSubtitle.editions.length === 0) { alert(t('select_at_least_one_edition')); return; }
+    try {
+      const { error } = await supabase.from('page_subtitles').insert([{
+        company_id: effectiveCompanyId,
+        line1: newSubtitle.line1.trim(),
+        line2: newSubtitle.line2.trim() || null,
+        language: effectiveViewingLanguage,
+        applicable_editions: newSubtitle.editions.length === 3 ? 'all' : newSubtitle.editions.join(','),
+        display_order: pageSubtitles.length + 1
+      }]);
+      if (error) throw error;
+      setNewSubtitle({ line1: '', line2: '', editions: ['corp', 'pro', 'edu'] });
+      await loadPageSubtitles();
+    } catch (error) {
+      console.error('Error adding subtitle:', error);
+      alert(t('generic_error') + ' ' + error.message);
+    }
+  };
+  const deleteSubtitle = async (id) => {
+    if (!window.confirm(t('confirm_delete_experience'))) return;
+    try {
+      const { error } = await supabase.from('page_subtitles').delete().eq('id', id);
+      if (error) throw error;
+      await loadPageSubtitles();
+    } catch (error) {
+      console.error('Error deleting subtitle:', error);
+      alert(t('generic_error') + ' ' + error.message);
+    }
+  };
+  // Escolhe uma dupla aleatória entre as cadastradas (se houver), sem
+  // re-sortear a cada render — só quando a lista realmente muda.
+  const selectedSubtitle = useMemo(() => {
+    if (pageSubtitles.length === 0) return null;
+    return pageSubtitles[Math.floor(Math.random() * pageSubtitles.length)];
+  }, [pageSubtitles]);
   const [showGuidelinesModal, setShowGuidelinesModal] = useState(false);
   const [showHowItWorksModal, setShowHowItWorksModal] = useState(false);
   const [guidelines, setGuidelines] = useState('');
@@ -5012,7 +5120,7 @@ useEffect(() => {
         .eq('company_id', effectiveCompanyId)
         .order('id', { ascending: true });
       if (isViewingDefault) {
-        query = query.eq('language', effectiveViewingLanguage);
+        query = query.eq('language', effectiveViewingLanguage).or(`edition.is.null,edition.eq.${companyEdition}`);
       }
       const { data, error } = await query;
       
@@ -5044,12 +5152,15 @@ useEffect(() => {
           text: newQuote.text,
           author: newQuote.author,
           position: newQuote.position,
-          active: true
+          active: true,
+          company_id: effectiveCompanyId,
+          language: effectiveViewingLanguage,
+          edition: newQuote.edition || null
         }]);
       
       if (error) throw error;
       
-      setNewQuote({ text: '', author: '', position: 'top' });
+      setNewQuote({ text: '', author: '', position: 'top', edition: '' });
       await loadQuotes();
     } catch (error) {
       console.error('Error adding quote:', error);
@@ -5057,11 +5168,11 @@ useEffect(() => {
     }
   };
 
-  const updateQuote = async (id, text, author, position) => {
+  const updateQuote = async (id, text, author, position, edition) => {
     try {
       const { error } = await supabase
         .from('quotes')
-        .update({ text, author, position })
+        .update({ text, author, position, edition: edition || null })
         .eq('id', id);
       
       if (error) throw error;
@@ -5170,12 +5281,14 @@ useEffect(() => {
       
       if (error) throw error;
 
-      // Filtro pro carrossel PÚBLICO: só itens marcados como visíveis, e só
-      // no idioma sendo visualizado no momento (itens sem idioma definido
-      // continuam aparecendo em qualquer idioma, pra não sumir conteúdo
-      // antigo que nunca teve essa opção).
+      // Filtro pro carrossel PÚBLICO: só itens marcados como visíveis, no
+      // idioma sendo visualizado (itens sem idioma continuam aparecendo em
+      // qualquer idioma), e na edição em contexto (idem, sem edição definida
+      // aparece em qualquer edição — não some conteúdo antigo).
       const filtered = (data || []).filter(v =>
-        (v.visible !== false) && (!v.language || v.language === effectiveViewingLanguage)
+        (v.visible !== false) &&
+        (!v.language || v.language === effectiveViewingLanguage) &&
+        (!v.edition || v.edition === companyEdition)
       );
       
       const videos = filtered.map(video => ({
@@ -6279,7 +6392,7 @@ useEffect(() => {
       <Share2 className="text-purple-600" size={28} />
       WhatIDid{' '}
       <span className="text-xl font-normal italic text-gray-600">
-        {appSettings.editionName === 'pro' ? 'Pro' : 'Corp'}
+        {{corp: 'Corp', pro: 'Pro', edu: 'Edu'}[companyEdition] || 'Corp'}
       </span>
     </h1>
   </div>
@@ -6578,7 +6691,7 @@ autoComplete="off"
       <Share2 className="text-purple-600" size={36} />
       WhatIDid{' '}
       <span className="text-2xl font-normal italic text-gray-600">
-        {appSettings.editionName === 'pro' ? 'Pro' : 'Corp'}
+        {{corp: 'Corp', pro: 'Pro', edu: 'Edu'}[companyEdition] || 'Corp'}
       </span>
     </h1>
     {companyName && !isSellerBaseView && (
@@ -6616,12 +6729,23 @@ autoComplete="off"
     }`} />
   </div>
 )}          
-          <p className="text-gray-700 font-medium mb-1 text-sm sm:text-base">{t('hero_tagline_public')}</p>
-<p className="text-gray-600 text-sm sm:text-base">
-  <span className="block sm:inline">{t('share_work_experiences')}</span>
-  <span className="hidden sm:inline"> </span>
-  <span className="block sm:inline">{t('accelerate_org_learning')}</span>
-</p>
+          {selectedSubtitle ? (
+            <>
+              <p className="text-gray-700 font-medium mb-1 text-sm sm:text-base">{selectedSubtitle.line1}</p>
+              {selectedSubtitle.line2 && (
+                <p className="text-gray-600 text-sm sm:text-base">{selectedSubtitle.line2}</p>
+              )}
+            </>
+          ) : (
+            <>
+              <p className="text-gray-700 font-medium mb-1 text-sm sm:text-base">{t('hero_tagline_public')}</p>
+              <p className="text-gray-600 text-sm sm:text-base">
+                <span className="block sm:inline">{t('share_work_experiences')}</span>
+                <span className="hidden sm:inline"> </span>
+                <span className="block sm:inline">{t('accelerate_org_learning')}</span>
+              </p>
+            </>
+          )}
 
 {!isSellerBaseView && (
 <>
@@ -6973,6 +7097,16 @@ autoComplete="off"
             <option value="pt">Português</option>
             <option value="zh">中文 (Chinese)</option>
           </select>
+          <label className="text-sm font-medium text-gray-700 ml-2">{t('edition_label')}</label>
+          <select
+            value={viewingEdition}
+            onChange={(e) => setViewingEdition(e.target.value)}
+            className="p-2 border-2 border-gray-300 rounded-lg text-sm font-medium"
+          >
+            <option value="corp">Corp</option>
+            <option value="pro">Pro</option>
+            <option value="edu">Edu</option>
+          </select>
         </>
       )}
       <label className="text-sm font-medium text-gray-700 ml-2">{t('viewing')}</label>
@@ -7021,6 +7155,20 @@ autoComplete="off"
         <option value="pt">Português</option>
         <option value="zh">中文 (Chinese)</option>
       </select>
+      {!adminCompanyContext && (
+        <>
+          <label className="text-sm font-medium text-gray-700 ml-2">{t('edition_label')}</label>
+          <select
+            value={viewingEdition}
+            onChange={(e) => setViewingEdition(e.target.value)}
+            className="p-2 border-2 border-gray-300 rounded-lg text-sm font-medium"
+          >
+            <option value="corp">Corp</option>
+            <option value="pro">Pro</option>
+            <option value="edu">Edu</option>
+          </select>
+        </>
+      )}
       <label className="text-sm font-medium text-gray-700 ml-2">{t('viewing')}</label>
       <select
         value={adminCompanyContext ? 'company' : (companyViewMode === 'sample' ? 'sample' : 'seller')}
@@ -7872,38 +8020,6 @@ autoComplete="off"
     </h3>
     
     <div className={`bg-white rounded p-4 space-y-4 ${isReadOnlyOrMasterManaging ? 'pointer-events-none opacity-60' : ''}`}>
-      {/* 1. Nome da Edição — sempre "Corp" pra empresas, escondido fora do Default */}
-      {showDefaultOnlyTools && (
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          {t('edition_name')}
-        </label>
-        <select
-          value={appSettings.editionName}
-          onChange={async (e) => {
-            const newSettings = {...appSettings, editionName: e.target.value};
-            setAppSettings(newSettings);
-            
-            const { error } = await supabase
-              .from('app_settings')
-              .update({ edition_name: e.target.value })
-              .eq('company_id', effectiveCompanyId);
-            
-            if (error) {
-              alert('Error updating setting');
-              console.error(error);
-            } else {
-              alert('Edition name updated!');
-            }
-          }}
-          className="w-full p-2 border-2 border-gray-300 rounded-lg"
-        >
-          <option value="pro">Pro</option>
-          <option value="corp">Corp</option>
-        </select>
-      </div>
-      )}
-      
       {showDefaultOnlyTools && (
       <>
       {/* 2. Employee Login */}
@@ -7935,6 +8051,35 @@ autoComplete="off"
         </label>
       </div>
       
+{showDefaultOnlyTools && (
+  <div className="border-2 border-dashed border-indigo-300 rounded-lg p-3">
+    <label className="block text-sm font-semibold text-gray-700 mb-2">{t('attachment_type_suggestions_title')}</label>
+    <div className="space-y-2">
+      {['corp', 'pro', 'edu'].map(ed => (
+        <div key={ed} className="flex items-center gap-3">
+          <span className="text-sm font-medium text-gray-600 w-14 capitalize">{ed}</span>
+          <select
+            value={editionDefaults[ed]?.allow_cv_upload === false ? 'other' : 'cv'}
+            onChange={async (e) => {
+              const allow_cv_upload = e.target.value === 'cv';
+              const { error } = await supabase
+                .from('edition_defaults')
+                .update({ allow_cv_upload, updated_at: new Date().toISOString() })
+                .eq('edition', ed);
+              if (error) { alert('Error updating edition_defaults'); console.error(error); return; }
+              await loadEditionDefaults();
+            }}
+            className="p-1.5 border-2 border-gray-300 rounded-lg text-sm flex-1"
+          >
+            <option value="cv">{t('doc_type_cv_neutral')}</option>
+            <option value="other">{t('doc_type_other_neutral')}</option>
+          </select>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+
 {/* 3. Upload Documents */}
       <div className="space-y-3">
         <div className="flex items-center gap-3">
@@ -7964,6 +8109,29 @@ autoComplete="off"
             {t('allow_document_upload')}
           </label>
         </div>
+        {!showDefaultOnlyTools && editionDefaults[companyEdition] && (
+          <div className="ml-8 flex items-center gap-2 text-xs text-gray-500">
+            <span>{t('default_suggests')} {editionDefaults[companyEdition]?.allow_cv_upload === false ? t('doc_type_other_neutral') : t('doc_type_cv_neutral')}</span>
+            <button
+              onClick={async () => {
+                const suggestion = editionDefaults[companyEdition];
+                if (!suggestion) return;
+                const documentType = suggestion.allow_cv_upload === false ? 'other' : 'cv';
+                const newSettings = {...appSettings, allowCvUpload: true, documentType};
+                setAppSettings(newSettings);
+                const { error } = await supabase
+                  .from('app_settings')
+                  .update({ allow_cv_upload: true, document_type: documentType })
+                  .eq('company_id', effectiveCompanyId);
+                if (error) { alert('Error updating setting'); console.error(error); return; }
+                alert(t('app_config_copied'));
+              }}
+              className="px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded text-xs font-medium hover:bg-indigo-200"
+            >
+              {t('use_default_suggestion')}
+            </button>
+          </div>
+        )}
         
         {/* Radio buttons - só aparecem se upload estiver habilitado */}
         {appSettings.allowCvUpload && (
@@ -8203,6 +8371,19 @@ autoComplete="off"
                       <option value="bottom">{t('bottom_below_top3')}</option>
                     </select>
                   </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('edition_label')}</label>
+                    <select
+                      value={newQuote.edition}
+                      onChange={(e) => setNewQuote({...newQuote, edition: e.target.value})}
+                      className="w-full p-2 border-2 border-gray-300 rounded-lg"
+                    >
+                      <option value="">{t('all_editions')}</option>
+                      <option value="corp">Corp</option>
+                      <option value="pro">Pro</option>
+                      <option value="edu">Edu</option>
+                    </select>
+                  </div>
                   <button
                     onClick={addQuote}
                     className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
@@ -8242,13 +8423,24 @@ autoComplete="off"
                               <option value="top">{t('top_above_top3')}</option>
                               <option value="bottom">{t('bottom_below_top3')}</option>
                             </select>
+                            <select
+                              defaultValue={quote.edition || ''}
+                              id={`edit-edition-${quote.id}`}
+                              className="w-full p-2 border-2 border-gray-300 rounded"
+                            >
+                              <option value="">{t('all_editions')}</option>
+                              <option value="corp">Corp</option>
+                              <option value="pro">Pro</option>
+                              <option value="edu">Edu</option>
+                            </select>
                             <div className="flex gap-2">
                               <button
                                 onClick={() => {
                                   const text = document.getElementById(`edit-text-${quote.id}`).value;
                                   const author = document.getElementById(`edit-author-${quote.id}`).value;
                                   const position = document.getElementById(`edit-position-${quote.id}`).value;
-                                  updateQuote(quote.id, text, author, position);
+                                  const edition = document.getElementById(`edit-edition-${quote.id}`).value;
+                                  updateQuote(quote.id, text, author, position, edition);
                                 }}
                                 className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
                               >
@@ -8577,6 +8769,21 @@ autoComplete="off"
                                 <option value="pt">Português</option>
                                 <option value="zh">中文</option>
                               </select>
+                              <select
+                                value={video.edition || ''}
+                                onChange={async (e) => {
+                                  const { error } = await supabase.from('promotional_videos').update({ edition: e.target.value || null }).eq('id', video.id);
+                                  if (error) { alert(t('generic_error') + ' ' + error.message); return; }
+                                  await loadPromotionalVideos();
+                                }}
+                                className="text-xs px-2 py-1 rounded-full font-medium border-0 bg-amber-50 text-amber-700"
+                                title={t('which_edition_item_appears')}
+                              >
+                                <option value="">{t('all_editions')}</option>
+                                <option value="corp">Corp</option>
+                                <option value="pro">Pro</option>
+                                <option value="edu">Edu</option>
+                              </select>
                             </div>
                             
                             {/* Botões de ação */}
@@ -8692,6 +8899,77 @@ autoComplete="off"
             </div>
           )}
         </div>
+
+{isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('content_pages')) && activeAdminNavTab === 'settings' && (
+  <div className="mt-4 bg-blue-50 border-2 border-blue-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
+    <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+      {t('manage_subtitles_title')}
+      {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">{t('read_only_sample')}</span>}
+    </h3>
+    <div className={`bg-white rounded p-4 ${isReadOnlyOrMasterManaging ? 'pointer-events-none opacity-60' : ''}`}>
+      {pageSubtitles.length > 0 && (
+        <div className="space-y-2 mb-4">
+          {pageSubtitles.map(sub => (
+            <div key={sub.id} className="flex items-center justify-between p-2 border border-gray-200 rounded-lg">
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-800 truncate">{sub.line1}</p>
+                {sub.line2 && <p className="text-xs text-gray-500 truncate">{sub.line2}</p>}
+                <p className="text-xs text-gray-400 mt-0.5 capitalize">{sub.applicable_editions === 'all' ? t('all_editions') : sub.applicable_editions.replaceAll(',', ', ')}</p>
+              </div>
+              <button
+                onClick={() => deleteSubtitle(sub.id)}
+                className="ml-3 px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 flex-shrink-0"
+              >
+                {t('delete_trash')}
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+      {pageSubtitles.length < 3 && (
+        <div className="space-y-2 border-t pt-3">
+          <input
+            type="text"
+            value={newSubtitle.line1}
+            onChange={(e) => setNewSubtitle({...newSubtitle, line1: e.target.value})}
+            placeholder={t('subtitle_line1_placeholder')}
+            className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm"
+          />
+          <input
+            type="text"
+            value={newSubtitle.line2}
+            onChange={(e) => setNewSubtitle({...newSubtitle, line2: e.target.value})}
+            placeholder={t('subtitle_line2_placeholder')}
+            className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm"
+          />
+          <div className="flex flex-wrap gap-3">
+            {['corp', 'pro', 'edu'].map(ed => (
+              <label key={ed} className="flex items-center gap-1.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={newSubtitle.editions.includes(ed)}
+                  onChange={(e) => {
+                    setNewSubtitle(prev => ({
+                      ...prev,
+                      editions: e.target.checked ? [...prev.editions, ed] : prev.editions.filter(x => x !== ed)
+                    }));
+                  }}
+                />
+                <span className="text-sm text-gray-700 capitalize">{ed}</span>
+              </label>
+            ))}
+          </div>
+          <button
+            onClick={addSubtitle}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
+          >
+            {t('add_subtitle_btn')}
+          </button>
+        </div>
+      )}
+    </div>
+  </div>
+)}
 
        
 
@@ -10287,7 +10565,7 @@ onClick={() => {
               })()}
 
 {/* Industry Sector - só no Pro */}
-{!appSettings.requireEmployeeLogin && (
+{companyEdition === 'pro' && (
   <div className="mt-3">
     <select
       value={currentEntry.industrySector}
@@ -10381,7 +10659,7 @@ onClick={() => {
 
           <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
   {/* Author - só no Pro */}
-  {!appSettings.requireEmployeeLogin && (
+  {companyEdition === 'pro' && (
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-2">{t('author_optional')}</label>
       <input
@@ -10396,7 +10674,7 @@ onClick={() => {
   )}
   
   {/* Gender - só no Pro */}
-  {!appSettings.requireEmployeeLogin && (
+  {companyEdition === 'pro' && (
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-2">{t('gender_optional')}</label>
       <select
@@ -10413,7 +10691,7 @@ onClick={() => {
   )}
   
   {/* Age - só no Pro */}
-  {!appSettings.requireEmployeeLogin && (
+  {companyEdition === 'pro' && (
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-2">{t('age_range_optional')}</label>
       <select
@@ -10431,7 +10709,7 @@ onClick={() => {
   )}
   
   {/* Country - só no Pro */}
-  {!appSettings.requireEmployeeLogin && (
+  {companyEdition === 'pro' && (
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-2">{t('country_auto_detected')}</label>
       <select
@@ -10847,11 +11125,11 @@ onClick={() => {
                   </div>
 
                   {/* Industry Sector Filter - só no Pro */}
-{!appSettings.requireEmployeeLogin && (
+{companyEdition === 'pro' && (
   <div>
     <label className="block text-sm font-medium text-gray-600 mb-2">
       <Briefcase className="inline mr-1" size={14} />
-      Industry Sector
+      {t('industry_sector_label')}
     </label>
     <select
       value={filters.industrySector}
@@ -10924,7 +11202,7 @@ onClick={() => {
     </div>
     
     {/* Gender - só no Pro */}
-    {!appSettings.requireEmployeeLogin && (
+    {companyEdition === 'pro' && (
       <div>
         <label className="block text-sm font-medium text-gray-600 mb-2">{t('gender')}</label>
         <select
@@ -10939,7 +11217,7 @@ onClick={() => {
     )}
     
     {/* Age - só no Pro */}
-    {!appSettings.requireEmployeeLogin && (
+    {companyEdition === 'pro' && (
       <div>
         <label className="block text-sm font-medium text-gray-600 mb-2">{t('age')}</label>
         <select
@@ -10954,7 +11232,7 @@ onClick={() => {
     )}
     
     {/* Country - só no Pro */}
-    {!appSettings.requireEmployeeLogin && (
+    {companyEdition === 'pro' && (
       <div>
         <label className="block text-sm font-medium text-gray-600 mb-2">{t('country')}</label>
         <select
@@ -11570,7 +11848,7 @@ onClick={() => {
   </button>
 )}                   
                     
-{exp.industrySector && !appSettings.requireEmployeeLogin && (
+{exp.industrySector && companyEdition === 'pro' && (
   <div className="mb-3">
     <span className="inline-flex items-center gap-1 text-xs bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full">
       <Briefcase size={12} />
