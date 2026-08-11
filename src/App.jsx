@@ -266,6 +266,30 @@ const UI_STRINGS = {
   quotes_label: { en: 'Quotes', es: 'Citas', pt: 'Citações', zh: '语录' },
   content_pages_label: { en: 'Content Pages', es: 'Páginas de Contenido', pt: 'Páginas de Conteúdo', zh: '内容页面' },
   page_subtitles_label: { en: 'Page Subtitles', es: 'Subtítulos de la Página', pt: 'Subtítulos da Página', zh: '页面副标题' },
+  pro_signup_links_title: { en: '🔗 Pro Signup Links', es: '🔗 Enlaces de Registro Pro', pt: '🔗 Links de Cadastro Pro', zh: '🔗 Pro 注册链接' },
+  professional_link_label: { en: 'Professional link:', es: 'Enlace de Profesional:', pt: 'Link do Profissional:', zh: 'Professional 链接：' },
+  contratante_link_label: { en: 'Hiring Company link:', es: 'Enlace de Empresa Contratante:', pt: 'Link da Contratante:', zh: 'Contratante 链接：' },
+  copy_link_btn: { en: 'Copy', es: 'Copiar', pt: 'Copiar', zh: '复制' },
+  link_copied: { en: 'Link copied!', es: '¡Enlace copiado!', pt: 'Link copiado!', zh: '链接已复制！' },
+  pro_signup_confirm_title: { en: 'Sign Up', es: 'Registro', pt: 'Cadastro', zh: '注册' },
+  pro_signup_confirm_professional: { en: 'You are signing up as a Professional of', es: 'Te estás registrando como Profesional de', pt: 'Você está se cadastrando como Profissional da', zh: '您正在以专业人士身份注册' },
+  pro_signup_confirm_contratante: { en: 'You are signing up as a Hiring Company representative of', es: 'Te estás registrando como representante de Empresa Contratante de', pt: 'Você está se cadastrando como representante de Empresa Contratante da', zh: '您正在以招聘企业代表身份注册' },
+  pro_signup_confirm_button: { en: 'Yes, continue', es: 'Sí, continuar', pt: 'Sim, continuar', zh: '是的，继续' },
+  pro_signup_invalid_title: { en: 'Invalid or expired link', es: 'Enlace inválido o expirado', pt: 'Link inválido ou expirado', zh: '链接无效或已过期' },
+  pro_signup_invalid_message: { en: 'This signup link is not valid. Please check with the company that shared it with you.', es: 'Este enlace de registro no es válido. Por favor, verifica con la empresa que te lo compartió.', pt: 'Este link de cadastro não é válido. Por favor, verifique com a empresa que compartilhou ele com você.', zh: '此注册链接无效，请与向您分享该链接的公司核实。' },
+  pro_signup_your_name: { en: 'Your Name', es: 'Tu Nombre', pt: 'Seu Nome', zh: '您的姓名' },
+  pro_signup_your_email: { en: 'Your Email', es: 'Tu Correo', pt: 'Seu E-mail', zh: '您的邮箱' },
+  pro_signup_continue_btn: { en: 'Continue', es: 'Continuar', pt: 'Continuar', zh: '继续' },
+  pro_signup_verify_hint: { en: 'We sent a verification code to your email.', es: 'Enviamos un código de verificación a tu correo.', pt: 'Enviamos um código de verificação para o seu e-mail.', zh: '我们已向您的邮箱发送了验证码。' },
+  pro_signup_verify_btn: { en: 'Verify Code', es: 'Verificar Código', pt: 'Verificar Código', zh: '验证码确认' },
+  pro_signup_create_password: { en: 'Create your password', es: 'Crea tu contraseña', pt: 'Crie sua senha', zh: '创建您的密码' },
+  pro_signup_create_account_btn: { en: 'Create Account', es: 'Crear Cuenta', pt: 'Criar Conta', zh: '创建账户' },
+  pro_signup_done_title: { en: 'Account created!', es: '¡Cuenta creada!', pt: 'Conta criada!', zh: '账户创建成功！' },
+  pro_signup_done_message: { en: 'You can now log in with your email and password.', es: 'Ahora puedes iniciar sesión con tu correo y contraseña.', pt: 'Agora você pode fazer login com seu e-mail e senha.', zh: '您现在可以使用邮箱和密码登录了。' },
+  pro_signup_go_to_login: { en: 'Go to Login', es: 'Ir a Iniciar Sesión', pt: 'Ir para o Login', zh: '前往登录' },
+  pro_signup_pars_found_title: { en: 'We found existing PAR(s)', es: 'Encontramos PAR(es) existente(s)', pt: 'Encontramos PAR(es) existente(s)', zh: '我们找到了已有的 PAR' },
+  pro_signup_pars_found_hint: { en: 'Select which ones you want to bring to this new profile — you can also uncheck all and start fresh.', es: 'Selecciona cuáles quieres traer a este nuevo perfil — también puedes desmarcar todos y empezar de cero.', pt: 'Selecione quais você quer trazer para este novo perfil — você também pode desmarcar todos e começar do zero.', zh: '请选择要带入此新档案的内容——您也可以全部取消勾选，从头开始。' },
+  pro_signup_pars_choice_continue: { en: 'Continue', es: 'Continuar', pt: 'Continuar', zh: '继续' },
   seller_id_hint_intro: { en: "Creates the seller's own account (goes through 1st Access like any employee) — both the Seller ID and email need to match exactly what's entered here.", es: 'Crea la cuenta propia del vendedor (pasa por el Primer Acceso como cualquier empleado) — tanto el ID de Vendedor como el correo deben coincidir exactamente con lo ingresado aquí.', pt: 'Cria a conta do próprio vendedor (passa pelo 1º Acesso como qualquer funcionário) — tanto o ID do Vendedor quanto o e-mail precisam bater exatamente com o que foi digitado aqui.', zh: '创建销售代表自己的账户（和任何员工一样需要经过首次访问流程）——Seller ID 和邮箱都必须与此处输入的内容完全一致。' },
   suggested_id_format: { en: 'Suggested ID format:', es: 'Formato de ID sugerido:', pt: 'Formato de ID sugerido:', zh: '建议的 ID 格式：' },
   seller_id_hint_example: { en: 'first two letters of first + last name, plus month/year — e.g.', es: 'las dos primeras letras del nombre + apellido, más mes/año — ej.', pt: 'as duas primeiras letras do primeiro nome + sobrenome, mais mês/ano — ex.', zh: '名字和姓氏的前两个字母，加上月份/年份——例如' },
@@ -885,6 +909,20 @@ const [navSnapshot, setNavSnapshot] = useState(null); // { destination: 'browse'
   
   // ⭐ ADICIONAR AQUI - Estados para Employee Login ⭐
   const [isEmployeeLoggedIn, setIsEmployeeLoggedIn] = useState(false);
+  // Fluxo de auto-cadastro Pro (Profissional/Contratante) — detectado via
+  // ?signup=professional|contratante&code=XXX na URL. null enquanto não
+  // detectado; 'invalid' se o código não bater com nenhuma empresa Pro
+  // ativa; senão, um objeto com o papel e os dados da empresa.
+  const [proSignupInfo, setProSignupInfo] = useState(null);
+  const [proSignupStep, setProSignupStep] = useState('confirm'); // 'confirm' | 'form' | 'verify' | 'password' | 'done'
+  const [proSignupForm, setProSignupForm] = useState({ email: '', name: '' });
+  const [proSignupCode, setProSignupCode] = useState('');
+  const [proSignupCodeInput, setProSignupCodeInput] = useState('');
+  const [proSignupPassword, setProSignupPassword] = useState('');
+  const [proSignupConfirmPassword, setProSignupConfirmPassword] = useState('');
+  const [proSignupError, setProSignupError] = useState('');
+  const [proSignupExistingPars, setProSignupExistingPars] = useState([]); // PARs encontrados com o mesmo email
+  const [proSignupSelectedPars, setProSignupSelectedPars] = useState([]); // ids selecionados pra copiar
   const [mySessionToken, setMySessionToken] = useState(() => localStorage.getItem('mySessionToken') || null);
   // ⭐ PWA Install
   const [deferredInstallPrompt, setDeferredInstallPrompt] = useState(null);
@@ -1601,6 +1639,24 @@ useEffect(() => {
     }
   }
 }, [deferredInstallPrompt]);
+
+// Detecta o link de auto-cadastro Pro (?signup=professional|contratante&code=XXX)
+// — só resolve depois que companies carregou, já que precisa achar a
+// empresa pelo Company Code.
+useEffect(() => {
+  if (companies.length === 0) return;
+  const params = new URLSearchParams(window.location.search);
+  const signupRole = params.get('signup');
+  const signupCode = params.get('code');
+  if (!signupRole || !signupCode) return;
+  if (signupRole !== 'professional' && signupRole !== 'contratante') return;
+  const company = companies.find(c => c.code === signupCode && c.edition === 'pro' && c.active);
+  if (!company) {
+    setProSignupInfo('invalid');
+    return;
+  }
+  setProSignupInfo({ role: signupRole, company });
+}, [companies]);
 
 useEffect(() => {
   const handlePageShow = (event) => {
@@ -3667,6 +3723,120 @@ const handleSetAccountAccessPassword = async () => {
   } catch (err) {
     console.error('Error setting password:', err);
     setAccountAccessError(t('error_saving_password'));
+  }
+};
+
+// ==================== FLUXO DE AUTO-CADASTRO PRO ====================
+// Independente do 1st Access acima (mesma infraestrutura de envio de
+// e-mail e regras de senha, mas estado e funções próprias) — evita
+// qualquer risco de quebrar o fluxo existente, que empresas reais já usam.
+// Só verifica PARs existentes pra quem está se cadastrando como
+// Profissional — Contratante não tem PAR pra reaproveitar.
+const handleProSignupSendCode = async () => {
+  setProSignupError('');
+  if (!proSignupForm.email.trim() || !proSignupForm.name.trim()) {
+    setProSignupError(t('please_enter_email_employee_id'));
+    return;
+  }
+  if (proSignupInfo.role === 'professional') {
+    try {
+      const { data: priorProfiles } = await supabase
+        .from('employees')
+        .select('id, employee_id, company_id')
+        .eq('email', proSignupForm.email.trim())
+        .eq('pro_role', 'professional');
+      if (priorProfiles && priorProfiles.length > 0) {
+        const priorEmployeeIds = priorProfiles.map(p => p.employee_id);
+        const { data: pars } = await supabase
+          .from('experiences')
+          .select('*')
+          .in('employee_id', priorEmployeeIds);
+        if (pars && pars.length > 0) {
+          setProSignupExistingPars(pars);
+          setProSignupSelectedPars(pars.map(p => p.id)); // pré-marca todos, por padrão
+          setProSignupStep('par-choice');
+          return;
+        }
+      }
+    } catch (err) {
+      console.error('Error checking existing PARs:', err);
+      // não bloqueia o cadastro se essa checagem falhar — só segue sem sugerir nada
+    }
+  }
+  await actuallySendProSignupCode();
+};
+
+const actuallySendProSignupCode = async () => {
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+  setProSignupCode(code);
+  try {
+    await sendEmailJs(
+      proSignupForm.email.trim(),
+      proSignupForm.name.trim(),
+      `Hi ${proSignupForm.name.trim()},\n\nYour WhatIDid verification code is: ${code}\n\nEnter this code to continue creating your account.\n\nWhatIDid Team`
+    );
+    setProSignupStep('verify');
+  } catch (err) {
+    console.error('Error sending Pro signup verification code:', err);
+    setProSignupError(t('error_sending_verification'));
+  }
+};
+
+const handleProSignupVerifyCode = () => {
+  setProSignupError('');
+  if (proSignupCodeInput.trim() !== proSignupCode) {
+    setProSignupError(t('incorrect_code'));
+    return;
+  }
+  setProSignupStep('password');
+};
+
+const handleProSignupCreateAccount = async () => {
+  setProSignupError('');
+  if (!isPasswordValid(proSignupPassword)) {
+    setProSignupError(t('password_requirements_not_met'));
+    return;
+  }
+  if (proSignupPassword !== proSignupConfirmPassword) {
+    setProSignupError(t('passwords_do_not_match') + '.');
+    return;
+  }
+  try {
+    // Usa o próprio email como Employee ID — mais simples pra quem se
+    // auto-cadastra, sem precisar lembrar um ID gerado por outra pessoa.
+    const newEmployeeId = proSignupForm.email.trim();
+    const { error } = await supabase.from('employees').insert([{
+      employee_id: newEmployeeId,
+      name: proSignupForm.name.trim(),
+      email: proSignupForm.email.trim(),
+      password: proSignupPassword,
+      company_id: proSignupInfo.company.id,
+      pro_role: proSignupInfo.role,
+      status: 'active',
+      is_admin: false
+    }]);
+    if (error) throw error;
+
+    // Copia os PARs selecionados (se houver) pra essa nova empresa — exclui
+    // campos que precisam ser únicos/novos (id, datas, quem é dono, de qual
+    // empresa) e mantém todo o resto do conteúdo como está.
+    if (proSignupSelectedPars.length > 0) {
+      const toCopy = proSignupExistingPars.filter(p => proSignupSelectedPars.includes(p.id));
+      for (const original of toCopy) {
+        const { id, created_at, updated_at, company_id, employee_id, imported_from_id, demo_session_id, ...rest } = original;
+        const { error: copyErr } = await supabase.from('experiences').insert([{
+          ...rest,
+          company_id: proSignupInfo.company.id,
+          employee_id: newEmployeeId
+        }]);
+        if (copyErr) console.error('Error copying PAR:', copyErr);
+      }
+    }
+
+    setProSignupStep('done');
+  } catch (err) {
+    console.error('Error creating Pro signup account:', err);
+    setProSignupError(t('error_saving_password'));
   }
 };
 
@@ -6351,8 +6521,170 @@ useEffect(() => {
   return (
     <>
 
-{/* ⭐ TELA DE LOGIN - Bloqueia acesso se requireEmployeeLogin = true ⭐ */}
-{exitRequested ? (
+{/* ⭐ TELA DE AUTO-CADASTRO PRO — maior prioridade de todas, aparece antes
+    de qualquer outra tela quando o link tem ?signup=... válido ⭐ */}
+{proSignupInfo === 'invalid' ? (
+  <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center p-6 text-center">
+    <div className="max-w-sm">
+      <p className="text-xl text-red-600 font-semibold mb-2">{t('pro_signup_invalid_title')}</p>
+      <p className="text-gray-500">{t('pro_signup_invalid_message')}</p>
+    </div>
+  </div>
+) : proSignupInfo && proSignupStep === 'confirm' ? (
+  <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center p-6">
+    <div className="max-w-sm w-full bg-white rounded-2xl shadow-xl p-6 text-center">
+      <h2 className="text-lg font-bold text-gray-800 mb-4">{t('pro_signup_confirm_title')}</h2>
+      <p className="text-gray-600 mb-6">
+        {proSignupInfo.role === 'professional' ? t('pro_signup_confirm_professional') : t('pro_signup_confirm_contratante')}
+        {' '}<strong>{proSignupInfo.company.name}</strong>?
+      </p>
+      <button
+        onClick={() => setProSignupStep('form')}
+        className="w-full bg-purple-600 text-white py-2.5 rounded-lg hover:bg-purple-700 font-semibold transition-colors"
+      >
+        {t('pro_signup_confirm_button')}
+      </button>
+    </div>
+  </div>
+) : proSignupInfo && proSignupStep === 'form' ? (
+  <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center p-6">
+    <div className="max-w-sm w-full bg-white rounded-2xl shadow-xl p-6">
+      <h2 className="text-lg font-bold text-gray-800 mb-4 text-center">{t('pro_signup_confirm_title')}</h2>
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t('pro_signup_your_name')}</label>
+          <input type="text" value={proSignupForm.name} onChange={(e) => setProSignupForm({...proSignupForm, name: e.target.value})}
+            className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t('pro_signup_your_email')}</label>
+          <input type="email" value={proSignupForm.email} onChange={(e) => setProSignupForm({...proSignupForm, email: e.target.value})}
+            className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none" />
+        </div>
+        {proSignupError && <p className="text-red-600 text-sm">{proSignupError}</p>}
+        <button
+          onClick={handleProSignupSendCode}
+          className="w-full bg-purple-600 text-white py-2.5 rounded-lg hover:bg-purple-700 font-semibold transition-colors"
+        >
+          {t('pro_signup_continue_btn')}
+        </button>
+      </div>
+    </div>
+  </div>
+) : proSignupInfo && proSignupStep === 'par-choice' ? (
+  <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center p-6">
+    <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-6">
+      <h2 className="text-lg font-bold text-gray-800 mb-2 text-center">{t('pro_signup_pars_found_title')}</h2>
+      <p className="text-sm text-gray-500 mb-4 text-center">{t('pro_signup_pars_found_hint')}</p>
+      <div className="space-y-2 max-h-64 overflow-y-auto mb-4">
+        {proSignupExistingPars.map(par => (
+          <label key={par.id} className="flex items-start gap-2 p-2 border border-gray-200 rounded-lg cursor-pointer">
+            <input
+              type="checkbox"
+              checked={proSignupSelectedPars.includes(par.id)}
+              onChange={(e) => {
+                setProSignupSelectedPars(prev =>
+                  e.target.checked ? [...prev, par.id] : prev.filter(id => id !== par.id)
+                );
+              }}
+              className="mt-1"
+            />
+            <span className="text-sm text-gray-700">{par.problem}</span>
+          </label>
+        ))}
+      </div>
+      {proSignupError && <p className="text-red-600 text-sm mb-3">{proSignupError}</p>}
+      <button
+        onClick={actuallySendProSignupCode}
+        className="w-full bg-purple-600 text-white py-2.5 rounded-lg hover:bg-purple-700 font-semibold transition-colors"
+      >
+        {t('pro_signup_pars_choice_continue')}
+      </button>
+    </div>
+  </div>
+) : proSignupInfo && proSignupStep === 'verify' ? (
+  <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center p-6">
+    <div className="max-w-sm w-full bg-white rounded-2xl shadow-xl p-6">
+      <h2 className="text-lg font-bold text-gray-800 mb-2 text-center">{t('pro_signup_confirm_title')}</h2>
+      <p className="text-sm text-gray-500 mb-4 text-center">{t('pro_signup_verify_hint')}</p>
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t('verification_code')}</label>
+          <input type="text" value={proSignupCodeInput} onChange={(e) => setProSignupCodeInput(e.target.value)}
+            className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none" />
+        </div>
+        {proSignupError && <p className="text-red-600 text-sm">{proSignupError}</p>}
+        <button
+          onClick={handleProSignupVerifyCode}
+          className="w-full bg-purple-600 text-white py-2.5 rounded-lg hover:bg-purple-700 font-semibold transition-colors"
+        >
+          {t('pro_signup_verify_btn')}
+        </button>
+      </div>
+    </div>
+  </div>
+) : proSignupInfo && proSignupStep === 'password' ? (
+  <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center p-6">
+    <div className="max-w-sm w-full bg-white rounded-2xl shadow-xl p-6">
+      <h2 className="text-lg font-bold text-gray-800 mb-4 text-center">{t('pro_signup_create_password')}</h2>
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t('new_password')}</label>
+          <input type="password" value={proSignupPassword} onChange={(e) => setProSignupPassword(e.target.value)}
+            className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
+            placeholder={t('choose_a_password')} />
+        </div>
+        <div className="space-y-1">
+          {PASSWORD_RULES.map((rule, i) => {
+            const passed = rule.test(proSignupPassword);
+            const ruleKeys = {
+              'At least 8 characters': 'password_rule_8_chars',
+              'At least one uppercase letter (A-Z)': 'password_rule_uppercase',
+              'At least one lowercase letter (a-z)': 'password_rule_lowercase',
+              'At least one number (0-9)': 'password_rule_number',
+            };
+            return (
+              <div key={i} className={`text-xs flex items-center gap-1.5 ${passed ? 'text-green-600' : 'text-gray-400'}`}>
+                <span>{passed ? '✓' : '○'}</span>
+                <span>{t(ruleKeys[rule.label] || rule.label)}</span>
+              </div>
+            );
+          })}
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t('confirm_password')}</label>
+          <input type="password" value={proSignupConfirmPassword} onChange={(e) => setProSignupConfirmPassword(e.target.value)}
+            className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none" />
+        </div>
+        {proSignupError && <p className="text-red-600 text-sm">{proSignupError}</p>}
+        <button
+          onClick={handleProSignupCreateAccount}
+          className="w-full bg-purple-600 text-white py-2.5 rounded-lg hover:bg-purple-700 font-semibold transition-colors"
+        >
+          {t('pro_signup_create_account_btn')}
+        </button>
+      </div>
+    </div>
+  </div>
+) : proSignupInfo && proSignupStep === 'done' ? (
+  <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center p-6 text-center">
+    <div className="max-w-sm w-full bg-white rounded-2xl shadow-xl p-6">
+      <p className="text-xl text-green-600 font-semibold mb-2">{t('pro_signup_done_title')}</p>
+      <p className="text-gray-500 mb-6">{t('pro_signup_done_message')}</p>
+      <button
+        onClick={() => {
+          const url = new URL(window.location.href);
+          url.searchParams.delete('signup');
+          url.searchParams.delete('code');
+          window.location.href = url.toString();
+        }}
+        className="w-full bg-purple-600 text-white py-2.5 rounded-lg hover:bg-purple-700 font-semibold transition-colors"
+      >
+        {t('pro_signup_go_to_login')}
+      </button>
+    </div>
+  </div>
+) : exitRequested ? (
   <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center p-6 text-center">
     <div>
       <p className="text-xl text-gray-700 font-semibold mb-2">{t('all_done')}</p>
@@ -7677,6 +8009,26 @@ autoComplete="off"
                 <textarea defaultValue={c.contact_notes || ''} id={`contact-notes-${c.id}`}
                   placeholder={t('comments_optional')} rows="2"
                   className="w-full p-1.5 border border-gray-300 rounded text-sm" />
+                {c.edition === 'pro' && (
+                  <div className="border-t border-gray-300 pt-2 mt-2 space-y-1.5">
+                    <p className="text-xs font-semibold text-gray-600">{t('pro_signup_links_title')}</p>
+                    {[
+                      { label: t('professional_link_label'), url: `${window.location.origin}/?signup=professional&code=${c.code}` },
+                      { label: t('contratante_link_label'), url: `${window.location.origin}/?signup=contratante&code=${c.code}` }
+                    ].map((link, idx) => (
+                      <div key={idx} className="flex items-center gap-2">
+                        <span className="text-xs text-gray-500 w-32 flex-shrink-0">{link.label}</span>
+                        <input type="text" readOnly value={link.url} className="flex-1 p-1 border border-gray-300 rounded text-xs bg-gray-50 text-gray-600" />
+                        <button
+                          onClick={() => { navigator.clipboard.writeText(link.url); alert(t('link_copied')); }}
+                          className="px-2 py-1 bg-indigo-100 text-indigo-700 rounded text-xs font-medium hover:bg-indigo-200 flex-shrink-0"
+                        >
+                          {t('copy_link_btn')}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <button
                   onClick={async () => {
                     const { error } = await supabase.from('companies').update({
