@@ -627,6 +627,32 @@ const UI_STRINGS = {
   name_placeholder: { en: 'Name', es: 'Nombre', pt: 'Nome', zh: '姓名' },
   admin_label_short: { en: 'Admin', es: 'Admin', pt: 'Admin', zh: '管理员' },
   employee_id_star: { en: 'Employee ID *', es: 'ID de Empleado *', pt: 'ID do Funcionário *', zh: '员工 ID *' },
+
+  // Variantes "_member" — usadas automaticamente pelo t() quando a empresa
+  // em contexto for Edu ou Pro (ver companyEdition). Mesma chave base,
+  // terminologia Employee→Member.
+  manage_employees_member: { en: 'Manage Members', es: 'Gestionar Miembros', pt: 'Gerenciar Membros', zh: '管理成员' },
+  add_employee_member: { en: 'Add Member', es: 'Agregar Miembro', pt: 'Adicionar Membro', zh: '添加成员' },
+  employee_id_name_required_member: { en: 'Member ID and Name are required', es: 'El ID de Miembro y el Nombre son obligatorios', pt: 'ID de Membro e Nome são obrigatórios', zh: '成员 ID 和姓名为必填项' },
+  error_adding_employee_member: { en: 'Error adding member. ID may already exist.', es: 'Error al agregar el miembro. El ID puede que ya exista.', pt: 'Erro ao adicionar o membro. O ID pode já existir.', zh: '添加成员出错，该 ID 可能已存在。' },
+  error_updating_employee_member: { en: 'Error updating member', es: 'Error al actualizar el miembro', pt: 'Erro ao atualizar o membro', zh: '更新成员时出错' },
+  error_deleting_employee_member: { en: 'Error deleting member', es: 'Error al eliminar el miembro', pt: 'Erro ao excluir o membro', zh: '删除成员时出错' },
+  error_reading_excel_member: { en: 'Error reading Excel file. Make sure columns are: Member ID, Name, Country, Email', es: 'Error al leer el archivo Excel. Asegúrate de que las columnas sean: Member ID, Name, Country, Email', pt: 'Erro ao ler o arquivo Excel. Verifique se as colunas são: Member ID, Name, Country, Email', zh: '读取 Excel 文件出错，请确认列名为：Member ID、Name、Country、Email' },
+  require_employee_id_member: { en: 'Require Member ID for access', es: 'Requerir ID de Miembro para acceder', pt: 'Exigir ID de Membro para acesso', zh: '需要成员 ID 才能访问' },
+  no_employees_yet_member: { en: 'No members yet.', es: 'Aún no hay miembros.', pt: 'Ainda não há membros.', zh: '暂无成员。' },
+  employee_login_member: { en: 'Member Login', es: 'Inicio de Sesión de Miembro', pt: 'Login de Membro', zh: '成员登录' },
+  employee_id_member: { en: 'Member ID', es: 'ID de Miembro', pt: 'ID do Membro', zh: '成员 ID' },
+  enter_your_employee_id_member: { en: 'Enter your Member ID', es: 'Ingresa tu ID de Miembro', pt: 'Digite seu ID de Membro', zh: '请输入成员 ID' },
+  found_more_than_one_account_member: { en: 'We found more than one account with that email and Member ID. Please select the correct one:', es: 'Encontramos más de una cuenta con ese correo e ID de Miembro. Selecciona la correcta:', pt: 'Encontramos mais de uma conta com esse e-mail e ID de Membro. Selecione a correta:', zh: '我们发现使用该邮箱和成员 ID 的账户不止一个，请选择正确的一个：' },
+  can_now_login_member: { en: 'You can now login with your Member ID and new password.', es: 'Ahora puedes iniciar sesión con tu ID de Miembro y tu nueva contraseña.', pt: 'Agora você pode fazer login com seu ID de Membro e a nova senha.', zh: '您现在可以使用成员 ID 和新密码登录了。' },
+  please_enter_email_employee_id_member: { en: 'Please enter both your email and Member ID.', es: 'Por favor, ingresa tu correo y tu ID de Miembro.', pt: 'Por favor, digite seu e-mail e seu ID de Membro.', zh: '请输入您的邮箱和成员 ID。' },
+  no_account_found_member: { en: 'No account found with that email and Member ID. Check with your company Admin.', es: 'No se encontró ninguna cuenta con ese correo e ID de Miembro. Consulta con el Admin de tu empresa.', pt: 'Nenhuma conta encontrada com esse e-mail e ID de Membro. Verifique com o Admin da sua empresa.', zh: '未找到使用该邮箱和成员 ID 的账户，请联系贵公司管理员确认。' },
+  please_enter_id_password_member: { en: 'Please enter Member ID and Password', es: 'Por favor, ingresa tu ID de Miembro y Contraseña', pt: 'Por favor, digite o ID de Membro e a Senha', zh: '请输入成员 ID 和密码' },
+  invalid_id_password_member: { en: 'Invalid Member ID or Password', es: 'ID de Miembro o Contraseña inválidos', pt: 'ID de Membro ou Senha inválidos', zh: '成员 ID 或密码无效' },
+  add_employee_btn_member: { en: '+ Add Member', es: '+ Agregar Miembro', pt: '+ Adicionar Membro', zh: '+ 添加成员' },
+  search_employees_title_member: { en: 'Search Members', es: 'Buscar Miembros', pt: 'Buscar Membros', zh: '搜索成员' },
+  excel_columns_employee_full_member: { en: 'Excel columns: Member ID, Name, Country, Email', es: 'Columnas de Excel: ID de Miembro, Nombre, País, Correo', pt: 'Colunas do Excel: ID do Membro, Nome, País, E-mail', zh: 'Excel 列：成员 ID、姓名、国家、邮箱' },
+  employee_id_star_member: { en: 'Member ID *', es: 'ID de Miembro *', pt: 'ID do Membro *', zh: '成员 ID *' },
   full_name_star: { en: 'Full Name *', es: 'Nombre Completo *', pt: 'Nome Completo *', zh: '全名 *' },
   top_above_top3: { en: 'Top (above Top 3)', es: 'Arriba (encima del Top 3)', pt: 'Topo (acima do Top 3)', zh: '顶部（Top 3 上方）' },
   bottom_below_top3: { en: 'Bottom (below Top 3)', es: 'Abajo (debajo del Top 3)', pt: 'Base (abaixo do Top 3)', zh: '底部（Top 3 下方）' },
@@ -969,6 +995,11 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   // true quando o contexto ativo (seja por login direto, seja pelo dropdown do
   // Master) é o Default — usado só pra saber QUAL DADO está sendo mostrado.
   const isViewingDefault = effectiveCompanyId === defaultCompanyId;
+  // Edição da empresa em contexto (Corp/Pro/Edu) — Default sempre resolve
+  // pra 'corp' (é o valor padrão da coluna, e Default nunca é Edu/Pro de
+  // verdade), então gerenciar o roster interno da própria WID sempre usa
+  // terminologia "Employee", sem precisar de exceção nenhuma pra isso.
+  const companyEdition = companies.find(c => c.id === effectiveCompanyId)?.edition || 'corp';
   // true quando o Master ou um Seller está navegando o Default DIRETAMENTE —
   // não "Managing" nenhuma empresa real. Cobre os dois caminhos de entrada:
   // login direto (signin cai aqui por padrão, sem adminCompanyContext) e saída
@@ -997,12 +1028,21 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   // Traduz textos fixos da UI. Prioridade: banco (uiTranslationsDB, carregado
   // em loadUITranslations) → reserva embutida no código (UI_STRINGS) → a
   // própria chave, como último recurso pra nunca quebrar a tela.
-  const t = (key) =>
-    uiTranslationsDB[key]?.[effectiveViewingLanguage] ||
-    uiTranslationsDB[key]?.en ||
-    UI_STRINGS[key]?.[effectiveViewingLanguage] ||
-    UI_STRINGS[key]?.en ||
-    key;
+  const t = (key) => {
+    // Terminologia Employee/Member: se essa chave tem uma variante "_member"
+    // definida e a empresa em contexto é Edu ou Pro, usa a variante — sem
+    // precisar trocar nenhuma chamada t('xxx') espalhada pelo código.
+    const effectiveKey = (companyEdition === 'edu' || companyEdition === 'pro') && (UI_STRINGS[`${key}_member`] || uiTranslationsDB[`${key}_member`])
+      ? `${key}_member`
+      : key;
+    return (
+      uiTranslationsDB[effectiveKey]?.[effectiveViewingLanguage] ||
+      uiTranslationsDB[effectiveKey]?.en ||
+      UI_STRINGS[effectiveKey]?.[effectiveViewingLanguage] ||
+      UI_STRINGS[effectiveKey]?.en ||
+      key
+    );
+  };
   // Substitui {variavel} num template — usado pelas frases com números/contagens.
   const tt = (key, vars) => {
     const raw =
