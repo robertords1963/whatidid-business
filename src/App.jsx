@@ -416,6 +416,7 @@ const UI_STRINGS = {
   attachment_type_suggestions_title: { en: 'Attachment Type Suggestions (by Edition)', es: 'Sugerencias de Tipo de Anexo (por Edición)', pt: 'Sugestões de Tipo de Anexo (por Edição)', zh: '按版本设置的附件类型建议' },
   doc_type_cv_neutral: { en: '📄 CV only (PDF)', es: '📄 Solo CV (PDF)', pt: '📄 Apenas Currículo (PDF)', zh: '📄 仅限简历（PDF）' },
   no_uploads_option: { en: '🚫 No Uploads', es: '🚫 Sin Subidas', pt: '🚫 Sem Uploads', zh: '🚫 不允许上传' },
+  subtitles_empty_explanation: { en: 'No custom subtitles yet for this language — the page is showing the built-in default text below the title instead. Add up to 3 pairs below to replace it.', es: 'Aún no hay subtítulos personalizados para este idioma — la página está mostrando el texto predeterminado debajo del título. Agrega hasta 3 pares abajo para reemplazarlo.', pt: 'Ainda não há subtítulos personalizados para este idioma — a página está mostrando o texto padrão embutido abaixo do título. Adicione até 3 pares abaixo para substituí-lo.', zh: '该语言下还没有自定义副标题——页面目前显示的是标题下方的内置默认文本。可在下方添加最多 3 组来替换它。' },
   doc_type_other_neutral: { en: '📎 Other document types (PPT, XLS, PDF, DOCX)', es: '📎 Otros tipos de documentos (PPT, XLS, PDF, DOCX)', pt: '📎 Outros tipos de documentos (PPT, XLS, PDF, DOCX)', zh: '📎 其他文件类型（PPT、XLS、PDF、DOCX）' },
   use_default_suggestion: { en: 'Use suggestion from Default', es: 'Usar sugerencia de Default', pt: 'Usar sugestão do Default', zh: '使用 Default 的建议' },
   which_edition_item_appears: { en: 'Which edition this item should appear in — blank shows in every edition', es: 'En qué edición debe aparecer este elemento — en blanco se muestra en todas las ediciones', pt: 'Em qual edição este item deve aparecer — em branco aparece em todas as edições', zh: '此项目应显示在哪个版本下——留空则在所有版本中显示' },
@@ -3180,14 +3181,16 @@ const importQuotesFromDefault = async () => {
       .from('quotes').select('imported_from_id').eq('company_id', effectiveCompanyId).not('imported_from_id', 'is', null);
     const importedIds = new Set((alreadyImported || []).map(r => r.imported_from_id));
 
-    // Só importa a edição da própria empresa — nunca faz sentido uma
-    // empresa Corp trazer quotes marcadas como Edu, etc.
+    // Só importa quotes cuja lista de edições inclui a da própria empresa —
+    // filtro feito no cliente, já que a coluna guarda uma lista separada
+    // por vírgula (ex: 'corp,edu'), não um valor único.
     const { data: defaultQuotes, error } = await supabase
-      .from('quotes').select('*').eq('company_id', defaultCompanyId).eq('language', importLanguage).eq('edition', companyEdition);
+      .from('quotes').select('*').eq('company_id', defaultCompanyId).eq('language', importLanguage);
     if (error) throw error;
+    const matchingQuotes = (defaultQuotes || []).filter(q => (q.edition || 'corp,pro,edu').split(',').includes(companyEdition));
 
     let added = 0;
-    for (const q of (defaultQuotes || [])) {
+    for (const q of matchingQuotes) {
       if (importedIds.has(q.id)) continue;
       const { error: insErr } = await supabase.from('quotes').insert([{
         text: q.text, author: q.author, position: q.position, active: q.active, language: q.language,
@@ -3224,13 +3227,21 @@ const importPromotionalVideos = async () => {
       .or(`language.eq.${importLanguage},language.is.null`);
     if (error) throw error;
 
+    // Só importa vídeos cuja lista de edições inclui a da própria empresa
+    // (ou null = "todas") — evita uma empresa Corp trazer vídeo marcado só
+    // pra Edu.
+    const matchingItems = (defaultItems || []).filter(v =>
+      v.edition == null || v.edition.split(',').includes(companyEdition)
+    );
+
     let added = 0;
-    for (const v of (defaultItems || [])) {
+    for (const v of matchingItems) {
       if (importedIds.has(v.id)) continue;
       const { error: insErr } = await supabase.from('promotional_videos').insert([{
         video_url: v.video_url, duration: v.duration, display_order: v.display_order,
         file_type: v.file_type, link_url: v.link_url, link_label: v.link_label,
         language: v.language,
+        edition: v.edition,
         company_id: effectiveCompanyId, imported_from_id: v.id, import_batch_id: batchId
       }]);
       if (insErr) throw insErr;
@@ -4757,7 +4768,7 @@ const [currentCvUrl, setCurrentCvUrl] = useState(null);
   const [quotes, setQuotes] = useState([]);
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
   const [editingQuote, setEditingQuote] = useState(null);
-  const [newQuote, setNewQuote] = useState({ text: '', author: '', position: 'top', edition: '' });
+  const [newQuote, setNewQuote] = useState({ text: '', author: '', position: 'top', editions: ['corp', 'pro', 'edu'] });
   // Subtítulos da página (as duplas de frases embaixo do título) — até 3
   // por empresa, cada uma com idioma e edições aplicáveis. Se a empresa
   // não cadastrou nenhuma, cai no texto padrão fixo (hero_tagline_public +
@@ -5376,14 +5387,21 @@ useEffect(() => {
         .eq('company_id', effectiveCompanyId)
         .order('id', { ascending: true });
       if (isViewingDefault) {
-        query = query.eq('language', effectiveViewingLanguage).or(`edition.is.null,edition.eq.${companyEdition}`);
+        query = query.eq('language', effectiveViewingLanguage);
       }
       const { data, error } = await query;
       
       if (error) throw error;
+
+      // Filtro de edição — lista separada por vírgula, feito no cliente
+      // (o valor 'corp,pro,edu' representa "todas", já que a coluna não
+      // aceita nulo). Só filtra quando isViewingDefault, igual idioma.
+      const filtered = isViewingDefault
+        ? (data || []).filter(q => (q.edition || 'corp,pro,edu').split(',').includes(companyEdition))
+        : (data || []);
       
       // Randomize order
-      const shuffled = data ? [...data].sort(() => Math.random() - 0.5) : [];
+      const shuffled = [...filtered].sort(() => Math.random() - 0.5);
       setQuotes(shuffled);
     } catch (error) {
       console.error('Error loading quotes:', error);
@@ -5400,6 +5418,10 @@ useEffect(() => {
       alert(t('author_required_bottom'));
       return;
     }
+    if (newQuote.editions.length === 0) {
+      alert(t('select_at_least_one_edition'));
+      return;
+    }
     
     try {
       const { error } = await supabase
@@ -5411,12 +5433,12 @@ useEffect(() => {
           active: true,
           company_id: effectiveCompanyId,
           language: effectiveViewingLanguage,
-          edition: newQuote.edition || null
+          edition: newQuote.editions.join(',')
         }]);
       
       if (error) throw error;
       
-      setNewQuote({ text: '', author: '', position: 'top', edition: '' });
+      setNewQuote({ text: '', author: '', position: 'top', editions: ['corp', 'pro', 'edu'] });
       await loadQuotes();
     } catch (error) {
       console.error('Error adding quote:', error);
@@ -5428,7 +5450,7 @@ useEffect(() => {
     try {
       const { error } = await supabase
         .from('quotes')
-        .update({ text, author, position, edition: edition || null })
+        .update({ text, author, position, edition: edition || 'corp,pro,edu' })
         .eq('id', id);
       
       if (error) throw error;
@@ -5547,7 +5569,7 @@ useEffect(() => {
       const filtered = (data || []).filter(v =>
         (v.visible !== false) &&
         (!v.language || v.language === effectiveViewingLanguage) &&
-        (!v.edition || v.edition === companyEdition)
+        (v.edition == null || v.edition.split(',').includes(companyEdition))
       );
       
       const videos = filtered.map(video => ({
@@ -8163,7 +8185,7 @@ autoComplete="off"
           <option value="" disabled>{t('select_registered_company')}</option>
           {companies.filter(c => c.code !== 'default' && (!isSeller || c.created_by_seller_id === loggedInSellerId)).map(c => (
             <option key={c.id} value={c.id}>
-              {c.name} ({c.status === 'customer' ? t('customer') : c.status === 'pilot' ? t('pilot') : t('prospect')})
+              {c.name} ({c.status === 'customer' ? t('customer') : c.status === 'pilot' ? t('pilot') : t('prospect')}/{{corp:'Corp',pro:'Pro',edu:'Edu'}[c.edition] || 'Corp'})
             </option>
           ))}
         </select>
@@ -8213,7 +8235,7 @@ autoComplete="off"
                           : status === 'pilot' ? 'bg-blue-100 text-blue-700'
                           : 'bg-yellow-100 text-yellow-700'
                         }`}>
-                          {status === 'customer' ? t('customer') : status === 'pilot' ? t('pilot') : t('prospect')}
+                          {status === 'customer' ? t('customer') : status === 'pilot' ? t('pilot') : t('prospect')}/{{corp:'Corp',pro:'Pro',edu:'Edu'}[linkedCompany.edition] || 'Corp'}
                         </span>
                       );
                     })()}
@@ -8558,7 +8580,7 @@ autoComplete="off"
             <option value="none">{t('no_uploads_option')}</option>
             <option value="cv">{t('doc_type_cv_neutral')}</option>
             <option value="other">{t('doc_type_other_neutral')}</option>
-          </select>
+            </select>
         </div>
       ))}
     </div>
@@ -8647,46 +8669,119 @@ autoComplete="off"
 
       {/* 🏢 Company Branding */}
       <div className="border-t pt-4 mt-2">
-        <label className="block text-sm font-semibold text-gray-700 mb-3">
-          {t('company_branding_title')}
-          {isPreviewingDefaultEdition && (
-            <span className="text-xs font-normal text-blue-600 ml-2">
-              {t('editing_in_language')} {{corp:'Corp',pro:'Pro',edu:'Edu'}[companyEdition] || companyEdition}
-            </span>
-          )}
-        </label>
+        <label className="block text-sm font-semibold text-gray-700 mb-3">{t('company_branding_title')}</label>
 
+        {showDefaultOnlyTools ? (
+          <div className="space-y-6">
+            {['corp', 'pro', 'edu'].map(ed => {
+              const branding = editionBranding[ed] || {};
+              return (
+                <div key={ed} className="border-2 border-dashed border-indigo-200 rounded-lg p-3">
+                  <p className="text-xs font-semibold text-indigo-600 mb-3 capitalize">{ed}</p>
+
+                  <div className="mb-4">
+                    <label className="block text-xs font-medium text-gray-600 mb-1">{t('company_name')}</label>
+                    <div className="flex gap-2 mb-2">
+                      <input type="text" defaultValue={branding.company_name || ''}
+                        id={`branding-name-${ed}`}
+                        placeholder="e.g. XYZ Financial Services"
+                        className="flex-1 p-2 border-2 border-gray-300 rounded-lg text-sm" maxLength={60} />
+                      <button onClick={async () => {
+                        const value = document.getElementById(`branding-name-${ed}`).value;
+                        const { error } = await supabase.from('edition_branding').update({ company_name: value, updated_at: new Date().toISOString() }).eq('edition', ed);
+                        if (error) alert(t('generic_error') + ' ' + error.message);
+                        else { alert('Company name saved!'); await loadEditionBranding(); }
+                      }} className="px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700">{t('save')}</button>
+                    </div>
+                    <div className="flex gap-3 bg-gray-50 p-2 rounded-lg">
+                      <span className="text-xs text-gray-500 self-center">{t('size_label')}</span>
+                      {['small', 'medium', 'large'].map(size => (
+                        <label key={size} className="flex items-center gap-1 cursor-pointer">
+                          <input type="radio" name={`branding-name-size-${ed}`} value={size}
+                            checked={(branding.company_name_size || 'medium') === size}
+                            onChange={async () => {
+                              await supabase.from('edition_branding').update({ company_name_size: size, updated_at: new Date().toISOString() }).eq('edition', ed);
+                              await loadEditionBranding();
+                            }}
+                            className="w-3 h-3" />
+                          <span className="text-xs capitalize">{tSizeLabel(size)}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">{t('company_logo')}</label>
+                    {branding.company_logo_url && (
+                      <div className="mb-3 flex items-center gap-3 p-2 bg-gray-50 rounded-lg border border-gray-200">
+                        <img src={branding.company_logo_url} alt="logo" className="h-10 object-contain border border-gray-200 rounded p-1 bg-white" />
+                        <span className="text-xs text-gray-500 flex-1">{t('logo_active')}</span>
+                        <button onClick={async () => {
+                          const { error } = await supabase.from('edition_branding').update({ company_logo_url: null }).eq('edition', ed);
+                          if (!error) { await loadEditionBranding(); alert('Logo removed!'); }
+                        }} className="text-xs text-red-600 hover:text-red-800 font-medium">{t('remove_x')}</button>
+                      </div>
+                    )}
+                    <label className="px-3 py-2 bg-gray-100 border-2 border-gray-200 rounded-lg hover:bg-gray-200 cursor-pointer inline-flex items-center gap-1 text-sm">
+                      <input type="file" accept="image/png,image/jpeg,image/svg+xml,image/gif,image/webp" className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files[0];
+                          if (!file) return;
+                          if (file.size > 2000000) { alert('Max 2MB'); return; }
+                          try {
+                            const ext = file.name.split('.').pop();
+                            const path = `logo-${ed}-${Date.now()}.${ext}`;
+                            const { error: upErr } = await supabase.storage.from('cvs').upload(path, file);
+                            if (upErr) throw upErr;
+                            const { data: { publicUrl } } = supabase.storage.from('cvs').getPublicUrl(path);
+                            const { error: dbErr } = await supabase.from('edition_branding').update({ company_logo_url: publicUrl, updated_at: new Date().toISOString() }).eq('edition', ed);
+                            if (dbErr) throw dbErr;
+                            await loadEditionBranding();
+                            alert('Logo uploaded!');
+                          } catch(err) { alert('Error: ' + err.message); }
+                          e.target.value = '';
+                        }} />
+                      {t('upload_logo_btn')}
+                    </label>
+                    <div className="flex gap-3 bg-gray-50 p-2 rounded-lg mt-2">
+                      <span className="text-xs text-gray-500 self-center">{t('size_label')}</span>
+                      {['small', 'medium', 'large'].map(size => (
+                        <label key={size} className="flex items-center gap-1 cursor-pointer">
+                          <input type="radio" name={`branding-logo-size-${ed}`} value={size}
+                            checked={(branding.company_logo_size || 'medium') === size}
+                            onChange={async () => {
+                              await supabase.from('edition_branding').update({ company_logo_size: size, updated_at: new Date().toISOString() }).eq('edition', ed);
+                              await loadEditionBranding();
+                            }}
+                            className="w-3 h-3" />
+                          <span className="text-xs capitalize">{tSizeLabel(size)}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+        <>
         <div className="mb-4">
           <label className="block text-xs font-medium text-gray-600 mb-1">{t('company_name')}</label>
           <p className="text-xs text-gray-400 mb-2">{t('displayed_below_header')}</p>
           <div className="flex gap-2 mb-2">
-            <input type="text" value={isPreviewingDefaultEdition ? displayedCompanyName : companyName}
-              onChange={(e) => {
-                if (isPreviewingDefaultEdition) {
-                  setEditionBranding(prev => ({ ...prev, [companyEdition]: { ...(prev[companyEdition] || {}), company_name: e.target.value } }));
-                } else {
-                  setCompanyName(e.target.value);
-                }
-              }}
+            <input type="text" value={companyName}
+              onChange={(e) => setCompanyName(e.target.value)}
               placeholder="e.g. XYZ Financial Services"
               className="flex-1 p-2 border-2 border-gray-300 rounded-lg text-sm" maxLength={60} />
             <button onClick={async () => {
-              const value = isPreviewingDefaultEdition ? displayedCompanyName : companyName;
-              const { error } = isPreviewingDefaultEdition
-                ? await supabase.from('edition_branding').update({ company_name: value, updated_at: new Date().toISOString() }).eq('edition', companyEdition)
-                : await supabase.from('app_settings').update({ company_name: value }).eq('company_id', effectiveCompanyId);
+              const { error } = await supabase.from('app_settings').update({ company_name: companyName }).eq('company_id', effectiveCompanyId);
               if (error) alert(t('generic_error') + ' ' + error.message);
-              else { alert('Company name saved!'); if (isPreviewingDefaultEdition) await loadEditionBranding(); }
+              else alert('Company name saved!');
             }} className="px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700">{t('save')}</button>
-            {displayedCompanyName && (
+            {companyName && (
               <button onClick={async () => {
-                if (isPreviewingDefaultEdition) {
-                  setEditionBranding(prev => ({ ...prev, [companyEdition]: { ...(prev[companyEdition] || {}), company_name: null } }));
-                  await supabase.from('edition_branding').update({ company_name: null }).eq('edition', companyEdition);
-                } else {
-                  setCompanyName('');
-                  await supabase.from('app_settings').update({ company_name: null }).eq('company_id', effectiveCompanyId);
-                }
+                setCompanyName('');
+                await supabase.from('app_settings').update({ company_name: null }).eq('company_id', effectiveCompanyId);
               }} className="px-3 py-2 bg-gray-400 text-white rounded-lg text-sm hover:bg-gray-500">{t('clear')}</button>
             )}
           </div>
@@ -8695,15 +8790,10 @@ autoComplete="off"
             {['small', 'medium', 'large'].map(size => (
               <label key={size} className="flex items-center gap-1 cursor-pointer">
                 <input type="radio" name="companyNameSize" value={size}
-                  checked={displayedCompanyNameSize === size}
+                  checked={companyNameSize === size}
                   onChange={async () => {
-                    if (isPreviewingDefaultEdition) {
-                      setEditionBranding(prev => ({ ...prev, [companyEdition]: { ...(prev[companyEdition] || {}), company_name_size: size } }));
-                      await supabase.from('edition_branding').update({ company_name_size: size, updated_at: new Date().toISOString() }).eq('edition', companyEdition);
-                    } else {
-                      setCompanyNameSize(size);
-                      await supabase.from('app_settings').update({ company_name_size: size }).eq('company_id', effectiveCompanyId);
-                    }
+                    setCompanyNameSize(size);
+                    await supabase.from('app_settings').update({ company_name_size: size }).eq('company_id', effectiveCompanyId);
                   }}
                   className="w-3 h-3" />
                 <span className="text-xs capitalize">{tSizeLabel(size)}</span>
@@ -8715,18 +8805,13 @@ autoComplete="off"
         <div>
           <label className="block text-xs font-medium text-gray-600 mb-1">{t('company_logo')}</label>
           <p className="text-xs text-gray-400 mb-2">{t('logo_position_hint')}</p>
-          {displayedCompanyLogoUrl && (
+          {companyLogoUrl && (
             <div className="mb-3 flex items-center gap-3 p-2 bg-gray-50 rounded-lg border border-gray-200">
-              <img src={displayedCompanyLogoUrl} alt="logo" className="h-10 object-contain border border-gray-200 rounded p-1 bg-white" />
+              <img src={companyLogoUrl} alt="logo" className="h-10 object-contain border border-gray-200 rounded p-1 bg-white" />
               <span className="text-xs text-gray-500 flex-1">{t('logo_active')}</span>
               <button onClick={async () => {
-                if (isPreviewingDefaultEdition) {
-                  const { error } = await supabase.from('edition_branding').update({ company_logo_url: null }).eq('edition', companyEdition);
-                  if (!error) { await loadEditionBranding(); alert('Logo removed!'); }
-                } else {
-                  const { error } = await supabase.from('app_settings').update({ company_logo_url: null }).eq('company_id', effectiveCompanyId);
-                  if (!error) { setCompanyLogoUrl(''); alert('Logo removed!'); }
-                }
+                const { error } = await supabase.from('app_settings').update({ company_logo_url: null }).eq('company_id', effectiveCompanyId);
+                if (!error) { setCompanyLogoUrl(''); alert('Logo removed!'); }
               }} className="text-xs text-red-600 hover:text-red-800 font-medium">{t('remove_x')}</button>
             </div>
           )}
@@ -8742,15 +8827,9 @@ autoComplete="off"
                   const { error: upErr } = await supabase.storage.from('cvs').upload(path, file);
                   if (upErr) throw upErr;
                   const { data: { publicUrl } } = supabase.storage.from('cvs').getPublicUrl(path);
-                  if (isPreviewingDefaultEdition) {
-                    const { error: dbErr } = await supabase.from('edition_branding').update({ company_logo_url: publicUrl, updated_at: new Date().toISOString() }).eq('edition', companyEdition);
-                    if (dbErr) throw dbErr;
-                    await loadEditionBranding();
-                  } else {
-                    const { error: dbErr } = await supabase.from('app_settings').update({ company_logo_url: publicUrl }).eq('company_id', effectiveCompanyId);
-                    if (dbErr) throw dbErr;
-                    setCompanyLogoUrl(publicUrl);
-                  }
+                  const { error: dbErr } = await supabase.from('app_settings').update({ company_logo_url: publicUrl }).eq('company_id', effectiveCompanyId);
+                  if (dbErr) throw dbErr;
+                  setCompanyLogoUrl(publicUrl);
                   alert('Logo uploaded!');
                 } catch(err) { alert('Error: ' + err.message); }
                 e.target.value = '';
@@ -8764,15 +8843,10 @@ autoComplete="off"
             {['small', 'medium', 'large'].map(size => (
               <label key={size} className="flex items-center gap-1 cursor-pointer">
                 <input type="radio" name="companyLogoSize" value={size}
-                  checked={displayedCompanyLogoSize === size}
+                  checked={companyLogoSize === size}
                   onChange={async () => {
-                    if (isPreviewingDefaultEdition) {
-                      setEditionBranding(prev => ({ ...prev, [companyEdition]: { ...(prev[companyEdition] || {}), company_logo_size: size } }));
-                      await supabase.from('edition_branding').update({ company_logo_size: size, updated_at: new Date().toISOString() }).eq('edition', companyEdition);
-                    } else {
-                      setCompanyLogoSize(size);
-                      await supabase.from('app_settings').update({ company_logo_size: size }).eq('company_id', effectiveCompanyId);
-                    }
+                    setCompanyLogoSize(size);
+                    await supabase.from('app_settings').update({ company_logo_size: size }).eq('company_id', effectiveCompanyId);
                   }}
                   className="w-3 h-3" />
                 <span className="text-xs capitalize">{tSizeLabel(size)}</span>
@@ -8780,6 +8854,8 @@ autoComplete="off"
             ))}
           </div>
         </div>
+        </>
+        )}
       </div>
 
     </div>
@@ -8844,17 +8920,24 @@ autoComplete="off"
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('edition_label')}</label>
-                    <select
-                      value={newQuote.edition}
-                      onChange={(e) => setNewQuote({...newQuote, edition: e.target.value})}
-                      className="w-full p-2 border-2 border-gray-300 rounded-lg"
-                    >
-                      <option value="">{t('all_editions')}</option>
-                      <option value="corp">Corp</option>
-                      <option value="pro">Pro</option>
-                      <option value="edu">Edu</option>
-                    </select>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('applicable_editions_label')}</label>
+                    <div className="flex flex-wrap gap-3">
+                      {['corp', 'pro', 'edu'].map(ed => (
+                        <label key={ed} className="flex items-center gap-1.5 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={newQuote.editions.includes(ed)}
+                            onChange={(e) => {
+                              setNewQuote(prev => ({
+                                ...prev,
+                                editions: e.target.checked ? [...prev.editions, ed] : prev.editions.filter(x => x !== ed)
+                              }));
+                            }}
+                          />
+                          <span className="text-sm text-gray-700 capitalize">{ed}</span>
+                        </label>
+                      ))}
+                    </div>
                   </div>
                   <button
                     onClick={addQuote}
@@ -8895,24 +8978,26 @@ autoComplete="off"
                               <option value="top">{t('top_above_top3')}</option>
                               <option value="bottom">{t('bottom_below_top3')}</option>
                             </select>
-                            <select
-                              defaultValue={quote.edition || ''}
-                              id={`edit-edition-${quote.id}`}
-                              className="w-full p-2 border-2 border-gray-300 rounded"
-                            >
-                              <option value="">{t('all_editions')}</option>
-                              <option value="corp">Corp</option>
-                              <option value="pro">Pro</option>
-                              <option value="edu">Edu</option>
-                            </select>
+                            <div className="flex flex-wrap gap-3 p-2 border-2 border-gray-300 rounded">
+                              {['corp', 'pro', 'edu'].map(ed => {
+                                const currentList = (quote.edition || 'corp,pro,edu').split(',');
+                                return (
+                                  <label key={ed} className="flex items-center gap-1.5 cursor-pointer">
+                                    <input type="checkbox" id={`edit-edition-${quote.id}-${ed}`} defaultChecked={currentList.includes(ed)} />
+                                    <span className="text-sm text-gray-700 capitalize">{ed}</span>
+                                  </label>
+                                );
+                              })}
+                            </div>
                             <div className="flex gap-2">
                               <button
                                 onClick={() => {
                                   const text = document.getElementById(`edit-text-${quote.id}`).value;
                                   const author = document.getElementById(`edit-author-${quote.id}`).value;
                                   const position = document.getElementById(`edit-position-${quote.id}`).value;
-                                  const edition = document.getElementById(`edit-edition-${quote.id}`).value;
-                                  updateQuote(quote.id, text, author, position, edition);
+                                  const editions = ['corp', 'pro', 'edu'].filter(ed => document.getElementById(`edit-edition-${quote.id}-${ed}`).checked);
+                                  if (editions.length === 0) { alert(t('select_at_least_one_edition')); return; }
+                                  updateQuote(quote.id, text, author, position, editions.join(','));
                                 }}
                                 className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
                               >
@@ -9241,21 +9326,29 @@ autoComplete="off"
                                 <option value="pt">Português</option>
                                 <option value="zh">中文</option>
                               </select>
-                              <select
-                                value={video.edition || ''}
-                                onChange={async (e) => {
-                                  const { error } = await supabase.from('promotional_videos').update({ edition: e.target.value || null }).eq('id', video.id);
-                                  if (error) { alert(t('generic_error') + ' ' + error.message); return; }
-                                  await loadPromotionalVideos();
-                                }}
-                                className="text-xs px-2 py-1 rounded-full font-medium border-0 bg-amber-50 text-amber-700"
-                                title={t('which_edition_item_appears')}
-                              >
-                                <option value="">{t('all_editions')}</option>
-                                <option value="corp">Corp</option>
-                                <option value="pro">Pro</option>
-                                <option value="edu">Edu</option>
-                              </select>
+                              <div className="flex items-center gap-1.5" title={t('which_edition_item_appears')}>
+                                {['corp', 'pro', 'edu'].map(ed => {
+                                  const currentList = video.edition == null ? ['corp', 'pro', 'edu'] : video.edition.split(',').filter(Boolean);
+                                  const isChecked = currentList.includes(ed);
+                                  return (
+                                    <label key={ed} className="flex items-center gap-0.5 text-xs px-1.5 py-1 rounded-full font-medium bg-amber-50 text-amber-700 cursor-pointer">
+                                      <input
+                                        type="checkbox"
+                                        checked={isChecked}
+                                        onChange={async (e) => {
+                                          const newList = e.target.checked ? [...currentList, ed] : currentList.filter(x => x !== ed);
+                                          const newValue = newList.length === 3 ? null : newList.join(',');
+                                          const { error } = await supabase.from('promotional_videos').update({ edition: newValue }).eq('id', video.id);
+                                          if (error) { alert(t('generic_error') + ' ' + error.message); return; }
+                                          await loadPromotionalVideos();
+                                        }}
+                                        className="w-3 h-3"
+                                      />
+                                      {ed}
+                                    </label>
+                                  );
+                                })}
+                              </div>
                             </div>
                             
                             {/* Botões de ação */}
@@ -9379,6 +9472,9 @@ autoComplete="off"
       {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">{t('read_only_sample')}</span>}
     </h3>
     <div className={`bg-white rounded p-4 ${isReadOnlyOrMasterManaging ? 'pointer-events-none opacity-60' : ''}`}>
+      {pageSubtitles.length === 0 && (
+        <p className="text-sm text-gray-400 italic mb-4">{t('subtitles_empty_explanation')}</p>
+      )}
       {pageSubtitles.length > 0 && (
         <div className="space-y-2 mb-4">
           {pageSubtitles.map(sub => (
