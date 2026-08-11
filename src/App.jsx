@@ -265,6 +265,7 @@ const UI_STRINGS = {
   app_configuration: { en: 'App Configuration', es: 'Configuración de la App', pt: 'Configuração do App', zh: '应用配置' },
   quotes_label: { en: 'Quotes', es: 'Citas', pt: 'Citações', zh: '语录' },
   content_pages_label: { en: 'Content Pages', es: 'Páginas de Contenido', pt: 'Páginas de Conteúdo', zh: '内容页面' },
+  page_subtitles_label: { en: 'Page Subtitles', es: 'Subtítulos de la Página', pt: 'Subtítulos da Página', zh: '页面副标题' },
   seller_id_hint_intro: { en: "Creates the seller's own account (goes through 1st Access like any employee) — both the Seller ID and email need to match exactly what's entered here.", es: 'Crea la cuenta propia del vendedor (pasa por el Primer Acceso como cualquier empleado) — tanto el ID de Vendedor como el correo deben coincidir exactamente con lo ingresado aquí.', pt: 'Cria a conta do próprio vendedor (passa pelo 1º Acesso como qualquer funcionário) — tanto o ID do Vendedor quanto o e-mail precisam bater exatamente com o que foi digitado aqui.', zh: '创建销售代表自己的账户（和任何员工一样需要经过首次访问流程）——Seller ID 和邮箱都必须与此处输入的内容完全一致。' },
   suggested_id_format: { en: 'Suggested ID format:', es: 'Formato de ID sugerido:', pt: 'Formato de ID sugerido:', zh: '建议的 ID 格式：' },
   seller_id_hint_example: { en: 'first two letters of first + last name, plus month/year — e.g.', es: 'las dos primeras letras del nombre + apellido, más mes/año — ej.', pt: 'as duas primeiras letras do primeiro nome + sobrenome, mais mês/ano — ex.', zh: '名字和姓氏的前两个字母，加上月份/年份——例如' },
@@ -3149,25 +3150,66 @@ const importPromotionalVideos = async () => {
 // Importa Content Pages do Default — como cada página é identificada por
 // page_key (um conjunto fixo, tipo "about", "terms"), só copia as que a
 // empresa ainda não tem, sem duplicar chaves.
+// Importa os Subtítulos "sample" do Default — só traz os que forem da
+// própria edição da empresa, sem duplicar os que ela já tem.
+const importSubtitles = async () => {
+  if (!effectiveCompanyId || effectiveCompanyId === defaultCompanyId) return;
+  try {
+    const { data: existing } = await supabase
+      .from('page_subtitles').select('line1, language').eq('company_id', effectiveCompanyId);
+    const existingKeys = new Set((existing || []).map(r => `${r.line1}::${r.language}`));
+
+    const { data: defaultSubtitles, error } = await supabase
+      .from('page_subtitles').select('*').eq('company_id', defaultCompanyId).eq('language', importLanguage);
+    if (error) throw error;
+
+    const matching = (defaultSubtitles || []).filter(s =>
+      s.applicable_editions === 'all' || s.applicable_editions.split(',').includes(companyEdition)
+    );
+
+    let added = 0;
+    for (const s of matching) {
+      const key = `${s.line1}::${s.language}`;
+      if (existingKeys.has(key)) continue;
+      if (pageSubtitles.length + added >= 3) break; // respeita o limite de 3
+      const { error: insErr } = await supabase.from('page_subtitles').insert([{
+        company_id: effectiveCompanyId, line1: s.line1, line2: s.line2,
+        language: s.language, applicable_editions: s.applicable_editions,
+        display_order: pageSubtitles.length + added + 1
+      }]);
+      if (insErr) throw insErr;
+      added++;
+    }
+    await loadPageSubtitles();
+    alert(tAlert('content_pages_updated', { added }));
+  } catch (error) {
+    console.error('Error importing subtitles:', error);
+    alert(t('generic_error') + ' ' + error.message);
+  }
+};
+
 const importContentPages = async () => {
   if (!effectiveCompanyId || effectiveCompanyId === defaultCompanyId) return;
   setImportingBundle(true);
   try {
     const { data: existing } = await supabase
-      .from('content_pages').select('page_key, language').eq('company_id', effectiveCompanyId);
-    const existingKeys = new Set((existing || []).map(r => `${r.page_key}::${r.language || 'en'}`));
+      .from('content_pages').select('page_key, language, edition').eq('company_id', effectiveCompanyId);
+    const existingKeys = new Set((existing || []).map(r => `${r.page_key}::${r.language || 'en'}::${r.edition || 'corp'}`));
 
+    // Só importa a edição da própria empresa que está importando — nunca
+    // faz sentido uma empresa Corp trazer conteúdo marcado como Edu, etc.
     const { data: defaultPages, error } = await supabase
-      .from('content_pages').select('*').eq('company_id', defaultCompanyId).eq('language', importLanguage);
+      .from('content_pages').select('*').eq('company_id', defaultCompanyId).eq('language', importLanguage).eq('edition', companyEdition);
     if (error) throw error;
 
     let added = 0;
     for (const p of (defaultPages || [])) {
-      const key = `${p.page_key}::${p.language || 'en'}`;
+      const key = `${p.page_key}::${p.language || 'en'}::${p.edition || 'corp'}`;
       if (existingKeys.has(key)) continue;
       const { error: insErr } = await supabase.from('content_pages').insert([{
         page_key: p.page_key, title: p.title, content: p.content,
         language: p.language || 'en',
+        edition: p.edition || 'corp',
         company_id: effectiveCompanyId, imported_from_id: p.id
       }]);
       if (insErr) throw insErr;
@@ -3239,6 +3281,7 @@ const runImportForSelected = async () => {
   if (selectedForImport.includes('quotes')) await importQuotesFromDefault();
   if (selectedForImport.includes('promotional_videos')) await importPromotionalVideos();
   if (selectedForImport.includes('content_pages')) await importContentPages();
+  if (selectedForImport.includes('page_subtitles')) await importSubtitles();
   if (selectedForImport.includes('app_config')) await importAppConfiguration();
   // Reseta os checkboxes depois de concluído — sem isso ficam "grudados" com
   // a seleção anterior, dando a impressão de que só uma parte ficou disponível.
@@ -5214,7 +5257,8 @@ useEffect(() => {
         .from('content_pages')
         .select('*')
         .eq('company_id', effectiveCompanyId)
-        .eq('language', effectiveViewingLanguage);
+        .eq('language', effectiveViewingLanguage)
+        .eq('edition', companyEdition);
       if (error) throw error;
 
       const pagesObj = {};
@@ -5225,7 +5269,7 @@ useEffect(() => {
       // Fallback pra inglês nas páginas que ainda não têm versão traduzida
       // pro idioma atual (igual já funciona pra experiences) — cobre tanto
       // o Default (conteúdo do Curador) quanto uma empresa que só escreveu
-      // em um idioma até agora.
+      // em um idioma até agora. Continua na mesma edição, só troca idioma.
       if (effectiveViewingLanguage !== 'en') {
         const missingKeys = ['community_guidelines', 'how_it_works', 'about'].filter(k => !pagesObj[k]);
         if (missingKeys.length > 0) {
@@ -5234,6 +5278,7 @@ useEffect(() => {
             .select('*')
             .eq('company_id', effectiveCompanyId)
             .eq('language', 'en')
+            .eq('edition', companyEdition)
             .in('page_key', missingKeys);
           (fallback || []).forEach(page => { pagesObj[page.page_key] = page; });
         }
@@ -5254,8 +5299,9 @@ useEffect(() => {
           page_key: pageKey, content, title,
           company_id: effectiveCompanyId,
           language: effectiveViewingLanguage,
+          edition: companyEdition,
           updated_at: new Date().toISOString()
-        }, { onConflict: 'company_id,page_key,language' });
+        }, { onConflict: 'company_id,page_key,language,edition' });
       
       if (error) throw error;
       
@@ -7350,6 +7396,19 @@ autoComplete="off"
         </tr>
 
         <tr className="border-b">
+          <td className="py-2">{t('page_subtitles_label')}</td>
+          <td className="py-2 text-center">
+            <input type="checkbox" checked={companyMasterVisibility.includes('page_subtitles')}
+              onChange={(e) => toggleMasterVisibility('page_subtitles', e.target.checked)} className="w-4 h-4" />
+          </td>
+          <td className="py-2 text-center">
+            <input type="checkbox" checked={selectedForImport.includes('page_subtitles')}
+              onChange={(e) => setSelectedForImport(e.target.checked ? [...selectedForImport, 'page_subtitles'] : selectedForImport.filter(k => k !== 'page_subtitles'))}
+              className="w-4 h-4" />
+          </td>
+        </tr>
+
+        <tr className="border-b">
           <td className="py-2">
             <p>{t('metadata_model')}</p>
             <p className="text-xs text-gray-400 font-normal">{t('functions_categories_desc')}</p>
@@ -8835,7 +8894,7 @@ autoComplete="off"
                 <MessageCircle size={20} />
                 {t('manage_content_pages')}
                 <span className="text-xs font-normal text-blue-600">
-                  {t('editing_in_language')} {{en:'English',es:'Español',pt:'Português',zh:'中文'}[effectiveViewingLanguage] || effectiveViewingLanguage}
+                  {t('editing_in_language')} {{en:'English',es:'Español',pt:'Português',zh:'中文'}[effectiveViewingLanguage] || effectiveViewingLanguage} · {{corp:'Corp',pro:'Pro',edu:'Edu'}[companyEdition] || companyEdition}
                 </span>
                 {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">{t('read_only_sample')}</span>}
               </h3>
@@ -8900,7 +8959,7 @@ autoComplete="off"
           )}
         </div>
 
-{isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('content_pages')) && activeAdminNavTab === 'settings' && (
+{isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('page_subtitles')) && activeAdminNavTab === 'settings' && (
   <div className="mt-4 bg-blue-50 border-2 border-blue-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
       {t('manage_subtitles_title')}
