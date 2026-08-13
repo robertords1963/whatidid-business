@@ -4483,6 +4483,7 @@ setTimeout(() => {
         cv_filename: cvFilename,
         company_id: effectiveCompanyId,
         demo_session_id: demoSessionIdForInsert,
+        language: effectiveViewingLanguage,
         created_at: new Date().toISOString()
       }])
       .select();
@@ -4836,6 +4837,9 @@ const [currentCvUrl, setCurrentCvUrl] = useState(null);
   const [guidelines, setGuidelines] = useState('');
   const [editingGuidelines, setEditingGuidelines] = useState(false);
   const [contentPages, setContentPages] = useState({});
+  // Só usado no ADM do Default — as 3 edições carregadas juntas, pra editar
+  // as 3 sempre visíveis ao mesmo tempo, sem depender do dropdown.
+  const [contentPagesByEdition, setContentPagesByEdition] = useState({ corp: {}, pro: {}, edu: {} });
   const [editingContent, setEditingContent] = useState({ key: '', content: '' });
   const [showModal, setShowModal] = useState(null);
   
