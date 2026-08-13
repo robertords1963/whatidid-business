@@ -13141,8 +13141,15 @@ onClick={() => {
     <button
       onClick={() => {
         setFollowOnParentId(exp.id);
-        // Pré-preencher practice e category do parent
-        if (exp.practiceId) setSelectedPracticeId(exp.practiceId);
+        // Pré-preencher practice e category do parent — precisa setar as
+        // DUAS variáveis (selectedPracticeId controla o que é salvo,
+        // shareFormPracticeId controla o que o dropdown mostra visualmente;
+        // eram tratadas como uma só por engano, causando a tela mostrar
+        // errado mesmo com o valor salvo estando correto).
+        if (exp.practiceId) {
+          setSelectedPracticeId(exp.practiceId);
+          setShareFormPracticeId(exp.practiceId);
+        }
         setCurrentEntry(prev => ({
           ...prev,
           problemCategory: exp.problemCategory || ''
