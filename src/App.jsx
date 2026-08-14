@@ -1869,16 +1869,32 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null, override
       setLoading(true);
     }
 
-    // Função auxiliar — busca um lote (range) de experiences. Enquanto uma
-    // sessão de demo estiver ativa, NÃO filtra por idioma (mostra tudo) —
-    // qualquer edição feita numa experience existente durante a demo (texto,
-    // Top, comentário, etc.) só muda campos na própria linha, sem criar
-    // nenhum registro novo "marcado" pra sessão; se filtrássemos por idioma
-    // nesse momento, a linha editada podia sumir do filtro e levar a edição
-    // junto. Fora de uma sessão de demo, o filtro por idioma volta normal.
+    // Função auxiliar — busca um lote (range) de experiences. Conteúdo real
+    // (sem demo_session_id) sempre respeita o idioma escolhido; a sessão de
+    // demo ATIVA aparece sempre, em qualquer idioma — sem isso, editar uma
+    // experience sintética durante a demo e depois trocar idioma escondia
+    // a edição (a linha continuava com o idioma original, e sumia do
+    // filtro). Duas consultas simples, combinadas aqui em JS.
     const fetchExperiencesRange = async (rangeStart, rangeEnd) => {
+      if (isViewingDefault && activeDemoSessionId) {
+        const realQuery = supabase.from('experiences').select('*')
+          .eq('company_id', effectiveCompanyId)
+          .eq('language', effectiveViewingLanguage)
+          .is('demo_session_id', null)
+          .order('source', { ascending: true }).order('id', { ascending: false })
+          .range(rangeStart, rangeEnd);
+        const demoQuery = supabase.from('experiences').select('*')
+          .eq('company_id', effectiveCompanyId)
+          .eq('demo_session_id', activeDemoSessionId)
+          .order('source', { ascending: true }).order('id', { ascending: false })
+          .range(rangeStart, rangeEnd);
+        const [realResult, demoResult] = await Promise.all([realQuery, demoQuery]);
+        if (realResult.error) throw realResult.error;
+        if (demoResult.error) throw demoResult.error;
+        return [...(realResult.data || []), ...(demoResult.data || [])];
+      }
       let query = supabase.from('experiences').select('*').eq('company_id', effectiveCompanyId);
-      if (isViewingDefault && !activeDemoSessionId) {
+      if (isViewingDefault) {
         query = query.eq('language', effectiveViewingLanguage);
       }
       query = activeDemoSessionId
@@ -14016,11 +14032,17 @@ if (selected.length === 0) {
         <div className="flex gap-3">
           <button onClick={async () => {
             const updatedExp = editingData[exp.id] || exp;
+            // Marca a linha como pertencente à sessão de demo ativa (se
+            // houver) — sem isso, editar uma experience sintética real
+            // durante a demo e depois trocar idioma escondia a edição,
+            // já que a linha continuava com o idioma original. Fora do modo
+            // demo, não inclui o campo — preserva o que já estava lá.
             const { error } = await supabase.from('experiences').update({
               problem: updatedExp.problem, problem_category: updatedExp.problemCategory,
               solution: updatedExp.solution, result: updatedExp.result,
               result_category: updatedExp.resultCategory, author: updatedExp.author,
-              gender: updatedExp.gender, age: updatedExp.age, country: updatedExp.country
+              gender: updatedExp.gender, age: updatedExp.age, country: updatedExp.country,
+              ...(isDemoModeActive ? { demo_session_id: await ensureDemoSessionId() } : {})
             }).eq('id', exp.id);
             if (error) { alert('Error updating experience'); }
             else { await loadExperiences(true); setEditingExperience(null); setEditingData({}); }
