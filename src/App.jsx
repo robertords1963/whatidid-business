@@ -826,15 +826,42 @@ export default function WhatIDid() {
   // "lembrar" a escolha mesmo quando o dropdown está em "Default".
   const [selectedCompanyForContext, setSelectedCompanyForContext] = useState(null);
   const [expandedCompanyContact, setExpandedCompanyContact] = useState({});
-  // Logo atual de cada empresa (pra mostrar a prévia na lista de Manage
-  // Companies, sem precisar carregar toda a app_settings de cada uma).
+  // Logo + tamanhos atuais de cada empresa (pra mostrar a prévia e os
+  // controles P/M/G na lista de Manage Companies, sem carregar toda a
+  // app_settings de cada uma).
   const [companyLogosById, setCompanyLogosById] = useState({});
+  const [companyBrandingSizesById, setCompanyBrandingSizesById] = useState({});
   const loadCompanyLogos = async () => {
-    const { data, error } = await supabase.from('app_settings').select('company_id, company_logo_url');
+    const { data, error } = await supabase.from('app_settings').select('company_id, company_logo_url, company_name_size, company_logo_size');
     if (error) { console.error('Error loading company logos:', error); return; }
-    const map = {};
-    (data || []).forEach(row => { if (row.company_logo_url) map[row.company_id] = row.company_logo_url; });
-    setCompanyLogosById(map);
+    const logoMap = {};
+    const sizeMap = {};
+    (data || []).forEach(row => {
+      if (row.company_logo_url) logoMap[row.company_id] = row.company_logo_url;
+      sizeMap[row.company_id] = { name: row.company_name_size || 'medium', logo: row.company_logo_size || 'medium' };
+    });
+    setCompanyLogosById(logoMap);
+    setCompanyBrandingSizesById(sizeMap);
+  };
+  // Salva o tamanho (nome ou logo) de uma empresa — checa se já existe
+  // linha antes de decidir entre update/insert, mesmo padrão seguro já
+  // usado pro upload de logo (essa tabela não tem constraint única em
+  // company_id).
+  const saveCompanyBrandingSize = async (companyId, field, size) => {
+    try {
+      const { data: existingSettings } = await supabase
+        .from('app_settings').select('company_id').eq('company_id', companyId).maybeSingle();
+      const { error } = existingSettings
+        ? await supabase.from('app_settings').update({ [field]: size }).eq('company_id', companyId)
+        : await supabase.from('app_settings').insert([{ company_id: companyId, [field]: size }]);
+      if (error) throw error;
+      setCompanyBrandingSizesById(prev => ({
+        ...prev,
+        [companyId]: { ...(prev[companyId] || { name: 'medium', logo: 'medium' }), [field === 'company_name_size' ? 'name' : 'logo']: size }
+      }));
+    } catch (err) {
+      alert('Error: ' + err.message);
+    }
   };
   const [expandedSellerContact, setExpandedSellerContact] = useState({});
   const [confirmDelete, setConfirmDelete] = useState(null);
@@ -8304,6 +8331,18 @@ autoComplete="off"
                   <label className="block text-xs font-medium text-gray-600 mb-1">{t('company_name_star')}</label>
                   <input type="text" defaultValue={c.name} id={`company-name-${c.id}`}
                     className="w-full p-1.5 border border-gray-300 rounded text-sm" />
+                  <div className="flex gap-3 bg-white p-1.5 rounded mt-1">
+                    <span className="text-xs text-gray-500 self-center">{t('size_label')}</span>
+                    {['small', 'medium', 'large'].map(size => (
+                      <label key={size} className="flex items-center gap-1 cursor-pointer">
+                        <input type="radio" name={`company-name-size-${c.id}`} value={size}
+                          checked={(companyBrandingSizesById[c.id]?.name || 'medium') === size}
+                          onChange={() => saveCompanyBrandingSize(c.id, 'company_name_size', size)}
+                          className="w-3 h-3" />
+                        <span className="text-xs">{tSizeLabel(size)}</span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <input type="text" defaultValue={c.contact_name || ''} id={`contact-name-${c.id}`}
@@ -8324,6 +8363,34 @@ autoComplete="off"
                     <div className="flex items-center gap-2 mb-1.5">
                       <img src={companyLogosById[c.id]} alt="logo" className="h-8 object-contain border border-gray-200 rounded p-1 bg-white" />
                       <span className="text-xs text-gray-500">{t('logo_active')}</span>
+                      <button
+                        onClick={async () => {
+                          const { error } = await supabase.from('app_settings').update({ company_logo_url: null }).eq('company_id', c.id);
+                          if (error) { alert('Error: ' + error.message); return; }
+                          setCompanyLogosById(prev => {
+                            const next = { ...prev };
+                            delete next[c.id];
+                            return next;
+                          });
+                        }}
+                        className="text-xs text-red-600 hover:text-red-800 font-medium"
+                      >
+                        {t('remove_x')}
+                      </button>
+                    </div>
+                  )}
+                  {companyLogosById[c.id] && (
+                    <div className="flex gap-3 bg-white p-1.5 rounded mb-1.5">
+                      <span className="text-xs text-gray-500 self-center">{t('size_label')}</span>
+                      {['small', 'medium', 'large'].map(size => (
+                        <label key={size} className="flex items-center gap-1 cursor-pointer">
+                          <input type="radio" name={`company-logo-size-${c.id}`} value={size}
+                            checked={(companyBrandingSizesById[c.id]?.logo || 'medium') === size}
+                            onChange={() => saveCompanyBrandingSize(c.id, 'company_logo_size', size)}
+                            className="w-3 h-3" />
+                          <span className="text-xs">{tSizeLabel(size)}</span>
+                        </label>
+                      ))}
                     </div>
                   )}
                   <input type="file" accept="image/png,image/jpeg,image/svg+xml,image/gif,image/webp"
