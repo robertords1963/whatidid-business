@@ -429,6 +429,8 @@ const UI_STRINGS = {
   default_suggests: { en: 'Default suggests:', es: 'Default sugiere:', pt: 'Default sugere:', zh: 'Default 建议：' },
   subtitle_if_blank_default: { en: 'If left blank, the following default subtitle will be displayed:', es: 'Si se deja en blanco, se mostrará el siguiente subtítulo predeterminado:', pt: 'Se deixado em branco, o seguinte subtítulo padrão será exibido:', zh: '如果留空，将显示以下默认副标题：' },
   subtitle_overrides_default: { en: 'Your entry overrides the default subtitle:', es: 'Tu entrada reemplaza el subtítulo predeterminado:', pt: 'Sua entrada substitui o subtítulo padrão:', zh: '您的条目将覆盖默认副标题：' },
+  subtitle_line1_label: { en: '1st line', es: '1a línea', pt: '1a linha', zh: '第一行' },
+  subtitle_line2_label: { en: '2nd line', es: '2a línea', pt: '2a linha', zh: '第二行' },
   session_ended_by_admin: { en: 'Your access has been ended.', es: 'Tu acceso ha finalizado.', pt: 'Seu acesso foi encerrado.', zh: '您的访问已结束。' },
   default_word: { en: 'Default', es: 'Predeterminado', pt: 'Padrão', zh: '默认' },
   company_word: { en: 'Company', es: 'Empresa', pt: 'Empresa', zh: '公司' },
@@ -9057,7 +9059,7 @@ autoComplete="off"
           </div>
           {newSubtitle.editions.length > 0 && (
             <p className="text-xs text-gray-400 italic">
-              {t('subtitle_if_blank_default')} {newSubtitle.editions.map(ed => `${ed.toUpperCase()}: ${SUBTITLE_DEFAULTS[ed]?.line1} ${SUBTITLE_DEFAULTS[ed]?.line2}`).join(' / ')}
+              {t('subtitle_if_blank_default')} {newSubtitle.editions.map(ed => `${ed.toUpperCase()}: ${t('subtitle_line1_label')} - ${SUBTITLE_DEFAULTS[ed]?.line1} / ${t('subtitle_line2_label')} - ${SUBTITLE_DEFAULTS[ed]?.line2}`).join(' | ')}
             </p>
           )}
           <button
@@ -9113,7 +9115,7 @@ autoComplete="off"
                     })}
                   </div>
                   <p className="text-xs text-gray-400 italic">
-                    {t('subtitle_overrides_default')} {editingSubtitleEditions.map(ed => `${ed.toUpperCase()}: ${SUBTITLE_DEFAULTS[ed]?.line1} ${SUBTITLE_DEFAULTS[ed]?.line2}`).join(' / ')}
+                    {t('subtitle_overrides_default')} {editingSubtitleEditions.map(ed => `${ed.toUpperCase()}: ${t('subtitle_line1_label')} - ${SUBTITLE_DEFAULTS[ed]?.line1} / ${t('subtitle_line2_label')} - ${SUBTITLE_DEFAULTS[ed]?.line2}`).join(' | ')}
                   </p>
                   <div className="flex gap-2">
                     <button
@@ -9133,17 +9135,6 @@ autoComplete="off"
                     >
                       {t('cancel')}
                     </button>
-                    <button
-                      onClick={() => {
-                        const currentEditions = (sub.applicable_editions || 'corp,pro,edu').split(',');
-                        const defaults = SUBTITLE_DEFAULTS[currentEditions[0]] || SUBTITLE_DEFAULTS.corp;
-                        document.getElementById(`edit-subtitle-line1-${sub.id}`).value = defaults.line1;
-                        document.getElementById(`edit-subtitle-line2-${sub.id}`).value = defaults.line2;
-                      }}
-                      className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded text-xs font-medium hover:bg-indigo-200"
-                    >
-                      {t('use_default_suggestion')}
-                    </button>
                   </div>
                 </div>
               ) : (
@@ -9153,7 +9144,7 @@ autoComplete="off"
                     {sub.line2 && <p className="text-xs text-gray-500 truncate">{sub.line2}</p>}
                     <p className="text-xs text-gray-400 mt-0.5 capitalize">{sub.applicable_editions === 'all' ? t('all_editions') : sub.applicable_editions.replaceAll(',', ', ')}</p>
                     <p className="text-xs text-gray-400 italic mt-0.5">
-                      {t('subtitle_overrides_default')} {(sub.applicable_editions || 'corp,pro,edu').split(',').map(ed => `${SUBTITLE_DEFAULTS[ed]?.line1} ${SUBTITLE_DEFAULTS[ed]?.line2}`).join(' / ')}
+                      {t('subtitle_overrides_default')} {(sub.applicable_editions || 'corp,pro,edu').split(',').map(ed => `${ed.toUpperCase()}: ${t('subtitle_line1_label')} - ${SUBTITLE_DEFAULTS[ed]?.line1} / ${t('subtitle_line2_label')} - ${SUBTITLE_DEFAULTS[ed]?.line2}`).join(' | ')}
                     </p>
                   </div>
                   <div className="flex gap-2 flex-shrink-0 ml-3">
