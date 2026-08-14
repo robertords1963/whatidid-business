@@ -826,6 +826,16 @@ export default function WhatIDid() {
   // "lembrar" a escolha mesmo quando o dropdown está em "Default".
   const [selectedCompanyForContext, setSelectedCompanyForContext] = useState(null);
   const [expandedCompanyContact, setExpandedCompanyContact] = useState({});
+  // Logo atual de cada empresa (pra mostrar a prévia na lista de Manage
+  // Companies, sem precisar carregar toda a app_settings de cada uma).
+  const [companyLogosById, setCompanyLogosById] = useState({});
+  const loadCompanyLogos = async () => {
+    const { data, error } = await supabase.from('app_settings').select('company_id, company_logo_url');
+    if (error) { console.error('Error loading company logos:', error); return; }
+    const map = {};
+    (data || []).forEach(row => { if (row.company_logo_url) map[row.company_id] = row.company_logo_url; });
+    setCompanyLogosById(map);
+  };
   const [expandedSellerContact, setExpandedSellerContact] = useState({});
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -1493,6 +1503,7 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   useEffect(() => {
   detectUserCountry();
   loadCompanies();
+  loadCompanyLogos();
   loadSellers();
   loadUITranslations();
   loadEditionDefaults();
@@ -8288,6 +8299,11 @@ autoComplete="off"
             </div>
             {expandedCompanyContact[c.id] && (
               <div className="border-t border-gray-200 p-3 bg-gray-50 space-y-2">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">{t('company_name_star')}</label>
+                  <input type="text" defaultValue={c.name} id={`company-name-${c.id}`}
+                    className="w-full p-1.5 border border-gray-300 rounded text-sm" />
+                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <input type="text" defaultValue={c.contact_name || ''} id={`contact-name-${c.id}`}
                     placeholder={t('contact_name_placeholder')} className="p-1.5 border border-gray-300 rounded text-sm" />
@@ -8301,6 +8317,37 @@ autoComplete="off"
                 <textarea defaultValue={c.contact_notes || ''} id={`contact-notes-${c.id}`}
                   placeholder={t('comments_optional')} rows="2"
                   className="w-full p-1.5 border border-gray-300 rounded text-sm" />
+                <div className="border-t border-gray-300 pt-2 mt-2">
+                  <label className="block text-xs font-medium text-gray-600 mb-1">{t('company_logo_optional')}</label>
+                  {companyLogosById[c.id] && (
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <img src={companyLogosById[c.id]} alt="logo" className="h-8 object-contain border border-gray-200 rounded p-1 bg-white" />
+                      <span className="text-xs text-gray-500">{t('logo_active')}</span>
+                    </div>
+                  )}
+                  <input type="file" accept="image/png,image/jpeg,image/svg+xml,image/gif,image/webp"
+                    onChange={async (e) => {
+                      const file = e.target.files[0];
+                      if (!file) return;
+                      if (file.size > 2000000) { alert('Max 2MB'); return; }
+                      try {
+                        const ext = file.name.split('.').pop();
+                        const path = `logo-company-${c.id}-${Date.now()}.${ext}`;
+                        const { error: upErr } = await supabase.storage.from('cvs').upload(path, file);
+                        if (upErr) throw upErr;
+                        const { data: { publicUrl } } = supabase.storage.from('cvs').getPublicUrl(path);
+                        const { error: settingsErr } = await supabase.from('app_settings')
+                          .upsert({ company_id: c.id, company_logo_url: publicUrl }, { onConflict: 'company_id' });
+                        if (settingsErr) throw settingsErr;
+                        setCompanyLogosById(prev => ({ ...prev, [c.id]: publicUrl }));
+                        alert('Logo uploaded!');
+                      } catch (err) {
+                        alert('Error: ' + err.message);
+                      }
+                      e.target.value = '';
+                    }}
+                    className="text-sm" />
+                </div>
                 {c.edition === 'pro' && (
                   <div className="border-t border-gray-300 pt-2 mt-2 space-y-1.5">
                     <p className="text-xs font-semibold text-gray-600">{t('pro_signup_links_title')}</p>
@@ -8323,7 +8370,10 @@ autoComplete="off"
                 )}
                 <button
                   onClick={async () => {
+                    const newName = document.getElementById(`company-name-${c.id}`).value.trim();
+                    if (!newName) { alert(t('company_name_required')); return; }
                     const { error } = await supabase.from('companies').update({
+                      name: newName,
                       contact_name: document.getElementById(`contact-name-${c.id}`).value.trim() || null,
                       contact_email: document.getElementById(`contact-email-${c.id}`).value.trim() || null,
                       contact_phone: document.getElementById(`contact-phone-${c.id}`).value.trim() || null,
