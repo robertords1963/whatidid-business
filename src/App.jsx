@@ -1869,31 +1869,16 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null, override
       setLoading(true);
     }
 
-    // Função auxiliar — busca um lote (range) de experiences, já combinando
-    // conteúdo real (respeitando idioma) com a sessão de demo ativa (que
-    // aparece sempre, em qualquer idioma). Duas consultas simples,
-    // combinadas aqui em JS — evita sintaxe arriscada de OR/AND aninhado
-    // que o Supabase pode não processar do jeito esperado.
+    // Função auxiliar — busca um lote (range) de experiences. Enquanto uma
+    // sessão de demo estiver ativa, NÃO filtra por idioma (mostra tudo) —
+    // qualquer edição feita numa experience existente durante a demo (texto,
+    // Top, comentário, etc.) só muda campos na própria linha, sem criar
+    // nenhum registro novo "marcado" pra sessão; se filtrássemos por idioma
+    // nesse momento, a linha editada podia sumir do filtro e levar a edição
+    // junto. Fora de uma sessão de demo, o filtro por idioma volta normal.
     const fetchExperiencesRange = async (rangeStart, rangeEnd) => {
-      if (isViewingDefault && activeDemoSessionId) {
-        const realQuery = supabase.from('experiences').select('*')
-          .eq('company_id', effectiveCompanyId)
-          .eq('language', effectiveViewingLanguage)
-          .is('demo_session_id', null)
-          .order('source', { ascending: true }).order('id', { ascending: false })
-          .range(rangeStart, rangeEnd);
-        const demoQuery = supabase.from('experiences').select('*')
-          .eq('company_id', effectiveCompanyId)
-          .eq('demo_session_id', activeDemoSessionId)
-          .order('source', { ascending: true }).order('id', { ascending: false })
-          .range(rangeStart, rangeEnd);
-        const [realResult, demoResult] = await Promise.all([realQuery, demoQuery]);
-        if (realResult.error) throw realResult.error;
-        if (demoResult.error) throw demoResult.error;
-        return [...(realResult.data || []), ...(demoResult.data || [])];
-      }
       let query = supabase.from('experiences').select('*').eq('company_id', effectiveCompanyId);
-      if (isViewingDefault) {
+      if (isViewingDefault && !activeDemoSessionId) {
         query = query.eq('language', effectiveViewingLanguage);
       }
       query = activeDemoSessionId
@@ -1913,23 +1898,6 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null, override
     
     // Combinar os 2 lotes
     let data = [...batch1, ...batch2];
-
-    // Uma Experience REAL (outro idioma) que recebeu um comentário da
-    // sessão de demo ativa precisa aparecer também — senão o comentário
-    // fica "órfão" (sem card pra ser exibido), mesmo tendo sido gravado
-    // certinho. Roda uma vez só, depois de combinar os lotes, pra não
-    // duplicar a checagem.
-    if (isViewingDefault && activeDemoSessionId) {
-      const { data: demoComments } = await supabase.from('comments')
-        .select('experience_id').eq('demo_session_id', activeDemoSessionId);
-      const commentedIds = [...new Set((demoComments || []).map(c => c.experience_id))]
-        .filter(id => !data.some(e => e.id === id));
-      if (commentedIds.length > 0) {
-        const { data: orphanParents } = await supabase.from('experiences')
-          .select('*').in('id', commentedIds);
-        data = [...data, ...(orphanParents || [])];
-      }
-    }
 
     // Corrige related_common_case_id pra Individual Experiences não-inglesas.
     // Duas causas possíveis, resolvidas juntas: (a) o valor aponta pro id da
