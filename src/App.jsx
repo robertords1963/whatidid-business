@@ -1868,63 +1868,51 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null, override
     if (!skipLoading) {
       setLoading(true);
     }
-    
+
+    // Função auxiliar — busca um lote (range) de experiences, já combinando
+    // conteúdo real (respeitando idioma) com a sessão de demo ativa (que
+    // aparece sempre, em qualquer idioma). Duas consultas simples,
+    // combinadas aqui em JS — evita sintaxe arriscada de OR/AND aninhado
+    // que o Supabase pode não processar do jeito esperado.
+    const fetchExperiencesRange = async (rangeStart, rangeEnd) => {
+      if (isViewingDefault && activeDemoSessionId) {
+        const realQuery = supabase.from('experiences').select('*')
+          .eq('company_id', effectiveCompanyId)
+          .eq('language', effectiveViewingLanguage)
+          .is('demo_session_id', null)
+          .order('source', { ascending: true }).order('id', { ascending: false })
+          .range(rangeStart, rangeEnd);
+        const demoQuery = supabase.from('experiences').select('*')
+          .eq('company_id', effectiveCompanyId)
+          .eq('demo_session_id', activeDemoSessionId)
+          .order('source', { ascending: true }).order('id', { ascending: false })
+          .range(rangeStart, rangeEnd);
+        const [realResult, demoResult] = await Promise.all([realQuery, demoQuery]);
+        if (realResult.error) throw realResult.error;
+        if (demoResult.error) throw demoResult.error;
+        return [...(realResult.data || []), ...(demoResult.data || [])];
+      }
+      let query = supabase.from('experiences').select('*').eq('company_id', effectiveCompanyId);
+      if (isViewingDefault) {
+        query = query.eq('language', effectiveViewingLanguage);
+      }
+      query = activeDemoSessionId
+        ? query.or(`demo_session_id.is.null,demo_session_id.eq.${activeDemoSessionId}`)
+        : query.is('demo_session_id', null);
+      const { data, error } = await query
+        .order('source', { ascending: true }).order('id', { ascending: false })
+        .range(rangeStart, rangeEnd);
+      if (error) throw error;
+      return data || [];
+    };
+
     // Buscar primeiro lote (0-999) - Supabase limita em 1000
-    let query1 = supabase
-      .from('experiences')
-      .select('*')
-      .eq('company_id', effectiveCompanyId);
-    // Conteúdo real (sem demo_session_id) respeita o idioma escolhido; a
-    // sessão de demo ATIVA sempre aparece, mesmo que o idioma tenha sido
-    // trocado depois de já ter entrado dados nela — trocar idioma não pode
-    // fazer o que já foi digitado na sessão "sumir".
-    if (isViewingDefault && activeDemoSessionId) {
-      query1 = query1.or(`and(demo_session_id.is.null,language.eq.${effectiveViewingLanguage}),demo_session_id.eq.${activeDemoSessionId}`);
-    } else {
-      if (isViewingDefault) {
-        query1 = query1.eq('language', effectiveViewingLanguage);
-      }
-      query1 = activeDemoSessionId
-        ? query1.or(`demo_session_id.is.null,demo_session_id.eq.${activeDemoSessionId}`)
-        : query1.is('demo_session_id', null);
-    }
-    const { data: batch1, error: error1 } = await query1
-      .order('source', { ascending: true })
-      .order('id', { ascending: false })
-      .range(0, 999);
-    
-    if (error1) {
-      console.log('🔴 ERRO no batch1:', error1);
-      throw error1;
-    }
-    
+    const batch1 = await fetchExperiencesRange(0, 999);
     // Buscar segundo lote (1000-1999) - pega as 53 restantes
-    let query2 = supabase
-      .from('experiences')
-      .select('*')
-      .eq('company_id', effectiveCompanyId);
-    if (isViewingDefault && activeDemoSessionId) {
-      query2 = query2.or(`and(demo_session_id.is.null,language.eq.${effectiveViewingLanguage}),demo_session_id.eq.${activeDemoSessionId}`);
-    } else {
-      if (isViewingDefault) {
-        query2 = query2.eq('language', effectiveViewingLanguage);
-      }
-      query2 = activeDemoSessionId
-        ? query2.or(`demo_session_id.is.null,demo_session_id.eq.${activeDemoSessionId}`)
-        : query2.is('demo_session_id', null);
-    }
-    const { data: batch2, error: error2 } = await query2
-      .order('source', { ascending: true })
-      .order('id', { ascending: false })
-      .range(1000, 1999);
-    
-    if (error2) {
-      console.log('🔴 ERRO no batch2:', error2);
-      throw error2;
-    }
+    const batch2 = await fetchExperiencesRange(1000, 1999);
     
     // Combinar os 2 lotes
-    const data = [...(batch1 || []), ...(batch2 || [])];
+    const data = [...batch1, ...batch2];
 
     // Corrige related_common_case_id pra Individual Experiences não-inglesas.
     // Duas causas possíveis, resolvidas juntas: (a) o valor aponta pro id da
