@@ -2736,6 +2736,7 @@ const addCompany = async () => {
           company_id: data.id, company_logo_url: publicUrl
         }]);
         if (settingsErr) throw settingsErr;
+        setCompanyLogosById(prev => ({ ...prev, [data.id]: publicUrl }));
       } catch (logoError) {
         console.error('Error uploading company logo:', logoError);
         alert(t('generic_error') + ' ' + logoError.message);
@@ -8336,8 +8337,14 @@ autoComplete="off"
                         const { error: upErr } = await supabase.storage.from('cvs').upload(path, file);
                         if (upErr) throw upErr;
                         const { data: { publicUrl } } = supabase.storage.from('cvs').getPublicUrl(path);
-                        const { error: settingsErr } = await supabase.from('app_settings')
-                          .upsert({ company_id: c.id, company_logo_url: publicUrl }, { onConflict: 'company_id' });
+                        // Sem constraint única em company_id nessa tabela — checa se já
+                        // existe uma linha antes de decidir entre update/insert, em vez
+                        // de depender de upsert com onConflict.
+                        const { data: existingSettings } = await supabase
+                          .from('app_settings').select('company_id').eq('company_id', c.id).maybeSingle();
+                        const { error: settingsErr } = existingSettings
+                          ? await supabase.from('app_settings').update({ company_logo_url: publicUrl }).eq('company_id', c.id)
+                          : await supabase.from('app_settings').insert([{ company_id: c.id, company_logo_url: publicUrl }]);
                         if (settingsErr) throw settingsErr;
                         setCompanyLogosById(prev => ({ ...prev, [c.id]: publicUrl }));
                         alert('Logo uploaded!');
