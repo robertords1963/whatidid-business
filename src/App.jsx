@@ -4281,6 +4281,12 @@ if (matches.length > 0) {
       age: '',
       country: userCountryName || ''
     }));
+    // Mesmo raciocínio da Category — preserva a Practice se for Follow-On
+    // (já veio pré-preenchida do parent), limpa se for uma entrada nova.
+    if (!followOnParentId) {
+      setSelectedPracticeId(null);
+      setShareFormPracticeId(null);
+    }
     setSelectedTags([]);
     setSelectedCv(null);
   };
@@ -4306,6 +4312,8 @@ if (matches.length > 0) {
     setKeyInsightCategory('');
     setSelectedTags([]);
     setFollowOnParentId(null);
+    setSelectedPracticeId(null);
+    setShareFormPracticeId(null);
     setCurrentPage(1);
     
     setTimeout(() => {
@@ -6188,6 +6196,11 @@ useEffect(() => {
     setKeyInsightCategory(state.keyInsightCategory);
     setMappedFilter(state.mappedFilter);
     setNavSnapshot(null);
+    // Limpa qualquer resíduo de Follow-On, já que "Voltar" abandona a
+    // entrada que estava sendo preenchida.
+    setFollowOnParentId(null);
+    setSelectedPracticeId(null);
+    setShareFormPracticeId(null);
     setTimeout(() => {
       window.scrollTo({ top: scrollY, behavior: 'smooth' });
     }, 100);
@@ -13140,6 +13153,7 @@ onClick={() => {
   return (
     <button
       onClick={() => {
+        captureNavSnapshot('share');
         setFollowOnParentId(exp.id);
         // Pré-preencher practice e category do parent — precisa setar as
         // DUAS variáveis (selectedPracticeId controla o que é salvo,
