@@ -1512,7 +1512,7 @@ useEffect(() => {
     loadProblemCategories();
     loadPractices();
     loadPageSubtitles();
-    if (showDefaultOnlyTools) loadContentPagesByEdition();
+    loadAllContentPages();
     loadAppSettings();
     // Sem isso, "Manage Demo Groups" ficava com dado parado desde o carregamento
     // inicial do app — trocar de sessão (logar como um Demo ID, sair, entrar
@@ -3302,29 +3302,35 @@ const importContentPages = async () => {
   setImportingBundle(true);
   try {
     const { data: existing } = await supabase
-      .from('content_pages').select('page_key, language, edition').eq('company_id', effectiveCompanyId);
-    const existingKeys = new Set((existing || []).map(r => `${r.page_key}::${r.language || 'en'}::${r.edition || 'corp'}`));
+      .from('content_pages').select('page_key, language').eq('company_id', effectiveCompanyId);
+    const existingKeys = new Set((existing || []).map(r => `${r.page_key}::${r.language || 'en'}`));
 
-    // Só importa a edição da própria empresa que está importando — nunca
-    // faz sentido uma empresa Corp trazer conteúdo marcado como Edu, etc.
+    // Só importa entradas cuja lista de edições inclui a da própria
+    // empresa — filtro feito no cliente, já que a coluna guarda uma lista
+    // separada por vírgula, não um valor único.
     const { data: defaultPages, error } = await supabase
-      .from('content_pages').select('*').eq('company_id', defaultCompanyId).eq('language', importLanguage).eq('edition', companyEdition);
+      .from('content_pages').select('*').eq('company_id', defaultCompanyId).eq('language', importLanguage);
     if (error) throw error;
+    const matchingPages = (defaultPages || []).filter(p =>
+      (p.applicable_editions || 'corp,pro,edu').split(',').includes(companyEdition)
+    );
 
     let added = 0;
-    for (const p of (defaultPages || [])) {
-      const key = `${p.page_key}::${p.language || 'en'}::${p.edition || 'corp'}`;
-      if (existingKeys.has(key)) continue;
+    for (const p of matchingPages) {
+      const key = `${p.page_key}::${p.language || 'en'}`;
+      if (existingKeys.has(key)) continue; // já tem uma entrada pra essa página/idioma, pula
       const { error: insErr } = await supabase.from('content_pages').insert([{
         page_key: p.page_key, title: p.title, content: p.content,
         language: p.language || 'en',
-        edition: p.edition || 'corp',
+        applicable_editions: p.applicable_editions || 'corp,pro,edu',
         company_id: effectiveCompanyId, imported_from_id: p.id
       }]);
       if (insErr) throw insErr;
       added++;
+      existingKeys.add(key);
     }
     await loadContentPages();
+    await loadAllContentPages();
     alert(tAlert('content_pages_updated', { added }));
   } catch (error) {
     console.error('Error importing content pages:', error);
@@ -4850,7 +4856,11 @@ const [currentCvUrl, setCurrentCvUrl] = useState(null);
   const [contentPages, setContentPages] = useState({});
   // Só usado no ADM do Default — as 3 edições carregadas juntas, pra editar
   // as 3 sempre visíveis ao mesmo tempo, sem depender do dropdown.
-  const [contentPagesByEdition, setContentPagesByEdition] = useState({ corp: {}, pro: {}, edu: {} });
+  // Todas as entradas de Content Pages (não só a que bate com a edição
+  // atual) — usado na tela de administração, igual Quotes: uma lista por
+  // página, cada entrada com suas próprias edições marcadas.
+  const [allContentPagesByKey, setAllContentPagesByKey] = useState({ community_guidelines: [], how_it_works: [], about: [] });
+  const [newContentEntry, setNewContentEntry] = useState({ pageKey: '', content: '', editions: ['corp', 'pro', 'edu'] });
   const [editingContent, setEditingContent] = useState({ key: '', content: '' });
   const [showModal, setShowModal] = useState(null);
   
@@ -5507,14 +5517,23 @@ useEffect(() => {
         .from('content_pages')
         .select('*')
         .eq('company_id', effectiveCompanyId)
-        .eq('language', effectiveViewingLanguage)
-        .eq('edition', companyEdition);
+        .eq('language', effectiveViewingLanguage);
       if (error) throw error;
 
-      const pagesObj = {};
-      data?.forEach(page => {
-        pagesObj[page.page_key] = page;
-      });
+      // Entre as entradas de uma mesma página, pega a primeira que inclui
+      // a edição em contexto — pode existir mais de uma (ex: uma genérica
+      // pra todas, outra específica só pra Edu).
+      const pickMatching = (rows) => {
+        const obj = {};
+        (rows || []).forEach(page => {
+          if (obj[page.page_key]) return; // já achou uma pra essa página
+          const editions = (page.applicable_editions || 'corp,pro,edu').split(',');
+          if (editions.includes(companyEdition)) obj[page.page_key] = page;
+        });
+        return obj;
+      };
+
+      const pagesObj = pickMatching(data);
 
       // Fallback pra inglês nas páginas que ainda não têm versão traduzida
       // pro idioma atual (igual já funciona pra experiences) — cobre tanto
@@ -5528,9 +5547,9 @@ useEffect(() => {
             .select('*')
             .eq('company_id', effectiveCompanyId)
             .eq('language', 'en')
-            .eq('edition', companyEdition)
             .in('page_key', missingKeys);
-          (fallback || []).forEach(page => { pagesObj[page.page_key] = page; });
+          const fallbackMatched = pickMatching(fallback);
+          Object.assign(pagesObj, fallbackMatched);
         }
       }
 
@@ -5540,72 +5559,83 @@ useEffect(() => {
     }
   };
 
-  const updateContentPage = async (pageKey, content) => {
-    try {
-      const title = CONTENT_PAGE_DEFAULTS[pageKey] || contentPages[pageKey]?.title || pageKey;
-      const { error } = await supabase
-        .from('content_pages')
-        .upsert({
-          page_key: pageKey, content, title,
-          company_id: effectiveCompanyId,
-          language: effectiveViewingLanguage,
-          edition: companyEdition,
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'company_id,page_key,language,edition' });
-      
-      if (error) throw error;
-      
-      await loadContentPages();
-      setEditingContent({ key: '', content: '' });
-      alert(t('content_updated_success'));
-    } catch (error) {
-      console.error('Error updating content:', error);
-      alert(t('error_updating_content'));
-    }
-  };
+  // (updateContentPage antiga removida — substituída por
+  // updateContentPageEntry, que trabalha com o novo modelo de lista +
+  // checkboxes de edição, igual Quotes)
 
-  // Só usado no ADM do Default — carrega as 3 edições juntas, pra editar
-  // as 3 sempre visíveis ao mesmo tempo, sem depender do dropdown (mesmo
-  // padrão já usado em Company Branding).
-  const loadContentPagesByEdition = async () => {
+
+  // Todas as entradas de Content Pages, agrupadas por página — usado na
+  // tela de administração (lista, igual Quotes), independente de edição.
+  const loadAllContentPages = async () => {
     if (!effectiveCompanyId) return;
     try {
       const { data, error } = await supabase
         .from('content_pages')
         .select('*')
         .eq('company_id', effectiveCompanyId)
-        .eq('language', effectiveViewingLanguage);
+        .eq('language', effectiveViewingLanguage)
+        .order('created_at', { ascending: true });
       if (error) throw error;
-      const byEdition = { corp: {}, pro: {}, edu: {} };
+      const byKey = { community_guidelines: [], how_it_works: [], about: [] };
       (data || []).forEach(page => {
-        const ed = page.edition || 'corp';
-        if (byEdition[ed]) byEdition[ed][page.page_key] = page;
+        if (byKey[page.page_key]) byKey[page.page_key].push(page);
       });
-      setContentPagesByEdition(byEdition);
+      setAllContentPagesByKey(byKey);
     } catch (error) {
-      console.error('Error loading content pages by edition:', error);
+      console.error('Error loading all content pages:', error);
     }
   };
 
-  const updateContentPageForEdition = async (pageKey, content, edition) => {
+  const addContentPageEntry = async () => {
+    if (!newContentEntry.pageKey) return;
+    if (!newContentEntry.content.trim()) { alert(t('enter_content_markdown')); return; }
+    if (newContentEntry.editions.length === 0) { alert(t('select_at_least_one_edition')); return; }
     try {
-      const title = CONTENT_PAGE_DEFAULTS[pageKey] || contentPagesByEdition[edition]?.[pageKey]?.title || pageKey;
-      const { error } = await supabase
-        .from('content_pages')
-        .upsert({
-          page_key: pageKey, content, title,
-          company_id: effectiveCompanyId,
-          language: effectiveViewingLanguage,
-          edition,
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'company_id,page_key,language,edition' });
+      const title = CONTENT_PAGE_DEFAULTS[newContentEntry.pageKey] || newContentEntry.pageKey;
+      const { error } = await supabase.from('content_pages').insert([{
+        page_key: newContentEntry.pageKey, content: newContentEntry.content, title,
+        company_id: effectiveCompanyId,
+        language: effectiveViewingLanguage,
+        applicable_editions: newContentEntry.editions.join(',')
+      }]);
       if (error) throw error;
-      await loadContentPagesByEdition();
-      setEditingContent({ key: '', content: '' });
+      setNewContentEntry({ pageKey: '', content: '', editions: ['corp', 'pro', 'edu'] });
+      await loadAllContentPages();
+      await loadContentPages();
       alert(t('content_updated_success'));
     } catch (error) {
-      console.error('Error updating content:', error);
+      console.error('Error adding content page entry:', error);
       alert(t('error_updating_content'));
+    }
+  };
+
+  const updateContentPageEntry = async (id, content, editions) => {
+    if (editions.length === 0) { alert(t('select_at_least_one_edition')); return; }
+    try {
+      const { error } = await supabase.from('content_pages').update({
+        content, applicable_editions: editions.join(','), updated_at: new Date().toISOString()
+      }).eq('id', id);
+      if (error) throw error;
+      setEditingContent({ key: '', content: '' });
+      await loadAllContentPages();
+      await loadContentPages();
+      alert(t('content_updated_success'));
+    } catch (error) {
+      console.error('Error updating content page entry:', error);
+      alert(t('error_updating_content'));
+    }
+  };
+
+  const deleteContentPageEntry = async (id) => {
+    if (!window.confirm(t('confirm_delete_quote'))) return;
+    try {
+      const { error } = await supabase.from('content_pages').delete().eq('id', id);
+      if (error) throw error;
+      await loadAllContentPages();
+      await loadContentPages();
+    } catch (error) {
+      console.error('Error deleting content page entry:', error);
+      alert(t('generic_error') + ' ' + error.message);
     }
   };
 
@@ -9476,38 +9506,29 @@ autoComplete="off"
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 <MessageCircle size={20} />
                 {t('manage_content_pages')}
-                {!showDefaultOnlyTools && (
-                  <span className="text-xs font-normal text-blue-600">
-                    {t('editing_in_language')} {{en:'English',es:'Español',pt:'Português',zh:'中文'}[effectiveViewingLanguage] || effectiveViewingLanguage}
-                  </span>
-                )}
+                <span className="text-xs font-normal text-blue-600">
+                  {t('editing_in_language')} {{en:'English',es:'Español',pt:'Português',zh:'中文'}[effectiveViewingLanguage] || effectiveViewingLanguage}
+                </span>
                 {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">{t('read_only_sample')}</span>}
               </h3>
 
-              {showDefaultOnlyTools ? (
-                <div className="space-y-6">
-                  {['corp', 'pro', 'edu'].map(ed => (
-                    <div key={ed} className="border-2 border-dashed border-indigo-200 rounded-lg p-3">
-                      <p className="text-xs font-semibold text-indigo-600 mb-3 capitalize">{ed}</p>
-                      <div className="space-y-4">
-                        {['community_guidelines', 'how_it_works', 'about'].map(pageKey => {
-                          const page = contentPagesByEdition[ed]?.[pageKey] || { title: CONTENT_PAGE_DEFAULTS[pageKey], content: '' };
-                          const pageKeyLabels = { community_guidelines: t('community_guidelines_nav'), how_it_works: t('how_it_works_nav'), about: t('about_nav') };
-                          const isEditingThis = editingContent.key === pageKey && editingContent.edition === ed;
+              <div className={`space-y-6 ${isReadOnlyOrMasterManaging ? 'pointer-events-none opacity-60' : ''}`}>
+                {['community_guidelines', 'how_it_works', 'about'].map(pageKey => {
+                  const pageKeyLabels = { community_guidelines: t('community_guidelines_nav'), how_it_works: t('how_it_works_nav'), about: t('about_nav') };
+                  const entries = allContentPagesByKey[pageKey] || [];
+                  return (
+                    <div key={pageKey} className="bg-white rounded p-4">
+                      <h4 className="font-medium text-gray-700 mb-3">{pageKeyLabels[pageKey]}</h4>
+
+                      {entries.length === 0 && (
+                        <p className="text-sm text-gray-400 italic mb-3">{t('not_set_up_yet')}</p>
+                      )}
+
+                      <div className="space-y-3 mb-3">
+                        {entries.map(entry => {
+                          const isEditingThis = editingContent.key === pageKey && editingContent.id === entry.id;
                           return (
-                            <div key={pageKey} className="bg-white rounded p-4">
-                              <div className="flex justify-between items-center mb-3">
-                                <h4 className="font-medium text-gray-700">{pageKeyLabels[pageKey]}</h4>
-                                <button
-                                  onClick={() => setEditingContent({ key: pageKey, content: page.content, edition: ed })}
-                                  className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
-                                >
-                                  {t('edit_content_btn')}
-                                </button>
-                              </div>
-                              {!contentPagesByEdition[ed]?.[pageKey] && !isEditingThis && (
-                                <p className="text-sm text-gray-400 italic">{t('not_set_up_yet')}</p>
-                              )}
+                            <div key={entry.id} className="border border-gray-200 rounded-lg p-3">
                               {isEditingThis ? (
                                 <div className="space-y-3">
                                   <textarea
@@ -9520,9 +9541,26 @@ autoComplete="off"
                                   <div className="text-xs text-gray-600 mb-2">
                                     <strong>{t('markdown_tips')}</strong> {t('markdown_tips_text')}
                                   </div>
+                                  <div className="flex flex-wrap gap-3">
+                                    {['corp', 'pro', 'edu'].map(ed => (
+                                      <label key={ed} className="flex items-center gap-1.5 cursor-pointer">
+                                        <input
+                                          type="checkbox"
+                                          checked={(editingContent.editions || []).includes(ed)}
+                                          onChange={(e) => {
+                                            setEditingContent(prev => ({
+                                              ...prev,
+                                              editions: e.target.checked ? [...(prev.editions || []), ed] : (prev.editions || []).filter(x => x !== ed)
+                                            }));
+                                          }}
+                                        />
+                                        <span className="text-sm text-gray-700 capitalize">{ed}</span>
+                                      </label>
+                                    ))}
+                                  </div>
                                   <div className="flex gap-2">
                                     <button
-                                      onClick={() => updateContentPageForEdition(pageKey, editingContent.content, ed)}
+                                      onClick={() => updateContentPageEntry(entry.id, editingContent.content, editingContent.editions)}
                                       className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
                                     >
                                       Save Changes
@@ -9536,75 +9574,82 @@ autoComplete="off"
                                   </div>
                                 </div>
                               ) : (
-                                <p className="text-sm text-gray-600">
-                                  {page.content.substring(0, 200)}...
-                                </p>
+                                <>
+                                  <p className="text-sm text-gray-600 mb-2">{entry.content.substring(0, 200)}...</p>
+                                  <p className="text-xs text-indigo-600 mb-2 capitalize">
+                                    {(entry.applicable_editions || 'corp,pro,edu').split(',').join(' · ')}
+                                  </p>
+                                  <div className="flex gap-2">
+                                    <button
+                                      onClick={() => setEditingContent({ key: pageKey, id: entry.id, content: entry.content, editions: (entry.applicable_editions || 'corp,pro,edu').split(',') })}
+                                      className="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700"
+                                    >
+                                      {t('edit_content_btn')}
+                                    </button>
+                                    <button
+                                      onClick={() => deleteContentPageEntry(entry.id)}
+                                      className="px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700"
+                                    >
+                                      {t('delete_trash')}
+                                    </button>
+                                  </div>
+                                </>
                               )}
                             </div>
                           );
                         })}
                       </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-              <div className={`space-y-4 ${isReadOnlyOrMasterManaging ? 'pointer-events-none opacity-60' : ''}`}>
-                {['community_guidelines', 'how_it_works', 'about'].map(pageKey => {
-                  const page = contentPages[pageKey] || { title: CONTENT_PAGE_DEFAULTS[pageKey], content: '' };
-                  const pageKeyLabels = { community_guidelines: t('community_guidelines_nav'), how_it_works: t('how_it_works_nav'), about: t('about_nav') };
-                  
-                  return (
-                    <div key={pageKey} className="bg-white rounded p-4">
-                      <div className="flex justify-between items-center mb-3">
-                        <h4 className="font-medium text-gray-700">{pageKeyLabels[pageKey]}</h4>
-                        <button
-                          onClick={() => setEditingContent({ key: pageKey, content: page.content })}
-                          className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
-                        >
-                          {t('edit_content_btn')}
-                        </button>
-                      </div>
-                      {!contentPages[pageKey] && editingContent.key !== pageKey && (
-                        <p className="text-sm text-gray-400 italic">{t('not_set_up_yet')}</p>
-                      )}
-                      
-                      {editingContent.key === pageKey ? (
-                        <div className="space-y-3">
+
+                      {newContentEntry.pageKey === pageKey ? (
+                        <div className="space-y-3 border-t pt-3">
                           <textarea
-                            value={editingContent.content}
-                            onChange={(e) => setEditingContent({ ...editingContent, content: e.target.value })}
+                            value={newContentEntry.content}
+                            onChange={(e) => setNewContentEntry({ ...newContentEntry, content: e.target.value })}
                             className="w-full p-3 border-2 border-gray-300 rounded-lg resize-none font-mono text-sm"
                             rows="15"
                             placeholder={t('enter_content_markdown')}
                           />
-                          <div className="text-xs text-gray-600 mb-2">
-                            <strong>{t('markdown_tips')}</strong> {t('markdown_tips_text')}
+                          <div className="flex flex-wrap gap-3">
+                            {['corp', 'pro', 'edu'].map(ed => (
+                              <label key={ed} className="flex items-center gap-1.5 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={newContentEntry.editions.includes(ed)}
+                                  onChange={(e) => {
+                                    setNewContentEntry(prev => ({
+                                      ...prev,
+                                      editions: e.target.checked ? [...prev.editions, ed] : prev.editions.filter(x => x !== ed)
+                                    }));
+                                  }}
+                                />
+                                <span className="text-sm text-gray-700 capitalize">{ed}</span>
+                              </label>
+                            ))}
                           </div>
                           <div className="flex gap-2">
-                            <button
-                              onClick={() => updateContentPage(pageKey, editingContent.content)}
-                              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-                            >
-                              Save Changes
+                            <button onClick={addContentPageEntry} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                              {t('add_subtitle_btn')}
                             </button>
                             <button
-                              onClick={() => setEditingContent({ key: '', content: '' })}
+                              onClick={() => setNewContentEntry({ pageKey: '', content: '', editions: ['corp', 'pro', 'edu'] })}
                               className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
                             >
-                              Cancel
+                              {t('cancel')}
                             </button>
                           </div>
                         </div>
                       ) : (
-                        <p className="text-sm text-gray-600">
-                          {page.content.substring(0, 200)}...
-                        </p>
+                        <button
+                          onClick={() => setNewContentEntry({ pageKey, content: '', editions: ['corp', 'pro', 'edu'] })}
+                          className="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200"
+                        >
+                          {t('add_subtitle_btn')}
+                        </button>
                       )}
                     </div>
                   );
                 })}
               </div>
-              )}
             </div>
           )}
         </div>
