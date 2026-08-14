@@ -4794,6 +4794,7 @@ const [currentCvUrl, setCurrentCvUrl] = useState(null);
   const [pageSubtitles, setPageSubtitles] = useState([]);
   const [newSubtitle, setNewSubtitle] = useState({ line1: '', line2: '', editions: ['corp', 'pro', 'edu'] });
   const [editingSubtitle, setEditingSubtitle] = useState(null);
+  const [editingSubtitleEditions, setEditingSubtitleEditions] = useState([]);
   const loadPageSubtitles = async () => {
     if (!effectiveCompanyId) return;
     try {
@@ -9021,6 +9022,7 @@ autoComplete="off"
       {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">{t('read_only_sample')}</span>}
     </h3>
     <div className={`bg-white rounded p-4 ${isReadOnlyOrMasterManaging ? 'pointer-events-none opacity-60' : ''}`}>
+      {pageSubtitles.length < 3 && (
       <div className="space-y-2 pb-3 mb-3 border-b border-gray-200">
           <input
             type="text"
@@ -9055,7 +9057,7 @@ autoComplete="off"
           </div>
           {newSubtitle.editions.length > 0 && (
             <p className="text-xs text-gray-400 italic">
-              {t('subtitle_if_blank_default')} {newSubtitle.editions.map(ed => `${SUBTITLE_DEFAULTS[ed]?.line1} ${SUBTITLE_DEFAULTS[ed]?.line2}`).join(' / ')}
+              {t('subtitle_if_blank_default')} {newSubtitle.editions.map(ed => `${ed.toUpperCase()}: ${SUBTITLE_DEFAULTS[ed]?.line1} ${SUBTITLE_DEFAULTS[ed]?.line2}`).join(' / ')}
             </p>
           )}
           <button
@@ -9065,6 +9067,7 @@ autoComplete="off"
             {t('add_subtitle_btn')}
           </button>
         </div>
+      )}
       {pageSubtitles.length === 0 && (
         <p className="text-sm text-gray-400 italic mb-4">{t('subtitles_empty_explanation')}</p>
       )}
@@ -9092,29 +9095,32 @@ autoComplete="off"
                   />
                   <div className="flex flex-wrap gap-3">
                     {['corp', 'pro', 'edu'].map(ed => {
-                      const currentList = (sub.applicable_editions || 'corp,pro,edu').split(',');
                       return (
                         <label key={ed} className="flex items-center gap-1.5 cursor-pointer">
-                          <input type="checkbox" id={`edit-subtitle-edition-${sub.id}-${ed}`} defaultChecked={currentList.includes(ed)} />
+                          <input
+                            type="checkbox"
+                            id={`edit-subtitle-edition-${sub.id}-${ed}`}
+                            checked={editingSubtitleEditions.includes(ed)}
+                            onChange={(e) => {
+                              setEditingSubtitleEditions(prev =>
+                                e.target.checked ? [...prev, ed] : prev.filter(x => x !== ed)
+                              );
+                            }}
+                          />
                           <span className="text-sm text-gray-700 capitalize">{ed}</span>
                         </label>
                       );
                     })}
                   </div>
-                  {(() => {
-                    const currentList = (sub.applicable_editions || 'corp,pro,edu').split(',');
-                    return (
-                      <p className="text-xs text-gray-400 italic">
-                        {t('subtitle_overrides_default')} {currentList.map(ed => `${SUBTITLE_DEFAULTS[ed]?.line1} ${SUBTITLE_DEFAULTS[ed]?.line2}`).join(' / ')}
-                      </p>
-                    );
-                  })()}
+                  <p className="text-xs text-gray-400 italic">
+                    {t('subtitle_overrides_default')} {editingSubtitleEditions.map(ed => `${ed.toUpperCase()}: ${SUBTITLE_DEFAULTS[ed]?.line1} ${SUBTITLE_DEFAULTS[ed]?.line2}`).join(' / ')}
+                  </p>
                   <div className="flex gap-2">
                     <button
                       onClick={() => {
                         const line1 = document.getElementById(`edit-subtitle-line1-${sub.id}`).value;
                         const line2 = document.getElementById(`edit-subtitle-line2-${sub.id}`).value;
-                        const editions = ['corp', 'pro', 'edu'].filter(ed => document.getElementById(`edit-subtitle-edition-${sub.id}-${ed}`).checked);
+                        const editions = editingSubtitleEditions;
                         updateSubtitle(sub.id, line1, line2, editions);
                       }}
                       className="px-3 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700"
@@ -9152,7 +9158,10 @@ autoComplete="off"
                   </div>
                   <div className="flex gap-2 flex-shrink-0 ml-3">
                     <button
-                      onClick={() => setEditingSubtitle(sub.id)}
+                      onClick={() => {
+                        setEditingSubtitle(sub.id);
+                        setEditingSubtitleEditions((sub.applicable_editions || 'corp,pro,edu').split(','));
+                      }}
                       className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700"
                     >
                       {t('edit_content_btn')}
