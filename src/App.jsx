@@ -8985,195 +8985,141 @@ autoComplete="off"
           
 
 
-          {isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('quotes')) && activeAdminNavTab === 'settings' && (
-            <div className="mt-4 bg-green-50 border-2 border-green-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
-              <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                <MessageCircle size={20} />
-                {t('manage_inspirational_quotes')}
-                {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">{t('read_only_sample')}</span>}
-              </h3>
-
-              <div className={isReadOnlyOrMasterManaging ? 'pointer-events-none opacity-60' : ''}>
-      {/* Show Marquee */}
-      <div className="flex items-center gap-3">
-        <input type="checkbox" id="showMarquee" checked={appSettings.showMarquee}
-          onChange={async (e) => {
-            setAppSettings({...appSettings, showMarquee: e.target.checked});
-            await supabase.from('app_settings').update({ show_marquee: e.target.checked }).eq('company_id', effectiveCompanyId);
-          }} className="w-5 h-5" />
-        <label htmlFor="showMarquee" className="text-sm font-medium text-gray-700 cursor-pointer">{t('show_inspirational_quotes')}</label>
-      </div>
-              
-              <div className="bg-white rounded p-4 mb-4">
-                <h4 className="font-medium text-gray-700 mb-3">{t('add_new_quote')}</h4>
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('quote_text')}</label>
-                    <textarea
-                      value={newQuote.text}
-                      onChange={(e) => setNewQuote({...newQuote, text: e.target.value})}
-                      placeholder={t('enter_quote_placeholder')}
-                      className="w-full p-2 border-2 border-gray-300 rounded-lg resize-none"
-                      rows="3"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {t('author')} {newQuote.position === 'top' && <span className="text-gray-500 font-normal">{t('optional_for_top')}</span>}
-                    </label>
-                    <input
-                      type="text"
-                      value={newQuote.author}
-                      onChange={(e) => setNewQuote({...newQuote, author: e.target.value})}
-                      placeholder={t('author_name_placeholder')}
-                      className="w-full p-2 border-2 border-gray-300 rounded-lg"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('position')}</label>
-                    <select
-                      value={newQuote.position}
-                      onChange={(e) => setNewQuote({...newQuote, position: e.target.value})}
-                      className="w-full p-2 border-2 border-gray-300 rounded-lg"
-                    >
-                      <option value="top">{t('top_above_top3')}</option>
-                      <option value="bottom">{t('bottom_below_top3')}</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('applicable_editions_label')}</label>
-                    <div className="flex flex-wrap gap-3">
-                      {['corp', 'pro', 'edu'].map(ed => (
+{isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('page_subtitles')) && activeAdminNavTab === 'settings' && (
+  <div className="mt-4 bg-blue-50 border-2 border-blue-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
+    <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+      {t('manage_subtitles_title')}
+      {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">{t('read_only_sample')}</span>}
+    </h3>
+    <div className={`bg-white rounded p-4 ${isReadOnlyOrMasterManaging ? 'pointer-events-none opacity-60' : ''}`}>
+      {pageSubtitles.length < 3 && (
+        <div className="space-y-2 pb-3 mb-3 border-b border-gray-200">
+          <input
+            type="text"
+            value={newSubtitle.line1}
+            onChange={(e) => setNewSubtitle({...newSubtitle, line1: e.target.value})}
+            placeholder={t('subtitle_line1_placeholder')}
+            className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm"
+          />
+          <input
+            type="text"
+            value={newSubtitle.line2}
+            onChange={(e) => setNewSubtitle({...newSubtitle, line2: e.target.value})}
+            placeholder={t('subtitle_line2_placeholder')}
+            className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm"
+          />
+          <div className="flex flex-wrap gap-3">
+            {['corp', 'pro', 'edu'].map(ed => (
+              <label key={ed} className="flex items-center gap-1.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={newSubtitle.editions.includes(ed)}
+                  onChange={(e) => {
+                    setNewSubtitle(prev => ({
+                      ...prev,
+                      editions: e.target.checked ? [...prev.editions, ed] : prev.editions.filter(x => x !== ed)
+                    }));
+                  }}
+                />
+                <span className="text-sm text-gray-700 capitalize">{ed}</span>
+              </label>
+            ))}
+          </div>
+          <button
+            onClick={addSubtitle}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
+          >
+            {t('add_subtitle_btn')}
+          </button>
+        </div>
+      )}
+      {pageSubtitles.length === 0 && (
+        <p className="text-sm text-gray-400 italic mb-4">{t('subtitles_empty_explanation')}</p>
+      )}
+      {pageSubtitles.length > 0 && (
+        <div className="space-y-2 mb-4">
+          {pageSubtitles.map(sub => {
+            const isEditingThis = editingSubtitle === sub.id;
+            return (
+            <div key={sub.id} className="p-2 border border-gray-200 rounded-lg">
+              {isEditingThis ? (
+                <div className="space-y-2">
+                  <input
+                    type="text"
+                    defaultValue={sub.line1}
+                    id={`edit-subtitle-line1-${sub.id}`}
+                    placeholder={t('subtitle_line1_placeholder')}
+                    className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm"
+                  />
+                  <input
+                    type="text"
+                    defaultValue={sub.line2 || ''}
+                    id={`edit-subtitle-line2-${sub.id}`}
+                    placeholder={t('subtitle_line2_placeholder')}
+                    className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm"
+                  />
+                  <div className="flex flex-wrap gap-3">
+                    {['corp', 'pro', 'edu'].map(ed => {
+                      const currentList = (sub.applicable_editions || 'corp,pro,edu').split(',');
+                      return (
                         <label key={ed} className="flex items-center gap-1.5 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={newQuote.editions.includes(ed)}
-                            onChange={(e) => {
-                              setNewQuote(prev => ({
-                                ...prev,
-                                editions: e.target.checked ? [...prev.editions, ed] : prev.editions.filter(x => x !== ed)
-                              }));
-                            }}
-                          />
+                          <input type="checkbox" id={`edit-subtitle-edition-${sub.id}-${ed}`} defaultChecked={currentList.includes(ed)} />
                           <span className="text-sm text-gray-700 capitalize">{ed}</span>
                         </label>
-                      ))}
-                    </div>
+                      );
+                    })}
                   </div>
-                  <button
-                    onClick={addQuote}
-                    className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
-                  >
-                    {t('add_quote_btn')}
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        const line1 = document.getElementById(`edit-subtitle-line1-${sub.id}`).value;
+                        const line2 = document.getElementById(`edit-subtitle-line2-${sub.id}`).value;
+                        const editions = ['corp', 'pro', 'edu'].filter(ed => document.getElementById(`edit-subtitle-edition-${sub.id}-${ed}`).checked);
+                        updateSubtitle(sub.id, line1, line2, editions);
+                      }}
+                      className="px-3 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700"
+                    >
+                      {t('save')}
+                    </button>
+                    <button
+                      onClick={() => setEditingSubtitle(null)}
+                      className="px-3 py-1 bg-gray-500 text-white rounded text-xs hover:bg-gray-600"
+                    >
+                      {t('cancel')}
+                    </button>
+                  </div>
                 </div>
-              </div>
-
-              <div className="bg-white rounded p-4">
-                <h4 className="font-medium text-gray-700 mb-3">{t('existing_quotes_title')} ({quotes.length})</h4>
-                {quotes.length === 0 ? (
-                  <p className="text-sm text-gray-500">{t('no_quotes_yet')}</p>
-                ) : (
-                  <div className="space-y-3 max-h-96 overflow-y-auto">
-                    {quotes.map((quote) => (
-                      <div key={quote.id} className="border border-gray-300 rounded p-3">
-                        {editingQuote === quote.id ? (
-                          <div className="space-y-2">
-                            <textarea
-                              defaultValue={quote.text}
-                              id={`edit-text-${quote.id}`}
-                              className="w-full p-2 border-2 border-gray-300 rounded resize-none"
-                              rows="2"
-                            />
-                            <input
-                              type="text"
-                              defaultValue={quote.author}
-                              id={`edit-author-${quote.id}`}
-                              className="w-full p-2 border-2 border-gray-300 rounded"
-                            />
-                            <select
-                              defaultValue={quote.position || 'top'}
-                              id={`edit-position-${quote.id}`}
-                              className="w-full p-2 border-2 border-gray-300 rounded"
-                            >
-                              <option value="top">{t('top_above_top3')}</option>
-                              <option value="bottom">{t('bottom_below_top3')}</option>
-                            </select>
-                            <div className="flex flex-wrap gap-3 p-2 border-2 border-gray-300 rounded">
-                              {['corp', 'pro', 'edu'].map(ed => {
-                                const currentList = (quote.edition || 'corp,pro,edu').split(',');
-                                return (
-                                  <label key={ed} className="flex items-center gap-1.5 cursor-pointer">
-                                    <input type="checkbox" id={`edit-edition-${quote.id}-${ed}`} defaultChecked={currentList.includes(ed)} />
-                                    <span className="text-sm text-gray-700 capitalize">{ed}</span>
-                                  </label>
-                                );
-                              })}
-                            </div>
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() => {
-                                  const text = document.getElementById(`edit-text-${quote.id}`).value;
-                                  const author = document.getElementById(`edit-author-${quote.id}`).value;
-                                  const position = document.getElementById(`edit-position-${quote.id}`).value;
-                                  const editions = ['corp', 'pro', 'edu'].filter(ed => document.getElementById(`edit-edition-${quote.id}-${ed}`).checked);
-                                  if (editions.length === 0) { alert(t('select_at_least_one_edition')); return; }
-                                  updateQuote(quote.id, text, author, position, editions.join(','));
-                                }}
-                                className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
-                              >
-                                {t('save')}
-                              </button>
-                              <button
-                                onClick={() => setEditingQuote(null)}
-                                className="px-3 py-1 bg-gray-500 text-white rounded text-sm hover:bg-gray-600"
-                              >
-                                {t('cancel')}
-                              </button>
-                            </div>
-                          </div>
-                        ) : (
-                          <>
-                            <div className="flex items-start justify-between mb-2">
-                              <p className="text-sm italic text-gray-700 flex-1">"{quote.text}"</p>
-                              <span className={`ml-2 px-2 py-1 text-xs rounded ${quote.position === 'top' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'}`}>
-                                {quote.position === 'top' ? 'Top' : 'Bottom'}
-                              </span>
-                            </div>
-                            <p className="text-xs text-gray-600 mb-1">— {quote.author}</p>
-                            <p className="text-xs text-indigo-600 mb-2 capitalize">
-                              {(quote.edition || 'corp,pro,edu').split(',').join(' · ')}
-                            </p>
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() => setEditingQuote(quote.id)}
-                                className="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700"
-                              >
-                                Edit
-                              </button>
-                              <button
-                                onClick={() => {
-                                  if (window.confirm(t('confirm_delete_quote'))) {
-                                    deleteQuote(quote.id);
-                                  }
-                                }}
-                                className="px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 flex items-center gap-1"
-                              >
-                                <Trash2 size={12} />
-                                Delete
-                              </button>
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    ))}
+              ) : (
+                <div className="flex items-center justify-between">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-800 truncate">{sub.line1}</p>
+                    {sub.line2 && <p className="text-xs text-gray-500 truncate">{sub.line2}</p>}
+                    <p className="text-xs text-gray-400 mt-0.5 capitalize">{sub.applicable_editions === 'all' ? t('all_editions') : sub.applicable_editions.replaceAll(',', ', ')}</p>
                   </div>
-                )}
-              </div>
-              </div>
+                  <div className="flex gap-2 flex-shrink-0 ml-3">
+                    <button
+                      onClick={() => setEditingSubtitle(sub.id)}
+                      className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700"
+                    >
+                      {t('edit_content_btn')}
+                    </button>
+                    <button
+                      onClick={() => deleteSubtitle(sub.id)}
+                      className="px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700"
+                    >
+                      {t('delete_trash')}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
-          )}
-
+            );
+          })}
+        </div>
+      )}
+    </div>
+  </div>
+)}
           {isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('promotional_videos')) && activeAdminNavTab === 'settings' && (
             <div className="mt-4 bg-purple-50 border-2 border-purple-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
@@ -9517,7 +9463,194 @@ autoComplete="off"
               </div>
             </div>
           )}
+          {isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('quotes')) && activeAdminNavTab === 'settings' && (
+            <div className="mt-4 bg-green-50 border-2 border-green-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
+              <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                <MessageCircle size={20} />
+                {t('manage_inspirational_quotes')}
+                {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">{t('read_only_sample')}</span>}
+              </h3>
 
+              <div className={isReadOnlyOrMasterManaging ? 'pointer-events-none opacity-60' : ''}>
+      {/* Show Marquee */}
+      <div className="flex items-center gap-3">
+        <input type="checkbox" id="showMarquee" checked={appSettings.showMarquee}
+          onChange={async (e) => {
+            setAppSettings({...appSettings, showMarquee: e.target.checked});
+            await supabase.from('app_settings').update({ show_marquee: e.target.checked }).eq('company_id', effectiveCompanyId);
+          }} className="w-5 h-5" />
+        <label htmlFor="showMarquee" className="text-sm font-medium text-gray-700 cursor-pointer">{t('show_inspirational_quotes')}</label>
+      </div>
+              
+              <div className="bg-white rounded p-4 mb-4">
+                <h4 className="font-medium text-gray-700 mb-3">{t('add_new_quote')}</h4>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('quote_text')}</label>
+                    <textarea
+                      value={newQuote.text}
+                      onChange={(e) => setNewQuote({...newQuote, text: e.target.value})}
+                      placeholder={t('enter_quote_placeholder')}
+                      className="w-full p-2 border-2 border-gray-300 rounded-lg resize-none"
+                      rows="3"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {t('author')} {newQuote.position === 'top' && <span className="text-gray-500 font-normal">{t('optional_for_top')}</span>}
+                    </label>
+                    <input
+                      type="text"
+                      value={newQuote.author}
+                      onChange={(e) => setNewQuote({...newQuote, author: e.target.value})}
+                      placeholder={t('author_name_placeholder')}
+                      className="w-full p-2 border-2 border-gray-300 rounded-lg"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('position')}</label>
+                    <select
+                      value={newQuote.position}
+                      onChange={(e) => setNewQuote({...newQuote, position: e.target.value})}
+                      className="w-full p-2 border-2 border-gray-300 rounded-lg"
+                    >
+                      <option value="top">{t('top_above_top3')}</option>
+                      <option value="bottom">{t('bottom_below_top3')}</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('applicable_editions_label')}</label>
+                    <div className="flex flex-wrap gap-3">
+                      {['corp', 'pro', 'edu'].map(ed => (
+                        <label key={ed} className="flex items-center gap-1.5 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={newQuote.editions.includes(ed)}
+                            onChange={(e) => {
+                              setNewQuote(prev => ({
+                                ...prev,
+                                editions: e.target.checked ? [...prev.editions, ed] : prev.editions.filter(x => x !== ed)
+                              }));
+                            }}
+                          />
+                          <span className="text-sm text-gray-700 capitalize">{ed}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  <button
+                    onClick={addQuote}
+                    className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
+                  >
+                    {t('add_quote_btn')}
+                  </button>
+                </div>
+              </div>
+
+              <div className="bg-white rounded p-4">
+                <h4 className="font-medium text-gray-700 mb-3">{t('existing_quotes_title')} ({quotes.length})</h4>
+                {quotes.length === 0 ? (
+                  <p className="text-sm text-gray-500">{t('no_quotes_yet')}</p>
+                ) : (
+                  <div className="space-y-3 max-h-96 overflow-y-auto">
+                    {quotes.map((quote) => (
+                      <div key={quote.id} className="border border-gray-300 rounded p-3">
+                        {editingQuote === quote.id ? (
+                          <div className="space-y-2">
+                            <textarea
+                              defaultValue={quote.text}
+                              id={`edit-text-${quote.id}`}
+                              className="w-full p-2 border-2 border-gray-300 rounded resize-none"
+                              rows="2"
+                            />
+                            <input
+                              type="text"
+                              defaultValue={quote.author}
+                              id={`edit-author-${quote.id}`}
+                              className="w-full p-2 border-2 border-gray-300 rounded"
+                            />
+                            <select
+                              defaultValue={quote.position || 'top'}
+                              id={`edit-position-${quote.id}`}
+                              className="w-full p-2 border-2 border-gray-300 rounded"
+                            >
+                              <option value="top">{t('top_above_top3')}</option>
+                              <option value="bottom">{t('bottom_below_top3')}</option>
+                            </select>
+                            <div className="flex flex-wrap gap-3 p-2 border-2 border-gray-300 rounded">
+                              {['corp', 'pro', 'edu'].map(ed => {
+                                const currentList = (quote.edition || 'corp,pro,edu').split(',');
+                                return (
+                                  <label key={ed} className="flex items-center gap-1.5 cursor-pointer">
+                                    <input type="checkbox" id={`edit-edition-${quote.id}-${ed}`} defaultChecked={currentList.includes(ed)} />
+                                    <span className="text-sm text-gray-700 capitalize">{ed}</span>
+                                  </label>
+                                );
+                              })}
+                            </div>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => {
+                                  const text = document.getElementById(`edit-text-${quote.id}`).value;
+                                  const author = document.getElementById(`edit-author-${quote.id}`).value;
+                                  const position = document.getElementById(`edit-position-${quote.id}`).value;
+                                  const editions = ['corp', 'pro', 'edu'].filter(ed => document.getElementById(`edit-edition-${quote.id}-${ed}`).checked);
+                                  if (editions.length === 0) { alert(t('select_at_least_one_edition')); return; }
+                                  updateQuote(quote.id, text, author, position, editions.join(','));
+                                }}
+                                className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
+                              >
+                                {t('save')}
+                              </button>
+                              <button
+                                onClick={() => setEditingQuote(null)}
+                                className="px-3 py-1 bg-gray-500 text-white rounded text-sm hover:bg-gray-600"
+                              >
+                                {t('cancel')}
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="flex items-start justify-between mb-2">
+                              <p className="text-sm italic text-gray-700 flex-1">"{quote.text}"</p>
+                              <span className={`ml-2 px-2 py-1 text-xs rounded ${quote.position === 'top' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'}`}>
+                                {quote.position === 'top' ? 'Top' : 'Bottom'}
+                              </span>
+                            </div>
+                            <p className="text-xs text-gray-600 mb-1">— {quote.author}</p>
+                            <p className="text-xs text-indigo-600 mb-2 capitalize">
+                              {(quote.edition || 'corp,pro,edu').split(',').join(' · ')}
+                            </p>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => setEditingQuote(quote.id)}
+                                className="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => {
+                                  if (window.confirm(t('confirm_delete_quote'))) {
+                                    deleteQuote(quote.id);
+                                  }
+                                }}
+                                className="px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 flex items-center gap-1"
+                              >
+                                <Trash2 size={12} />
+                                Delete
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              </div>
+            </div>
+          )}
           {isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('content_pages')) && activeAdminNavTab === 'settings' && (
             <div className="mt-4 bg-blue-50 border-2 border-blue-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
@@ -9671,141 +9804,6 @@ autoComplete="off"
           )}
         </div>
 
-{isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('page_subtitles')) && activeAdminNavTab === 'settings' && (
-  <div className="mt-4 bg-blue-50 border-2 border-blue-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
-    <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-      {t('manage_subtitles_title')}
-      {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">{t('read_only_sample')}</span>}
-    </h3>
-    <div className={`bg-white rounded p-4 ${isReadOnlyOrMasterManaging ? 'pointer-events-none opacity-60' : ''}`}>
-      {pageSubtitles.length === 0 && (
-        <p className="text-sm text-gray-400 italic mb-4">{t('subtitles_empty_explanation')}</p>
-      )}
-      {pageSubtitles.length > 0 && (
-        <div className="space-y-2 mb-4">
-          {pageSubtitles.map(sub => {
-            const isEditingThis = editingSubtitle === sub.id;
-            return (
-            <div key={sub.id} className="p-2 border border-gray-200 rounded-lg">
-              {isEditingThis ? (
-                <div className="space-y-2">
-                  <input
-                    type="text"
-                    defaultValue={sub.line1}
-                    id={`edit-subtitle-line1-${sub.id}`}
-                    placeholder={t('subtitle_line1_placeholder')}
-                    className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm"
-                  />
-                  <input
-                    type="text"
-                    defaultValue={sub.line2 || ''}
-                    id={`edit-subtitle-line2-${sub.id}`}
-                    placeholder={t('subtitle_line2_placeholder')}
-                    className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm"
-                  />
-                  <div className="flex flex-wrap gap-3">
-                    {['corp', 'pro', 'edu'].map(ed => {
-                      const currentList = (sub.applicable_editions || 'corp,pro,edu').split(',');
-                      return (
-                        <label key={ed} className="flex items-center gap-1.5 cursor-pointer">
-                          <input type="checkbox" id={`edit-subtitle-edition-${sub.id}-${ed}`} defaultChecked={currentList.includes(ed)} />
-                          <span className="text-sm text-gray-700 capitalize">{ed}</span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => {
-                        const line1 = document.getElementById(`edit-subtitle-line1-${sub.id}`).value;
-                        const line2 = document.getElementById(`edit-subtitle-line2-${sub.id}`).value;
-                        const editions = ['corp', 'pro', 'edu'].filter(ed => document.getElementById(`edit-subtitle-edition-${sub.id}-${ed}`).checked);
-                        updateSubtitle(sub.id, line1, line2, editions);
-                      }}
-                      className="px-3 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700"
-                    >
-                      {t('save')}
-                    </button>
-                    <button
-                      onClick={() => setEditingSubtitle(null)}
-                      className="px-3 py-1 bg-gray-500 text-white rounded text-xs hover:bg-gray-600"
-                    >
-                      {t('cancel')}
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-center justify-between">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-800 truncate">{sub.line1}</p>
-                    {sub.line2 && <p className="text-xs text-gray-500 truncate">{sub.line2}</p>}
-                    <p className="text-xs text-gray-400 mt-0.5 capitalize">{sub.applicable_editions === 'all' ? t('all_editions') : sub.applicable_editions.replaceAll(',', ', ')}</p>
-                  </div>
-                  <div className="flex gap-2 flex-shrink-0 ml-3">
-                    <button
-                      onClick={() => setEditingSubtitle(sub.id)}
-                      className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700"
-                    >
-                      {t('edit_content_btn')}
-                    </button>
-                    <button
-                      onClick={() => deleteSubtitle(sub.id)}
-                      className="px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700"
-                    >
-                      {t('delete_trash')}
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-            );
-          })}
-        </div>
-      )}
-      {pageSubtitles.length < 3 && (
-        <div className="space-y-2 border-t pt-3">
-          <input
-            type="text"
-            value={newSubtitle.line1}
-            onChange={(e) => setNewSubtitle({...newSubtitle, line1: e.target.value})}
-            placeholder={t('subtitle_line1_placeholder')}
-            className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm"
-          />
-          <input
-            type="text"
-            value={newSubtitle.line2}
-            onChange={(e) => setNewSubtitle({...newSubtitle, line2: e.target.value})}
-            placeholder={t('subtitle_line2_placeholder')}
-            className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm"
-          />
-          <div className="flex flex-wrap gap-3">
-            {['corp', 'pro', 'edu'].map(ed => (
-              <label key={ed} className="flex items-center gap-1.5 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={newSubtitle.editions.includes(ed)}
-                  onChange={(e) => {
-                    setNewSubtitle(prev => ({
-                      ...prev,
-                      editions: e.target.checked ? [...prev.editions, ed] : prev.editions.filter(x => x !== ed)
-                    }));
-                  }}
-                />
-                <span className="text-sm text-gray-700 capitalize">{ed}</span>
-              </label>
-            ))}
-          </div>
-          <button
-            onClick={addSubtitle}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
-          >
-            {t('add_subtitle_btn')}
-          </button>
-        </div>
-      )}
-    </div>
-  </div>
-)}
 
        
 
