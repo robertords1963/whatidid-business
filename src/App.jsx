@@ -526,6 +526,8 @@ const UI_STRINGS = {
   hero_tagline_public: { en: 'Real problems. Real actions. Real results.', es: 'Problemas reales. Acciones reales. Resultados reales.', pt: 'Problemas reais. Ações reais. Resultados reais.', zh: '真实问题。真实行动。真实结果。' },
   share_work_experiences: { en: 'Share your work experiences.', es: 'Comparte tus experiencias laborales.', pt: 'Compartilhe suas experiências de trabalho.', zh: '分享你的工作经验。' },
   accelerate_org_learning: { en: 'Accelerate organizational learning.', es: 'Acelera el aprendizaje organizacional.', pt: 'Acelere o aprendizado organizacional.', zh: '加速组织学习。' },
+  subtitle_line2_pro: { en: 'Share your professional experiences. Be found by companies looking for them.', es: 'Comparte tus experiencias profesionales. Sé encontrado por las empresas que las buscan.', pt: 'Compartilhe suas experiências profissionais. Seja encontrado por empresas que as procuram.', zh: '分享您的职业经历，让正在寻找人才的企业发现您。' },
+  subtitle_line2_edu: { en: 'Explore real-world cases. Share your views and related experiences.', es: 'Explora casos del mundo real. Comparte tus puntos de vista y experiencias relacionadas.', pt: 'Explore casos do mundo real. Compartilhe suas opiniões e experiências relacionadas.', zh: '探索真实案例，分享您的观点和相关经历。' },
   curator: { en: 'Curator', es: 'Curador', pt: 'Curador', zh: '策展人' },
   back_to_where_you_were: { en: 'Back to where you were', es: 'Volver a donde estabas', pt: 'Voltar para onde você estava', zh: '返回之前的位置' },
   hide_top3: { en: 'Hide Top 3', es: 'Ocultar Top 3', pt: 'Ocultar Top 3', zh: '隐藏前三名' },
@@ -4811,8 +4813,16 @@ const [currentCvUrl, setCurrentCvUrl] = useState(null);
   };
   const addSubtitle = async () => {
     if (!newSubtitle.line1.trim()) { alert(t('please_enter_quote_text')); return; }
-    if (pageSubtitles.length >= 3) { alert(t('max_3_subtitles')); return; }
     if (newSubtitle.editions.length === 0) { alert(t('select_at_least_one_edition')); return; }
+    // Limite é 3 por edição, não 3 no total — senão, uma entrada só pra
+    // Corp já ocuparia "espaço" que deveria valer pra Pro/Edu também.
+    const wouldExceedLimit = newSubtitle.editions.some(ed => {
+      const countForThisEdition = pageSubtitles.filter(s =>
+        (s.applicable_editions || 'corp,pro,edu').split(',').includes(ed)
+      ).length;
+      return countForThisEdition >= 3;
+    });
+    if (wouldExceedLimit) { alert(t('max_3_subtitles')); return; }
     try {
       const { error } = await supabase.from('page_subtitles').insert([{
         company_id: effectiveCompanyId,
@@ -5525,6 +5535,17 @@ useEffect(() => {
     community_guidelines: 'Community Guidelines',
     how_it_works: 'How It Works',
     about: 'About'
+  };
+
+  // Textos padrão combinados por edição — usados pelo botão "Use suggestion
+  // from Default" na edição de Subtítulos, pra reverter caso alguém edite
+  // e queira voltar ao texto original acordado. Reaproveita as mesmas
+  // chaves do dicionário usadas no fallback de código, já traduzidas nos
+  // 4 idiomas — respeita o idioma sendo editado no momento.
+  const SUBTITLE_DEFAULTS = {
+    corp: { line1: t('hero_tagline_public'), line2: `${t('share_work_experiences')} ${t('accelerate_org_learning')}` },
+    pro: { line1: t('hero_tagline_public'), line2: t('subtitle_line2_pro') },
+    edu: { line1: t('hero_tagline_public'), line2: t('subtitle_line2_edu') }
   };
 
   const loadContentPages = async () => {
@@ -7300,9 +7321,15 @@ autoComplete="off"
             <>
               <p className="text-gray-700 font-medium mb-1 text-sm sm:text-base">{t('hero_tagline_public')}</p>
               <p className="text-gray-600 text-sm sm:text-base">
-                <span className="block sm:inline">{t('share_work_experiences')}</span>
-                <span className="hidden sm:inline"> </span>
-                <span className="block sm:inline">{t('accelerate_org_learning')}</span>
+                {companyEdition === 'pro' ? t('subtitle_line2_pro')
+                  : companyEdition === 'edu' ? t('subtitle_line2_edu')
+                  : (
+                    <>
+                      <span className="block sm:inline">{t('share_work_experiences')}</span>
+                      <span className="hidden sm:inline"> </span>
+                      <span className="block sm:inline">{t('accelerate_org_learning')}</span>
+                    </>
+                  )}
               </p>
             </>
           )}
@@ -8992,8 +9019,7 @@ autoComplete="off"
       {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">{t('read_only_sample')}</span>}
     </h3>
     <div className={`bg-white rounded p-4 ${isReadOnlyOrMasterManaging ? 'pointer-events-none opacity-60' : ''}`}>
-      {pageSubtitles.length < 3 && (
-        <div className="space-y-2 pb-3 mb-3 border-b border-gray-200">
+      <div className="space-y-2 pb-3 mb-3 border-b border-gray-200">
           <input
             type="text"
             value={newSubtitle.line1}
@@ -9025,6 +9051,11 @@ autoComplete="off"
               </label>
             ))}
           </div>
+          {newSubtitle.editions.length > 0 && (
+            <p className="text-xs text-gray-400 italic">
+              {t('default_suggests')} {newSubtitle.editions.map(ed => `${SUBTITLE_DEFAULTS[ed]?.line1} ${SUBTITLE_DEFAULTS[ed]?.line2}`).join(' / ')}
+            </p>
+          )}
           <button
             onClick={addSubtitle}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
@@ -9032,7 +9063,6 @@ autoComplete="off"
             {t('add_subtitle_btn')}
           </button>
         </div>
-      )}
       {pageSubtitles.length === 0 && (
         <p className="text-sm text-gray-400 italic mb-4">{t('subtitles_empty_explanation')}</p>
       )}
@@ -9069,6 +9099,14 @@ autoComplete="off"
                       );
                     })}
                   </div>
+                  {(() => {
+                    const currentList = (sub.applicable_editions || 'corp,pro,edu').split(',');
+                    return (
+                      <p className="text-xs text-gray-400 italic">
+                        {t('default_suggests')} {currentList.map(ed => `${SUBTITLE_DEFAULTS[ed]?.line1} ${SUBTITLE_DEFAULTS[ed]?.line2}`).join(' / ')}
+                      </p>
+                    );
+                  })()}
                   <div className="flex gap-2">
                     <button
                       onClick={() => {
@@ -9087,6 +9125,17 @@ autoComplete="off"
                     >
                       {t('cancel')}
                     </button>
+                    <button
+                      onClick={() => {
+                        const currentEditions = (sub.applicable_editions || 'corp,pro,edu').split(',');
+                        const defaults = SUBTITLE_DEFAULTS[currentEditions[0]] || SUBTITLE_DEFAULTS.corp;
+                        document.getElementById(`edit-subtitle-line1-${sub.id}`).value = defaults.line1;
+                        document.getElementById(`edit-subtitle-line2-${sub.id}`).value = defaults.line2;
+                      }}
+                      className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded text-xs font-medium hover:bg-indigo-200"
+                    >
+                      {t('use_default_suggestion')}
+                    </button>
                   </div>
                 </div>
               ) : (
@@ -9095,6 +9144,9 @@ autoComplete="off"
                     <p className="text-sm font-medium text-gray-800 truncate">{sub.line1}</p>
                     {sub.line2 && <p className="text-xs text-gray-500 truncate">{sub.line2}</p>}
                     <p className="text-xs text-gray-400 mt-0.5 capitalize">{sub.applicable_editions === 'all' ? t('all_editions') : sub.applicable_editions.replaceAll(',', ', ')}</p>
+                    <p className="text-xs text-gray-400 italic mt-0.5">
+                      {t('default_suggests')} {(sub.applicable_editions || 'corp,pro,edu').split(',').map(ed => `${SUBTITLE_DEFAULTS[ed]?.line1} ${SUBTITLE_DEFAULTS[ed]?.line2}`).join(' / ')}
+                    </p>
                   </div>
                   <div className="flex gap-2 flex-shrink-0 ml-3">
                     <button
