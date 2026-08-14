@@ -1512,6 +1512,7 @@ useEffect(() => {
     loadProblemCategories();
     loadPractices();
     loadPageSubtitles();
+    if (showDefaultOnlyTools) loadContentPagesByEdition();
     loadAppSettings();
     // Sem isso, "Manage Demo Groups" ficava com dado parado desde o carregamento
     // inicial do app — trocar de sessão (logar como um Demo ID, sair, entrar
@@ -4792,10 +4793,11 @@ const [currentCvUrl, setCurrentCvUrl] = useState(null);
         .eq('language', effectiveViewingLanguage)
         .order('display_order', { ascending: true });
       if (error) throw error;
-      const filtered = (data || []).filter(s =>
-        s.applicable_editions === 'all' || s.applicable_editions.split(',').includes(companyEdition)
-      );
-      setPageSubtitles(filtered);
+      // Sem filtro de edição aqui — a lista de admin mostra tudo (igual
+      // Videos/Quotes), independente do dropdown. O filtro de edição
+      // acontece só na hora de decidir o que exibir publicamente
+      // (ver selectedSubtitle).
+      setPageSubtitles(data || []);
     } catch (error) {
       console.error('Error loading page subtitles:', error);
     }
@@ -4835,9 +4837,12 @@ const [currentCvUrl, setCurrentCvUrl] = useState(null);
   // Escolhe uma dupla aleatória entre as cadastradas (se houver), sem
   // re-sortear a cada render — só quando a lista realmente muda.
   const selectedSubtitle = useMemo(() => {
-    if (pageSubtitles.length === 0) return null;
-    return pageSubtitles[Math.floor(Math.random() * pageSubtitles.length)];
-  }, [pageSubtitles]);
+    const matching = pageSubtitles.filter(s =>
+      s.applicable_editions === 'all' || s.applicable_editions.split(',').includes(companyEdition)
+    );
+    if (matching.length === 0) return null;
+    return matching[Math.floor(Math.random() * matching.length)];
+  }, [pageSubtitles, companyEdition]);
   const [showGuidelinesModal, setShowGuidelinesModal] = useState(false);
   const [showHowItWorksModal, setShowHowItWorksModal] = useState(false);
   const [guidelines, setGuidelines] = useState('');
@@ -5551,6 +5556,51 @@ useEffect(() => {
       if (error) throw error;
       
       await loadContentPages();
+      setEditingContent({ key: '', content: '' });
+      alert(t('content_updated_success'));
+    } catch (error) {
+      console.error('Error updating content:', error);
+      alert(t('error_updating_content'));
+    }
+  };
+
+  // Só usado no ADM do Default — carrega as 3 edições juntas, pra editar
+  // as 3 sempre visíveis ao mesmo tempo, sem depender do dropdown (mesmo
+  // padrão já usado em Company Branding).
+  const loadContentPagesByEdition = async () => {
+    if (!effectiveCompanyId) return;
+    try {
+      const { data, error } = await supabase
+        .from('content_pages')
+        .select('*')
+        .eq('company_id', effectiveCompanyId)
+        .eq('language', effectiveViewingLanguage);
+      if (error) throw error;
+      const byEdition = { corp: {}, pro: {}, edu: {} };
+      (data || []).forEach(page => {
+        const ed = page.edition || 'corp';
+        if (byEdition[ed]) byEdition[ed][page.page_key] = page;
+      });
+      setContentPagesByEdition(byEdition);
+    } catch (error) {
+      console.error('Error loading content pages by edition:', error);
+    }
+  };
+
+  const updateContentPageForEdition = async (pageKey, content, edition) => {
+    try {
+      const title = CONTENT_PAGE_DEFAULTS[pageKey] || contentPagesByEdition[edition]?.[pageKey]?.title || pageKey;
+      const { error } = await supabase
+        .from('content_pages')
+        .upsert({
+          page_key: pageKey, content, title,
+          company_id: effectiveCompanyId,
+          language: effectiveViewingLanguage,
+          edition,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'company_id,page_key,language,edition' });
+      if (error) throw error;
+      await loadContentPagesByEdition();
       setEditingContent({ key: '', content: '' });
       alert(t('content_updated_success'));
     } catch (error) {
@@ -8608,7 +8658,10 @@ autoComplete="off"
 )}
 
 {/* 3. Upload Documents — dropdown único (Sem Upload / CV / Outros),
-    substitui o antigo checkbox + rádios separados. */}
+    substitui o antigo checkbox + rádios separados. Não faz sentido pro
+    próprio Default (ele não é uma empresa real recebendo uploads) — só
+    aparece pra empresas de verdade. */}
+{!showDefaultOnlyTools && (
       <div className="space-y-2">
         <label className="block text-sm font-medium text-gray-700">{t('document_type_label')}</label>
         <select
@@ -8661,6 +8714,7 @@ autoComplete="off"
           </div>
         )}
       </div>
+)}
       </>
       )}
 
@@ -9039,7 +9093,10 @@ autoComplete="off"
                                 {quote.position === 'top' ? 'Top' : 'Bottom'}
                               </span>
                             </div>
-                            <p className="text-xs text-gray-600 mb-2">— {quote.author}</p>
+                            <p className="text-xs text-gray-600 mb-1">— {quote.author}</p>
+                            <p className="text-xs text-indigo-600 mb-2 capitalize">
+                              {(quote.edition || 'corp,pro,edu').split(',').join(' · ')}
+                            </p>
                             <div className="flex gap-2">
                               <button
                                 onClick={() => setEditingQuote(quote.id)}
@@ -9419,12 +9476,78 @@ autoComplete="off"
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 <MessageCircle size={20} />
                 {t('manage_content_pages')}
-                <span className="text-xs font-normal text-blue-600">
-                  {t('editing_in_language')} {{en:'English',es:'Español',pt:'Português',zh:'中文'}[effectiveViewingLanguage] || effectiveViewingLanguage} · {{corp:'Corp',pro:'Pro',edu:'Edu'}[companyEdition] || companyEdition}
-                </span>
+                {!showDefaultOnlyTools && (
+                  <span className="text-xs font-normal text-blue-600">
+                    {t('editing_in_language')} {{en:'English',es:'Español',pt:'Português',zh:'中文'}[effectiveViewingLanguage] || effectiveViewingLanguage}
+                  </span>
+                )}
                 {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">{t('read_only_sample')}</span>}
               </h3>
-              
+
+              {showDefaultOnlyTools ? (
+                <div className="space-y-6">
+                  {['corp', 'pro', 'edu'].map(ed => (
+                    <div key={ed} className="border-2 border-dashed border-indigo-200 rounded-lg p-3">
+                      <p className="text-xs font-semibold text-indigo-600 mb-3 capitalize">{ed}</p>
+                      <div className="space-y-4">
+                        {['community_guidelines', 'how_it_works', 'about'].map(pageKey => {
+                          const page = contentPagesByEdition[ed]?.[pageKey] || { title: CONTENT_PAGE_DEFAULTS[pageKey], content: '' };
+                          const pageKeyLabels = { community_guidelines: t('community_guidelines_nav'), how_it_works: t('how_it_works_nav'), about: t('about_nav') };
+                          const isEditingThis = editingContent.key === pageKey && editingContent.edition === ed;
+                          return (
+                            <div key={pageKey} className="bg-white rounded p-4">
+                              <div className="flex justify-between items-center mb-3">
+                                <h4 className="font-medium text-gray-700">{pageKeyLabels[pageKey]}</h4>
+                                <button
+                                  onClick={() => setEditingContent({ key: pageKey, content: page.content, edition: ed })}
+                                  className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+                                >
+                                  {t('edit_content_btn')}
+                                </button>
+                              </div>
+                              {!contentPagesByEdition[ed]?.[pageKey] && !isEditingThis && (
+                                <p className="text-sm text-gray-400 italic">{t('not_set_up_yet')}</p>
+                              )}
+                              {isEditingThis ? (
+                                <div className="space-y-3">
+                                  <textarea
+                                    value={editingContent.content}
+                                    onChange={(e) => setEditingContent({ ...editingContent, content: e.target.value })}
+                                    className="w-full p-3 border-2 border-gray-300 rounded-lg resize-none font-mono text-sm"
+                                    rows="15"
+                                    placeholder={t('enter_content_markdown')}
+                                  />
+                                  <div className="text-xs text-gray-600 mb-2">
+                                    <strong>{t('markdown_tips')}</strong> {t('markdown_tips_text')}
+                                  </div>
+                                  <div className="flex gap-2">
+                                    <button
+                                      onClick={() => updateContentPageForEdition(pageKey, editingContent.content, ed)}
+                                      className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                                    >
+                                      Save Changes
+                                    </button>
+                                    <button
+                                      onClick={() => setEditingContent({ key: '', content: '' })}
+                                      className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+                                    >
+                                      Cancel
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <p className="text-sm text-gray-600">
+                                  {page.content.substring(0, 200)}...
+                                </p>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
               <div className={`space-y-4 ${isReadOnlyOrMasterManaging ? 'pointer-events-none opacity-60' : ''}`}>
                 {['community_guidelines', 'how_it_works', 'about'].map(pageKey => {
                   const page = contentPages[pageKey] || { title: CONTENT_PAGE_DEFAULTS[pageKey], content: '' };
@@ -9481,6 +9604,7 @@ autoComplete="off"
                   );
                 })}
               </div>
+              )}
             </div>
           )}
         </div>
