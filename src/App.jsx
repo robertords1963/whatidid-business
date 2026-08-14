@@ -1912,7 +1912,24 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null, override
     const batch2 = await fetchExperiencesRange(1000, 1999);
     
     // Combinar os 2 lotes
-    const data = [...batch1, ...batch2];
+    let data = [...batch1, ...batch2];
+
+    // Uma Experience REAL (outro idioma) que recebeu um comentário da
+    // sessão de demo ativa precisa aparecer também — senão o comentário
+    // fica "órfão" (sem card pra ser exibido), mesmo tendo sido gravado
+    // certinho. Roda uma vez só, depois de combinar os lotes, pra não
+    // duplicar a checagem.
+    if (isViewingDefault && activeDemoSessionId) {
+      const { data: demoComments } = await supabase.from('comments')
+        .select('experience_id').eq('demo_session_id', activeDemoSessionId);
+      const commentedIds = [...new Set((demoComments || []).map(c => c.experience_id))]
+        .filter(id => !data.some(e => e.id === id));
+      if (commentedIds.length > 0) {
+        const { data: orphanParents } = await supabase.from('experiences')
+          .select('*').in('id', commentedIds);
+        data = [...data, ...(orphanParents || [])];
+      }
+    }
 
     // Corrige related_common_case_id pra Individual Experiences não-inglesas.
     // Duas causas possíveis, resolvidas juntas: (a) o valor aponta pro id da
