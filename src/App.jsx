@@ -571,6 +571,7 @@ const UI_STRINGS = {
   app_configuration_title: { en: '⚙️ App Configuration', es: '⚙️ Configuración de la App', pt: '⚙️ Configuração do App', zh: '⚙️ 应用配置' },
   edition_name: { en: 'Edition Name', es: 'Nombre de Edición', pt: 'Nome da Edição', zh: '版本名称' },
   company_branding_title: { en: '🏢 Company Branding', es: '🏢 Identidad de la Empresa', pt: '🏢 Identidade da Empresa', zh: '🏢 公司品牌形象' },
+  manage_company_branding_title: { en: '🏢 Manage Company Branding', es: '🏢 Gestionar Identidad de la Empresa', pt: '🏢 Gerenciar Identidade da Empresa', zh: '🏢 管理公司品牌形象' },
   displayed_below_header: { en: 'Displayed below "WhatIDid Corp" in the header', es: 'Se muestra debajo de "WhatIDid Corp" en el encabezado', pt: 'Exibido abaixo de "WhatIDid Corp" no cabeçalho', zh: '显示在页眉"WhatIDid Corp"下方' },
   size_small: { en: 'small', es: 'pequeño', pt: 'pequeno', zh: '小' },
   size_medium: { en: 'medium', es: 'mediano', pt: 'médio', zh: '中' },
@@ -7977,6 +7978,15 @@ autoComplete="off"
         </tr>
 
         <tr className="border-b">
+          <td className="py-2">{t('manage_company_branding_title')}</td>
+          <td className="py-2 text-center">
+            <input type="checkbox" checked={companyMasterVisibility.includes('company_branding')}
+              onChange={(e) => toggleMasterVisibility('company_branding', e.target.checked)} className="w-4 h-4" />
+          </td>
+          <td className="py-2 text-center"></td>
+        </tr>
+
+        <tr className="border-b">
           <td className="py-2">
             <p>{t('metadata_model')}</p>
             <p className="text-xs text-gray-400 font-normal">{t('functions_categories_desc')}</p>
@@ -8820,9 +8830,17 @@ autoComplete="off"
       )}
 
 
-      {/* 🏢 Company Branding */}
-      <div className="border-t pt-4 mt-2">
-        <label className="block text-sm font-semibold text-gray-700 mb-3">{t('company_branding_title')}</label>
+
+    </div>
+  </div>
+)}
+{isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('company_branding')) && activeAdminNavTab === 'settings' && (
+  <div className="mt-4 bg-purple-50 border-2 border-purple-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
+    <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+      {t('manage_company_branding_title')}
+      {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">{t('read_only_sample')}</span>}
+    </h3>
+    <div className={`bg-white rounded p-4 ${isReadOnlyOrMasterManaging ? 'pointer-events-none opacity-60' : ''}`}>
 
         {showDefaultOnlyTools ? (
           <div className="space-y-6">
@@ -9009,11 +9027,10 @@ autoComplete="off"
         </div>
         </>
         )}
-      </div>
-
     </div>
   </div>
 )}
+
           
 
 
