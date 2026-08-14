@@ -262,7 +262,7 @@ const UI_STRINGS = {
   curated_sample: { en: 'Curated / Sample', es: 'Curado / Muestra', pt: 'Selecionado / Amostra', zh: '精选 / 示例' },
   entered_by_users: { en: 'Entered by Users', es: 'Ingresado por Usuarios', pt: 'Inserido por Usuários', zh: '用户输入' },
   none_option: { en: 'None', es: 'Ninguno', pt: 'Nenhum', zh: '无' },
-  app_configuration: { en: 'App Configuration', es: 'Configuración de la App', pt: 'Configuração do App', zh: '应用配置' },
+  app_configuration: { en: 'Experience Configuration', es: 'Configuración de la Experiencia', pt: 'Configuração da Experiência', zh: '体验配置' },
   quotes_label: { en: 'Quotes', es: 'Citas', pt: 'Citações', zh: '语录' },
   content_pages_label: { en: 'Content Pages', es: 'Páginas de Contenido', pt: 'Páginas de Conteúdo', zh: '内容页面' },
   page_subtitles_label: { en: 'Page Subtitles', es: 'Subtítulos de la Página', pt: 'Subtítulos da Página', zh: '页面副标题' },
@@ -568,7 +568,7 @@ const UI_STRINGS = {
   since_label: { en: 'Since:', es: 'Desde:', pt: 'Desde:', zh: '自：' },
   not_used: { en: 'Not Used', es: 'No Usado', pt: 'Não Usado', zh: '未使用' },
   expired_ids_autoclear: { en: '"Expired" IDs auto-clear the next time anyone loads the app.', es: 'Los IDs "Expirados" se limpian automáticamente la próxima vez que alguien cargue la app.', pt: 'IDs "Expirados" são limpos automaticamente na próxima vez que alguém carregar o app.', zh: '"已过期"的 ID 会在下次有人打开应用时自动清除。' },
-  app_configuration_title: { en: '⚙️ App Configuration', es: '⚙️ Configuración de la App', pt: '⚙️ Configuração do App', zh: '⚙️ 应用配置' },
+  app_configuration_title: { en: '⚙️ Experience Configuration', es: '⚙️ Configuración de la Experiencia', pt: '⚙️ Configuração da Experiência', zh: '⚙️ 体验配置' },
   edition_name: { en: 'Edition Name', es: 'Nombre de Edición', pt: 'Nome da Edição', zh: '版本名称' },
   company_branding_title: { en: '🏢 Company Branding', es: '🏢 Identidad de la Empresa', pt: '🏢 Identidade da Empresa', zh: '🏢 公司品牌形象' },
   manage_company_branding_title: { en: '🏢 Manage Company Branding', es: '🏢 Gestionar Identidad de la Empresa', pt: '🏢 Gerenciar Identidade da Empresa', zh: '🏢 管理公司品牌形象' },
@@ -8678,162 +8678,6 @@ autoComplete="off"
 )}
 
 
-{isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('app_config')) && activeAdminNavTab === 'settings' && (
-  <div className="mt-4 bg-indigo-50 border-2 border-indigo-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
-    <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
-      {t('app_configuration_title')}
-      {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">{t('read_only_sample')}</span>}
-    </h3>
-    
-    <div className={`bg-white rounded p-4 space-y-4 ${isReadOnlyOrMasterManaging ? 'pointer-events-none opacity-60' : ''}`}>
-      {showDefaultOnlyTools && (
-      <>
-      {/* 2. Employee Login */}
-      <div className="flex items-center gap-3">
-        <input
-          type="checkbox"
-          id="employeeLogin"
-          checked={appSettings.requireEmployeeLogin}
-          onChange={async (e) => {
-            const newSettings = {...appSettings, requireEmployeeLogin: e.target.checked};
-            setAppSettings(newSettings);
-            
-            const { error } = await supabase
-              .from('app_settings')
-              .update({ require_employee_login: e.target.checked })
-              .eq('company_id', effectiveCompanyId);
-            
-            if (error) {
-              alert('Error updating setting');
-              console.error(error);
-            } else {
-              alert(tAlert('employee_login_toggled', { state: e.target.checked ? 'enabled' : 'disabled' }));
-            }
-          }}
-          className="w-5 h-5"
-        />
-        <label htmlFor="employeeLogin" className="text-sm font-medium text-gray-700 cursor-pointer">
-          {t('require_employee_id')}
-        </label>
-      </div>
-      
-{showDefaultOnlyTools && (
-  <div className="border-2 border-dashed border-indigo-300 rounded-lg p-3">
-    <label className="block text-sm font-semibold text-gray-700 mb-2">{t('attachment_type_suggestions_title')}</label>
-    <div className="space-y-2">
-      {['corp', 'pro', 'edu'].map(ed => (
-        <div key={ed} className="flex items-center gap-3">
-          <span className="text-sm font-medium text-gray-600 w-14 capitalize">{ed}</span>
-          <select
-            value={editionDefaults[ed]?.upload_mode || 'cv'}
-            onChange={async (e) => {
-              const { error } = await supabase
-                .from('edition_defaults')
-                .update({ upload_mode: e.target.value, updated_at: new Date().toISOString() })
-                .eq('edition', ed);
-              if (error) { alert('Error updating edition_defaults'); console.error(error); return; }
-              await loadEditionDefaults();
-            }}
-            className="p-1.5 border-2 border-gray-300 rounded-lg text-sm flex-1"
-          >
-            <option value="none">{t('no_uploads_option')}</option>
-            <option value="cv">{t('doc_type_cv_neutral')}</option>
-            <option value="other">{t('doc_type_other_neutral')}</option>
-            </select>
-        </div>
-      ))}
-    </div>
-  </div>
-)}
-
-{/* 3. Upload Documents — dropdown único (Sem Upload / CV / Outros),
-    substitui o antigo checkbox + rádios separados. Não faz sentido pro
-    próprio Default (ele não é uma empresa real recebendo uploads) — só
-    aparece pra empresas de verdade. */}
-{!showDefaultOnlyTools && (
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-700">{t('document_type_label')}</label>
-        <select
-          value={!appSettings.allowCvUpload ? 'none' : appSettings.documentType}
-          onChange={async (e) => {
-            const mode = e.target.value;
-            const allowCvUpload = mode !== 'none';
-            const documentType = mode === 'none' ? appSettings.documentType : mode;
-            const newSettings = {...appSettings, allowCvUpload, documentType};
-            setAppSettings(newSettings);
-            const { error } = await supabase
-              .from('app_settings')
-              .update({ allow_cv_upload: allowCvUpload, document_type: documentType })
-              .eq('company_id', effectiveCompanyId);
-            if (error) { alert(t('error_updating_doc_type')); console.error(error); return; }
-          }}
-          className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm"
-        >
-          <option value="none">{t('no_uploads_option')}</option>
-          <option value="cv">{t('doc_type_cv_neutral')}</option>
-          <option value="other">{t('doc_type_other_neutral')}</option>
-        </select>
-        {!showDefaultOnlyTools && editionDefaults[companyEdition] && (
-          <div className="flex items-center gap-2 text-xs text-gray-500">
-            <span>{t('default_suggests')} {
-              editionDefaults[companyEdition]?.upload_mode === 'none' ? t('no_uploads_option')
-              : editionDefaults[companyEdition]?.upload_mode === 'other' ? t('doc_type_other_neutral')
-              : t('doc_type_cv_neutral')
-            }</span>
-            <button
-              onClick={async () => {
-                const suggestion = editionDefaults[companyEdition];
-                if (!suggestion) return;
-                const mode = suggestion.upload_mode || 'cv';
-                const allowCvUpload = mode !== 'none';
-                const documentType = mode === 'none' ? 'cv' : mode;
-                const newSettings = {...appSettings, allowCvUpload, documentType};
-                setAppSettings(newSettings);
-                const { error } = await supabase
-                  .from('app_settings')
-                  .update({ allow_cv_upload: allowCvUpload, document_type: documentType })
-                  .eq('company_id', effectiveCompanyId);
-                if (error) { alert('Error updating setting'); console.error(error); return; }
-                alert(t('app_config_copied'));
-              }}
-              className="px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded text-xs font-medium hover:bg-indigo-200"
-            >
-              {t('use_default_suggestion')}
-            </button>
-          </div>
-        )}
-      </div>
-)}
-      </>
-      )}
-
-      {/* Show Top 3 */}
-      <div className="flex items-center gap-3">
-        <input type="checkbox" id="showTop3" checked={appSettings.showTop3}
-          onChange={async (e) => {
-            setAppSettings({...appSettings, showTop3: e.target.checked});
-            await supabase.from('app_settings').update({ show_top3: e.target.checked }).eq('company_id', effectiveCompanyId);
-          }} className="w-5 h-5" />
-        <label htmlFor="showTop3" className="text-sm font-medium text-gray-700 cursor-pointer">{t('show_top3_experiences')}</label>
-      </div>
-
-      {appSettings.showTop3 && (
-        <div className="ml-8 flex items-center gap-3">
-          <input type="checkbox" id="top3StartVisible" checked={appSettings.top3StartVisible}
-            onChange={async (e) => {
-              setAppSettings({...appSettings, top3StartVisible: e.target.checked});
-              setTop3VisibleInSession(e.target.checked);
-              await supabase.from('app_settings').update({ top3_start_visible: e.target.checked }).eq('company_id', effectiveCompanyId);
-            }} className="w-4 h-4" />
-          <label htmlFor="top3StartVisible" className="text-xs text-gray-600 cursor-pointer">{t('start_visible_top3')}</label>
-        </div>
-      )}
-
-
-
-    </div>
-  </div>
-)}
 {isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('company_branding')) && activeAdminNavTab === 'settings' && (
   <div className="mt-4 bg-purple-50 border-2 border-purple-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
@@ -9884,6 +9728,36 @@ autoComplete="off"
       👥 {t('manage_employees')}
     </h3>
 
+    {showDefaultOnlyTools && (
+      <div className="flex items-center gap-3 mb-4">
+        <input
+          type="checkbox"
+          id="employeeLogin"
+          checked={appSettings.requireEmployeeLogin}
+          onChange={async (e) => {
+            const newSettings = {...appSettings, requireEmployeeLogin: e.target.checked};
+            setAppSettings(newSettings);
+            
+            const { error } = await supabase
+              .from('app_settings')
+              .update({ require_employee_login: e.target.checked })
+              .eq('company_id', effectiveCompanyId);
+            
+            if (error) {
+              alert('Error updating setting');
+              console.error(error);
+            } else {
+              alert(tAlert('employee_login_toggled', { state: e.target.checked ? 'enabled' : 'disabled' }));
+            }
+          }}
+          className="w-5 h-5"
+        />
+        <label htmlFor="employeeLogin" className="text-sm font-medium text-gray-700 cursor-pointer">
+          {t('require_employee_id')}
+        </label>
+      </div>
+    )}
+
     {/* Add Employee */}
     {(!isReadOnlyOrMasterManaging || canBootstrapFirstAdmin) && (
     <div className="bg-white rounded p-4 mb-4">
@@ -10046,6 +9920,135 @@ autoComplete="off"
         ))}
         {employees.length === 0 && <p className="text-sm text-gray-500 text-center py-4">{t('no_employees_yet')}</p>}
       </div>
+    </div>
+  </div>
+)}
+
+{isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('app_config')) && activeAdminNavTab === 'settings' && (
+  <div className="mt-4 bg-indigo-50 border-2 border-indigo-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
+    <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+      {t('app_configuration_title')}
+      {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">{t('read_only_sample')}</span>}
+    </h3>
+    
+    <div className={`bg-white rounded p-4 space-y-4 ${isReadOnlyOrMasterManaging ? 'pointer-events-none opacity-60' : ''}`}>
+      {showDefaultOnlyTools && (
+      <>
+      
+{showDefaultOnlyTools && (
+  <div className="border-2 border-dashed border-indigo-300 rounded-lg p-3">
+    <label className="block text-sm font-semibold text-gray-700 mb-2">{t('attachment_type_suggestions_title')}</label>
+    <div className="space-y-2">
+      {['corp', 'pro', 'edu'].map(ed => (
+        <div key={ed} className="flex items-center gap-3">
+          <span className="text-sm font-medium text-gray-600 w-14 capitalize">{ed}</span>
+          <select
+            value={editionDefaults[ed]?.upload_mode || 'cv'}
+            onChange={async (e) => {
+              const { error } = await supabase
+                .from('edition_defaults')
+                .update({ upload_mode: e.target.value, updated_at: new Date().toISOString() })
+                .eq('edition', ed);
+              if (error) { alert('Error updating edition_defaults'); console.error(error); return; }
+              await loadEditionDefaults();
+            }}
+            className="p-1.5 border-2 border-gray-300 rounded-lg text-sm flex-1"
+          >
+            <option value="none">{t('no_uploads_option')}</option>
+            <option value="cv">{t('doc_type_cv_neutral')}</option>
+            <option value="other">{t('doc_type_other_neutral')}</option>
+            </select>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+
+{/* 3. Upload Documents — dropdown único (Sem Upload / CV / Outros),
+    substitui o antigo checkbox + rádios separados. Não faz sentido pro
+    próprio Default (ele não é uma empresa real recebendo uploads) — só
+    aparece pra empresas de verdade. */}
+{!showDefaultOnlyTools && (
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-gray-700">{t('document_type_label')}</label>
+        <select
+          value={!appSettings.allowCvUpload ? 'none' : appSettings.documentType}
+          onChange={async (e) => {
+            const mode = e.target.value;
+            const allowCvUpload = mode !== 'none';
+            const documentType = mode === 'none' ? appSettings.documentType : mode;
+            const newSettings = {...appSettings, allowCvUpload, documentType};
+            setAppSettings(newSettings);
+            const { error } = await supabase
+              .from('app_settings')
+              .update({ allow_cv_upload: allowCvUpload, document_type: documentType })
+              .eq('company_id', effectiveCompanyId);
+            if (error) { alert(t('error_updating_doc_type')); console.error(error); return; }
+          }}
+          className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm"
+        >
+          <option value="none">{t('no_uploads_option')}</option>
+          <option value="cv">{t('doc_type_cv_neutral')}</option>
+          <option value="other">{t('doc_type_other_neutral')}</option>
+        </select>
+        {!showDefaultOnlyTools && editionDefaults[companyEdition] && (
+          <div className="flex items-center gap-2 text-xs text-gray-500">
+            <span>{t('default_suggests')} {
+              editionDefaults[companyEdition]?.upload_mode === 'none' ? t('no_uploads_option')
+              : editionDefaults[companyEdition]?.upload_mode === 'other' ? t('doc_type_other_neutral')
+              : t('doc_type_cv_neutral')
+            }</span>
+            <button
+              onClick={async () => {
+                const suggestion = editionDefaults[companyEdition];
+                if (!suggestion) return;
+                const mode = suggestion.upload_mode || 'cv';
+                const allowCvUpload = mode !== 'none';
+                const documentType = mode === 'none' ? 'cv' : mode;
+                const newSettings = {...appSettings, allowCvUpload, documentType};
+                setAppSettings(newSettings);
+                const { error } = await supabase
+                  .from('app_settings')
+                  .update({ allow_cv_upload: allowCvUpload, document_type: documentType })
+                  .eq('company_id', effectiveCompanyId);
+                if (error) { alert('Error updating setting'); console.error(error); return; }
+                alert(t('app_config_copied'));
+              }}
+              className="px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded text-xs font-medium hover:bg-indigo-200"
+            >
+              {t('use_default_suggestion')}
+            </button>
+          </div>
+        )}
+      </div>
+)}
+      </>
+      )}
+
+      {/* Show Top 3 */}
+      <div className="flex items-center gap-3">
+        <input type="checkbox" id="showTop3" checked={appSettings.showTop3}
+          onChange={async (e) => {
+            setAppSettings({...appSettings, showTop3: e.target.checked});
+            await supabase.from('app_settings').update({ show_top3: e.target.checked }).eq('company_id', effectiveCompanyId);
+          }} className="w-5 h-5" />
+        <label htmlFor="showTop3" className="text-sm font-medium text-gray-700 cursor-pointer">{t('show_top3_experiences')}</label>
+      </div>
+
+      {appSettings.showTop3 && (
+        <div className="ml-8 flex items-center gap-3">
+          <input type="checkbox" id="top3StartVisible" checked={appSettings.top3StartVisible}
+            onChange={async (e) => {
+              setAppSettings({...appSettings, top3StartVisible: e.target.checked});
+              setTop3VisibleInSession(e.target.checked);
+              await supabase.from('app_settings').update({ top3_start_visible: e.target.checked }).eq('company_id', effectiveCompanyId);
+            }} className="w-4 h-4" />
+          <label htmlFor="top3StartVisible" className="text-xs text-gray-600 cursor-pointer">{t('start_visible_top3')}</label>
+        </div>
+      )}
+
+
+
     </div>
   </div>
 )}
