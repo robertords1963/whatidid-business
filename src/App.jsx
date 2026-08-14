@@ -11278,6 +11278,16 @@ onClick={() => {
     <button
       onClick={() => {
         if (isReadOnlyOrMasterManaging) return;
+        // Clique direto na aba (não veio de um botão de Follow-On) — limpa
+        // qualquer resíduo de um Follow-On anterior, senão a Category/
+        // Practice fica "grudada" de uma experience completamente
+        // diferente da que o usuário está prestes a criar agora.
+        if (followOnParentId) {
+          setFollowOnParentId(null);
+          setSelectedPracticeId(null);
+          setShareFormPracticeId(null);
+          setCurrentEntry(prev => ({ ...prev, problemCategory: '' }));
+        }
         setActiveMainTab('share');
         scrollToTabs();
       }}
