@@ -1874,15 +1874,20 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null, override
       .from('experiences')
       .select('*')
       .eq('company_id', effectiveCompanyId);
-    if (isViewingDefault) {
-      query1 = query1.eq('language', effectiveViewingLanguage);
+    // Conteúdo real (sem demo_session_id) respeita o idioma escolhido; a
+    // sessão de demo ATIVA sempre aparece, mesmo que o idioma tenha sido
+    // trocado depois de já ter entrado dados nela — trocar idioma não pode
+    // fazer o que já foi digitado na sessão "sumir".
+    if (isViewingDefault && activeDemoSessionId) {
+      query1 = query1.or(`and(demo_session_id.is.null,language.eq.${effectiveViewingLanguage}),demo_session_id.eq.${activeDemoSessionId}`);
+    } else {
+      if (isViewingDefault) {
+        query1 = query1.eq('language', effectiveViewingLanguage);
+      }
+      query1 = activeDemoSessionId
+        ? query1.or(`demo_session_id.is.null,demo_session_id.eq.${activeDemoSessionId}`)
+        : query1.is('demo_session_id', null);
     }
-    // Esconde conteúdo de demo de OUTRAS sessões (outro Master/Seller
-    // demonstrando em paralelo) — mostra sempre o real (demo_session_id nulo)
-    // e a própria sessão de demo ativa, se houver.
-    query1 = activeDemoSessionId
-      ? query1.or(`demo_session_id.is.null,demo_session_id.eq.${activeDemoSessionId}`)
-      : query1.is('demo_session_id', null);
     const { data: batch1, error: error1 } = await query1
       .order('source', { ascending: true })
       .order('id', { ascending: false })
@@ -1898,12 +1903,16 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null, override
       .from('experiences')
       .select('*')
       .eq('company_id', effectiveCompanyId);
-    if (isViewingDefault) {
-      query2 = query2.eq('language', effectiveViewingLanguage);
+    if (isViewingDefault && activeDemoSessionId) {
+      query2 = query2.or(`and(demo_session_id.is.null,language.eq.${effectiveViewingLanguage}),demo_session_id.eq.${activeDemoSessionId}`);
+    } else {
+      if (isViewingDefault) {
+        query2 = query2.eq('language', effectiveViewingLanguage);
+      }
+      query2 = activeDemoSessionId
+        ? query2.or(`demo_session_id.is.null,demo_session_id.eq.${activeDemoSessionId}`)
+        : query2.is('demo_session_id', null);
     }
-    query2 = activeDemoSessionId
-      ? query2.or(`demo_session_id.is.null,demo_session_id.eq.${activeDemoSessionId}`)
-      : query2.is('demo_session_id', null);
     const { data: batch2, error: error2 } = await query2
       .order('source', { ascending: true })
       .order('id', { ascending: false })
@@ -6569,8 +6578,13 @@ useEffect(() => {
               {/* 🔗 Add Follow-On — inibido se já tem filho */}
               {foChildren.length === 0 && !isGreyed && (
                 <button onClick={() => {
+                  captureNavSnapshot('share');
                   setFollowOnParentId(fo.id);
-                  if (fo.practiceId) { setSelectedPracticeId(fo.practiceId); loadProblemCategories(fo.practiceId); }
+                  if (fo.practiceId) {
+                    setSelectedPracticeId(fo.practiceId);
+                    setShareFormPracticeId(fo.practiceId);
+                    loadProblemCategories(fo.practiceId);
+                  }
                   setCurrentEntry(prev => ({ ...prev, problemCategory: fo.problemCategory || '' }));
                   setActiveMainTab('share'); scrollToTabs();
                 }} className="mt-3 text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">
