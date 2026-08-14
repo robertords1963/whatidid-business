@@ -551,6 +551,7 @@ const UI_STRINGS = {
   error_updating_password: { en: 'Error updating password. Please try again.', es: 'Error al actualizar la contraseña. Por favor, inténtalo de nuevo.', pt: 'Erro ao atualizar a senha. Por favor, tente novamente.', zh: '更新密码出错，请重试。' },
   // Lote ADM Default — grande
   add_company_btn: { en: '+ Add Company', es: '+ Agregar Empresa', pt: '+ Adicionar Empresa', zh: '+ 添加公司' },
+  company_logo_optional: { en: 'Logo (optional)', es: 'Logo (opcional)', pt: 'Logo (opcional)', zh: '徽标（可选）' },
   add_seller_btn: { en: '+ Add Seller', es: '+ Agregar Vendedor', pt: '+ Adicionar Vendedor', zh: '+ 添加销售代表' },
   creating_ellipsis: { en: 'Creating...', es: 'Creando...', pt: 'Criando...', zh: '创建中……' },
   add_employee_btn: { en: '+ Add Employee', es: '+ Agregar Empleado', pt: '+ Adicionar Funcionário', zh: '+ 添加员工' },
@@ -963,7 +964,7 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   const [employees, setEmployees] = useState([]);
   // Multi-empresa: lista de empresas cadastradas, formulário de nova empresa
   const [companies, setCompanies] = useState([]);
-  const [newCompany, setNewCompany] = useState({ name: '', code: '', edition: 'corp' });
+  const [newCompany, setNewCompany] = useState({ name: '', code: '', edition: 'corp', logoFile: null });
   const [companiesLoaded, setCompaniesLoaded] = useState(false);
   // Contexto de navegação do ADM Master: null = Default; caso contrário, id da empresa sendo gerenciada.
   // Sempre reseta pra null (Default) a cada reload da página, por segurança.
@@ -2708,7 +2709,29 @@ const addCompany = async () => {
       created_by_seller_id: isSeller ? loggedInSellerId : null
     }]).select().single();
     if (error) throw error;
-    setNewCompany({ name: '', code: '', edition: 'corp' });
+
+    // Se um logo foi selecionado, faz o upload e já cria a linha de
+    // app_settings da empresa nova com ele — assim, um Demo ID gerado
+    // pra ela já mostra o logo certo desde o primeiro momento, sem
+    // depender de nenhum import posterior.
+    if (newCompany.logoFile && data) {
+      try {
+        const ext = newCompany.logoFile.name.split('.').pop();
+        const path = `logo-company-${data.id}-${Date.now()}.${ext}`;
+        const { error: upErr } = await supabase.storage.from('cvs').upload(path, newCompany.logoFile);
+        if (upErr) throw upErr;
+        const { data: { publicUrl } } = supabase.storage.from('cvs').getPublicUrl(path);
+        const { error: settingsErr } = await supabase.from('app_settings').insert([{
+          company_id: data.id, company_logo_url: publicUrl
+        }]);
+        if (settingsErr) throw settingsErr;
+      } catch (logoError) {
+        console.error('Error uploading company logo:', logoError);
+        alert(t('generic_error') + ' ' + logoError.message);
+      }
+    }
+
+    setNewCompany({ name: '', code: '', edition: 'corp', logoFile: null });
     await loadCompanies();
     // A empresa recém-criada vira o default de "Company" no dropdown de
     // contexto — não muda o contexto sozinho, só fica pronta caso escolham
@@ -3365,6 +3388,14 @@ const importAppConfiguration = async () => {
       return;
     }
 
+    // Branding (nome/logo/tamanhos) não vem mais de app_settings do
+    // Default — esse campo ficou desatualizado desde que criamos
+    // "Manage Company Branding" (tabela edition_branding, por edição).
+    // Puxa da fonte certa, batendo com a edição da própria empresa que
+    // está importando.
+    const { data: brandingRow } = await supabase
+      .from('edition_branding').select('*').eq('edition', companyEdition).maybeSingle();
+
     const { error } = await supabase.from('app_settings').update({
       require_employee_login: defaultSettings.require_employee_login,
       edition_name: defaultSettings.edition_name,
@@ -3373,10 +3404,10 @@ const importAppConfiguration = async () => {
       show_top3: defaultSettings.show_top3,
       top3_start_visible: defaultSettings.top3_start_visible,
       show_marquee: defaultSettings.show_marquee,
-      company_name: defaultSettings.company_name,
-      company_logo_url: defaultSettings.company_logo_url,
-      company_name_size: defaultSettings.company_name_size,
-      company_logo_size: defaultSettings.company_logo_size
+      company_name: brandingRow?.company_name || null,
+      company_logo_url: brandingRow?.company_logo_url || null,
+      company_name_size: brandingRow?.company_name_size || 'medium',
+      company_logo_size: brandingRow?.company_logo_size || 'medium'
     }).eq('company_id', effectiveCompanyId);
     if (error) throw error;
 
@@ -8175,6 +8206,12 @@ autoComplete="off"
           <option value="pro">Pro</option>
           <option value="edu">Edu</option>
         </select>
+      </div>
+      <div className="mb-3">
+        <label className="block text-xs font-medium text-gray-600 mb-1">{t('company_logo_optional')}</label>
+        <input type="file" accept="image/png,image/jpeg,image/svg+xml,image/gif,image/webp"
+          onChange={(e) => setNewCompany({...newCompany, logoFile: e.target.files[0] || null})}
+          className="text-sm" />
       </div>
       <button onClick={addCompany} className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700">
         {t('add_company_btn')}
