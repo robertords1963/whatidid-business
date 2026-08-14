@@ -4789,6 +4789,7 @@ const [currentCvUrl, setCurrentCvUrl] = useState(null);
   // share_work_experiences/accelerate_org_learning) — nunca fica em branco.
   const [pageSubtitles, setPageSubtitles] = useState([]);
   const [newSubtitle, setNewSubtitle] = useState({ line1: '', line2: '', editions: ['corp', 'pro', 'edu'] });
+  const [editingSubtitle, setEditingSubtitle] = useState(null);
   const loadPageSubtitles = async () => {
     if (!effectiveCompanyId) return;
     try {
@@ -4837,6 +4838,22 @@ const [currentCvUrl, setCurrentCvUrl] = useState(null);
       await loadPageSubtitles();
     } catch (error) {
       console.error('Error deleting subtitle:', error);
+      alert(t('generic_error') + ' ' + error.message);
+    }
+  };
+  const updateSubtitle = async (id, line1, line2, editions) => {
+    if (!line1.trim()) { alert(t('please_enter_quote_text')); return; }
+    if (editions.length === 0) { alert(t('select_at_least_one_edition')); return; }
+    try {
+      const { error } = await supabase.from('page_subtitles').update({
+        line1: line1.trim(), line2: line2.trim() || null,
+        applicable_editions: editions.length === 3 ? 'all' : editions.join(',')
+      }).eq('id', id);
+      if (error) throw error;
+      setEditingSubtitle(null);
+      await loadPageSubtitles();
+    } catch (error) {
+      console.error('Error updating subtitle:', error);
       alert(t('generic_error') + ' ' + error.message);
     }
   };
@@ -9666,21 +9683,83 @@ autoComplete="off"
       )}
       {pageSubtitles.length > 0 && (
         <div className="space-y-2 mb-4">
-          {pageSubtitles.map(sub => (
-            <div key={sub.id} className="flex items-center justify-between p-2 border border-gray-200 rounded-lg">
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-800 truncate">{sub.line1}</p>
-                {sub.line2 && <p className="text-xs text-gray-500 truncate">{sub.line2}</p>}
-                <p className="text-xs text-gray-400 mt-0.5 capitalize">{sub.applicable_editions === 'all' ? t('all_editions') : sub.applicable_editions.replaceAll(',', ', ')}</p>
-              </div>
-              <button
-                onClick={() => deleteSubtitle(sub.id)}
-                className="ml-3 px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 flex-shrink-0"
-              >
-                {t('delete_trash')}
-              </button>
+          {pageSubtitles.map(sub => {
+            const isEditingThis = editingSubtitle === sub.id;
+            return (
+            <div key={sub.id} className="p-2 border border-gray-200 rounded-lg">
+              {isEditingThis ? (
+                <div className="space-y-2">
+                  <input
+                    type="text"
+                    defaultValue={sub.line1}
+                    id={`edit-subtitle-line1-${sub.id}`}
+                    placeholder={t('subtitle_line1_placeholder')}
+                    className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm"
+                  />
+                  <input
+                    type="text"
+                    defaultValue={sub.line2 || ''}
+                    id={`edit-subtitle-line2-${sub.id}`}
+                    placeholder={t('subtitle_line2_placeholder')}
+                    className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm"
+                  />
+                  <div className="flex flex-wrap gap-3">
+                    {['corp', 'pro', 'edu'].map(ed => {
+                      const currentList = (sub.applicable_editions || 'corp,pro,edu').split(',');
+                      return (
+                        <label key={ed} className="flex items-center gap-1.5 cursor-pointer">
+                          <input type="checkbox" id={`edit-subtitle-edition-${sub.id}-${ed}`} defaultChecked={currentList.includes(ed)} />
+                          <span className="text-sm text-gray-700 capitalize">{ed}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        const line1 = document.getElementById(`edit-subtitle-line1-${sub.id}`).value;
+                        const line2 = document.getElementById(`edit-subtitle-line2-${sub.id}`).value;
+                        const editions = ['corp', 'pro', 'edu'].filter(ed => document.getElementById(`edit-subtitle-edition-${sub.id}-${ed}`).checked);
+                        updateSubtitle(sub.id, line1, line2, editions);
+                      }}
+                      className="px-3 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700"
+                    >
+                      {t('save')}
+                    </button>
+                    <button
+                      onClick={() => setEditingSubtitle(null)}
+                      className="px-3 py-1 bg-gray-500 text-white rounded text-xs hover:bg-gray-600"
+                    >
+                      {t('cancel')}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-800 truncate">{sub.line1}</p>
+                    {sub.line2 && <p className="text-xs text-gray-500 truncate">{sub.line2}</p>}
+                    <p className="text-xs text-gray-400 mt-0.5 capitalize">{sub.applicable_editions === 'all' ? t('all_editions') : sub.applicable_editions.replaceAll(',', ', ')}</p>
+                  </div>
+                  <div className="flex gap-2 flex-shrink-0 ml-3">
+                    <button
+                      onClick={() => setEditingSubtitle(sub.id)}
+                      className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700"
+                    >
+                      {t('edit_content_btn')}
+                    </button>
+                    <button
+                      onClick={() => deleteSubtitle(sub.id)}
+                      className="px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700"
+                    >
+                      {t('delete_trash')}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
       {pageSubtitles.length < 3 && (
