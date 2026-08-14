@@ -427,6 +427,8 @@ const UI_STRINGS = {
   subtitle_line2_placeholder: { en: 'Second line (optional)', es: 'Segunda línea (opcional)', pt: 'Segunda linha (opcional)', zh: '第二行（选填）' },
   add_subtitle_btn: { en: 'Add Subtitle', es: 'Agregar Subtítulo', pt: 'Adicionar Subtítulo', zh: '添加副标题' },
   default_suggests: { en: 'Default suggests:', es: 'Default sugiere:', pt: 'Default sugere:', zh: 'Default 建议：' },
+  subtitle_if_blank_default: { en: 'If left blank, the following default subtitle will be displayed:', es: 'Si se deja en blanco, se mostrará el siguiente subtítulo predeterminado:', pt: 'Se deixado em branco, o seguinte subtítulo padrão será exibido:', zh: '如果留空，将显示以下默认副标题：' },
+  subtitle_overrides_default: { en: 'Your entry overrides the default subtitle:', es: 'Tu entrada reemplaza el subtítulo predeterminado:', pt: 'Sua entrada substitui o subtítulo padrão:', zh: '您的条目将覆盖默认副标题：' },
   session_ended_by_admin: { en: 'Your access has been ended.', es: 'Tu acceso ha finalizado.', pt: 'Seu acesso foi encerrado.', zh: '您的访问已结束。' },
   default_word: { en: 'Default', es: 'Predeterminado', pt: 'Padrão', zh: '默认' },
   company_word: { en: 'Company', es: 'Empresa', pt: 'Empresa', zh: '公司' },
@@ -9053,7 +9055,7 @@ autoComplete="off"
           </div>
           {newSubtitle.editions.length > 0 && (
             <p className="text-xs text-gray-400 italic">
-              {t('default_suggests')} {newSubtitle.editions.map(ed => `${SUBTITLE_DEFAULTS[ed]?.line1} ${SUBTITLE_DEFAULTS[ed]?.line2}`).join(' / ')}
+              {t('subtitle_if_blank_default')} {newSubtitle.editions.map(ed => `${SUBTITLE_DEFAULTS[ed]?.line1} ${SUBTITLE_DEFAULTS[ed]?.line2}`).join(' / ')}
             </p>
           )}
           <button
@@ -9103,7 +9105,7 @@ autoComplete="off"
                     const currentList = (sub.applicable_editions || 'corp,pro,edu').split(',');
                     return (
                       <p className="text-xs text-gray-400 italic">
-                        {t('default_suggests')} {currentList.map(ed => `${SUBTITLE_DEFAULTS[ed]?.line1} ${SUBTITLE_DEFAULTS[ed]?.line2}`).join(' / ')}
+                        {t('subtitle_overrides_default')} {currentList.map(ed => `${SUBTITLE_DEFAULTS[ed]?.line1} ${SUBTITLE_DEFAULTS[ed]?.line2}`).join(' / ')}
                       </p>
                     );
                   })()}
@@ -9145,7 +9147,7 @@ autoComplete="off"
                     {sub.line2 && <p className="text-xs text-gray-500 truncate">{sub.line2}</p>}
                     <p className="text-xs text-gray-400 mt-0.5 capitalize">{sub.applicable_editions === 'all' ? t('all_editions') : sub.applicable_editions.replaceAll(',', ', ')}</p>
                     <p className="text-xs text-gray-400 italic mt-0.5">
-                      {t('default_suggests')} {(sub.applicable_editions || 'corp,pro,edu').split(',').map(ed => `${SUBTITLE_DEFAULTS[ed]?.line1} ${SUBTITLE_DEFAULTS[ed]?.line2}`).join(' / ')}
+                      {t('subtitle_overrides_default')} {(sub.applicable_editions || 'corp,pro,edu').split(',').map(ed => `${SUBTITLE_DEFAULTS[ed]?.line1} ${SUBTITLE_DEFAULTS[ed]?.line2}`).join(' / ')}
                     </p>
                   </div>
                   <div className="flex gap-2 flex-shrink-0 ml-3">
