@@ -1127,16 +1127,6 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
     : (!isDefaultAdmin && companyViewMode === 'sample')
       ? defaultCompanyId
       : (loggedInEmployeeCompanyId || defaultCompanyId);
-  // Um Group Demo ID (Prospect testando o app sozinho por alguns dias) usa
-  // o BRANDING (nome/logo/edição) da própria empresa/Prospect — isso
-  // effectiveCompanyId já resolve certo — mas o CONTEÚDO (Experiences,
-  // Categories, Practices etc.) continua vindo do Default, igual já
-  // acontece quando o ADM Default/Seller navegam em modo Demo pra fazer
-  // uma apresentação. Ou seja: mesma experiência de conteúdo, branding
-  // próprio. Funções de carregamento de conteúdo devem usar essa variável
-  // no lugar de effectiveCompanyId; funções de branding/settings continuam
-  // usando effectiveCompanyId normalmente.
-  const effectiveContentCompanyId = loggedInIsDemoId ? defaultCompanyId : effectiveCompanyId;
   const effectiveCompanyName = ((isDefaultAdmin || isSeller) && adminCompanyContext)
     ? (companies.find(c => c.id === adminCompanyContext)?.name || 'Unknown')
     : (companies.find(c => c.id === effectiveCompanyId)?.name || 'Default');
@@ -1906,14 +1896,10 @@ useEffect(() => {
   };
   
 const loadExperiences = async (skipLoading = false, loggedEmpId = null, overrideDemoSessionId = undefined) => {
-  if (!effectiveContentCompanyId) {
-    console.log('🔴 loadExperiences ABORTOU — effectiveContentCompanyId está vazio/nulo');
+  if (!effectiveCompanyId) {
+    console.log('🔴 loadExperiences ABORTOU — effectiveCompanyId está vazio/nulo');
     return;
   }
-  // Group Demo ID (Prospect testando sozinho) trata conteúdo como se fosse
-  // o próprio Default — mesma experiência de conteúdo que o ADM Default/
-  // Seller vê em modo Demo, só com branding próprio da empresa/Prospect.
-  const contentIsDefault = effectiveContentCompanyId === defaultCompanyId;
   // Se quem chamou já sabe o valor certo de agora (ex: acabou de gerar uma
   // sessão de demo nova nesse mesmo instante), usa esse valor em vez do
   // state — o state só reflete no próximo render, e por isso a chamada
@@ -1924,7 +1910,7 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null, override
   // Marca essa chamada como a mais recente.
   latestExperiencesRequestRef.current += 1;
   const thisRequestId = latestExperiencesRequestRef.current;
-  console.log(`🔵 loadExperiences #${thisRequestId} INICIOU — company=${effectiveContentCompanyId}, lang=${effectiveViewingLanguage}, contentIsDefault=${contentIsDefault}, demoSession=${activeDemoSessionId}, skipLoading=${skipLoading}`);
+  console.log(`🔵 loadExperiences #${thisRequestId} INICIOU — company=${effectiveCompanyId}, lang=${effectiveViewingLanguage}, isViewingDefault=${isViewingDefault}, demoSession=${activeDemoSessionId}, skipLoading=${skipLoading}`);
   try {
     if (!skipLoading) {
       setLoading(true);
@@ -1937,15 +1923,15 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null, override
     // a edição (a linha continuava com o idioma original, e sumia do
     // filtro). Duas consultas simples, combinadas aqui em JS.
     const fetchExperiencesRange = async (rangeStart, rangeEnd) => {
-      if (contentIsDefault && activeDemoSessionId) {
+      if (isViewingDefault && activeDemoSessionId) {
         const realQuery = supabase.from('experiences').select('*')
-          .eq('company_id', effectiveContentCompanyId)
+          .eq('company_id', effectiveCompanyId)
           .eq('language', effectiveViewingLanguage)
           .is('demo_session_id', null)
           .order('source', { ascending: true }).order('id', { ascending: false })
           .range(rangeStart, rangeEnd);
         const demoQuery = supabase.from('experiences').select('*')
-          .eq('company_id', effectiveContentCompanyId)
+          .eq('company_id', effectiveCompanyId)
           .eq('demo_session_id', activeDemoSessionId)
           .order('source', { ascending: true }).order('id', { ascending: false })
           .range(rangeStart, rangeEnd);
@@ -1954,8 +1940,8 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null, override
         if (demoResult.error) throw demoResult.error;
         return [...(realResult.data || []), ...(demoResult.data || [])];
       }
-      let query = supabase.from('experiences').select('*').eq('company_id', effectiveContentCompanyId);
-      if (contentIsDefault) {
+      let query = supabase.from('experiences').select('*').eq('company_id', effectiveCompanyId);
+      if (isViewingDefault) {
         query = query.eq('language', effectiveViewingLanguage);
       }
       query = activeDemoSessionId
@@ -1983,7 +1969,7 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null, override
     // o valor da própria linha em inglês (mesmo translation_group_id) e
     // resolve a partir dali. As duas resolvidas via translation_group_id.
     let relatedIdFix = {};
-    if (contentIsDefault && effectiveViewingLanguage !== 'en') {
+    if (isViewingDefault && effectiveViewingLanguage !== 'en') {
       const idsInCurrentSet = new Set(data.map(e => e.id));
       const rowsWithGroup = data.filter(e => e.translation_group_id);
       const ownGroupIds = [...new Set(rowsWithGroup.map(e => e.translation_group_id))];
@@ -1997,7 +1983,7 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null, override
         const { data: englishRows } = await supabase
           .from('experiences')
           .select('translation_group_id, related_common_case_id')
-          .eq('company_id', effectiveContentCompanyId)
+          .eq('company_id', effectiveCompanyId)
           .eq('language', 'en')
           .in('translation_group_id', ownGroupIds);
         (englishRows || []).forEach(r => {
@@ -2023,7 +2009,7 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null, override
           const { data: translatedRows } = await supabase
             .from('experiences')
             .select('id, translation_group_id')
-            .eq('company_id', effectiveContentCompanyId)
+            .eq('company_id', effectiveCompanyId)
             .eq('language', effectiveViewingLanguage)
             .in('translation_group_id', groupIds);
           (translatedRows || []).forEach(r => { translatedByGroup[r.translation_group_id] = r.id; });
@@ -2154,13 +2140,13 @@ const keyInsights = transformedData.filter(e => e.author === 'key_insights');
 const hasNewSyntheticItems = shuffleOrderRef.current
   ? syntheticExps.some(e => !shuffleOrderRef.current.includes(e.id))
   : false;
-if (!shuffleOrderRef.current || shuffleOrderCompanyRef.current !== effectiveContentCompanyId || shuffleOrderLanguageRef.current !== effectiveViewingLanguage || hasNewSyntheticItems) {
+if (!shuffleOrderRef.current || shuffleOrderCompanyRef.current !== effectiveCompanyId || shuffleOrderLanguageRef.current !== effectiveViewingLanguage || hasNewSyntheticItems) {
   for (let i = syntheticExps.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [syntheticExps[i], syntheticExps[j]] = [syntheticExps[j], syntheticExps[i]];
   }
   shuffleOrderRef.current = syntheticExps.map(e => e.id);
-  shuffleOrderCompanyRef.current = effectiveContentCompanyId;
+  shuffleOrderCompanyRef.current = effectiveCompanyId;
   shuffleOrderLanguageRef.current = effectiveViewingLanguage;
 }
 
@@ -2224,13 +2210,12 @@ if (lastCommentIds.length > 0) {
 };
 
 const loadTopExperiences = async () => {
-    if (!effectiveContentCompanyId) return;
-    const contentIsDefault = effectiveContentCompanyId === defaultCompanyId;
+    if (!effectiveCompanyId) return;
     try {
       const { data, error } = await supabase
         .from('top_experiences')
         .select('position, experience_id')
-        .eq('company_id', effectiveContentCompanyId);
+        .eq('company_id', effectiveCompanyId);
       
       if (error) throw error;
       
@@ -2243,7 +2228,7 @@ const loadTopExperiences = async () => {
       // configurado (inglês). Resolve pro id certo no idioma atual via
       // translation_group_id, que já existe desde a tradução do conteúdo.
       let resolvedByOriginalId = {};
-      if (rawIds.length > 0 && contentIsDefault) {
+      if (rawIds.length > 0 && isViewingDefault) {
         const { data: sourceRows } = await supabase
           .from('experiences')
           .select('id, translation_group_id')
@@ -2256,7 +2241,7 @@ const loadTopExperiences = async () => {
           const { data: translatedRows } = await supabase
             .from('experiences')
             .select('id, translation_group_id')
-            .eq('company_id', effectiveContentCompanyId)
+            .eq('company_id', effectiveCompanyId)
             .eq('language', effectiveViewingLanguage)
             .in('translation_group_id', groupIds);
           (translatedRows || []).forEach(r => { translatedByGroup[r.translation_group_id] = r.id; });
@@ -2349,16 +2334,15 @@ const loadAppSettings = async () => {
 };
 
 const loadProblemCategories = async (practiceId = null) => {
-  if (!effectiveContentCompanyId) return;
-  const contentIsDefault = effectiveContentCompanyId === defaultCompanyId;
+  if (!effectiveCompanyId) return;
   try {
     let query = supabase
       .from('problem_categories')
       .select('*')
       .eq('active', true)
-      .eq('company_id', effectiveContentCompanyId)
+      .eq('company_id', effectiveCompanyId)
       .order('display_order', { ascending: true });
-    if (contentIsDefault) {
+    if (isViewingDefault) {
       query = query.eq('language', effectiveViewingLanguage);
     }
 
@@ -2645,15 +2629,14 @@ const loadCurrentEmployeeGroup = async (empId) => {
 };
  
 const loadPractices = async () => {
-  if (!effectiveContentCompanyId) return;
-  const contentIsDefault = effectiveContentCompanyId === defaultCompanyId;
+  if (!effectiveCompanyId) return;
   try {
     let query = supabase
       .from('practices')
       .select('*')
       .eq('active', true)
-      .eq('company_id', effectiveContentCompanyId);
-    if (contentIsDefault) {
+      .eq('company_id', effectiveCompanyId);
+    if (isViewingDefault) {
       query = query.eq('language', effectiveViewingLanguage);
     }
     const { data, error } = await query.order('display_order', { ascending: true });
@@ -4600,7 +4583,7 @@ setTimeout(() => {
         source: 'app',
         cv_url: cvUrl,
         cv_filename: cvFilename,
-        company_id: effectiveContentCompanyId,
+        company_id: effectiveCompanyId,
         demo_session_id: demoSessionIdForInsert,
         language: effectiveViewingLanguage,
         created_at: new Date().toISOString()
@@ -4748,7 +4731,7 @@ if (appSettings.requireEmployeeLogin && !isAdmin && exp.employeeId !== employeeI
         country: userCountryName || '',
         cv_url: cvUrl,
         cv_filename: cvFilename,
-        company_id: effectiveContentCompanyId,
+        company_id: effectiveCompanyId,
         demo_session_id: demoSessionIdForInsert,
         created_at: new Date().toISOString()
       }]);
@@ -4898,12 +4881,12 @@ const [currentCvUrl, setCurrentCvUrl] = useState(null);
   const [editingSubtitle, setEditingSubtitle] = useState(null);
   const [editingSubtitleEditions, setEditingSubtitleEditions] = useState([]);
   const loadPageSubtitles = async () => {
-    if (!effectiveContentCompanyId) return;
+    if (!effectiveCompanyId) return;
     try {
       const { data, error } = await supabase
         .from('page_subtitles')
         .select('*')
-        .eq('company_id', effectiveContentCompanyId)
+        .eq('company_id', effectiveCompanyId)
         .eq('language', effectiveViewingLanguage)
         .order('display_order', { ascending: true });
       if (error) throw error;
@@ -5535,16 +5518,15 @@ useEffect(() => {
   }, [videoModalOpen]);
 
   const loadQuotes = async () => {
-    if (!effectiveContentCompanyId) return;
-    const contentIsDefault = effectiveContentCompanyId === defaultCompanyId;
+    if (!effectiveCompanyId) return;
     try {
       let query = supabase
         .from('quotes')
         .select('*')
         .eq('active', true)
-        .eq('company_id', effectiveContentCompanyId)
+        .eq('company_id', effectiveCompanyId)
         .order('id', { ascending: true });
-      if (contentIsDefault) {
+      if (isViewingDefault) {
         query = query.eq('language', effectiveViewingLanguage);
       }
       const { data, error } = await query;
@@ -5553,8 +5535,8 @@ useEffect(() => {
 
       // Filtro de edição — lista separada por vírgula, feito no cliente
       // (o valor 'corp,pro,edu' representa "todas", já que a coluna não
-      // aceita nulo). Só filtra quando contentIsDefault, igual idioma.
-      const filtered = contentIsDefault
+      // aceita nulo). Só filtra quando isViewingDefault, igual idioma.
+      const filtered = isViewingDefault
         ? (data || []).filter(q => (q.edition || 'corp,pro,edu').split(',').includes(companyEdition))
         : (data || []);
       
@@ -5655,12 +5637,12 @@ useEffect(() => {
   };
 
   const loadContentPages = async () => {
-    if (!effectiveContentCompanyId) return;
+    if (!effectiveCompanyId) return;
     try {
       const { data, error } = await supabase
         .from('content_pages')
         .select('*')
-        .eq('company_id', effectiveContentCompanyId)
+        .eq('company_id', effectiveCompanyId)
         .eq('language', effectiveViewingLanguage);
       if (error) throw error;
 
@@ -5689,7 +5671,7 @@ useEffect(() => {
           const { data: fallback } = await supabase
             .from('content_pages')
             .select('*')
-            .eq('company_id', effectiveContentCompanyId)
+            .eq('company_id', effectiveCompanyId)
             .eq('language', 'en')
             .in('page_key', missingKeys);
           const fallbackMatched = pickMatching(fallback);
@@ -5711,12 +5693,12 @@ useEffect(() => {
   // Todas as entradas de Content Pages, agrupadas por página — usado na
   // tela de administração (lista, igual Quotes), independente de edição.
   const loadAllContentPages = async () => {
-    if (!effectiveContentCompanyId) return;
+    if (!effectiveCompanyId) return;
     try {
       const { data, error } = await supabase
         .from('content_pages')
         .select('*')
-        .eq('company_id', effectiveContentCompanyId)
+        .eq('company_id', effectiveCompanyId)
         .eq('language', effectiveViewingLanguage)
         .order('created_at', { ascending: true });
       if (error) throw error;
@@ -5786,12 +5768,12 @@ useEffect(() => {
   // ==================== FUNÇÕES PARA GERENCIAR VÍDEOS PROMOCIONAIS ====================
   
   const loadPromotionalVideos = async () => {
-    if (!effectiveContentCompanyId) return;
+    if (!effectiveCompanyId) return;
     try {
       const { data, error } = await supabase
         .from('promotional_videos')
         .select('*')
-        .eq('company_id', effectiveContentCompanyId)
+        .eq('company_id', effectiveCompanyId)
         .order('display_order', { ascending: true });
       
       if (error) throw error;
