@@ -851,9 +851,16 @@ export default function WhatIDid() {
     try {
       const { data: existingSettings } = await supabase
         .from('app_settings').select('company_id').eq('company_id', companyId).maybeSingle();
+      // "pro" sugere CV only; qualquer outra edição sugere outros tipos de
+      // documento — mesma regra que já vale em qq outro lugar do app.
+      const targetEdition = companies.find(comp => comp.id === companyId)?.edition || 'corp';
       const { error } = existingSettings
         ? await supabase.from('app_settings').update({ [field]: size }).eq('company_id', companyId)
-        : await supabase.from('app_settings').insert([{ company_id: companyId, [field]: size }]);
+        : await supabase.from('app_settings').insert([{
+            company_id: companyId, [field]: size,
+            require_employee_login: true, allow_cv_upload: true, document_type: targetEdition === 'pro' ? 'cv' : 'other',
+            show_top3: false, top3_start_visible: true, show_marquee: false
+          }]);
       if (error) throw error;
       setCompanyBrandingSizesById(prev => ({
         ...prev,
@@ -2313,11 +2320,14 @@ const loadAppSettings = async () => {
   // Essa empresa ainda não tem uma linha de app_settings — cria uma com
   // valores padrão, pra não quebrar os updates (que dependem de já existir
   // uma linha pra dar .eq('company_id', ...) e achar algo).
+  const companyEditionForDefaults = companies.find(comp => comp.id === effectiveCompanyId)?.edition || 'corp';
+  const defaultDocType = companyEditionForDefaults === 'pro' ? 'cv' : 'other';
   const { error: insertError } = await supabase.from('app_settings').insert([{
     company_id: effectiveCompanyId,
     require_employee_login: true,
     edition_name: 'corp',
     allow_cv_upload: true,
+    document_type: defaultDocType,
     show_top3: false,
     top3_start_visible: true,
     show_marquee: false
@@ -2325,7 +2335,7 @@ const loadAppSettings = async () => {
   if (!insertError) {
     setAppSettings({
       requireEmployeeLogin: true, editionName: 'corp', allowCvUpload: true,
-      documentType: 'cv', showTop3: false, top3StartVisible: true, showMarquee: false
+      documentType: defaultDocType, showTop3: false, top3StartVisible: true, showMarquee: false
     });
     const { data: companyRow } = await supabase.from('companies').select('name').eq('id', effectiveCompanyId).maybeSingle();
     setCompanyName(companyRow?.name || '');
@@ -2779,7 +2789,7 @@ const addCompany = async () => {
         const { data: { publicUrl } } = supabase.storage.from('cvs').getPublicUrl(path);
         const { error: settingsErr } = await supabase.from('app_settings').insert([{
           company_id: data.id, company_logo_url: publicUrl,
-          require_employee_login: true, allow_cv_upload: true, document_type: 'cv',
+          require_employee_login: true, allow_cv_upload: true, document_type: newCompany.edition === 'pro' ? 'cv' : 'other',
           show_top3: false, top3_start_visible: true, show_marquee: false
         }]);
         if (settingsErr) throw settingsErr;
@@ -8434,7 +8444,7 @@ autoComplete="off"
                           ? await supabase.from('app_settings').update({ company_logo_url: publicUrl }).eq('company_id', c.id)
                           : await supabase.from('app_settings').insert([{
                               company_id: c.id, company_logo_url: publicUrl,
-                              require_employee_login: true, allow_cv_upload: true, document_type: 'cv',
+                              require_employee_login: true, allow_cv_upload: true, document_type: c.edition === 'pro' ? 'cv' : 'other',
                               show_top3: false, top3_start_visible: true, show_marquee: false
                             }]);
                         if (settingsErr) throw settingsErr;
