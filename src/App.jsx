@@ -8728,7 +8728,7 @@ autoComplete="off"
                       const { error } = await supabase.from('employees').insert([{
                         employee_id: `ID${padded}`,
                         name: `${group.name} Demo ${padded}`,
-                        company_id: defaultCompanyId,
+                        company_id: group.company_id,
                         is_demo: true,
                         password: `PW${padded}`,
                         status: 'active',
