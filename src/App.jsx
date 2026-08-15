@@ -2351,15 +2351,19 @@ const loadAppSettings = async () => {
 };
 
 const loadProblemCategories = async (practiceId = null) => {
-  if (!effectiveCompanyId) return;
+  // Mesma regra de loadExperiences: Group Demo ID vê o conteúdo do
+  // Default, mesmo tendo seu próprio branding.
+  const contentCompanyId = loggedInIsDemoId ? defaultCompanyId : effectiveCompanyId;
+  const isContentDefault = contentCompanyId === defaultCompanyId;
+  if (!contentCompanyId) return;
   try {
     let query = supabase
       .from('problem_categories')
       .select('*')
       .eq('active', true)
-      .eq('company_id', effectiveCompanyId)
+      .eq('company_id', contentCompanyId)
       .order('display_order', { ascending: true });
-    if (isViewingDefault) {
+    if (isContentDefault) {
       query = query.eq('language', effectiveViewingLanguage);
     }
 
@@ -2646,14 +2650,16 @@ const loadCurrentEmployeeGroup = async (empId) => {
 };
  
 const loadPractices = async () => {
-  if (!effectiveCompanyId) return;
+  const contentCompanyId = loggedInIsDemoId ? defaultCompanyId : effectiveCompanyId;
+  const isContentDefault = contentCompanyId === defaultCompanyId;
+  if (!contentCompanyId) return;
   try {
     let query = supabase
       .from('practices')
       .select('*')
       .eq('active', true)
-      .eq('company_id', effectiveCompanyId);
-    if (isViewingDefault) {
+      .eq('company_id', contentCompanyId);
+    if (isContentDefault) {
       query = query.eq('language', effectiveViewingLanguage);
     }
     const { data, error } = await query.order('display_order', { ascending: true });
@@ -2684,15 +2690,17 @@ const loadPractices = async () => {
 };
 
 const loadAdminCategories = async (practiceId) => {
-  if (!effectiveCompanyId) return;
+  const contentCompanyId = loggedInIsDemoId ? defaultCompanyId : effectiveCompanyId;
+  const isContentDefault = contentCompanyId === defaultCompanyId;
+  if (!contentCompanyId) return;
   try {
     let query = supabase
       .from('problem_categories')
       .select('*')
       .eq('active', true)
-      .eq('company_id', effectiveCompanyId)
+      .eq('company_id', contentCompanyId)
       .order('display_order', { ascending: true });
-    if (isViewingDefault) {
+    if (isContentDefault) {
       query = query.eq('language', effectiveViewingLanguage);
     }
     if (practiceId) {
