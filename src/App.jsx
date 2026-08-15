@@ -2778,7 +2778,9 @@ const addCompany = async () => {
         if (upErr) throw upErr;
         const { data: { publicUrl } } = supabase.storage.from('cvs').getPublicUrl(path);
         const { error: settingsErr } = await supabase.from('app_settings').insert([{
-          company_id: data.id, company_logo_url: publicUrl
+          company_id: data.id, company_logo_url: publicUrl,
+          require_employee_login: true, allow_cv_upload: true, document_type: 'cv',
+          show_top3: false, top3_start_visible: true, show_marquee: false
         }]);
         if (settingsErr) throw settingsErr;
         setCompanyLogosById(prev => ({ ...prev, [data.id]: publicUrl }));
@@ -8430,7 +8432,11 @@ autoComplete="off"
                           .from('app_settings').select('company_id').eq('company_id', c.id).maybeSingle();
                         const { error: settingsErr } = existingSettings
                           ? await supabase.from('app_settings').update({ company_logo_url: publicUrl }).eq('company_id', c.id)
-                          : await supabase.from('app_settings').insert([{ company_id: c.id, company_logo_url: publicUrl }]);
+                          : await supabase.from('app_settings').insert([{
+                              company_id: c.id, company_logo_url: publicUrl,
+                              require_employee_login: true, allow_cv_upload: true, document_type: 'cv',
+                              show_top3: false, top3_start_visible: true, show_marquee: false
+                            }]);
                         if (settingsErr) throw settingsErr;
                         setCompanyLogosById(prev => ({ ...prev, [c.id]: publicUrl }));
                         alert('Logo uploaded!');
