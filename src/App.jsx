@@ -262,7 +262,7 @@ const UI_STRINGS = {
   curated_sample: { en: 'Curated / Sample', es: 'Curado / Muestra', pt: 'Selecionado / Amostra', zh: '精选 / 示例' },
   entered_by_users: { en: 'Entered by Users', es: 'Ingresado por Usuarios', pt: 'Inserido por Usuários', zh: '用户输入' },
   none_option: { en: 'None', es: 'Ninguno', pt: 'Nenhum', zh: '无' },
-  app_configuration: { en: 'Experience Configuration', es: 'Configuración de la Experiencia', pt: 'Configuração da Experiência', zh: '体验配置' },
+  app_configuration: { en: 'App Configuration', es: 'Configuración de la App', pt: 'Configuração do App', zh: '应用配置' },
   quotes_label: { en: 'Quotes', es: 'Citas', pt: 'Citações', zh: '语录' },
   content_pages_label: { en: 'Content Pages', es: 'Páginas de Contenido', pt: 'Páginas de Conteúdo', zh: '内容页面' },
   page_subtitles_label: { en: 'Page Subtitles', es: 'Subtítulos de la Página', pt: 'Subtítulos da Página', zh: '页面副标题' },
@@ -427,10 +427,6 @@ const UI_STRINGS = {
   subtitle_line2_placeholder: { en: 'Second line (optional)', es: 'Segunda línea (opcional)', pt: 'Segunda linha (opcional)', zh: '第二行（选填）' },
   add_subtitle_btn: { en: 'Add Subtitle', es: 'Agregar Subtítulo', pt: 'Adicionar Subtítulo', zh: '添加副标题' },
   default_suggests: { en: 'Default suggests:', es: 'Default sugiere:', pt: 'Default sugere:', zh: 'Default 建议：' },
-  subtitle_if_blank_default: { en: 'If left blank, the following default subtitle will be displayed:', es: 'Si se deja en blanco, se mostrará el siguiente subtítulo predeterminado:', pt: 'Se deixado em branco, o seguinte subtítulo padrão será exibido:', zh: '如果留空，将显示以下默认副标题：' },
-  subtitle_overrides_default: { en: 'Your entry overrides the default subtitle:', es: 'Tu entrada reemplaza el subtítulo predeterminado:', pt: 'Sua entrada substitui o subtítulo padrão:', zh: '您的条目将覆盖默认副标题：' },
-  subtitle_line1_label: { en: '1st line', es: '1a línea', pt: '1a linha', zh: '第一行' },
-  subtitle_line2_label: { en: '2nd line', es: '2a línea', pt: '2a linha', zh: '第二行' },
   session_ended_by_admin: { en: 'Your access has been ended.', es: 'Tu acceso ha finalizado.', pt: 'Seu acesso foi encerrado.', zh: '您的访问已结束。' },
   default_word: { en: 'Default', es: 'Predeterminado', pt: 'Padrão', zh: '默认' },
   company_word: { en: 'Company', es: 'Empresa', pt: 'Empresa', zh: '公司' },
@@ -530,8 +526,6 @@ const UI_STRINGS = {
   hero_tagline_public: { en: 'Real problems. Real actions. Real results.', es: 'Problemas reales. Acciones reales. Resultados reales.', pt: 'Problemas reais. Ações reais. Resultados reais.', zh: '真实问题。真实行动。真实结果。' },
   share_work_experiences: { en: 'Share your work experiences.', es: 'Comparte tus experiencias laborales.', pt: 'Compartilhe suas experiências de trabalho.', zh: '分享你的工作经验。' },
   accelerate_org_learning: { en: 'Accelerate organizational learning.', es: 'Acelera el aprendizaje organizacional.', pt: 'Acelere o aprendizado organizacional.', zh: '加速组织学习。' },
-  subtitle_line2_pro: { en: 'Share your professional experiences. Be found by companies looking for them.', es: 'Comparte tus experiencias profesionales. Sé encontrado por las empresas que las buscan.', pt: 'Compartilhe suas experiências profissionais. Seja encontrado por empresas que as procuram.', zh: '分享您的职业经历，让正在寻找人才的企业发现您。' },
-  subtitle_line2_edu: { en: 'Explore real-world cases. Share your views and related experiences.', es: 'Explora casos del mundo real. Comparte tus puntos de vista y experiencias relacionadas.', pt: 'Explore casos do mundo real. Compartilhe suas opiniões e experiências relacionadas.', zh: '探索真实案例，分享您的观点和相关经历。' },
   curator: { en: 'Curator', es: 'Curador', pt: 'Curador', zh: '策展人' },
   back_to_where_you_were: { en: 'Back to where you were', es: 'Volver a donde estabas', pt: 'Voltar para onde você estava', zh: '返回之前的位置' },
   hide_top3: { en: 'Hide Top 3', es: 'Ocultar Top 3', pt: 'Ocultar Top 3', zh: '隐藏前三名' },
@@ -551,7 +545,6 @@ const UI_STRINGS = {
   error_updating_password: { en: 'Error updating password. Please try again.', es: 'Error al actualizar la contraseña. Por favor, inténtalo de nuevo.', pt: 'Erro ao atualizar a senha. Por favor, tente novamente.', zh: '更新密码出错，请重试。' },
   // Lote ADM Default — grande
   add_company_btn: { en: '+ Add Company', es: '+ Agregar Empresa', pt: '+ Adicionar Empresa', zh: '+ 添加公司' },
-  company_logo_optional: { en: 'Logo (optional)', es: 'Logo (opcional)', pt: 'Logo (opcional)', zh: '徽标（可选）' },
   add_seller_btn: { en: '+ Add Seller', es: '+ Agregar Vendedor', pt: '+ Adicionar Vendedor', zh: '+ 添加销售代表' },
   creating_ellipsis: { en: 'Creating...', es: 'Creando...', pt: 'Criando...', zh: '创建中……' },
   add_employee_btn: { en: '+ Add Employee', es: '+ Agregar Empleado', pt: '+ Adicionar Funcionário', zh: '+ 添加员工' },
@@ -569,10 +562,9 @@ const UI_STRINGS = {
   since_label: { en: 'Since:', es: 'Desde:', pt: 'Desde:', zh: '自：' },
   not_used: { en: 'Not Used', es: 'No Usado', pt: 'Não Usado', zh: '未使用' },
   expired_ids_autoclear: { en: '"Expired" IDs auto-clear the next time anyone loads the app.', es: 'Los IDs "Expirados" se limpian automáticamente la próxima vez que alguien cargue la app.', pt: 'IDs "Expirados" são limpos automaticamente na próxima vez que alguém carregar o app.', zh: '"已过期"的 ID 会在下次有人打开应用时自动清除。' },
-  app_configuration_title: { en: '⚙️ Experience Configuration', es: '⚙️ Configuración de la Experiencia', pt: '⚙️ Configuração da Experiência', zh: '⚙️ 体验配置' },
+  app_configuration_title: { en: '⚙️ App Configuration', es: '⚙️ Configuración de la App', pt: '⚙️ Configuração do App', zh: '⚙️ 应用配置' },
   edition_name: { en: 'Edition Name', es: 'Nombre de Edición', pt: 'Nome da Edição', zh: '版本名称' },
   company_branding_title: { en: '🏢 Company Branding', es: '🏢 Identidad de la Empresa', pt: '🏢 Identidade da Empresa', zh: '🏢 公司品牌形象' },
-  manage_company_branding_title: { en: '🏢 Manage Company Branding', es: '🏢 Gestionar Identidad de la Empresa', pt: '🏢 Gerenciar Identidade da Empresa', zh: '🏢 管理公司品牌形象' },
   displayed_below_header: { en: 'Displayed below "WhatIDid Corp" in the header', es: 'Se muestra debajo de "WhatIDid Corp" en el encabezado', pt: 'Exibido abaixo de "WhatIDid Corp" no cabeçalho', zh: '显示在页眉"WhatIDid Corp"下方' },
   size_small: { en: 'small', es: 'pequeño', pt: 'pequeno', zh: '小' },
   size_medium: { en: 'medium', es: 'mediano', pt: 'médio', zh: '中' },
@@ -826,43 +818,6 @@ export default function WhatIDid() {
   // "lembrar" a escolha mesmo quando o dropdown está em "Default".
   const [selectedCompanyForContext, setSelectedCompanyForContext] = useState(null);
   const [expandedCompanyContact, setExpandedCompanyContact] = useState({});
-  // Logo + tamanhos atuais de cada empresa (pra mostrar a prévia e os
-  // controles P/M/G na lista de Manage Companies, sem carregar toda a
-  // app_settings de cada uma).
-  const [companyLogosById, setCompanyLogosById] = useState({});
-  const [companyBrandingSizesById, setCompanyBrandingSizesById] = useState({});
-  const loadCompanyLogos = async () => {
-    const { data, error } = await supabase.from('app_settings').select('company_id, company_logo_url, company_name_size, company_logo_size');
-    if (error) { console.error('Error loading company logos:', error); return; }
-    const logoMap = {};
-    const sizeMap = {};
-    (data || []).forEach(row => {
-      if (row.company_logo_url) logoMap[row.company_id] = row.company_logo_url;
-      sizeMap[row.company_id] = { name: row.company_name_size || 'medium', logo: row.company_logo_size || 'medium' };
-    });
-    setCompanyLogosById(logoMap);
-    setCompanyBrandingSizesById(sizeMap);
-  };
-  // Salva o tamanho (nome ou logo) de uma empresa — checa se já existe
-  // linha antes de decidir entre update/insert, mesmo padrão seguro já
-  // usado pro upload de logo (essa tabela não tem constraint única em
-  // company_id).
-  const saveCompanyBrandingSize = async (companyId, field, size) => {
-    try {
-      const { data: existingSettings } = await supabase
-        .from('app_settings').select('company_id').eq('company_id', companyId).maybeSingle();
-      const { error } = existingSettings
-        ? await supabase.from('app_settings').update({ [field]: size }).eq('company_id', companyId)
-        : await supabase.from('app_settings').insert([{ company_id: companyId, [field]: size }]);
-      if (error) throw error;
-      setCompanyBrandingSizesById(prev => ({
-        ...prev,
-        [companyId]: { ...(prev[companyId] || { name: 'medium', logo: 'medium' }), [field === 'company_name_size' ? 'name' : 'logo']: size }
-      }));
-    } catch (err) {
-      alert('Error: ' + err.message);
-    }
-  };
   const [expandedSellerContact, setExpandedSellerContact] = useState({});
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -1001,7 +956,7 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   const [employees, setEmployees] = useState([]);
   // Multi-empresa: lista de empresas cadastradas, formulário de nova empresa
   const [companies, setCompanies] = useState([]);
-  const [newCompany, setNewCompany] = useState({ name: '', code: '', edition: 'corp', logoFile: null });
+  const [newCompany, setNewCompany] = useState({ name: '', code: '', edition: 'corp' });
   const [companiesLoaded, setCompaniesLoaded] = useState(false);
   // Contexto de navegação do ADM Master: null = Default; caso contrário, id da empresa sendo gerenciada.
   // Sempre reseta pra null (Default) a cada reload da página, por segurança.
@@ -1530,7 +1485,6 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   useEffect(() => {
   detectUserCountry();
   loadCompanies();
-  loadCompanyLogos();
   loadSellers();
   loadUITranslations();
   loadEditionDefaults();
@@ -2279,25 +2233,15 @@ const loadAppSettings = async () => {
     
     if (data) {
   setAppSettings({
-    requireEmployeeLogin: data.require_employee_login !== false,
+    requireEmployeeLogin: data.require_employee_login,
     editionName: data.edition_name,
-    allowCvUpload: data.allow_cv_upload !== false,
+    allowCvUpload: data.allow_cv_upload,
     documentType: data.document_type || 'cv',
     showTop3: data.show_top3 || false,
     top3StartVisible: data.top3_start_visible !== false,
     showMarquee: data.show_marquee || false
   });
-  // Se o campo opcional de nome (usado só pra decoração do cabeçalho)
-  // nunca foi preenchido, cai no nome real da empresa — busca direto no
-  // banco, sem depender do array `companies` (que pode ainda não estar
-  // carregado nesse momento, já que é uma chamada assíncrona separada
-  // disparada quase ao mesmo tempo — dependeria de sorte de timing).
-  let resolvedName = data.company_name || '';
-  if (!resolvedName) {
-    const { data: companyRow } = await supabase.from('companies').select('name').eq('id', effectiveCompanyId).maybeSingle();
-    resolvedName = companyRow?.name || '';
-  }
-  setCompanyName(resolvedName);
+  setCompanyName(data.company_name || '');
   setCompanyLogoUrl(data.company_logo_url || '');
   setCompanyNameSize(data.company_name_size || 'medium');
   setCompanyLogoSize(data.company_logo_size || 'medium');
@@ -2320,8 +2264,7 @@ const loadAppSettings = async () => {
       requireEmployeeLogin: true, editionName: 'corp', allowCvUpload: true,
       documentType: 'cv', showTop3: false, top3StartVisible: true, showMarquee: false
     });
-    const { data: companyRow } = await supabase.from('companies').select('name').eq('id', effectiveCompanyId).maybeSingle();
-    setCompanyName(companyRow?.name || '');
+    setCompanyName('');
     setCompanyLogoUrl('');
     setCompanyNameSize('medium');
     setCompanyLogoSize('medium');
@@ -2758,30 +2701,7 @@ const addCompany = async () => {
       created_by_seller_id: isSeller ? loggedInSellerId : null
     }]).select().single();
     if (error) throw error;
-
-    // Se um logo foi selecionado, faz o upload e já cria a linha de
-    // app_settings da empresa nova com ele — assim, um Demo ID gerado
-    // pra ela já mostra o logo certo desde o primeiro momento, sem
-    // depender de nenhum import posterior.
-    if (newCompany.logoFile && data) {
-      try {
-        const ext = newCompany.logoFile.name.split('.').pop();
-        const path = `logo-company-${data.id}-${Date.now()}.${ext}`;
-        const { error: upErr } = await supabase.storage.from('cvs').upload(path, newCompany.logoFile);
-        if (upErr) throw upErr;
-        const { data: { publicUrl } } = supabase.storage.from('cvs').getPublicUrl(path);
-        const { error: settingsErr } = await supabase.from('app_settings').insert([{
-          company_id: data.id, company_logo_url: publicUrl
-        }]);
-        if (settingsErr) throw settingsErr;
-        setCompanyLogosById(prev => ({ ...prev, [data.id]: publicUrl }));
-      } catch (logoError) {
-        console.error('Error uploading company logo:', logoError);
-        alert(t('generic_error') + ' ' + logoError.message);
-      }
-    }
-
-    setNewCompany({ name: '', code: '', edition: 'corp', logoFile: null });
+    setNewCompany({ name: '', code: '', edition: 'corp' });
     await loadCompanies();
     // A empresa recém-criada vira o default de "Company" no dropdown de
     // contexto — não muda o contexto sozinho, só fica pronta caso escolham
@@ -3438,14 +3358,6 @@ const importAppConfiguration = async () => {
       return;
     }
 
-    // Branding (nome/logo/tamanhos) não vem mais de app_settings do
-    // Default — esse campo ficou desatualizado desde que criamos
-    // "Manage Company Branding" (tabela edition_branding, por edição).
-    // Puxa da fonte certa, batendo com a edição da própria empresa que
-    // está importando.
-    const { data: brandingRow } = await supabase
-      .from('edition_branding').select('*').eq('edition', companyEdition).maybeSingle();
-
     const { error } = await supabase.from('app_settings').update({
       require_employee_login: defaultSettings.require_employee_login,
       edition_name: defaultSettings.edition_name,
@@ -3454,10 +3366,10 @@ const importAppConfiguration = async () => {
       show_top3: defaultSettings.show_top3,
       top3_start_visible: defaultSettings.top3_start_visible,
       show_marquee: defaultSettings.show_marquee,
-      company_name: brandingRow?.company_name || null,
-      company_logo_url: brandingRow?.company_logo_url || null,
-      company_name_size: brandingRow?.company_name_size || 'medium',
-      company_logo_size: brandingRow?.company_logo_size || 'medium'
+      company_name: defaultSettings.company_name,
+      company_logo_url: defaultSettings.company_logo_url,
+      company_name_size: defaultSettings.company_name_size,
+      company_logo_size: defaultSettings.company_logo_size
     }).eq('company_id', effectiveCompanyId);
     if (error) throw error;
 
@@ -4554,11 +4466,10 @@ setTimeout(() => {
       cvFilename = cvData.filename;
     }
 
-    // Em modo demo (Master/Seller navegando o Default direto, OU um Group
-    // Demo ID de um Prospect testando) marca essa experience com a sessão
-    // de demo atual — fica invisível pra qualquer outra pessoa até ser
-    // apagada, e não polui o conteúdo real do Default permanentemente.
-    const demoSessionIdForInsert = (isDemoModeActive || loggedInIsDemoId) ? await ensureDemoSessionId() : null;
+    // Em modo demo (Master/Seller navegando o Default direto), marca essa
+    // experience com a sessão de demo atual — fica invisível pra qualquer
+    // outra pessoa até ser apagada.
+    const demoSessionIdForInsert = isDemoModeActive ? await ensureDemoSessionId() : null;
     
     const { data, error } = await supabase
       .from('experiences')
@@ -4719,7 +4630,7 @@ if (appSettings.requireEmployeeLogin && !isAdmin && exp.employeeId !== employeeI
       cvFilename = cvData.filename;
     }
 
-    const demoSessionIdForInsert = (isDemoModeActive || loggedInIsDemoId) ? await ensureDemoSessionId() : null;
+    const demoSessionIdForInsert = isDemoModeActive ? await ensureDemoSessionId() : null;
     
     const { error } = await supabase
       .from('comments')
@@ -4879,7 +4790,6 @@ const [currentCvUrl, setCurrentCvUrl] = useState(null);
   const [pageSubtitles, setPageSubtitles] = useState([]);
   const [newSubtitle, setNewSubtitle] = useState({ line1: '', line2: '', editions: ['corp', 'pro', 'edu'] });
   const [editingSubtitle, setEditingSubtitle] = useState(null);
-  const [editingSubtitleEditions, setEditingSubtitleEditions] = useState([]);
   const loadPageSubtitles = async () => {
     if (!effectiveCompanyId) return;
     try {
@@ -4901,16 +4811,8 @@ const [currentCvUrl, setCurrentCvUrl] = useState(null);
   };
   const addSubtitle = async () => {
     if (!newSubtitle.line1.trim()) { alert(t('please_enter_quote_text')); return; }
+    if (pageSubtitles.length >= 3) { alert(t('max_3_subtitles')); return; }
     if (newSubtitle.editions.length === 0) { alert(t('select_at_least_one_edition')); return; }
-    // Limite é 3 por edição, não 3 no total — senão, uma entrada só pra
-    // Corp já ocuparia "espaço" que deveria valer pra Pro/Edu também.
-    const wouldExceedLimit = newSubtitle.editions.some(ed => {
-      const countForThisEdition = pageSubtitles.filter(s =>
-        (s.applicable_editions || 'corp,pro,edu').split(',').includes(ed)
-      ).length;
-      return countForThisEdition >= 3;
-    });
-    if (wouldExceedLimit) { alert(t('max_3_subtitles')); return; }
     try {
       const { error } = await supabase.from('page_subtitles').insert([{
         company_id: effectiveCompanyId,
@@ -5623,17 +5525,6 @@ useEffect(() => {
     community_guidelines: 'Community Guidelines',
     how_it_works: 'How It Works',
     about: 'About'
-  };
-
-  // Textos padrão combinados por edição — usados pelo botão "Use suggestion
-  // from Default" na edição de Subtítulos, pra reverter caso alguém edite
-  // e queira voltar ao texto original acordado. Reaproveita as mesmas
-  // chaves do dicionário usadas no fallback de código, já traduzidas nos
-  // 4 idiomas — respeita o idioma sendo editado no momento.
-  const SUBTITLE_DEFAULTS = {
-    corp: { line1: t('hero_tagline_public'), line2: `${t('share_work_experiences')} ${t('accelerate_org_learning')}` },
-    pro: { line1: t('hero_tagline_public'), line2: t('subtitle_line2_pro') },
-    edu: { line1: t('hero_tagline_public'), line2: t('subtitle_line2_edu') }
   };
 
   const loadContentPages = async () => {
@@ -7409,15 +7300,9 @@ autoComplete="off"
             <>
               <p className="text-gray-700 font-medium mb-1 text-sm sm:text-base">{t('hero_tagline_public')}</p>
               <p className="text-gray-600 text-sm sm:text-base">
-                {companyEdition === 'pro' ? t('subtitle_line2_pro')
-                  : companyEdition === 'edu' ? t('subtitle_line2_edu')
-                  : (
-                    <>
-                      <span className="block sm:inline">{t('share_work_experiences')}</span>
-                      <span className="hidden sm:inline"> </span>
-                      <span className="block sm:inline">{t('accelerate_org_learning')}</span>
-                    </>
-                  )}
+                <span className="block sm:inline">{t('share_work_experiences')}</span>
+                <span className="hidden sm:inline"> </span>
+                <span className="block sm:inline">{t('accelerate_org_learning')}</span>
               </p>
             </>
           )}
@@ -8060,15 +7945,6 @@ autoComplete="off"
         </tr>
 
         <tr className="border-b">
-          <td className="py-2">{t('manage_company_branding_title')}</td>
-          <td className="py-2 text-center">
-            <input type="checkbox" checked={companyMasterVisibility.includes('company_branding')}
-              onChange={(e) => toggleMasterVisibility('company_branding', e.target.checked)} className="w-4 h-4" />
-          </td>
-          <td className="py-2 text-center"></td>
-        </tr>
-
-        <tr className="border-b">
           <td className="py-2">
             <p>{t('metadata_model')}</p>
             <p className="text-xs text-gray-400 font-normal">{t('functions_categories_desc')}</p>
@@ -8258,12 +8134,6 @@ autoComplete="off"
           <option value="edu">Edu</option>
         </select>
       </div>
-      <div className="mb-3">
-        <label className="block text-xs font-medium text-gray-600 mb-1">{t('company_logo_optional')}</label>
-        <input type="file" accept="image/png,image/jpeg,image/svg+xml,image/gif,image/webp"
-          onChange={(e) => setNewCompany({...newCompany, logoFile: e.target.files[0] || null})}
-          className="text-sm" />
-      </div>
       <button onClick={addCompany} className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700">
         {t('add_company_btn')}
       </button>
@@ -8339,23 +8209,6 @@ autoComplete="off"
             </div>
             {expandedCompanyContact[c.id] && (
               <div className="border-t border-gray-200 p-3 bg-gray-50 space-y-2">
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">{t('company_name_star')}</label>
-                  <input type="text" defaultValue={c.name} id={`company-name-${c.id}`}
-                    className="w-full p-1.5 border border-gray-300 rounded text-sm" />
-                  <div className="flex gap-3 bg-white p-1.5 rounded mt-1">
-                    <span className="text-xs text-gray-500 self-center">{t('size_label')}</span>
-                    {['small', 'medium', 'large'].map(size => (
-                      <label key={size} className="flex items-center gap-1 cursor-pointer">
-                        <input type="radio" name={`company-name-size-${c.id}`} value={size}
-                          checked={(companyBrandingSizesById[c.id]?.name || 'medium') === size}
-                          onChange={() => saveCompanyBrandingSize(c.id, 'company_name_size', size)}
-                          className="w-3 h-3" />
-                        <span className="text-xs">{tSizeLabel(size)}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <input type="text" defaultValue={c.contact_name || ''} id={`contact-name-${c.id}`}
                     placeholder={t('contact_name_placeholder')} className="p-1.5 border border-gray-300 rounded text-sm" />
@@ -8369,71 +8222,6 @@ autoComplete="off"
                 <textarea defaultValue={c.contact_notes || ''} id={`contact-notes-${c.id}`}
                   placeholder={t('comments_optional')} rows="2"
                   className="w-full p-1.5 border border-gray-300 rounded text-sm" />
-                <div className="border-t border-gray-300 pt-2 mt-2">
-                  <label className="block text-xs font-medium text-gray-600 mb-1">{t('company_logo_optional')}</label>
-                  {companyLogosById[c.id] && (
-                    <div className="flex items-center gap-2 mb-1.5">
-                      <img src={companyLogosById[c.id]} alt="logo" className="h-8 object-contain border border-gray-200 rounded p-1 bg-white" />
-                      <span className="text-xs text-gray-500">{t('logo_active')}</span>
-                      <button
-                        onClick={async () => {
-                          const { error } = await supabase.from('app_settings').update({ company_logo_url: null }).eq('company_id', c.id);
-                          if (error) { alert('Error: ' + error.message); return; }
-                          setCompanyLogosById(prev => {
-                            const next = { ...prev };
-                            delete next[c.id];
-                            return next;
-                          });
-                        }}
-                        className="text-xs text-red-600 hover:text-red-800 font-medium"
-                      >
-                        {t('remove_x')}
-                      </button>
-                    </div>
-                  )}
-                  {companyLogosById[c.id] && (
-                    <div className="flex gap-3 bg-white p-1.5 rounded mb-1.5">
-                      <span className="text-xs text-gray-500 self-center">{t('size_label')}</span>
-                      {['small', 'medium', 'large'].map(size => (
-                        <label key={size} className="flex items-center gap-1 cursor-pointer">
-                          <input type="radio" name={`company-logo-size-${c.id}`} value={size}
-                            checked={(companyBrandingSizesById[c.id]?.logo || 'medium') === size}
-                            onChange={() => saveCompanyBrandingSize(c.id, 'company_logo_size', size)}
-                            className="w-3 h-3" />
-                          <span className="text-xs">{tSizeLabel(size)}</span>
-                        </label>
-                      ))}
-                    </div>
-                  )}
-                  <input type="file" accept="image/png,image/jpeg,image/svg+xml,image/gif,image/webp"
-                    onChange={async (e) => {
-                      const file = e.target.files[0];
-                      if (!file) return;
-                      if (file.size > 2000000) { alert('Max 2MB'); return; }
-                      try {
-                        const ext = file.name.split('.').pop();
-                        const path = `logo-company-${c.id}-${Date.now()}.${ext}`;
-                        const { error: upErr } = await supabase.storage.from('cvs').upload(path, file);
-                        if (upErr) throw upErr;
-                        const { data: { publicUrl } } = supabase.storage.from('cvs').getPublicUrl(path);
-                        // Sem constraint única em company_id nessa tabela — checa se já
-                        // existe uma linha antes de decidir entre update/insert, em vez
-                        // de depender de upsert com onConflict.
-                        const { data: existingSettings } = await supabase
-                          .from('app_settings').select('company_id').eq('company_id', c.id).maybeSingle();
-                        const { error: settingsErr } = existingSettings
-                          ? await supabase.from('app_settings').update({ company_logo_url: publicUrl }).eq('company_id', c.id)
-                          : await supabase.from('app_settings').insert([{ company_id: c.id, company_logo_url: publicUrl }]);
-                        if (settingsErr) throw settingsErr;
-                        setCompanyLogosById(prev => ({ ...prev, [c.id]: publicUrl }));
-                        alert('Logo uploaded!');
-                      } catch (err) {
-                        alert('Error: ' + err.message);
-                      }
-                      e.target.value = '';
-                    }}
-                    className="text-sm" />
-                </div>
                 {c.edition === 'pro' && (
                   <div className="border-t border-gray-300 pt-2 mt-2 space-y-1.5">
                     <p className="text-xs font-semibold text-gray-600">{t('pro_signup_links_title')}</p>
@@ -8456,10 +8244,7 @@ autoComplete="off"
                 )}
                 <button
                   onClick={async () => {
-                    const newName = document.getElementById(`company-name-${c.id}`).value.trim();
-                    if (!newName) { alert(t('company_name_required')); return; }
                     const { error } = await supabase.from('companies').update({
-                      name: newName,
                       contact_name: document.getElementById(`contact-name-${c.id}`).value.trim() || null,
                       contact_email: document.getElementById(`contact-email-${c.id}`).value.trim() || null,
                       contact_phone: document.getElementById(`contact-phone-${c.id}`).value.trim() || null,
@@ -8740,7 +8525,7 @@ autoComplete="off"
                       const { error } = await supabase.from('employees').insert([{
                         employee_id: `ID${padded}`,
                         name: `${group.name} Demo ${padded}`,
-                        company_id: group.company_id,
+                        company_id: defaultCompanyId,
                         is_demo: true,
                         password: `PW${padded}`,
                         status: 'active',
@@ -8851,13 +8636,161 @@ autoComplete="off"
 )}
 
 
-{isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('company_branding')) && activeAdminNavTab === 'settings' && (
-  <div className="mt-4 bg-purple-50 border-2 border-purple-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
-    <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-      {t('manage_company_branding_title')}
+{isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('app_config')) && activeAdminNavTab === 'settings' && (
+  <div className="mt-4 bg-indigo-50 border-2 border-indigo-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
+    <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+      {t('app_configuration_title')}
       {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">{t('read_only_sample')}</span>}
     </h3>
-    <div className={`bg-white rounded p-4 ${isReadOnlyOrMasterManaging ? 'pointer-events-none opacity-60' : ''}`}>
+    
+    <div className={`bg-white rounded p-4 space-y-4 ${isReadOnlyOrMasterManaging ? 'pointer-events-none opacity-60' : ''}`}>
+      {showDefaultOnlyTools && (
+      <>
+      {/* 2. Employee Login */}
+      <div className="flex items-center gap-3">
+        <input
+          type="checkbox"
+          id="employeeLogin"
+          checked={appSettings.requireEmployeeLogin}
+          onChange={async (e) => {
+            const newSettings = {...appSettings, requireEmployeeLogin: e.target.checked};
+            setAppSettings(newSettings);
+            
+            const { error } = await supabase
+              .from('app_settings')
+              .update({ require_employee_login: e.target.checked })
+              .eq('company_id', effectiveCompanyId);
+            
+            if (error) {
+              alert('Error updating setting');
+              console.error(error);
+            } else {
+              alert(tAlert('employee_login_toggled', { state: e.target.checked ? 'enabled' : 'disabled' }));
+            }
+          }}
+          className="w-5 h-5"
+        />
+        <label htmlFor="employeeLogin" className="text-sm font-medium text-gray-700 cursor-pointer">
+          {t('require_employee_id')}
+        </label>
+      </div>
+      
+{showDefaultOnlyTools && (
+  <div className="border-2 border-dashed border-indigo-300 rounded-lg p-3">
+    <label className="block text-sm font-semibold text-gray-700 mb-2">{t('attachment_type_suggestions_title')}</label>
+    <div className="space-y-2">
+      {['corp', 'pro', 'edu'].map(ed => (
+        <div key={ed} className="flex items-center gap-3">
+          <span className="text-sm font-medium text-gray-600 w-14 capitalize">{ed}</span>
+          <select
+            value={editionDefaults[ed]?.upload_mode || 'cv'}
+            onChange={async (e) => {
+              const { error } = await supabase
+                .from('edition_defaults')
+                .update({ upload_mode: e.target.value, updated_at: new Date().toISOString() })
+                .eq('edition', ed);
+              if (error) { alert('Error updating edition_defaults'); console.error(error); return; }
+              await loadEditionDefaults();
+            }}
+            className="p-1.5 border-2 border-gray-300 rounded-lg text-sm flex-1"
+          >
+            <option value="none">{t('no_uploads_option')}</option>
+            <option value="cv">{t('doc_type_cv_neutral')}</option>
+            <option value="other">{t('doc_type_other_neutral')}</option>
+            </select>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+
+{/* 3. Upload Documents — dropdown único (Sem Upload / CV / Outros),
+    substitui o antigo checkbox + rádios separados. Não faz sentido pro
+    próprio Default (ele não é uma empresa real recebendo uploads) — só
+    aparece pra empresas de verdade. */}
+{!showDefaultOnlyTools && (
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-gray-700">{t('document_type_label')}</label>
+        <select
+          value={!appSettings.allowCvUpload ? 'none' : appSettings.documentType}
+          onChange={async (e) => {
+            const mode = e.target.value;
+            const allowCvUpload = mode !== 'none';
+            const documentType = mode === 'none' ? appSettings.documentType : mode;
+            const newSettings = {...appSettings, allowCvUpload, documentType};
+            setAppSettings(newSettings);
+            const { error } = await supabase
+              .from('app_settings')
+              .update({ allow_cv_upload: allowCvUpload, document_type: documentType })
+              .eq('company_id', effectiveCompanyId);
+            if (error) { alert(t('error_updating_doc_type')); console.error(error); return; }
+          }}
+          className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm"
+        >
+          <option value="none">{t('no_uploads_option')}</option>
+          <option value="cv">{t('doc_type_cv_neutral')}</option>
+          <option value="other">{t('doc_type_other_neutral')}</option>
+        </select>
+        {!showDefaultOnlyTools && editionDefaults[companyEdition] && (
+          <div className="flex items-center gap-2 text-xs text-gray-500">
+            <span>{t('default_suggests')} {
+              editionDefaults[companyEdition]?.upload_mode === 'none' ? t('no_uploads_option')
+              : editionDefaults[companyEdition]?.upload_mode === 'other' ? t('doc_type_other_neutral')
+              : t('doc_type_cv_neutral')
+            }</span>
+            <button
+              onClick={async () => {
+                const suggestion = editionDefaults[companyEdition];
+                if (!suggestion) return;
+                const mode = suggestion.upload_mode || 'cv';
+                const allowCvUpload = mode !== 'none';
+                const documentType = mode === 'none' ? 'cv' : mode;
+                const newSettings = {...appSettings, allowCvUpload, documentType};
+                setAppSettings(newSettings);
+                const { error } = await supabase
+                  .from('app_settings')
+                  .update({ allow_cv_upload: allowCvUpload, document_type: documentType })
+                  .eq('company_id', effectiveCompanyId);
+                if (error) { alert('Error updating setting'); console.error(error); return; }
+                alert(t('app_config_copied'));
+              }}
+              className="px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded text-xs font-medium hover:bg-indigo-200"
+            >
+              {t('use_default_suggestion')}
+            </button>
+          </div>
+        )}
+      </div>
+)}
+      </>
+      )}
+
+      {/* Show Top 3 */}
+      <div className="flex items-center gap-3">
+        <input type="checkbox" id="showTop3" checked={appSettings.showTop3}
+          onChange={async (e) => {
+            setAppSettings({...appSettings, showTop3: e.target.checked});
+            await supabase.from('app_settings').update({ show_top3: e.target.checked }).eq('company_id', effectiveCompanyId);
+          }} className="w-5 h-5" />
+        <label htmlFor="showTop3" className="text-sm font-medium text-gray-700 cursor-pointer">{t('show_top3_experiences')}</label>
+      </div>
+
+      {appSettings.showTop3 && (
+        <div className="ml-8 flex items-center gap-3">
+          <input type="checkbox" id="top3StartVisible" checked={appSettings.top3StartVisible}
+            onChange={async (e) => {
+              setAppSettings({...appSettings, top3StartVisible: e.target.checked});
+              setTop3VisibleInSession(e.target.checked);
+              await supabase.from('app_settings').update({ top3_start_visible: e.target.checked }).eq('company_id', effectiveCompanyId);
+            }} className="w-4 h-4" />
+          <label htmlFor="top3StartVisible" className="text-xs text-gray-600 cursor-pointer">{t('start_visible_top3')}</label>
+        </div>
+      )}
+
+
+      {/* 🏢 Company Branding */}
+      <div className="border-t pt-4 mt-2">
+        <label className="block text-sm font-semibold text-gray-700 mb-3">{t('company_branding_title')}</label>
 
         {showDefaultOnlyTools ? (
           <div className="space-y-6">
@@ -9044,10 +8977,11 @@ autoComplete="off"
         </div>
         </>
         )}
+      </div>
+
     </div>
   </div>
 )}
-
           
 
 
@@ -9059,7 +8993,7 @@ autoComplete="off"
     </h3>
     <div className={`bg-white rounded p-4 ${isReadOnlyOrMasterManaging ? 'pointer-events-none opacity-60' : ''}`}>
       {pageSubtitles.length < 3 && (
-      <div className="space-y-2 pb-3 mb-3 border-b border-gray-200">
+        <div className="space-y-2 pb-3 mb-3 border-b border-gray-200">
           <input
             type="text"
             value={newSubtitle.line1}
@@ -9091,11 +9025,6 @@ autoComplete="off"
               </label>
             ))}
           </div>
-          {newSubtitle.editions.length > 0 && (
-            <p className="text-xs text-gray-400 italic">
-              {t('subtitle_if_blank_default')} {newSubtitle.editions.map(ed => `${ed.toUpperCase()}: ${t('subtitle_line1_label')} - ${SUBTITLE_DEFAULTS[ed]?.line1} / ${t('subtitle_line2_label')} - ${SUBTITLE_DEFAULTS[ed]?.line2}`).join(' | ')}
-            </p>
-          )}
           <button
             onClick={addSubtitle}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
@@ -9131,32 +9060,21 @@ autoComplete="off"
                   />
                   <div className="flex flex-wrap gap-3">
                     {['corp', 'pro', 'edu'].map(ed => {
+                      const currentList = (sub.applicable_editions || 'corp,pro,edu').split(',');
                       return (
                         <label key={ed} className="flex items-center gap-1.5 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            id={`edit-subtitle-edition-${sub.id}-${ed}`}
-                            checked={editingSubtitleEditions.includes(ed)}
-                            onChange={(e) => {
-                              setEditingSubtitleEditions(prev =>
-                                e.target.checked ? [...prev, ed] : prev.filter(x => x !== ed)
-                              );
-                            }}
-                          />
+                          <input type="checkbox" id={`edit-subtitle-edition-${sub.id}-${ed}`} defaultChecked={currentList.includes(ed)} />
                           <span className="text-sm text-gray-700 capitalize">{ed}</span>
                         </label>
                       );
                     })}
                   </div>
-                  <p className="text-xs text-gray-400 italic">
-                    {t('subtitle_overrides_default')} {editingSubtitleEditions.map(ed => `${ed.toUpperCase()}: ${t('subtitle_line1_label')} - ${SUBTITLE_DEFAULTS[ed]?.line1} / ${t('subtitle_line2_label')} - ${SUBTITLE_DEFAULTS[ed]?.line2}`).join(' | ')}
-                  </p>
                   <div className="flex gap-2">
                     <button
                       onClick={() => {
                         const line1 = document.getElementById(`edit-subtitle-line1-${sub.id}`).value;
                         const line2 = document.getElementById(`edit-subtitle-line2-${sub.id}`).value;
-                        const editions = editingSubtitleEditions;
+                        const editions = ['corp', 'pro', 'edu'].filter(ed => document.getElementById(`edit-subtitle-edition-${sub.id}-${ed}`).checked);
                         updateSubtitle(sub.id, line1, line2, editions);
                       }}
                       className="px-3 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700"
@@ -9177,16 +9095,10 @@ autoComplete="off"
                     <p className="text-sm font-medium text-gray-800 truncate">{sub.line1}</p>
                     {sub.line2 && <p className="text-xs text-gray-500 truncate">{sub.line2}</p>}
                     <p className="text-xs text-gray-400 mt-0.5 capitalize">{sub.applicable_editions === 'all' ? t('all_editions') : sub.applicable_editions.replaceAll(',', ', ')}</p>
-                    <p className="text-xs text-gray-400 italic mt-0.5">
-                      {t('subtitle_overrides_default')} {(sub.applicable_editions || 'corp,pro,edu').split(',').map(ed => `${ed.toUpperCase()}: ${t('subtitle_line1_label')} - ${SUBTITLE_DEFAULTS[ed]?.line1} / ${t('subtitle_line2_label')} - ${SUBTITLE_DEFAULTS[ed]?.line2}`).join(' | ')}
-                    </p>
                   </div>
                   <div className="flex gap-2 flex-shrink-0 ml-3">
                     <button
-                      onClick={() => {
-                        setEditingSubtitle(sub.id);
-                        setEditingSubtitleEditions((sub.applicable_editions || 'corp,pro,edu').split(','));
-                      }}
+                      onClick={() => setEditingSubtitle(sub.id)}
                       className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700"
                     >
                       {t('edit_content_btn')}
@@ -9901,36 +9813,6 @@ autoComplete="off"
       👥 {t('manage_employees')}
     </h3>
 
-    {showDefaultOnlyTools && (
-      <div className="flex items-center gap-3 mb-4">
-        <input
-          type="checkbox"
-          id="employeeLogin"
-          checked={appSettings.requireEmployeeLogin}
-          onChange={async (e) => {
-            const newSettings = {...appSettings, requireEmployeeLogin: e.target.checked};
-            setAppSettings(newSettings);
-            
-            const { error } = await supabase
-              .from('app_settings')
-              .update({ require_employee_login: e.target.checked })
-              .eq('company_id', effectiveCompanyId);
-            
-            if (error) {
-              alert('Error updating setting');
-              console.error(error);
-            } else {
-              alert(tAlert('employee_login_toggled', { state: e.target.checked ? 'enabled' : 'disabled' }));
-            }
-          }}
-          className="w-5 h-5"
-        />
-        <label htmlFor="employeeLogin" className="text-sm font-medium text-gray-700 cursor-pointer">
-          {t('require_employee_id')}
-        </label>
-      </div>
-    )}
-
     {/* Add Employee */}
     {(!isReadOnlyOrMasterManaging || canBootstrapFirstAdmin) && (
     <div className="bg-white rounded p-4 mb-4">
@@ -10093,135 +9975,6 @@ autoComplete="off"
         ))}
         {employees.length === 0 && <p className="text-sm text-gray-500 text-center py-4">{t('no_employees_yet')}</p>}
       </div>
-    </div>
-  </div>
-)}
-
-{isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('app_config')) && activeAdminNavTab === 'settings' && (
-  <div className="mt-4 bg-indigo-50 border-2 border-indigo-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
-    <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
-      {t('app_configuration_title')}
-      {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">{t('read_only_sample')}</span>}
-    </h3>
-    
-    <div className={`bg-white rounded p-4 space-y-4 ${isReadOnlyOrMasterManaging ? 'pointer-events-none opacity-60' : ''}`}>
-      {showDefaultOnlyTools && (
-      <>
-      
-{showDefaultOnlyTools && (
-  <div className="border-2 border-dashed border-indigo-300 rounded-lg p-3">
-    <label className="block text-sm font-semibold text-gray-700 mb-2">{t('attachment_type_suggestions_title')}</label>
-    <div className="space-y-2">
-      {['corp', 'pro', 'edu'].map(ed => (
-        <div key={ed} className="flex items-center gap-3">
-          <span className="text-sm font-medium text-gray-600 w-14 capitalize">{ed}</span>
-          <select
-            value={editionDefaults[ed]?.upload_mode || 'cv'}
-            onChange={async (e) => {
-              const { error } = await supabase
-                .from('edition_defaults')
-                .update({ upload_mode: e.target.value, updated_at: new Date().toISOString() })
-                .eq('edition', ed);
-              if (error) { alert('Error updating edition_defaults'); console.error(error); return; }
-              await loadEditionDefaults();
-            }}
-            className="p-1.5 border-2 border-gray-300 rounded-lg text-sm flex-1"
-          >
-            <option value="none">{t('no_uploads_option')}</option>
-            <option value="cv">{t('doc_type_cv_neutral')}</option>
-            <option value="other">{t('doc_type_other_neutral')}</option>
-            </select>
-        </div>
-      ))}
-    </div>
-  </div>
-)}
-
-{/* 3. Upload Documents — dropdown único (Sem Upload / CV / Outros),
-    substitui o antigo checkbox + rádios separados. Não faz sentido pro
-    próprio Default (ele não é uma empresa real recebendo uploads) — só
-    aparece pra empresas de verdade. */}
-{!showDefaultOnlyTools && (
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-700">{t('document_type_label')}</label>
-        <select
-          value={!appSettings.allowCvUpload ? 'none' : appSettings.documentType}
-          onChange={async (e) => {
-            const mode = e.target.value;
-            const allowCvUpload = mode !== 'none';
-            const documentType = mode === 'none' ? appSettings.documentType : mode;
-            const newSettings = {...appSettings, allowCvUpload, documentType};
-            setAppSettings(newSettings);
-            const { error } = await supabase
-              .from('app_settings')
-              .update({ allow_cv_upload: allowCvUpload, document_type: documentType })
-              .eq('company_id', effectiveCompanyId);
-            if (error) { alert(t('error_updating_doc_type')); console.error(error); return; }
-          }}
-          className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm"
-        >
-          <option value="none">{t('no_uploads_option')}</option>
-          <option value="cv">{t('doc_type_cv_neutral')}</option>
-          <option value="other">{t('doc_type_other_neutral')}</option>
-        </select>
-        {!showDefaultOnlyTools && editionDefaults[companyEdition] && (
-          <div className="flex items-center gap-2 text-xs text-gray-500">
-            <span>{t('default_suggests')} {
-              editionDefaults[companyEdition]?.upload_mode === 'none' ? t('no_uploads_option')
-              : editionDefaults[companyEdition]?.upload_mode === 'other' ? t('doc_type_other_neutral')
-              : t('doc_type_cv_neutral')
-            }</span>
-            <button
-              onClick={async () => {
-                const suggestion = editionDefaults[companyEdition];
-                if (!suggestion) return;
-                const mode = suggestion.upload_mode || 'cv';
-                const allowCvUpload = mode !== 'none';
-                const documentType = mode === 'none' ? 'cv' : mode;
-                const newSettings = {...appSettings, allowCvUpload, documentType};
-                setAppSettings(newSettings);
-                const { error } = await supabase
-                  .from('app_settings')
-                  .update({ allow_cv_upload: allowCvUpload, document_type: documentType })
-                  .eq('company_id', effectiveCompanyId);
-                if (error) { alert('Error updating setting'); console.error(error); return; }
-                alert(t('app_config_copied'));
-              }}
-              className="px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded text-xs font-medium hover:bg-indigo-200"
-            >
-              {t('use_default_suggestion')}
-            </button>
-          </div>
-        )}
-      </div>
-)}
-      </>
-      )}
-
-      {/* Show Top 3 */}
-      <div className="flex items-center gap-3">
-        <input type="checkbox" id="showTop3" checked={appSettings.showTop3}
-          onChange={async (e) => {
-            setAppSettings({...appSettings, showTop3: e.target.checked});
-            await supabase.from('app_settings').update({ show_top3: e.target.checked }).eq('company_id', effectiveCompanyId);
-          }} className="w-5 h-5" />
-        <label htmlFor="showTop3" className="text-sm font-medium text-gray-700 cursor-pointer">{t('show_top3_experiences')}</label>
-      </div>
-
-      {appSettings.showTop3 && (
-        <div className="ml-8 flex items-center gap-3">
-          <input type="checkbox" id="top3StartVisible" checked={appSettings.top3StartVisible}
-            onChange={async (e) => {
-              setAppSettings({...appSettings, top3StartVisible: e.target.checked});
-              setTop3VisibleInSession(e.target.checked);
-              await supabase.from('app_settings').update({ top3_start_visible: e.target.checked }).eq('company_id', effectiveCompanyId);
-            }} className="w-4 h-4" />
-          <label htmlFor="top3StartVisible" className="text-xs text-gray-600 cursor-pointer">{t('start_visible_top3')}</label>
-        </div>
-      )}
-
-
-
     </div>
   </div>
 )}
@@ -11454,16 +11207,6 @@ onClick={() => {
     <button
       onClick={() => {
         if (isReadOnlyOrMasterManaging) return;
-        // Clique direto na aba (não veio de um botão de Follow-On) — limpa
-        // qualquer resíduo de um Follow-On anterior, senão a Category/
-        // Practice fica "grudada" de uma experience completamente
-        // diferente da que o usuário está prestes a criar agora.
-        if (followOnParentId) {
-          setFollowOnParentId(null);
-          setSelectedPracticeId(null);
-          setShareFormPracticeId(null);
-          setCurrentEntry(prev => ({ ...prev, problemCategory: '' }));
-        }
         setActiveMainTab('share');
         scrollToTabs();
       }}
@@ -14742,7 +14485,7 @@ if (selected.length === 0) {
       className="flex-1 bg-gray-200 text-gray-700 py-2.5 rounded-lg hover:bg-gray-300 font-semibold transition-colors"
     >
       Exit
-    </button> 
+    </button>
   </div>
 ) : (
   <button
