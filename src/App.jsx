@@ -2294,15 +2294,19 @@ const loadAppSettings = async () => {
     
     if (data) {
   setAppSettings({
-    requireEmployeeLogin: data.require_employee_login,
+    requireEmployeeLogin: data.require_employee_login !== false,
     editionName: data.edition_name,
-    allowCvUpload: data.allow_cv_upload,
+    allowCvUpload: data.allow_cv_upload !== false,
     documentType: data.document_type || 'cv',
     showTop3: data.show_top3 || false,
     top3StartVisible: data.top3_start_visible !== false,
     showMarquee: data.show_marquee || false
   });
-  setCompanyName(data.company_name || '');
+  // Se o campo opcional de nome (usado só pra decoração do cabeçalho)
+  // nunca foi preenchido, cai no nome real da empresa — evita a confusão
+  // de "cadastrei o nome mas não aparece" quando na verdade são dois
+  // campos diferentes.
+  setCompanyName(data.company_name || companies.find(c => c.id === effectiveCompanyId)?.name || '');
   setCompanyLogoUrl(data.company_logo_url || '');
   setCompanyNameSize(data.company_name_size || 'medium');
   setCompanyLogoSize(data.company_logo_size || 'medium');
@@ -4560,10 +4564,11 @@ setTimeout(() => {
       cvFilename = cvData.filename;
     }
 
-    // Em modo demo (Master/Seller navegando o Default direto), marca essa
-    // experience com a sessão de demo atual — fica invisível pra qualquer
-    // outra pessoa até ser apagada.
-    const demoSessionIdForInsert = isDemoModeActive ? await ensureDemoSessionId() : null;
+    // Em modo demo (Master/Seller navegando o Default direto, OU um Group
+    // Demo ID de um Prospect testando) marca essa experience com a sessão
+    // de demo atual — fica invisível pra qualquer outra pessoa até ser
+    // apagada, e não polui o conteúdo real do Default permanentemente.
+    const demoSessionIdForInsert = (isDemoModeActive || loggedInIsDemoId) ? await ensureDemoSessionId() : null;
     
     const { data, error } = await supabase
       .from('experiences')
@@ -4588,7 +4593,7 @@ setTimeout(() => {
         source: 'app',
         cv_url: cvUrl,
         cv_filename: cvFilename,
-        company_id: effectiveCompanyId,
+        company_id: effectiveContentCompanyId,
         demo_session_id: demoSessionIdForInsert,
         language: effectiveViewingLanguage,
         created_at: new Date().toISOString()
@@ -4724,7 +4729,7 @@ if (appSettings.requireEmployeeLogin && !isAdmin && exp.employeeId !== employeeI
       cvFilename = cvData.filename;
     }
 
-    const demoSessionIdForInsert = isDemoModeActive ? await ensureDemoSessionId() : null;
+    const demoSessionIdForInsert = (isDemoModeActive || loggedInIsDemoId) ? await ensureDemoSessionId() : null;
     
     const { error } = await supabase
       .from('comments')
@@ -4736,7 +4741,7 @@ if (appSettings.requireEmployeeLogin && !isAdmin && exp.employeeId !== employeeI
         country: userCountryName || '',
         cv_url: cvUrl,
         cv_filename: cvFilename,
-        company_id: effectiveCompanyId,
+        company_id: effectiveContentCompanyId,
         demo_session_id: demoSessionIdForInsert,
         created_at: new Date().toISOString()
       }]);
