@@ -1896,8 +1896,15 @@ useEffect(() => {
   };
   
 const loadExperiences = async (skipLoading = false, loggedEmpId = null, overrideDemoSessionId = undefined) => {
-  if (!effectiveCompanyId) {
-    console.log('🔴 loadExperiences ABORTOU — effectiveCompanyId está vazio/nulo');
+  // Um Group Demo ID (Prospect testando o app) vê o CONTEÚDO do Default —
+  // mesma experiência que o ADM Default/Seller veem em modo Demo. O
+  // branding (nome/logo) continua vindo da própria empresa/Prospect
+  // (effectiveCompanyId, sem mudança) — só o CONTEÚDO desviado aqui,
+  // contido só dentro dessa função.
+  const contentCompanyId = loggedInIsDemoId ? defaultCompanyId : effectiveCompanyId;
+  const isContentDefault = contentCompanyId === defaultCompanyId;
+  if (!contentCompanyId) {
+    console.log('🔴 loadExperiences ABORTOU — contentCompanyId está vazio/nulo');
     return;
   }
   // Se quem chamou já sabe o valor certo de agora (ex: acabou de gerar uma
@@ -1910,7 +1917,7 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null, override
   // Marca essa chamada como a mais recente.
   latestExperiencesRequestRef.current += 1;
   const thisRequestId = latestExperiencesRequestRef.current;
-  console.log(`🔵 loadExperiences #${thisRequestId} INICIOU — company=${effectiveCompanyId}, lang=${effectiveViewingLanguage}, isViewingDefault=${isViewingDefault}, demoSession=${activeDemoSessionId}, skipLoading=${skipLoading}`);
+  console.log(`🔵 loadExperiences #${thisRequestId} INICIOU — company=${contentCompanyId}, lang=${effectiveViewingLanguage}, isContentDefault=${isContentDefault}, demoSession=${activeDemoSessionId}, skipLoading=${skipLoading}`);
   try {
     if (!skipLoading) {
       setLoading(true);
@@ -1923,15 +1930,15 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null, override
     // a edição (a linha continuava com o idioma original, e sumia do
     // filtro). Duas consultas simples, combinadas aqui em JS.
     const fetchExperiencesRange = async (rangeStart, rangeEnd) => {
-      if (isViewingDefault && activeDemoSessionId) {
+      if (isContentDefault && activeDemoSessionId) {
         const realQuery = supabase.from('experiences').select('*')
-          .eq('company_id', effectiveCompanyId)
+          .eq('company_id', contentCompanyId)
           .eq('language', effectiveViewingLanguage)
           .is('demo_session_id', null)
           .order('source', { ascending: true }).order('id', { ascending: false })
           .range(rangeStart, rangeEnd);
         const demoQuery = supabase.from('experiences').select('*')
-          .eq('company_id', effectiveCompanyId)
+          .eq('company_id', contentCompanyId)
           .eq('demo_session_id', activeDemoSessionId)
           .order('source', { ascending: true }).order('id', { ascending: false })
           .range(rangeStart, rangeEnd);
@@ -1940,8 +1947,8 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null, override
         if (demoResult.error) throw demoResult.error;
         return [...(realResult.data || []), ...(demoResult.data || [])];
       }
-      let query = supabase.from('experiences').select('*').eq('company_id', effectiveCompanyId);
-      if (isViewingDefault) {
+      let query = supabase.from('experiences').select('*').eq('company_id', contentCompanyId);
+      if (isContentDefault) {
         query = query.eq('language', effectiveViewingLanguage);
       }
       query = activeDemoSessionId
@@ -1969,7 +1976,7 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null, override
     // o valor da própria linha em inglês (mesmo translation_group_id) e
     // resolve a partir dali. As duas resolvidas via translation_group_id.
     let relatedIdFix = {};
-    if (isViewingDefault && effectiveViewingLanguage !== 'en') {
+    if (isContentDefault && effectiveViewingLanguage !== 'en') {
       const idsInCurrentSet = new Set(data.map(e => e.id));
       const rowsWithGroup = data.filter(e => e.translation_group_id);
       const ownGroupIds = [...new Set(rowsWithGroup.map(e => e.translation_group_id))];
@@ -1983,7 +1990,7 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null, override
         const { data: englishRows } = await supabase
           .from('experiences')
           .select('translation_group_id, related_common_case_id')
-          .eq('company_id', effectiveCompanyId)
+          .eq('company_id', contentCompanyId)
           .eq('language', 'en')
           .in('translation_group_id', ownGroupIds);
         (englishRows || []).forEach(r => {
@@ -2009,7 +2016,7 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null, override
           const { data: translatedRows } = await supabase
             .from('experiences')
             .select('id, translation_group_id')
-            .eq('company_id', effectiveCompanyId)
+            .eq('company_id', contentCompanyId)
             .eq('language', effectiveViewingLanguage)
             .in('translation_group_id', groupIds);
           (translatedRows || []).forEach(r => { translatedByGroup[r.translation_group_id] = r.id; });
@@ -2140,13 +2147,13 @@ const keyInsights = transformedData.filter(e => e.author === 'key_insights');
 const hasNewSyntheticItems = shuffleOrderRef.current
   ? syntheticExps.some(e => !shuffleOrderRef.current.includes(e.id))
   : false;
-if (!shuffleOrderRef.current || shuffleOrderCompanyRef.current !== effectiveCompanyId || shuffleOrderLanguageRef.current !== effectiveViewingLanguage || hasNewSyntheticItems) {
+if (!shuffleOrderRef.current || shuffleOrderCompanyRef.current !== contentCompanyId || shuffleOrderLanguageRef.current !== effectiveViewingLanguage || hasNewSyntheticItems) {
   for (let i = syntheticExps.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [syntheticExps[i], syntheticExps[j]] = [syntheticExps[j], syntheticExps[i]];
   }
   shuffleOrderRef.current = syntheticExps.map(e => e.id);
-  shuffleOrderCompanyRef.current = effectiveCompanyId;
+  shuffleOrderCompanyRef.current = contentCompanyId;
   shuffleOrderLanguageRef.current = effectiveViewingLanguage;
 }
 
