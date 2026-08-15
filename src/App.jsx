@@ -14742,7 +14742,7 @@ if (selected.length === 0) {
       className="flex-1 bg-gray-200 text-gray-700 py-2.5 rounded-lg hover:bg-gray-300 font-semibold transition-colors"
     >
       Exit
-    </button>
+    </button> 
   </div>
 ) : (
   <button
