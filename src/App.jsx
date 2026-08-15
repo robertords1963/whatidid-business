@@ -2303,10 +2303,16 @@ const loadAppSettings = async () => {
     showMarquee: data.show_marquee || false
   });
   // Se o campo opcional de nome (usado só pra decoração do cabeçalho)
-  // nunca foi preenchido, cai no nome real da empresa — evita a confusão
-  // de "cadastrei o nome mas não aparece" quando na verdade são dois
-  // campos diferentes.
-  setCompanyName(data.company_name || companies.find(c => c.id === effectiveCompanyId)?.name || '');
+  // nunca foi preenchido, cai no nome real da empresa — busca direto no
+  // banco, sem depender do array `companies` (que pode ainda não estar
+  // carregado nesse momento, já que é uma chamada assíncrona separada
+  // disparada quase ao mesmo tempo — dependeria de sorte de timing).
+  let resolvedName = data.company_name || '';
+  if (!resolvedName) {
+    const { data: companyRow } = await supabase.from('companies').select('name').eq('id', effectiveCompanyId).maybeSingle();
+    resolvedName = companyRow?.name || '';
+  }
+  setCompanyName(resolvedName);
   setCompanyLogoUrl(data.company_logo_url || '');
   setCompanyNameSize(data.company_name_size || 'medium');
   setCompanyLogoSize(data.company_logo_size || 'medium');
@@ -2329,7 +2335,8 @@ const loadAppSettings = async () => {
       requireEmployeeLogin: true, editionName: 'corp', allowCvUpload: true,
       documentType: 'cv', showTop3: false, top3StartVisible: true, showMarquee: false
     });
-    setCompanyName('');
+    const { data: companyRow } = await supabase.from('companies').select('name').eq('id', effectiveCompanyId).maybeSingle();
+    setCompanyName(companyRow?.name || '');
     setCompanyLogoUrl('');
     setCompanyNameSize('medium');
     setCompanyLogoSize('medium');
@@ -14753,7 +14760,7 @@ if (selected.length === 0) {
       className="flex-1 bg-gray-200 text-gray-700 py-2.5 rounded-lg hover:bg-gray-300 font-semibold transition-colors"
     >
       Exit
-    </button> 
+    </button>
   </div>
 ) : (
   <button
