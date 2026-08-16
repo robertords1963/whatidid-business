@@ -4570,6 +4570,7 @@ setTimeout(() => {
 };
   
   const addExperienceToSupabase = async (newExperience, relatedCommonCaseId = null) => {
+  const contentCompanyId = loggedInIsDemoId ? defaultCompanyId : effectiveCompanyId;
   try {
     let cvUrl = null;
     let cvFilename = null;
@@ -4610,7 +4611,7 @@ setTimeout(() => {
         source: 'app',
         cv_url: cvUrl,
         cv_filename: cvFilename,
-        company_id: effectiveCompanyId,
+        company_id: contentCompanyId,
         demo_session_id: demoSessionIdForInsert,
         language: effectiveViewingLanguage,
         created_at: new Date().toISOString()
@@ -4730,6 +4731,7 @@ if (appSettings.requireEmployeeLogin && !isAdmin && exp.employeeId !== employeeI
 
   const handleAddComment = async (experienceId) => {
     if (isReadOnlyOrMasterManaging) return;
+  const contentCompanyId = loggedInIsDemoId ? defaultCompanyId : effectiveCompanyId;
   if (!newComment[experienceId]?.trim()) {
     alert(t('please_enter_comment'));
     return;
@@ -4758,7 +4760,7 @@ if (appSettings.requireEmployeeLogin && !isAdmin && exp.employeeId !== employeeI
         country: userCountryName || '',
         cv_url: cvUrl,
         cv_filename: cvFilename,
-        company_id: effectiveCompanyId,
+        company_id: contentCompanyId,
         demo_session_id: demoSessionIdForInsert,
         created_at: new Date().toISOString()
       }]);
