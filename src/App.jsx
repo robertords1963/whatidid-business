@@ -6478,7 +6478,7 @@ return matchesPractice && matchesProblemCategory && matchesSearchText && matches
 const filteredWithRoots = (() => {
   const hasAnyFilter = filters.searchText || filters.problemCategory || filters.resultCategory ||
     filters.rating || filters.gender || filters.age || filters.country ||
-    filters.industrySector || filterTags.length > 0 || filterPracticeId;
+    filters.industrySector || filterTags.length > 0 || filterPracticeId || mappedFilter;
   if (!hasAnyFilter || filterMode === 'key_insights') return filteredExperiences;
 
   const getRoot = (id) => {
@@ -6508,7 +6508,7 @@ useEffect(() => {
   const hasActiveFilters = filters.problemCategory || filters.searchText || 
                           filters.resultCategory || filters.rating || 
                           filters.gender || filters.age || filters.country || 
-                          filters.industrySector;
+                          filters.industrySector || mappedFilter;
   
   if (hasActiveFilters) {
     setCurrentPage(1);
@@ -6528,7 +6528,7 @@ useEffect(() => {
     setExpandedUpstream({});
     setExpandedGaps({});
   }
-}, [filters]);
+}, [filters, mappedFilter]);
 
   // Pagination logic
   const totalPages = Math.ceil(filteredWithRoots.length / experiencesPerPage);
