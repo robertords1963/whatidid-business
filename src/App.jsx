@@ -11566,6 +11566,24 @@ onClick={() => {
                 <h3 className="text-lg font-semibold text-gray-800">{t('problem')}</h3>
               </div>
               
+              {/* Industry Sector - só no Pro, vem antes do Function/Practice */}
+              {companyEdition === 'pro' && (
+                <div className="mb-2 relative">
+                  <select
+                    value={currentEntry.industrySector}
+                    onChange={(e) => setCurrentEntry({...currentEntry, industrySector: e.target.value})}
+                    className="w-full h-9 px-2 py-1 pr-8 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none bg-gray-100 appearance-none"
+                    required
+                  >
+                    <option value="">{t('select_industry_sector')}</option>
+                    {industrySectors.map(sector => (
+                      <option key={sector} value={sector}>{sector}</option>
+                    ))}
+                  </select>
+                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500" style={{ fontSize: '10px' }}>▼</span>
+                </div>
+              )}
+
               {/* Practice dropdown - sempre aparece, mesmo vazio, pra dar noção da estrutura */}
               <div className="mb-2 relative">
     <select
@@ -11688,23 +11706,6 @@ onClick={() => {
                 );
               })()}
 
-{/* Industry Sector - só no Pro */}
-{companyEdition === 'pro' && (
-  <div className="mt-3">
-    <select
-      value={currentEntry.industrySector}
-      onChange={(e) => setCurrentEntry({...currentEntry, industrySector: e.target.value})}
-      className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-      required
-    >
-      <option value="">{t('select_industry_sector')}</option>
-      {industrySectors.map(sector => (
-        <option key={sector} value={sector}>{sector}</option>
-      ))}
-    </select>
-  </div>
-)}
-              
               <div className="relative">
                 <textarea
                   value={currentEntry.problem}
