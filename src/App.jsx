@@ -2860,6 +2860,13 @@ const deleteCompany = async (companyId, companyName) => {
       const { error: expDeleteError } = await supabase.from('experiences').delete().in('id', expIds);
       if (expDeleteError) throw expDeleteError;
     }
+    // Limpa também comentários marcados com o company_id desta empresa
+    // diretamente — cobre o caso de comentários feitos (antes de uma
+    // correção anterior) num Demo ID, numa experience que pertencia ao
+    // Default, mas gravados com o company_id da empresa real. Esses
+    // ficam "órfãos": não aparecem no filtro por experience_id acima, mas
+    // ainda bloqueiam o apagamento da empresa pela constraint.
+    await supabase.from('comments').delete().eq('company_id', companyId);
 
     const { error: empDeleteError } = await supabase.from('employees').delete().eq('company_id', companyId);
     if (empDeleteError) throw empDeleteError;
@@ -4166,9 +4173,13 @@ const handleEmployeeLogin = async () => {
 };
 
   const handleEmployeeLogout = async () => {
-  // Se tinha uma sessão de demo ativa, apaga tudo antes de sair — silenciosa,
-  // sem alert, pra não travar o fluxo normal de logout.
-  if (isDemoModeActive && currentDemoSessionId) {
+  // Se tinha uma sessão de demo ativa em algum momento, apaga tudo antes
+  // de sair — silenciosa, sem alert, pra não travar o fluxo normal de
+  // logout. Verifica só a EXISTÊNCIA do id da sessão, não se está
+  // "navegando o Default ao vivo" no momento exato do logout — senão,
+  // sair enquanto em alguma aba do ADM (não em isDemoModeActive) deixava
+  // a sessão pra trás, e o botão "Delete Now" continuava ativo ao voltar.
+  if (currentDemoSessionId) {
     await deleteDemoSession(currentDemoSessionId, { silent: true });
   }
   // Limpa o token de sessão única — só se ainda for o meu próprio token
