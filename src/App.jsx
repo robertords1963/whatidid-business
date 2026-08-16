@@ -4668,8 +4668,10 @@ setTimeout(() => {
         (linkingExperience.source === 'app' && (appSettings.requireEmployeeLogin ? linkingExperience.employeeId === employeeId : true));
 
       const updatePayload = { related_common_case_id: selectedCommonCaseForLink };
+      let demoSessionIdUsed = null;
       if (!isPermanentEditAllowed) {
-        updatePayload.demo_session_id = await ensureDemoSessionId();
+        demoSessionIdUsed = await ensureDemoSessionId();
+        updatePayload.demo_session_id = demoSessionIdUsed;
         // Só grava a cópia de segurança se essa linha ainda não pertence à
         // sessão de demo atual — a primeira captura é a que representa o
         // estado real original, não quer sobrescrever com um valor que já
@@ -4691,7 +4693,12 @@ setTimeout(() => {
       if (error) throw error;
       setLinkingExperience(null);
       setSelectedCommonCaseForLink(null);
-      await loadExperiences(true);
+      // Passa o id da sessão explicitamente — setCurrentDemoSessionId (chamada
+      // dentro de ensureDemoSessionId) só reflete no próximo render, então ler
+      // o state aqui pegaria um valor desatualizado (vazio) na primeira vez,
+      // fazendo a linha recém-marcada sumir do feed até uma ação futura
+      // recarregar com o valor certo.
+      await loadExperiences(true, null, demoSessionIdUsed !== null ? demoSessionIdUsed : undefined);
     } catch (error) {
       console.error('Error linking common case:', error);
       alert(t('generic_error') + ' ' + error.message);
