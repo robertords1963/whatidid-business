@@ -7414,7 +7414,7 @@ autoComplete="off"
   </div>
 )}
   </div>
-  <div className="flex-1 flex flex-col items-end gap-1">
+  <div className="flex-1 flex flex-col items-end gap-3">
     <a
       href="https://www.whatidid.app"
       className="hidden sm:inline text-sm text-gray-500 hover:text-purple-600 font-medium transition-colors"
