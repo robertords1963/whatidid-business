@@ -2081,6 +2081,7 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null, override
       cvFilename: exp.cv_filename || null,  // ⭐ ADICIONAR
       employeeId: exp.employee_id || null,
       companyId: exp.company_id || null,
+      demoSessionId: exp.demo_session_id || null,
       practiceId: exp.practice_id || null,
       tags: exp.tags || [],
       parentExperienceId: exp.parent_experience_id || null,
@@ -2626,11 +2627,34 @@ const deleteDemoSession = async (sessionId, { silent } = {}) => {
   if (!sessionId) return;
   try {
     await supabase.from('comments').delete().eq('demo_session_id', sessionId);
-    const { data: exps } = await supabase.from('experiences').select('id, cv_url').eq('demo_session_id', sessionId);
-    for (const exp of exps || []) {
+    const { data: exps } = await supabase.from('experiences')
+      .select('id, cv_url, demo_edit_original_snapshot').eq('demo_session_id', sessionId);
+
+    // Separa em dois grupos: linhas que são edições temporárias de
+    // experiences sintéticas JÁ EXISTENTES (têm uma cópia de segurança
+    // guardada — precisam ser restauradas, não apagadas) vs linhas
+    // genuinamente criadas do zero durante a demo (sem cópia — apaga
+    // normalmente, como sempre foi).
+    const toRestore = (exps || []).filter(exp => exp.demo_edit_original_snapshot);
+    const toDelete = (exps || []).filter(exp => !exp.demo_edit_original_snapshot);
+
+    for (const exp of toRestore) {
+      const snap = exp.demo_edit_original_snapshot;
+      await supabase.from('experiences').update({
+        problem: snap.problem, problem_category: snap.problem_category,
+        solution: snap.solution, result: snap.result,
+        result_category: snap.result_category, author: snap.author,
+        gender: snap.gender, age: snap.age, country: snap.country,
+        demo_session_id: null, demo_edit_original_snapshot: null
+      }).eq('id', exp.id);
+    }
+
+    for (const exp of toDelete) {
       if (exp.cv_url) await deleteFileFromStorage(exp.cv_url);
     }
-    await supabase.from('experiences').delete().eq('demo_session_id', sessionId);
+    if (toDelete.length > 0) {
+      await supabase.from('experiences').delete().in('id', toDelete.map(e => e.id));
+    }
     if (employeeId) {
       await supabase.from('employees').update({ current_demo_session_id: null }).eq('employee_id', employeeId);
     }
@@ -14758,12 +14782,31 @@ if (selected.length === 0) {
             // durante a demo e depois trocar idioma escondia a edição,
             // já que a linha continuava com o idioma original. Fora do modo
             // demo, não inclui o campo — preserva o que já estava lá.
+            //
+            // Antes de marcar, se essa linha AINDA NÃO pertence à sessão de
+            // demo (ou seja, é a primeira vez que está sendo "emprestada"
+            // durante essa sessão), guarda uma cópia do conteúdo original —
+            // sem isso, limpar a sessão de demo apagaria a linha inteira
+            // (não só a edição), já que ficaria com o mesmo demo_session_id
+            // de qualquer conteúdo criado do zero durante a demo.
+            let snapshotForUpdate = {};
+            if (isDemoModeActive && !exp.demoSessionId) {
+              snapshotForUpdate = {
+                demo_edit_original_snapshot: {
+                  problem: exp.problem, problem_category: exp.problemCategory,
+                  solution: exp.solution, result: exp.result,
+                  result_category: exp.resultCategory, author: exp.author,
+                  gender: exp.gender, age: exp.age, country: exp.country
+                }
+              };
+            }
             const { error } = await supabase.from('experiences').update({
               problem: updatedExp.problem, problem_category: updatedExp.problemCategory,
               solution: updatedExp.solution, result: updatedExp.result,
               result_category: updatedExp.resultCategory, author: updatedExp.author,
               gender: updatedExp.gender, age: updatedExp.age, country: updatedExp.country,
-              ...(isDemoModeActive ? { demo_session_id: await ensureDemoSessionId() } : {})
+              ...(isDemoModeActive ? { demo_session_id: await ensureDemoSessionId() } : {}),
+              ...snapshotForUpdate
             }).eq('id', exp.id);
             if (error) { alert('Error updating experience'); }
             else { await loadExperiences(true); setEditingExperience(null); setEditingData({}); }
