@@ -2080,6 +2080,7 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null, override
       cvUrl: exp.cv_url || null,  // ⭐ ADICIONAR
       cvFilename: exp.cv_filename || null,  // ⭐ ADICIONAR
       employeeId: exp.employee_id || null,
+      companyId: exp.company_id || null,
       practiceId: exp.practice_id || null,
       tags: exp.tags || [],
       parentExperienceId: exp.parent_experience_id || null,
@@ -6686,9 +6687,11 @@ useEffect(() => {
               </div>
             )}
             {/* Matching Common Case / Matching Experiences — mesmo mecanismo do card principal */}
-            {((fo.relatedCommonCaseId && (fo.source === 'uploaded' || fo.source === 'app')) ||
+            {(() => {
+              const canLinkCommonCase = (isAdmin && !isSeller && fo.companyId === effectiveCompanyId) || (fo.source === 'app' && (appSettings.requireEmployeeLogin ? fo.employeeId === employeeId : true));
+              return ((fo.relatedCommonCaseId && (fo.source === 'uploaded' || fo.source === 'app')) ||
               experiences.some(e => (e.source === 'uploaded' || e.source === 'app') && e.relatedCommonCaseId === fo.id) ||
-              (!fo.relatedCommonCaseId && fo.source === 'app' && ((appSettings.requireEmployeeLogin ? fo.employeeId === employeeId : true) || (isAdmin && !isSeller)) && getMatchingCommonCasesFor(fo).length > 0)) && (
+              (!fo.relatedCommonCaseId && canLinkCommonCase && getMatchingCommonCasesFor(fo).length > 0)) && (
               <div className="mb-4 flex flex-wrap gap-2 justify-end">
                 {fo.relatedCommonCaseId && (fo.source === 'uploaded' || fo.source === 'app') && (
                   <span className="inline-flex items-center gap-1">
@@ -6699,12 +6702,12 @@ useEffect(() => {
                     <Target size={12} />
                     {t('matching_common_case')}
                   </button>
-                  {((appSettings.requireEmployeeLogin ? fo.employeeId === employeeId : true) || (isAdmin && !isSeller)) && fo.source === 'app' && (
+                  {canLinkCommonCase && (
                     <button onClick={() => openLinkCommonCaseModal(fo)} className="text-sm text-gray-500 hover:text-purple-600 px-1" title={t('edit')}>✎</button>
                   )}
                   </span>
                 )}
-                {!fo.relatedCommonCaseId && fo.source === 'app' && ((appSettings.requireEmployeeLogin ? fo.employeeId === employeeId : true) || (isAdmin && !isSeller)) && getMatchingCommonCasesFor(fo).length > 0 && (
+                {!fo.relatedCommonCaseId && canLinkCommonCase && getMatchingCommonCasesFor(fo).length > 0 && (
                   <button
                     onClick={() => openLinkCommonCaseModal(fo)}
                     className="inline-flex items-center gap-1 text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-full border-2 border-gray-300 hover:bg-purple-100 hover:text-purple-700 hover:border-purple-300 transition-colors cursor-pointer"
@@ -6729,7 +6732,8 @@ useEffect(() => {
                   return null;
                 })()}
               </div>
-            )}
+            );
+            })()}
             {/* Comments */}
             <div className="border-t pt-4 mt-4">
               <h4 className="font-semibold text-gray-700 mb-3 flex items-center gap-2"><MessageCircle size={18}/>{t('add_a_comment')}</h4>
@@ -13268,6 +13272,9 @@ onClick={() => {
                         <button onClick={() => setEditingTags(null)} className="px-2 py-0.5 bg-gray-400 text-white rounded text-xs">✕</button>
                       </div>
                     )}
+                    {(() => {
+                    const canLinkCommonCase = (isAdmin && !isSeller && exp.companyId === effectiveCompanyId) || (exp.source === 'app' && (appSettings.requireEmployeeLogin ? exp.employeeId === employeeId : true));
+                    return (<>
                     {exp.relatedCommonCaseId && (exp.source === 'uploaded' || exp.source === 'app') && (
   <span className="inline-flex items-center gap-1">
   <button
@@ -13289,12 +13296,12 @@ onClick={() => {
     <Target size={12} />
     {t('matching_common_case')}
   </button>
-  {((appSettings.requireEmployeeLogin ? exp.employeeId === employeeId : true) || (isAdmin && !isSeller)) && exp.source === 'app' && (
+  {canLinkCommonCase && (
     <button onClick={() => openLinkCommonCaseModal(exp)} className="text-sm text-gray-500 hover:text-purple-600 px-1" title={t('edit')}>✎</button>
   )}
   </span>
 )}
-                    {!exp.relatedCommonCaseId && exp.source === 'app' && ((appSettings.requireEmployeeLogin ? exp.employeeId === employeeId : true) || (isAdmin && !isSeller)) && getMatchingCommonCasesFor(exp).length > 0 && (
+                    {!exp.relatedCommonCaseId && canLinkCommonCase && getMatchingCommonCasesFor(exp).length > 0 && (
                       <button
                         onClick={() => openLinkCommonCaseModal(exp)}
                         className="inline-flex items-center gap-1 text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-full border-2 border-gray-300 hover:bg-purple-100 hover:text-purple-700 hover:border-purple-300 transition-colors cursor-pointer"
@@ -13303,6 +13310,8 @@ onClick={() => {
                         {t('add_matching_common_case_btn')}
                       </button>
                     )}
+                    </>);
+                    })()}
                     
                     {(() => {
                       const mappedCount = experiences.filter(e => (e.source === 'uploaded' || e.source === 'app') && e.relatedCommonCaseId === exp.id).length;
