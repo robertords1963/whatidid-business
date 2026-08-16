@@ -525,7 +525,6 @@ const UI_STRINGS = {
   matching_common_case: { en: '🎯 Matching Common Case →', es: '🎯 Caso Común Coincidente →', pt: '🎯 Caso Comum Correspondente →', zh: '🎯 匹配的共性案例 →' },
   add_matching_common_case_btn: { en: '+ Matching Common Case (Optional)', es: '+ Caso Común Coincidente (Opcional)', pt: '+ Caso Comum Correspondente (Opcional)', zh: '+ 匹配的共性案例（可选）' },
   link_common_case_modal_title: { en: 'Select a Matching Common Case', es: 'Selecciona un Caso Común Coincidente', pt: 'Selecione um Caso Comum Correspondente', zh: '选择一个匹配的共性案例' },
-  linking_this_experience: { en: 'Linking this experience:', es: 'Vinculando esta experiencia:', pt: 'Vinculando esta experiência:', zh: '正在关联此经验：' },
   confirm_link_btn: { en: 'Confirm', es: 'Confirmar', pt: 'Confirmar', zh: '确认' },
   confirm_change_common_case_link: { en: 'This will replace the current Common Case link. Continue?', es: 'Esto reemplazará el enlace actual del Caso Común. ¿Continuar?', pt: 'Isso vai substituir o link de Common Case atual. Continuar?', zh: '这将替换当前的共性案例关联。是否继续？' },
   share_your_thoughts: { en: 'Share your thoughts...', es: 'Comparte tus pensamientos...', pt: 'Compartilhe sua opinião...', zh: '分享你的想法……' },
@@ -1253,6 +1252,15 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
       es: `👥 ${count} Experiencia${count === 1 ? '' : 's'} Coincidente${count === 1 ? '' : 's'} →`,
       pt: `👥 ${count} Experiência${count === 1 ? '' : 's'} Correspondente${count === 1 ? '' : 's'} →`,
       zh: `👥 ${count} 条匹配经验 →`,
+    };
+    return templates[effectiveViewingLanguage] || templates.en;
+  };
+  const tLinkingExperience = (category) => {
+    const templates = {
+      en: `Linking this ${category} experience:`,
+      es: `Vinculando esta experiencia de ${category}:`,
+      pt: `Vinculando esta experiência de ${category}:`,
+      zh: `正在关联此${category}经验：`,
     };
     return templates[effectiveViewingLanguage] || templates.en;
   };
@@ -14517,7 +14525,7 @@ if (selected.length === 0) {
 
       {/* Banner com a experience sendo linkada, pra não perder o contexto */}
       <div className="bg-purple-50 border-2 border-purple-200 rounded-lg p-3 mb-4">
-        <p className="text-xs font-semibold text-purple-700 mb-1">{t('linking_this_experience')}</p>
+        <p className="text-xs font-semibold text-purple-700 mb-1">{tLinkingExperience(linkingExperience.problemCategory)}</p>
         <p className="text-sm text-gray-700">{linkingExperience.problem?.substring(0, 120)}{linkingExperience.problem?.length > 120 ? '...' : ''}</p>
       </div>
 
