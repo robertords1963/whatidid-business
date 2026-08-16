@@ -6636,6 +6636,36 @@ useEffect(() => {
                 {fo.tags.map(tag => <span key={tag} className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">{tag}</span>)}
               </div>
             )}
+            {/* Matching Common Case / Matching Experiences — mesmo mecanismo do card principal */}
+            {((fo.relatedCommonCaseId && (fo.source === 'uploaded' || fo.source === 'app')) ||
+              experiences.some(e => (e.source === 'uploaded' || e.source === 'app') && e.relatedCommonCaseId === fo.id)) && (
+              <div className="mb-4 flex flex-wrap gap-2">
+                {fo.relatedCommonCaseId && (fo.source === 'uploaded' || fo.source === 'app') && (
+                  <button
+                    onClick={() => navigateToKeyInsight(fo.relatedCommonCaseId)}
+                    className="inline-flex items-center gap-1 text-xs bg-purple-100 text-purple-800 px-3 py-1 rounded-full border-2 border-purple-300 hover:bg-purple-200 transition-colors cursor-pointer"
+                  >
+                    <Target size={12} />
+                    {t('matching_common_case')}
+                  </button>
+                )}
+                {(() => {
+                  const mappedCount = experiences.filter(e => (e.source === 'uploaded' || e.source === 'app') && e.relatedCommonCaseId === fo.id).length;
+                  if (mappedCount > 0) {
+                    return (
+                      <button
+                        onClick={() => showMappedExperiences(fo.id)}
+                        className="inline-flex items-center gap-1 text-xs bg-green-100 text-green-800 px-3 py-1 rounded-full border-2 border-green-300 hover:bg-green-200 transition-colors cursor-pointer"
+                      >
+                        <Users size={12} />
+                        {tMatchingExperiences(mappedCount)}
+                      </button>
+                    );
+                  }
+                  return null;
+                })()}
+              </div>
+            )}
             {/* Comments */}
             <div className="border-t pt-4 mt-4">
               <h4 className="font-semibold text-gray-700 mb-3 flex items-center gap-2"><MessageCircle size={18}/>{t('add_a_comment')}</h4>
