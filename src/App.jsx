@@ -2055,11 +2055,15 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null, override
           }
         });
         // Aplica: se a própria linha já apontava pra um id resolvível, usa esse;
-        // senão, se a versão em inglês tinha um valor, usa o resolvido dele.
+        // senão, se a linha estiver vazia (sem link nenhum) E a versão em
+        // inglês tinha um valor, usa o resolvido dele. Se a linha já tem um
+        // link válido (aponta pra algo que já existe no idioma atual, ou
+        // seja, nem precisava de correção nenhuma), não mexe — senão
+        // qualquer link certo acaba sendo sobrescrito pelo do inglês.
         rowsWithGroup.forEach(row => {
           if (row.related_common_case_id && resolveTarget[row.related_common_case_id]) {
             relatedIdFix[row.id] = resolveTarget[row.related_common_case_id];
-          } else {
+          } else if (!row.related_common_case_id) {
             const englishTarget = englishRelatedByGroup[row.translation_group_id];
             if (englishTarget && resolveTarget[englishTarget]) {
               relatedIdFix[row.id] = resolveTarget[englishTarget];
@@ -4668,7 +4672,6 @@ setTimeout(() => {
         (linkingExperience.source === 'app' && (appSettings.requireEmployeeLogin ? linkingExperience.employeeId === employeeId : true));
 
       const updatePayload = { related_common_case_id: selectedCommonCaseForLink };
-      console.log('🔍 LINK DEBUG — linkingExperience.id:', linkingExperience.id, 'selectedCommonCaseForLink:', selectedCommonCaseForLink);
       let demoSessionIdUsed = null;
       if (!isPermanentEditAllowed) {
         demoSessionIdUsed = await ensureDemoSessionId();
@@ -4688,12 +4691,9 @@ setTimeout(() => {
         }
       }
 
-      console.log('🔍 LINK DEBUG — updatePayload completo:', JSON.stringify(updatePayload));
-      const { data: updateResult, error } = await supabase.from('experiences')
+      const { error } = await supabase.from('experiences')
         .update(updatePayload)
-        .eq('id', linkingExperience.id)
-        .select();
-      console.log('🔍 LINK DEBUG — resposta do Supabase:', JSON.stringify(updateResult), 'erro:', error);
+        .eq('id', linkingExperience.id);
       if (error) throw error;
       setLinkingExperience(null);
       setSelectedCommonCaseForLink(null);
