@@ -6688,7 +6688,8 @@ useEffect(() => {
             )}
             {/* Matching Common Case / Matching Experiences — mesmo mecanismo do card principal */}
             {(() => {
-              const canLinkCommonCase = (isAdmin && !isSeller && fo.companyId === effectiveCompanyId) || (fo.source === 'app' && (appSettings.requireEmployeeLogin ? fo.employeeId === employeeId : true));
+              const belongsToManagedCompany = fo.companyId === effectiveCompanyId || (!fo.companyId && effectiveCompanyId === defaultCompanyId);
+              const canLinkCommonCase = (isAdmin && !isSeller && belongsToManagedCompany) || (fo.source === 'app' && (appSettings.requireEmployeeLogin ? fo.employeeId === employeeId : true));
               return ((fo.relatedCommonCaseId && (fo.source === 'uploaded' || fo.source === 'app')) ||
               experiences.some(e => (e.source === 'uploaded' || e.source === 'app') && e.relatedCommonCaseId === fo.id) ||
               (!fo.relatedCommonCaseId && canLinkCommonCase && getMatchingCommonCasesFor(fo).length > 0)) && (
@@ -13273,7 +13274,8 @@ onClick={() => {
                       </div>
                     )}
                     {(() => {
-                    const canLinkCommonCase = (isAdmin && !isSeller && exp.companyId === effectiveCompanyId) || (exp.source === 'app' && (appSettings.requireEmployeeLogin ? exp.employeeId === employeeId : true));
+                    const belongsToManagedCompany = exp.companyId === effectiveCompanyId || (!exp.companyId && effectiveCompanyId === defaultCompanyId);
+                    const canLinkCommonCase = (isAdmin && !isSeller && belongsToManagedCompany) || (exp.source === 'app' && (appSettings.requireEmployeeLogin ? exp.employeeId === employeeId : true));
                     return (<>
                     {exp.relatedCommonCaseId && (exp.source === 'uploaded' || exp.source === 'app') && (
   <span className="inline-flex items-center gap-1">
