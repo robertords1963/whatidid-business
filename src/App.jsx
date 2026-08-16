@@ -6639,7 +6639,7 @@ useEffect(() => {
             {/* Matching Common Case / Matching Experiences — mesmo mecanismo do card principal */}
             {((fo.relatedCommonCaseId && (fo.source === 'uploaded' || fo.source === 'app')) ||
               experiences.some(e => (e.source === 'uploaded' || e.source === 'app') && e.relatedCommonCaseId === fo.id)) && (
-              <div className="mb-4 flex flex-wrap gap-2">
+              <div className="mb-4 flex flex-wrap gap-2 justify-end">
                 {fo.relatedCommonCaseId && (fo.source === 'uploaded' || fo.source === 'app') && (
                   <button
                     onClick={() => navigateToKeyInsight(fo.relatedCommonCaseId)}
