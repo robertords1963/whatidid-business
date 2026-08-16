@@ -6749,7 +6749,7 @@ useEffect(() => {
             {/* Matching Common Case / Matching Experiences — mesmo mecanismo do card principal */}
             {(() => {
               const belongsToManagedCompany = fo.companyId === effectiveCompanyId || (!fo.companyId && effectiveCompanyId === defaultCompanyId);
-              const canLinkCommonCase = (isAdmin && !isSeller && belongsToManagedCompany) || (fo.source === 'app' && (appSettings.requireEmployeeLogin ? fo.employeeId === employeeId : true)) || isDemoModeActive || loggedInIsDemoId;
+              const canLinkCommonCase = fo.author !== 'key_insights' && ((isAdmin && !isSeller && belongsToManagedCompany) || (fo.source === 'app' && (appSettings.requireEmployeeLogin ? fo.employeeId === employeeId : true)) || isDemoModeActive || loggedInIsDemoId);
               return ((fo.relatedCommonCaseId && (fo.source === 'uploaded' || fo.source === 'app')) ||
               experiences.some(e => (e.source === 'uploaded' || e.source === 'app') && e.relatedCommonCaseId === fo.id) ||
               (!fo.relatedCommonCaseId && canLinkCommonCase && getMatchingCommonCasesFor(fo).length > 0)) && (
@@ -13335,7 +13335,7 @@ onClick={() => {
                     )}
                     {(() => {
                     const belongsToManagedCompany = exp.companyId === effectiveCompanyId || (!exp.companyId && effectiveCompanyId === defaultCompanyId);
-                    const canLinkCommonCase = (isAdmin && !isSeller && belongsToManagedCompany) || (exp.source === 'app' && (appSettings.requireEmployeeLogin ? exp.employeeId === employeeId : true)) || isDemoModeActive || loggedInIsDemoId;
+                    const canLinkCommonCase = exp.author !== 'key_insights' && ((isAdmin && !isSeller && belongsToManagedCompany) || (exp.source === 'app' && (appSettings.requireEmployeeLogin ? exp.employeeId === employeeId : true)) || isDemoModeActive || loggedInIsDemoId);
                     return (<>
                     {exp.relatedCommonCaseId && (exp.source === 'uploaded' || exp.source === 'app') && (
   <span className="inline-flex items-center gap-1">
