@@ -2645,6 +2645,12 @@ const deleteDemoSession = async (sessionId, { silent } = {}) => {
         solution: snap.solution, result: snap.result,
         result_category: snap.result_category, author: snap.author,
         gender: snap.gender, age: snap.age, country: snap.country,
+        // related_common_case_id só entra se a cópia de segurança
+        // realmente guardou esse campo — snapshots mais antigos (feitos
+        // antes de existir o recurso de linkar Common Case manualmente)
+        // não têm essa chave, e não queremos apagar um valor real
+        // gravando undefined nele.
+        ...('related_common_case_id' in snap ? { related_common_case_id: snap.related_common_case_id } : {}),
         demo_session_id: null, demo_edit_original_snapshot: null
       }).eq('id', exp.id);
     }
@@ -4641,8 +4647,38 @@ setTimeout(() => {
       if (!window.confirm(t('confirm_change_common_case_link'))) return;
     }
     try {
+      // Mesma regra usada pra decidir se a canetinha aparece: edição
+      // permanente só quando é o dono da própria experience (source=app),
+      // ou Admin (não-Seller) gerenciando de fato a empresa dona da linha.
+      // Fora disso (Live, ADM Seller, Demo Group vendo conteúdo do
+      // Default), a mudança é efêmera — marca a sessão de demo e guarda
+      // uma cópia do valor original, pro conteúdo real do Default nunca
+      // ser alterado de verdade por essas visualizações.
+      const belongsToManagedCompany = linkingExperience.companyId === effectiveCompanyId ||
+        (!linkingExperience.companyId && effectiveCompanyId === defaultCompanyId);
+      const isPermanentEditAllowed = (isAdmin && !isSeller && belongsToManagedCompany) ||
+        (linkingExperience.source === 'app' && (appSettings.requireEmployeeLogin ? linkingExperience.employeeId === employeeId : true));
+
+      const updatePayload = { related_common_case_id: selectedCommonCaseForLink };
+      if (!isPermanentEditAllowed) {
+        updatePayload.demo_session_id = await ensureDemoSessionId();
+        // Só grava a cópia de segurança se essa linha ainda não pertence à
+        // sessão de demo atual — a primeira captura é a que representa o
+        // estado real original, não quer sobrescrever com um valor que já
+        // tinha sido alterado nessa mesma sessão.
+        if (!linkingExperience.demoSessionId) {
+          updatePayload.demo_edit_original_snapshot = {
+            problem: linkingExperience.problem, problem_category: linkingExperience.problemCategory,
+            solution: linkingExperience.solution, result: linkingExperience.result,
+            result_category: linkingExperience.resultCategory, author: linkingExperience.author,
+            gender: linkingExperience.gender, age: linkingExperience.age, country: linkingExperience.country,
+            related_common_case_id: linkingExperience.relatedCommonCaseId
+          };
+        }
+      }
+
       const { error } = await supabase.from('experiences')
-        .update({ related_common_case_id: selectedCommonCaseForLink })
+        .update(updatePayload)
         .eq('id', linkingExperience.id);
       if (error) throw error;
       setLinkingExperience(null);
@@ -6713,7 +6749,7 @@ useEffect(() => {
             {/* Matching Common Case / Matching Experiences — mesmo mecanismo do card principal */}
             {(() => {
               const belongsToManagedCompany = fo.companyId === effectiveCompanyId || (!fo.companyId && effectiveCompanyId === defaultCompanyId);
-              const canLinkCommonCase = (isAdmin && !isSeller && belongsToManagedCompany) || (fo.source === 'app' && (appSettings.requireEmployeeLogin ? fo.employeeId === employeeId : true));
+              const canLinkCommonCase = (isAdmin && !isSeller && belongsToManagedCompany) || (fo.source === 'app' && (appSettings.requireEmployeeLogin ? fo.employeeId === employeeId : true)) || isDemoModeActive || loggedInIsDemoId;
               return ((fo.relatedCommonCaseId && (fo.source === 'uploaded' || fo.source === 'app')) ||
               experiences.some(e => (e.source === 'uploaded' || e.source === 'app') && e.relatedCommonCaseId === fo.id) ||
               (!fo.relatedCommonCaseId && canLinkCommonCase && getMatchingCommonCasesFor(fo).length > 0)) && (
@@ -13299,7 +13335,7 @@ onClick={() => {
                     )}
                     {(() => {
                     const belongsToManagedCompany = exp.companyId === effectiveCompanyId || (!exp.companyId && effectiveCompanyId === defaultCompanyId);
-                    const canLinkCommonCase = (isAdmin && !isSeller && belongsToManagedCompany) || (exp.source === 'app' && (appSettings.requireEmployeeLogin ? exp.employeeId === employeeId : true));
+                    const canLinkCommonCase = (isAdmin && !isSeller && belongsToManagedCompany) || (exp.source === 'app' && (appSettings.requireEmployeeLogin ? exp.employeeId === employeeId : true)) || isDemoModeActive || loggedInIsDemoId;
                     return (<>
                     {exp.relatedCommonCaseId && (exp.source === 'uploaded' || exp.source === 'app') && (
   <span className="inline-flex items-center gap-1">
@@ -14796,7 +14832,8 @@ if (selected.length === 0) {
                   problem: exp.problem, problem_category: exp.problemCategory,
                   solution: exp.solution, result: exp.result,
                   result_category: exp.resultCategory, author: exp.author,
-                  gender: exp.gender, age: exp.age, country: exp.country
+                  gender: exp.gender, age: exp.age, country: exp.country,
+                  related_common_case_id: exp.relatedCommonCaseId
                 }
               };
             }
