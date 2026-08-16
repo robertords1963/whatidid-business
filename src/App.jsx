@@ -7872,24 +7872,14 @@ autoComplete="off"
       {daysLeft !== null && totalDays !== null && ` (${daysLeft}/${totalDays} ${t('days_left')})`}
     </>
   );
-  const hasDeleteButton = experiences.some(e => e.employeeId === employeeId || (e.comments || []).some(c => c.employeeId === employeeId));
+  // Unificado com o mesmo mecanismo usado em todo o resto do app —
+  // demo_session_id, não employee_id. Sem isso, edições/links feitos em
+  // experiences sintéticas (que não têm o employee_id do próprio Demo ID)
+  // nunca eram detectados nem restaurados corretamente por esse botão.
+  const hasDeleteButton = !!currentDemoSessionId;
   const deleteButton = (
     <button
-      onClick={async () => {
-        if (!window.confirm(t('confirm_delete_demo_so_far'))) return;
-        try {
-          await supabase.from('comments').delete().eq('employee_id', employeeId);
-          const { data: exps } = await supabase.from('experiences').select('id, cv_url').eq('employee_id', employeeId);
-          for (const exp of exps || []) {
-            if (exp.cv_url) await deleteFileFromStorage(exp.cv_url);
-          }
-          await supabase.from('experiences').delete().eq('employee_id', employeeId);
-          await loadExperiences(true);
-          alert(t('everything_deleted'));
-        } catch (error) {
-          alert(t('error_deleting') + ' ' + error.message);
-        }
-      }}
+      onClick={() => { if (window.confirm(t('confirm_delete_demo_session'))) deleteDemoSession(currentDemoSessionId); }}
       className="flex-shrink-0 px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-medium whitespace-nowrap"
     >
       {t('delete_now')}
