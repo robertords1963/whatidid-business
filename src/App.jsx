@@ -523,6 +523,11 @@ const UI_STRINGS = {
   check_all_experiences_shared: { en: 'Check all experiences shared', es: 'Ver todas las experiencias compartidas', pt: 'Ver todas as experiências compartilhadas', zh: '查看所有已分享的经验' },
   experiences_shared: { en: 'experiences shared', es: 'experiencias compartidas', pt: 'experiências compartilhadas', zh: '条经验已分享' },
   matching_common_case: { en: '🎯 Matching Common Case →', es: '🎯 Caso Común Coincidente →', pt: '🎯 Caso Comum Correspondente →', zh: '🎯 匹配的共性案例 →' },
+  add_matching_common_case_btn: { en: '+ Matching Common Case (Optional)', es: '+ Caso Común Coincidente (Opcional)', pt: '+ Caso Comum Correspondente (Opcional)', zh: '+ 匹配的共性案例（可选）' },
+  link_common_case_modal_title: { en: 'Select a Matching Common Case', es: 'Selecciona un Caso Común Coincidente', pt: 'Selecione um Caso Comum Correspondente', zh: '选择一个匹配的共性案例' },
+  linking_this_experience: { en: 'Linking this experience:', es: 'Vinculando esta experiencia:', pt: 'Vinculando esta experiência:', zh: '正在关联此经验：' },
+  confirm_link_btn: { en: 'Confirm', es: 'Confirmar', pt: 'Confirmar', zh: '确认' },
+  confirm_change_common_case_link: { en: 'This will replace the current Common Case link. Continue?', es: 'Esto reemplazará el enlace actual del Caso Común. ¿Continuar?', pt: 'Isso vai substituir o link de Common Case atual. Continuar?', zh: '这将替换当前的共性案例关联。是否继续？' },
   share_your_thoughts: { en: 'Share your thoughts...', es: 'Comparte tus pensamientos...', pt: 'Compartilhe sua opinião...', zh: '分享你的想法……' },
   copyright_notice: { en: '© 2026 WhatIDid - All rights reserved', es: '© 2026 WhatIDid - Todos los derechos reservados', pt: '© 2026 WhatIDid - Todos os direitos reservados', zh: '© 2026 WhatIDid - 保留所有权利' },
   upload_file_optional: { en: 'Upload File (optional) - PPT, XLS, PDF, DOCX', es: 'Subir Archivo (opcional) - PPT, XLS, PDF, DOCX', pt: 'Enviar Arquivo (opcional) - PPT, XLS, PDF, DOCX', zh: '上传文件（选填）- PPT、XLS、PDF、DOCX' },
@@ -1511,6 +1516,11 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   const [suggestedMapping, setSuggestedMapping] = useState(null);
   const [pendingExperience, setPendingExperience] = useState(null);
   const [mappedFilter, setMappedFilter] = useState(null);
+  // Linkagem manual de Experience a Common Case (feita pelo usuário, não
+  // sugerida automaticamente pelo app) — guarda a experience sendo linkada
+  // (ou null se o popup estiver fechado) e a escolha atual do radio button.
+  const [linkingExperience, setLinkingExperience] = useState(null);
+  const [selectedCommonCaseForLink, setSelectedCommonCaseForLink] = useState(null);
   
   // Responsivo: 4 no desktop, 3 no tablet, 2 no mobile
   const getVideosPerPage = () => {
@@ -4579,6 +4589,45 @@ setTimeout(() => {
   const commonCase = experiences.find(e => e.id === commonCaseId);
   return commonCase ? commonCase.problem.substring(0, 60) + '...' : 'Common Case';
 };
+
+  // Common Cases (Key Insights) da mesma Function/Practice + Category de
+  // uma experience — usado tanto pra decidir se o botão "+ Matching Common
+  // Case" aparece, quanto pra popular a lista de radio buttons no popup.
+  const getMatchingCommonCasesFor = (exp) => {
+    if (!exp) return [];
+    return experiences.filter(e =>
+      e.author === 'key_insights' &&
+      e.practiceId === exp.practiceId &&
+      e.problemCategory === exp.problemCategory
+    );
+  };
+
+  const openLinkCommonCaseModal = (exp) => {
+    setLinkingExperience(exp);
+    setSelectedCommonCaseForLink(exp.relatedCommonCaseId || null);
+  };
+
+  const saveManualCommonCaseLink = async () => {
+    if (!linkingExperience || !selectedCommonCaseForLink) return;
+    // Só pede confirmação se já existia um link antes (trocando, não
+    // criando pela primeira vez).
+    if (linkingExperience.relatedCommonCaseId &&
+        linkingExperience.relatedCommonCaseId !== selectedCommonCaseForLink) {
+      if (!window.confirm(t('confirm_change_common_case_link'))) return;
+    }
+    try {
+      const { error } = await supabase.from('experiences')
+        .update({ related_common_case_id: selectedCommonCaseForLink })
+        .eq('id', linkingExperience.id);
+      if (error) throw error;
+      setLinkingExperience(null);
+      setSelectedCommonCaseForLink(null);
+      await loadExperiences(true);
+    } catch (error) {
+      console.error('Error linking common case:', error);
+      alert(t('generic_error') + ' ' + error.message);
+    }
+  };
   
   const addExperienceToSupabase = async (newExperience, relatedCommonCaseId = null) => {
   const contentCompanyId = loggedInIsDemoId ? defaultCompanyId : effectiveCompanyId;
@@ -6638,15 +6687,30 @@ useEffect(() => {
             )}
             {/* Matching Common Case / Matching Experiences — mesmo mecanismo do card principal */}
             {((fo.relatedCommonCaseId && (fo.source === 'uploaded' || fo.source === 'app')) ||
-              experiences.some(e => (e.source === 'uploaded' || e.source === 'app') && e.relatedCommonCaseId === fo.id)) && (
+              experiences.some(e => (e.source === 'uploaded' || e.source === 'app') && e.relatedCommonCaseId === fo.id) ||
+              (!fo.relatedCommonCaseId && fo.source === 'app' && (appSettings.requireEmployeeLogin ? fo.employeeId === employeeId : true) && getMatchingCommonCasesFor(fo).length > 0)) && (
               <div className="mb-4 flex flex-wrap gap-2 justify-end">
                 {fo.relatedCommonCaseId && (fo.source === 'uploaded' || fo.source === 'app') && (
+                  <span className="inline-flex items-center gap-1">
                   <button
                     onClick={() => navigateToKeyInsight(fo.relatedCommonCaseId)}
                     className="inline-flex items-center gap-1 text-xs bg-purple-100 text-purple-800 px-3 py-1 rounded-full border-2 border-purple-300 hover:bg-purple-200 transition-colors cursor-pointer"
                   >
                     <Target size={12} />
                     {t('matching_common_case')}
+                  </button>
+                  {(appSettings.requireEmployeeLogin ? fo.employeeId === employeeId : true) && fo.source === 'app' && (
+                    <button onClick={() => openLinkCommonCaseModal(fo)} className="text-sm text-gray-500 hover:text-purple-600 px-1" title={t('edit')}>✎</button>
+                  )}
+                  </span>
+                )}
+                {!fo.relatedCommonCaseId && fo.source === 'app' && (appSettings.requireEmployeeLogin ? fo.employeeId === employeeId : true) && getMatchingCommonCasesFor(fo).length > 0 && (
+                  <button
+                    onClick={() => openLinkCommonCaseModal(fo)}
+                    className="inline-flex items-center gap-1 text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-full border-2 border-gray-300 hover:bg-purple-100 hover:text-purple-700 hover:border-purple-300 transition-colors cursor-pointer"
+                  >
+                    <Target size={12} />
+                    {t('add_matching_common_case_btn')}
                   </button>
                 )}
                 {(() => {
@@ -13205,6 +13269,7 @@ onClick={() => {
                       </div>
                     )}
                     {exp.relatedCommonCaseId && (exp.source === 'uploaded' || exp.source === 'app') && (
+  <span className="inline-flex items-center gap-1">
   <button
     onClick={() => {
       console.log('=== BADGE CLICADO ===');
@@ -13224,7 +13289,20 @@ onClick={() => {
     <Target size={12} />
     {t('matching_common_case')}
   </button>
+  {(appSettings.requireEmployeeLogin ? exp.employeeId === employeeId : true) && exp.source === 'app' && (
+    <button onClick={() => openLinkCommonCaseModal(exp)} className="text-sm text-gray-500 hover:text-purple-600 px-1" title={t('edit')}>✎</button>
+  )}
+  </span>
 )}
+                    {!exp.relatedCommonCaseId && exp.source === 'app' && (appSettings.requireEmployeeLogin ? exp.employeeId === employeeId : true) && getMatchingCommonCasesFor(exp).length > 0 && (
+                      <button
+                        onClick={() => openLinkCommonCaseModal(exp)}
+                        className="inline-flex items-center gap-1 text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-full border-2 border-gray-300 hover:bg-purple-100 hover:text-purple-700 hover:border-purple-300 transition-colors cursor-pointer"
+                      >
+                        <Target size={12} />
+                        {t('add_matching_common_case_btn')}
+                      </button>
+                    )}
                     
                     {(() => {
                       const mappedCount = experiences.filter(e => (e.source === 'uploaded' || e.source === 'app') && e.relatedCommonCaseId === exp.id).length;
@@ -14352,6 +14430,57 @@ if (selected.length === 0) {
           className="flex-1 px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-semibold transition-colors"
         >
           ✓ Link to this case
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+{/* Popup de linkagem manual de Common Case (não sugerida automaticamente) */}
+{linkingExperience && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 max-h-[80vh] overflow-y-auto">
+      <h3 className="text-xl font-bold text-gray-800 mb-4">
+        🎯 {t('link_common_case_modal_title')}
+      </h3>
+
+      {/* Banner com a experience sendo linkada, pra não perder o contexto */}
+      <div className="bg-purple-50 border-2 border-purple-200 rounded-lg p-3 mb-4">
+        <p className="text-xs font-semibold text-purple-700 mb-1">{t('linking_this_experience')}</p>
+        <p className="text-sm text-gray-700">{linkingExperience.problem?.substring(0, 120)}{linkingExperience.problem?.length > 120 ? '...' : ''}</p>
+      </div>
+
+      <div className="space-y-2 mb-6">
+        {getMatchingCommonCasesFor(linkingExperience).map(cc => (
+          <label
+            key={cc.id}
+            className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg border-2 border-gray-200 hover:border-purple-400 cursor-pointer transition-all"
+          >
+            <input
+              type="radio"
+              name="manualCommonCaseSelection"
+              checked={selectedCommonCaseForLink === cc.id}
+              onChange={() => setSelectedCommonCaseForLink(cc.id)}
+              className="mt-0.5 w-4 h-4 text-purple-600 focus:ring-purple-500"
+            />
+            <span className="text-sm text-gray-800">{cc.problem.substring(0, 60)}{cc.problem.length > 60 ? '...' : ''}</span>
+          </label>
+        ))}
+      </div>
+
+      <div className="flex gap-3">
+        <button
+          onClick={() => { setLinkingExperience(null); setSelectedCommonCaseForLink(null); }}
+          className="flex-1 px-4 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 font-semibold transition-colors"
+        >
+          {t('cancel')}
+        </button>
+        <button
+          onClick={saveManualCommonCaseLink}
+          disabled={!selectedCommonCaseForLink}
+          className="flex-1 px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          ✓ {t('confirm_link_btn')}
         </button>
       </div>
     </div>
