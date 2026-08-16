@@ -6688,7 +6688,7 @@ useEffect(() => {
             {/* Matching Common Case / Matching Experiences — mesmo mecanismo do card principal */}
             {((fo.relatedCommonCaseId && (fo.source === 'uploaded' || fo.source === 'app')) ||
               experiences.some(e => (e.source === 'uploaded' || e.source === 'app') && e.relatedCommonCaseId === fo.id) ||
-              (!fo.relatedCommonCaseId && fo.source === 'app' && (appSettings.requireEmployeeLogin ? fo.employeeId === employeeId : true) && getMatchingCommonCasesFor(fo).length > 0)) && (
+              (!fo.relatedCommonCaseId && fo.source === 'app' && ((appSettings.requireEmployeeLogin ? fo.employeeId === employeeId : true) || (isAdmin && !isSeller)) && getMatchingCommonCasesFor(fo).length > 0)) && (
               <div className="mb-4 flex flex-wrap gap-2 justify-end">
                 {fo.relatedCommonCaseId && (fo.source === 'uploaded' || fo.source === 'app') && (
                   <span className="inline-flex items-center gap-1">
@@ -6699,12 +6699,12 @@ useEffect(() => {
                     <Target size={12} />
                     {t('matching_common_case')}
                   </button>
-                  {(appSettings.requireEmployeeLogin ? fo.employeeId === employeeId : true) && fo.source === 'app' && (
+                  {((appSettings.requireEmployeeLogin ? fo.employeeId === employeeId : true) || (isAdmin && !isSeller)) && fo.source === 'app' && (
                     <button onClick={() => openLinkCommonCaseModal(fo)} className="text-sm text-gray-500 hover:text-purple-600 px-1" title={t('edit')}>✎</button>
                   )}
                   </span>
                 )}
-                {!fo.relatedCommonCaseId && fo.source === 'app' && (appSettings.requireEmployeeLogin ? fo.employeeId === employeeId : true) && getMatchingCommonCasesFor(fo).length > 0 && (
+                {!fo.relatedCommonCaseId && fo.source === 'app' && ((appSettings.requireEmployeeLogin ? fo.employeeId === employeeId : true) || (isAdmin && !isSeller)) && getMatchingCommonCasesFor(fo).length > 0 && (
                   <button
                     onClick={() => openLinkCommonCaseModal(fo)}
                     className="inline-flex items-center gap-1 text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-full border-2 border-gray-300 hover:bg-purple-100 hover:text-purple-700 hover:border-purple-300 transition-colors cursor-pointer"
@@ -13289,12 +13289,12 @@ onClick={() => {
     <Target size={12} />
     {t('matching_common_case')}
   </button>
-  {(appSettings.requireEmployeeLogin ? exp.employeeId === employeeId : true) && exp.source === 'app' && (
+  {((appSettings.requireEmployeeLogin ? exp.employeeId === employeeId : true) || (isAdmin && !isSeller)) && exp.source === 'app' && (
     <button onClick={() => openLinkCommonCaseModal(exp)} className="text-sm text-gray-500 hover:text-purple-600 px-1" title={t('edit')}>✎</button>
   )}
   </span>
 )}
-                    {!exp.relatedCommonCaseId && exp.source === 'app' && (appSettings.requireEmployeeLogin ? exp.employeeId === employeeId : true) && getMatchingCommonCasesFor(exp).length > 0 && (
+                    {!exp.relatedCommonCaseId && exp.source === 'app' && ((appSettings.requireEmployeeLogin ? exp.employeeId === employeeId : true) || (isAdmin && !isSeller)) && getMatchingCommonCasesFor(exp).length > 0 && (
                       <button
                         onClick={() => openLinkCommonCaseModal(exp)}
                         className="inline-flex items-center gap-1 text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-full border-2 border-gray-300 hover:bg-purple-100 hover:text-purple-700 hover:border-purple-300 transition-colors cursor-pointer"
