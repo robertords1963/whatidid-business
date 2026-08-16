@@ -12109,6 +12109,29 @@ onClick={() => {
               <>
                 {/* Filtros principais */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                  {/* Industry Sector filter - só no Pro, vem antes do Function/Practice */}
+                  {companyEdition === 'pro' && (
+  <div>
+    <label className="block text-sm font-medium text-gray-600 mb-2">
+      <Briefcase className="inline mr-1" size={14} />
+      {t('industry_sector_label')}
+    </label>
+    <div className="relative">
+    <select
+      value={filters.industrySector}
+      onChange={(e) => setFilters({...filters, industrySector: e.target.value})}
+      className="w-full h-9 px-2 py-1 pr-8 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none bg-gray-100 appearance-none"
+    >
+      <option value="">{t('all_sectors')}</option>
+      {industrySectors.map(sector => (
+        <option key={sector} value={sector}>{sector}</option>
+      ))}
+    </select>
+    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500" style={{ fontSize: '10px' }}>▼</span>
+    </div>
+  </div>
+)}
+
                   {/* Practice filter - só aparece se 2+ practices ativas, ou se 1 com nome diferente de General */}
                   <div>
     <label className="block text-sm font-medium text-gray-600 mb-2">{t('function_practice')}</label>
@@ -12249,26 +12272,6 @@ onClick={() => {
                     })()}
                   </div>
 
-                  {/* Industry Sector Filter - só no Pro */}
-{companyEdition === 'pro' && (
-  <div>
-    <label className="block text-sm font-medium text-gray-600 mb-2">
-      <Briefcase className="inline mr-1" size={14} />
-      {t('industry_sector_label')}
-    </label>
-    <select
-      value={filters.industrySector}
-      onChange={(e) => setFilters({...filters, industrySector: e.target.value})}
-      className="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
-    >
-      <option value="">{t('all_sectors')}</option>
-      {industrySectors.map(sector => (
-        <option key={sector} value={sector}>{sector}</option>
-      ))}
-    </select>
-  </div>
-)}
-                  
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-2">{t('result')}</label>
                     <div className="relative">
