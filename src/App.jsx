@@ -2723,12 +2723,17 @@ const loadPractices = async () => {
     const { data, error } = await query.order('display_order', { ascending: true });
     if (error) throw error;
     // Para o Admin: todas as practices ativas
-    // Para o UI: só as com show_in_ui = true
+    // Para o UI: só as com show_in_ui = true, E que se aplicam à edição
+    // em uso no momento (companyEdition respeita o seletor do Live
+    // Preview quando o Default está navegando/apresentando).
     setPractices(data || []);
-    setUiPractices((data || []).filter(p => p.show_in_ui));
+    const uiFiltered = (data || []).filter(p =>
+      p.show_in_ui && (p.applicable_editions || 'corp,pro').split(',').includes(companyEdition)
+    );
+    setUiPractices(uiFiltered);
 
-    // Practices visíveis no UI (show_in_ui = true), excluindo General se for a única
-    const uiPractices = (data || []).filter(p => p.show_in_ui);
+    // Practices visíveis no UI (mesma regra acima), excluindo General se for a única
+    const uiPractices = uiFiltered;
     const onlyGeneral = uiPractices.length === 1 && uiPractices[0].name === 'General';
     if (!onlyGeneral) {
       // já está no state practices, a lógica do UI usa essa regra diretamente
