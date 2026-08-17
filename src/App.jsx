@@ -936,6 +936,11 @@ const [selectedPracticeId, setSelectedPracticeId] = useState(null);
 const [showNewPracticeForm, setShowNewPracticeForm] = useState(false);
 const [newPracticeName, setNewPracticeName] = useState('');
 const [newPracticeEditions, setNewPracticeEditions] = useState(['corp', 'pro']); // padrão: mesmo valor default da migration
+const [editingPracticeEditions, setEditingPracticeEditions] = useState([]);
+useEffect(() => {
+  const p = practices.find(pr => pr.id === selectedPracticeId);
+  setEditingPracticeEditions((p?.applicable_editions || 'corp,pro').split(','));
+}, [selectedPracticeId, practices]);
 const [shareFormPracticeId, setShareFormPracticeId] = useState(null); // practice escolhida no Share Your Experience
 const [filterPracticeId, setFilterPracticeId] = useState(null);
 const [adminCategories, setAdminCategories] = useState([]);
@@ -10574,6 +10579,38 @@ autoComplete="off"
           >{t('delete_practice')}</button>
         )}
       </div>
+      {selectedPracticeId && practices.find(p => p.id === selectedPracticeId)?.name !== 'General' && (
+        <div className="flex items-center gap-3 border-t pt-3">
+          <span className="text-sm font-medium text-gray-700 whitespace-nowrap">{t('applicable_editions_label')}</span>
+          {['corp', 'pro', 'edu'].map(ed => (
+            <label key={ed} className="flex items-center gap-1.5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={editingPracticeEditions.includes(ed)}
+                disabled={isReadOnlyOrMasterManaging}
+                onChange={(e) => {
+                  setEditingPracticeEditions(prev =>
+                    e.target.checked ? [...prev, ed] : prev.filter(x => x !== ed)
+                  );
+                }}
+              />
+              <span className="text-sm text-gray-700 capitalize">{ed}</span>
+            </label>
+          ))}
+          <button
+            onClick={async () => {
+              if (editingPracticeEditions.length === 0) { alert(t('select_at_least_one_edition')); return; }
+              const { error } = await supabase.from('practices')
+                .update({ applicable_editions: editingPracticeEditions.join(',') })
+                .eq('id', selectedPracticeId);
+              if (error) { alert(t('error_updating_practice') + ' ' + error.message); return; }
+              await loadPractices();
+            }}
+            disabled={isReadOnlyOrMasterManaging}
+            className={`px-3 py-1 bg-teal-600 text-white rounded-lg text-xs hover:bg-teal-700 ${isReadOnlyOrMasterManaging ? 'opacity-40 cursor-not-allowed' : ''}`}
+          >{t('save')}</button>
+        </div>
+      )}
     </div>
 
     <div className={`bg-white rounded p-4 mb-4 ${isReadOnlyOrMasterManaging ? 'pointer-events-none opacity-40' : ''}`}>
