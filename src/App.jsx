@@ -215,7 +215,6 @@ const UI_STRINGS = {
   show_inspirational_quotes: { en: 'Show Inspirational Quotes (Marquee)', es: 'Mostrar Citas Inspiradoras (Marquesina)', pt: 'Mostrar Citações Inspiradoras (Faixa)', zh: '显示励志语录（滚动条）' },
   doc_type_cv: { en: '📄 CV (PDF only) - for Pro edition', es: '📄 CV (solo PDF) - para la edición Pro', pt: '📄 Currículo (apenas PDF) - para a edição Pro', zh: '📄 简历（仅限 PDF）— 适用于 Pro 版' },
   doc_type_other: { en: '📎 Other Docs (PPT, XLS, PDF, DOCX) - for Corp edition', es: '📎 Otros Documentos (PPT, XLS, PDF, DOCX) - para la edición Corp', pt: '📎 Outros Documentos (PPT, XLS, PDF, DOCX) - para a edição Corp', zh: '📎 其他文件（PPT、XLS、PDF、DOCX）— 适用于 Corp 版' },
-  error_updating_doc_type: { en: 'Error updating document type', es: 'Error al actualizar el tipo de documento', pt: 'Erro ao atualizar o tipo de documento', zh: '更新文件类型时出错' },
   start_visible_top3: { en: 'Start visible (users can still hide/show it)', es: 'Comenzar visible (los usuarios aún pueden ocultarlo/mostrarlo)', pt: 'Começar visível (usuários ainda podem ocultar/mostrar)', zh: '默认可见（用户仍可隐藏/显示）' },
   quote_text: { en: 'Quote Text', es: 'Texto de la Cita', pt: 'Texto da Citação', zh: '语录内容' },
   position: { en: 'Position', es: 'Posición', pt: 'Posição', zh: '位置' },
@@ -413,12 +412,11 @@ const UI_STRINGS = {
   labels_language: { en: 'Labels Language:', es: 'Idioma de Etiquetas:', pt: 'Idioma dos Rótulos:', zh: '界面标签语言：' },
   edition_label: { en: 'Edition:', es: 'Edición:', pt: 'Edição:', zh: '版本：' },
   industry_sector_label: { en: 'Industry Sector', es: 'Sector Industrial', pt: 'Setor de Atuação', zh: '行业领域' },
-  attachment_type_suggestions_title: { en: 'Attachment Type Suggestions (by Edition)', es: 'Sugerencias de Tipo de Anexo (por Edición)', pt: 'Sugestões de Tipo de Anexo (por Edição)', zh: '按版本设置的附件类型建议' },
+  attachment_type_suggestions_title: { en: 'Attachment Type Rule (by Edition)', es: 'Regla de Tipo de Anexo (por Edición)', pt: 'Regra de Tipo de Anexo (por Edição)', zh: '按版本设置的附件类型规则' },
   doc_type_cv_neutral: { en: '📄 CV only (PDF)', es: '📄 Solo CV (PDF)', pt: '📄 Apenas Currículo (PDF)', zh: '📄 仅限简历（PDF）' },
   no_uploads_option: { en: '🚫 No Uploads', es: '🚫 Sin Subidas', pt: '🚫 Sem Uploads', zh: '🚫 不允许上传' },
   subtitles_empty_explanation: { en: 'No custom subtitles yet for this language — the page is showing the built-in default text below the title instead. Add up to 3 pairs below to replace it.', es: 'Aún no hay subtítulos personalizados para este idioma — la página está mostrando el texto predeterminado debajo del título. Agrega hasta 3 pares abajo para reemplazarlo.', pt: 'Ainda não há subtítulos personalizados para este idioma — a página está mostrando o texto padrão embutido abaixo do título. Adicione até 3 pares abaixo para substituí-lo.', zh: '该语言下还没有自定义副标题——页面目前显示的是标题下方的内置默认文本。可在下方添加最多 3 组来替换它。' },
   doc_type_other_neutral: { en: '📎 Other document types (PPT, XLS, PDF, DOCX)', es: '📎 Otros tipos de documentos (PPT, XLS, PDF, DOCX)', pt: '📎 Outros tipos de documentos (PPT, XLS, PDF, DOCX)', zh: '📎 其他文件类型（PPT、XLS、PDF、DOCX）' },
-  use_default_suggestion: { en: 'Use suggestion from Default', es: 'Usar sugerencia de Default', pt: 'Usar sugestão do Default', zh: '使用 Default 的建议' },
   which_edition_item_appears: { en: 'Which edition this item should appear in — blank shows in every edition', es: 'En qué edición debe aparecer este elemento — en blanco se muestra en todas las ediciones', pt: 'Em qual edição este item deve aparecer — em branco aparece em todas as edições', zh: '此项目应显示在哪个版本下——留空则在所有版本中显示' },
   all_editions: { en: 'All editions', es: 'Todas las ediciones', pt: 'Todas as edições', zh: '所有版本' },
   manage_subtitles_title: { en: 'Manage Page Subtitles', es: 'Gestionar Subtítulos de la Página', pt: 'Gerenciar Subtítulos da Página', zh: '管理页面副标题' },
@@ -426,7 +424,6 @@ const UI_STRINGS = {
   subtitle_line1_placeholder: { en: 'First line', es: 'Primera línea', pt: 'Primeira linha', zh: '第一行' },
   subtitle_line2_placeholder: { en: 'Second line (optional)', es: 'Segunda línea (opcional)', pt: 'Segunda linha (opcional)', zh: '第二行（选填）' },
   add_subtitle_btn: { en: 'Add Subtitle', es: 'Agregar Subtítulo', pt: 'Adicionar Subtítulo', zh: '添加副标题' },
-  default_suggests: { en: 'Default suggests:', es: 'Default sugiere:', pt: 'Default sugere:', zh: 'Default 建议：' },
   subtitle_if_blank_default: { en: 'If left blank, the following default subtitle will be displayed:', es: 'Si se deja en blanco, se mostrará el siguiente subtítulo predeterminado:', pt: 'Se deixado em branco, o seguinte subtítulo padrão será exibido:', zh: '如果留空，将显示以下默认副标题：' },
   subtitle_overrides_default: { en: 'Your entry overrides the default subtitle:', es: 'Tu entrada reemplaza el subtítulo predeterminado:', pt: 'Sua entrada substitui o subtítulo padrão:', zh: '您的条目将覆盖默认副标题：' },
   subtitle_line1_label: { en: '1st line', es: '1a línea', pt: '1a linha', zh: '第一行' },
@@ -1596,7 +1593,7 @@ useEffect(() => {
     // de página real.
     loadDemoGroups();
   }
-}, [effectiveCompanyId, effectiveViewingLanguage, companyEdition, defaultCompanyId, companies.length, loggedInSellerId]);
+}, [effectiveCompanyId, effectiveViewingLanguage, companyEdition, defaultCompanyId, companies.length, loggedInSellerId, editionDefaults]);
 
 // Limpeza automática: assim que o Master/Seller troca o "Managing" pra uma
 // empresa real (saindo do Default direto), qualquer sessão de demo ativa é
@@ -2321,11 +2318,25 @@ const loadAppSettings = async () => {
     if (error) throw error;
     
     if (data) {
+  // O tipo de anexo (CV apenas vs qualquer arquivo) tem um valor padrão
+  // por edição, definido na seção Configuração Experiências do ADM
+  // Default (tabela edition_defaults). ADM Default/Seller/Demo Group não
+  // representam uma empresa de verdade — não têm valor próprio pra
+  // considerar, então sempre usam a regra da edição direto. Já uma
+  // empresa real tem sua própria linha em app_settings (semeada com o
+  // padrão da edição na criação, mas editável depois) — pra ela, o valor
+  // salvo na própria empresa é quem manda, sem interferência da regra.
+  const isRealCompanyContext = effectiveCompanyId !== defaultCompanyId;
+  const rule = !isRealCompanyContext ? editionDefaults[companyEdition] : null;
+  const effectiveAllowCvUpload = rule ? rule.upload_mode !== 'none' : (data.allow_cv_upload !== false);
+  const effectiveDocumentType = rule
+    ? (rule.upload_mode === 'none' ? 'cv' : rule.upload_mode)
+    : (data.document_type || 'cv');
   setAppSettings({
     requireEmployeeLogin: data.require_employee_login !== false,
     editionName: data.edition_name,
-    allowCvUpload: data.allow_cv_upload !== false,
-    documentType: data.document_type || 'cv',
+    allowCvUpload: effectiveAllowCvUpload,
+    documentType: effectiveDocumentType,
     showTop3: data.show_top3 || false,
     top3StartVisible: data.top3_start_visible !== false,
     showMarquee: data.show_marquee || false
@@ -2727,12 +2738,9 @@ const loadPractices = async () => {
     // em uso no momento (companyEdition respeita o seletor do Live
     // Preview quando o Default está navegando/apresentando).
     setPractices(data || []);
-    const agileRows = (data || []).filter(p => p.name === 'AGILE');
-    console.log('🔍 PRACTICE DEBUG — companyEdition:', companyEdition, '| quantas linhas AGILE:', agileRows.length, '| detalhes:', JSON.stringify(agileRows.map(r => ({ id: r.id, show_in_ui: r.show_in_ui, applicable_editions: r.applicable_editions }))));
     const uiFiltered = (data || []).filter(p =>
       p.show_in_ui && (p.applicable_editions || 'corp,pro').split(',').includes(companyEdition)
     );
-    console.log('🔍 PRACTICE DEBUG — uiFiltered inclui AGILE?', uiFiltered.some(p => p.name === 'AGILE'));
     setUiPractices(uiFiltered);
 
     // Practices visíveis no UI (mesma regra acima), excluindo General se for a única
@@ -10362,10 +10370,13 @@ autoComplete="off"
   </div>
 )}
 
-{/* 3. Upload Documents — dropdown único (Sem Upload / CV / Outros),
-    substitui o antigo checkbox + rádios separados. Não faz sentido pro
-    próprio Default (ele não é uma empresa real recebendo uploads) — só
-    aparece pra empresas de verdade. */}
+      </>
+      )}
+
+{/* 3. Upload Documents — só pra empresa real (ADM Empresa). Vem
+    pré-preenchido com a regra da edição dela, mas a própria empresa
+    pode escolher um formato diferente, só pra ela. Grava direto no
+    app_settings dessa empresa. */}
 {!showDefaultOnlyTools && (
       <div className="space-y-2">
         <label className="block text-sm font-medium text-gray-700">{t('document_type_label')}</label>
@@ -10381,7 +10392,7 @@ autoComplete="off"
               .from('app_settings')
               .update({ allow_cv_upload: allowCvUpload, document_type: documentType })
               .eq('company_id', effectiveCompanyId);
-            if (error) { alert(t('error_updating_doc_type')); console.error(error); return; }
+            if (error) { alert(t('generic_error')); console.error(error); return; }
           }}
           className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm"
         >
@@ -10389,39 +10400,8 @@ autoComplete="off"
           <option value="cv">{t('doc_type_cv_neutral')}</option>
           <option value="other">{t('doc_type_other_neutral')}</option>
         </select>
-        {!showDefaultOnlyTools && editionDefaults[companyEdition] && (
-          <div className="flex items-center gap-2 text-xs text-gray-500">
-            <span>{t('default_suggests')} {
-              editionDefaults[companyEdition]?.upload_mode === 'none' ? t('no_uploads_option')
-              : editionDefaults[companyEdition]?.upload_mode === 'other' ? t('doc_type_other_neutral')
-              : t('doc_type_cv_neutral')
-            }</span>
-            <button
-              onClick={async () => {
-                const suggestion = editionDefaults[companyEdition];
-                if (!suggestion) return;
-                const mode = suggestion.upload_mode || 'cv';
-                const allowCvUpload = mode !== 'none';
-                const documentType = mode === 'none' ? 'cv' : mode;
-                const newSettings = {...appSettings, allowCvUpload, documentType};
-                setAppSettings(newSettings);
-                const { error } = await supabase
-                  .from('app_settings')
-                  .update({ allow_cv_upload: allowCvUpload, document_type: documentType })
-                  .eq('company_id', effectiveCompanyId);
-                if (error) { alert('Error updating setting'); console.error(error); return; }
-                alert(t('app_config_copied'));
-              }}
-              className="px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded text-xs font-medium hover:bg-indigo-200"
-            >
-              {t('use_default_suggestion')}
-            </button>
-          </div>
-        )}
       </div>
 )}
-      </>
-      )}
 
       {/* Show Top 3 */}
       <div className="flex items-center gap-3">
