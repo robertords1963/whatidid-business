@@ -2443,6 +2443,26 @@ const loadProblemCategories = async (practiceId = null) => {
   }
 };
 
+// Gera uma senha numérica de 4 dígitos (0000-9999) pra um Demo ID, que
+// nunca colide com nenhuma já usada — nem com uma ativa agora, nem com
+// uma usada no passado por um Demo ID já apagado. A tabela
+// used_demo_passwords nunca é limpa, então serve de registro permanente.
+// Tenta inserir direto (em vez de SELECT-então-INSERT) porque a chave
+// primária garante que, mesmo se dois IDs forem criados ao mesmo tempo,
+// nunca os dois conseguem "reservar" o mesmo número por acidente.
+const generateUniqueDemoPassword = async () => {
+  const maxAttempts = 50;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const candidate = String(Math.floor(Math.random() * 10000)).padStart(4, '0');
+    const { error } = await supabase.from('used_demo_passwords').insert([{ password_number: candidate }]);
+    if (!error) return candidate;
+    // Código 23505 = violação de chave única (Postgres) — significa que
+    // esse número já tinha sido usado antes; tenta outro.
+    if (error.code !== '23505') throw error;
+  }
+  throw new Error('Não foi possível gerar uma senha única após várias tentativas.');
+};
+
 const loadDemoGroups = async () => {
   try {
     let query = supabase
@@ -9018,12 +9038,16 @@ autoComplete="off"
                       const { data: seqNumbers, error: seqError } = await supabase.rpc('next_demo_id_numbers', { count: 1 });
                       if (seqError) throw seqError;
                       const padded = String(seqNumbers[0].n).padStart(4, '0');
+                      // Senha não é mais o mesmo número do ID (previsível — quem
+                      // soubesse o ID saberia a senha). Agora é um número
+                      // aleatório de 4 dígitos, garantidamente nunca repetido.
+                      const passwordNumber = await generateUniqueDemoPassword();
                       const { error } = await supabase.from('employees').insert([{
                         employee_id: `ID${padded}`,
                         name: `${group.name} Demo ${padded}`,
                         company_id: group.company_id,
                         is_demo: true,
-                        password: `PW${padded}`,
+                        password: `PW${passwordNumber}`,
                         status: 'active',
                         active: true,
                         language: langVal,
