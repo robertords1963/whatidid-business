@@ -300,7 +300,11 @@ const UI_STRINGS = {
   keyword_found: { en: 'Keyword found:', es: 'Palabra clave encontrada:', pt: 'Palavra-chave encontrada:', zh: '找到关键词：' },
   set_as_top: { en: 'Set as Top:', es: 'Marcar como Top:', pt: 'Definir como Top:', zh: '设为精选：' },
   import_content_in: { en: 'Import content in:', es: 'Importar contenido en:', pt: 'Importar conteúdo em:', zh: '导入内容语言：' },
-  import_language_prefix: { en: 'in', es: 'en', pt: 'em', zh: '语言：' },
+  import_language_prefix: { en: 'in', es: 'en', pt: 'em', zh: '为' },
+  language_name_en: { en: 'English', es: 'Inglés', pt: 'Inglês', zh: '英语' },
+  language_name_es: { en: 'Spanish', es: 'Español', pt: 'Espanhol', zh: '西班牙语' },
+  language_name_pt: { en: 'Portuguese', es: 'Portugués', pt: 'Português', zh: '葡萄牙语' },
+  language_name_zh: { en: 'Chinese', es: 'Chino', pt: 'Chinês', zh: '中文' },
   section_header: { en: 'Section', es: 'Sección', pt: 'Seção', zh: '版块' },
   view_edit_access: { en: 'View & Edit access', es: 'Acceso de Vista y Edición', pt: 'Acesso de Visualização e Edição', zh: '查看与编辑权限' },
   select_registered_company: { en: 'Select a registered company...', es: 'Selecciona una empresa registrada...', pt: 'Selecione uma empresa registrada...', zh: '选择一家已注册的公司……' },
@@ -8239,7 +8243,7 @@ autoComplete="off"
               className="px-3 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 disabled:opacity-50 w-40">
               {(importingBundle || importingQuotes) ? t('importing_ellipsis') : t('import_update')}
             </button>
-            <p className="text-xs text-gray-500 mt-1">{t('import_language_prefix')} {importLanguage === 'en' ? 'English' : importLanguage === 'es' ? 'Español' : importLanguage === 'pt' ? 'Português' : '中文'}</p>
+            <p className="text-xs text-gray-500 mt-1">{t('import_language_prefix')} {t(`language_name_${importLanguage}`)}</p>
           </th>
         </tr>
       </thead>
