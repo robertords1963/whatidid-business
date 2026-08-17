@@ -300,6 +300,7 @@ const UI_STRINGS = {
   keyword_found: { en: 'Keyword found:', es: 'Palabra clave encontrada:', pt: 'Palavra-chave encontrada:', zh: '找到关键词：' },
   set_as_top: { en: 'Set as Top:', es: 'Marcar como Top:', pt: 'Definir como Top:', zh: '设为精选：' },
   import_content_in: { en: 'Import content in:', es: 'Importar contenido en:', pt: 'Importar conteúdo em:', zh: '导入内容语言：' },
+  import_language_prefix: { en: 'in', es: 'en', pt: 'em', zh: '语言：' },
   section_header: { en: 'Section', es: 'Sección', pt: 'Seção', zh: '版块' },
   view_edit_access: { en: 'View & Edit access', es: 'Acceso de Vista y Edición', pt: 'Acesso de Visualização e Edição', zh: '查看与编辑权限' },
   select_registered_company: { en: 'Select a registered company...', es: 'Selecciona una empresa registrada...', pt: 'Selecione uma empresa registrada...', zh: '选择一家已注册的公司……' },
@@ -3023,7 +3024,7 @@ const toggleAllMasterVisibility = async (checked) => {
 // Todas as seções que têm opção de Import — usado pelo checkbox "ALL" da
 // coluna de Import. Não precisa chamar o banco: é só a seleção antes de
 // clicar em "Import/Update".
-const ALL_IMPORT_SECTION_KEYS = ['app_config', 'quotes', 'promotional_videos', 'content_pages', 'metadata', 'synthetic'];
+const ALL_IMPORT_SECTION_KEYS = ['company_branding', 'app_config', 'quotes', 'promotional_videos', 'content_pages', 'metadata', 'synthetic'];
 
 // Importa o "pacote" ligado: Practices + Categories + Employees sintéticos +
 // Experiences sintéticas (inclui Key Insights, já que são experiences com
@@ -3534,6 +3535,33 @@ const importContentPages = async () => {
 // ilustrativo, mostrando pro cliente o que dá pra configurar. Como toda
 // empresa já tem uma linha própria de app_settings (criada automaticamente
 // no primeiro carregamento), isso é sempre um UPDATE, nunca um INSERT.
+// Extraído de importAppConfiguration — a mesma lógica de copiar
+// nome/logo, mas como função própria, pra poder ser importada
+// separadamente (checkbox próprio na tabela Section Settings).
+const importCompanyBranding = async () => {
+  if (!effectiveCompanyId || effectiveCompanyId === defaultCompanyId) return;
+  try {
+    const { data: brandingRow } = await supabase
+      .from('edition_branding').select('*').eq('edition', companyEdition).maybeSingle();
+    if (!brandingRow) {
+      alert(t('no_app_config_to_copy'));
+      return;
+    }
+    const { error } = await supabase.from('app_settings').update({
+      company_name: brandingRow.company_name || null,
+      company_logo_url: brandingRow.company_logo_url || null,
+      company_name_size: brandingRow.company_name_size || 'medium',
+      company_logo_size: brandingRow.company_logo_size || 'medium'
+    }).eq('company_id', effectiveCompanyId);
+    if (error) throw error;
+    await loadAppSettings();
+    alert(t('app_config_copied'));
+  } catch (error) {
+    console.error('Error importing Company Branding:', error);
+    alert(t('generic_error') + ' ' + error.message);
+  }
+};
+
 const importAppConfiguration = async () => {
   if (!effectiveCompanyId || effectiveCompanyId === defaultCompanyId) return;
   setImportingBundle(true);
@@ -3593,6 +3621,7 @@ const runImportForSelected = async () => {
   if (selectedForImport.includes('promotional_videos')) await importPromotionalVideos();
   if (selectedForImport.includes('content_pages')) await importContentPages();
   if (selectedForImport.includes('page_subtitles')) await importSubtitles();
+  if (selectedForImport.includes('company_branding')) await importCompanyBranding();
   if (selectedForImport.includes('app_config')) await importAppConfiguration();
   // Reseta os checkboxes depois de concluído — sem isso ficam "grudados" com
   // a seleção anterior, dando a impressão de que só uma parte ficou disponível.
@@ -8208,7 +8237,7 @@ autoComplete="off"
               className="px-3 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 disabled:opacity-50 w-40">
               {(importingBundle || importingQuotes) ? t('importing_ellipsis') : t('import_update')}
             </button>
-            <p className="text-xs text-gray-500 mt-1">in {importLanguage === 'en' ? 'English' : importLanguage === 'es' ? 'Español' : importLanguage === 'pt' ? 'Português' : '中文'}</p>
+            <p className="text-xs text-gray-500 mt-1">{t('import_language_prefix')} {importLanguage === 'en' ? 'English' : importLanguage === 'es' ? 'Español' : importLanguage === 'pt' ? 'Português' : '中文'}</p>
           </th>
         </tr>
       </thead>
@@ -8298,12 +8327,16 @@ autoComplete="off"
         </tr>
 
         <tr className="border-b">
-          <td className="py-2">{t('manage_company_branding_title')}</td>
+          <td className="py-2">{t('manage_company_branding_title').replace(/^\S+\s/, '')}</td>
           <td className="py-2 text-center">
             <input type="checkbox" checked={companyMasterVisibility.includes('company_branding')}
               onChange={(e) => toggleMasterVisibility('company_branding', e.target.checked)} className="w-4 h-4" />
           </td>
-          <td className="py-2 text-center"></td>
+          <td className="py-2 text-center">
+            <input type="checkbox" checked={selectedForImport.includes('company_branding')}
+              onChange={(e) => setSelectedForImport(e.target.checked ? [...selectedForImport, 'company_branding'] : selectedForImport.filter(k => k !== 'company_branding'))}
+              className="w-4 h-4" />
+          </td>
         </tr>
 
         <tr className="border-b">
@@ -9732,6 +9765,7 @@ autoComplete="off"
                                 <option value="pt">Português</option>
                                 <option value="zh">中文</option>
                               </select>
+                              {showDefaultOnlyTools && (
                               <div className="flex items-center gap-1.5" title={t('which_edition_item_appears')}>
                                 {['corp', 'pro', 'edu'].map(ed => {
                                   const currentList = video.edition == null ? ['corp', 'pro', 'edu'] : video.edition.split(',').filter(Boolean);
@@ -9755,6 +9789,7 @@ autoComplete="off"
                                   );
                                 })}
                               </div>
+                              )}
                             </div>
                             
                             {/* Botões de ação */}
@@ -10520,6 +10555,8 @@ autoComplete="off"
                 autoFocus
                 className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm mb-4"
               />
+              {showDefaultOnlyTools && (
+              <>
               <label className="block text-sm font-medium text-gray-700 mb-2">{t('applicable_editions_label')}</label>
               <div className="flex flex-wrap gap-3 mb-6">
                 {['corp', 'pro', 'edu'].map(ed => (
@@ -10537,6 +10574,8 @@ autoComplete="off"
                   </label>
                 ))}
               </div>
+              </>
+              )}
               <div className="flex gap-2">
                 <button
                   onClick={() => setShowNewPracticeForm(false)}
@@ -10546,14 +10585,16 @@ autoComplete="off"
                   onClick={async () => {
                     const name = newPracticeName.trim();
                     if (!name) return;
-                    if (newPracticeEditions.length === 0) { alert(t('select_at_least_one_edition')); return; }
+                    // Empresa real não escolhe edição — a dela já é fixa desde o cadastro.
+                    const effectiveEditions = showDefaultOnlyTools ? newPracticeEditions : [companyEdition];
+                    if (effectiveEditions.length === 0) { alert(t('select_at_least_one_edition')); return; }
                     const maxOrder = practices.length > 0 ? Math.max(...practices.map(p => p.display_order || 0)) : 0;
                     const { data, error } = await supabase
                       .from('practices')
                       .insert([{
                         name, show_in_ui: true, display_order: maxOrder + 1, active: true,
                         company_id: effectiveCompanyId, language: effectiveViewingLanguage,
-                        applicable_editions: newPracticeEditions.join(',')
+                        applicable_editions: effectiveEditions.join(',')
                       }])
                       .select();
                     if (error) { alert(t('error_creating_practice') + ' ' + error.message); return; }
@@ -10590,7 +10631,7 @@ autoComplete="off"
           >{t('delete_practice')}</button>
         )}
       </div>
-      {selectedPracticeId && practices.find(p => p.id === selectedPracticeId)?.name !== 'General' && (
+      {showDefaultOnlyTools && selectedPracticeId && practices.find(p => p.id === selectedPracticeId)?.name !== 'General' && (
         <div className="flex items-center gap-3 border-t pt-3">
           <span className="text-sm font-medium text-gray-700 whitespace-nowrap">{t('applicable_editions_label')}</span>
           {['corp', 'pro', 'edu'].map(ed => (
