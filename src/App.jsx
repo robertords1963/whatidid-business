@@ -5101,6 +5101,7 @@ const [currentCvUrl, setCurrentCvUrl] = useState(null);
   const [editingSubtitleEditions, setEditingSubtitleEditions] = useState([]);
   const loadPageSubtitles = async () => {
     if (!effectiveCompanyId) return;
+    console.log('🔍 SUBTITLES DEBUG — effectiveCompanyId:', effectiveCompanyId, '| loggedInEmployeeCompanyId:', loggedInEmployeeCompanyId, '| companyViewMode:', companyViewMode, '| isDefaultAdmin:', isDefaultAdmin, '| isSeller:', isSeller, '| adminCompanyContext:', adminCompanyContext, '| defaultCompanyId:', defaultCompanyId);
     try {
       const { data, error } = await supabase
         .from('page_subtitles')
@@ -5109,6 +5110,7 @@ const [currentCvUrl, setCurrentCvUrl] = useState(null);
         .eq('language', effectiveViewingLanguage)
         .order('display_order', { ascending: true });
       if (error) throw error;
+      console.log('🔍 SUBTITLES DEBUG — linhas retornadas:', (data || []).length, '| primeiras 2:', JSON.stringify((data || []).slice(0, 2).map(s => ({ id: s.id, company_id: s.company_id }))));
       // Sem filtro de edição aqui — a lista de admin mostra tudo (igual
       // Videos/Quotes), independente do dropdown. O filtro de edição
       // acontece só na hora de decidir o que exibir publicamente
@@ -9373,6 +9375,11 @@ autoComplete="off"
               {t('subtitle_if_blank_default')} {newSubtitle.editions.map(ed => `${ed.toUpperCase()}: ${t('subtitle_line1_label')} - ${SUBTITLE_DEFAULTS[ed]?.line1} / ${t('subtitle_line2_label')} - ${SUBTITLE_DEFAULTS[ed]?.line2}`).join(' | ')}
             </p>
           )}
+          {!showDefaultOnlyTools && (
+            <p className="text-xs text-gray-400 italic">
+              {t('subtitle_if_blank_default')} {t('subtitle_line1_label')} - {SUBTITLE_DEFAULTS[companyEdition]?.line1} / {t('subtitle_line2_label')} - {SUBTITLE_DEFAULTS[companyEdition]?.line2}
+            </p>
+          )}
           <button
             onClick={addSubtitle}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
@@ -9430,6 +9437,11 @@ autoComplete="off"
                   {showDefaultOnlyTools && (
                   <p className="text-xs text-gray-400 italic">
                     {t('subtitle_overrides_default')} {editingSubtitleEditions.map(ed => `${ed.toUpperCase()}: ${t('subtitle_line1_label')} - ${SUBTITLE_DEFAULTS[ed]?.line1} / ${t('subtitle_line2_label')} - ${SUBTITLE_DEFAULTS[ed]?.line2}`).join(' | ')}
+                  </p>
+                  )}
+                  {!showDefaultOnlyTools && (
+                  <p className="text-xs text-gray-400 italic">
+                    {t('subtitle_overrides_default')} {t('subtitle_line1_label')} - {SUBTITLE_DEFAULTS[companyEdition]?.line1} / {t('subtitle_line2_label')} - {SUBTITLE_DEFAULTS[companyEdition]?.line2}
                   </p>
                   )}
                   <div className="flex gap-2">
@@ -15138,7 +15150,7 @@ if (selected.length === 0) {
       className="flex-1 bg-gray-200 text-gray-700 py-2.5 rounded-lg hover:bg-gray-300 font-semibold transition-colors"
     >
       Exit
-    </button> 
+    </button>
   </div>
 ) : (
   <button
