@@ -2727,9 +2727,12 @@ const loadPractices = async () => {
     // em uso no momento (companyEdition respeita o seletor do Live
     // Preview quando o Default está navegando/apresentando).
     setPractices(data || []);
+    const agileRows = (data || []).filter(p => p.name === 'AGILE');
+    console.log('🔍 PRACTICE DEBUG — companyEdition:', companyEdition, '| quantas linhas AGILE:', agileRows.length, '| detalhes:', JSON.stringify(agileRows.map(r => ({ id: r.id, show_in_ui: r.show_in_ui, applicable_editions: r.applicable_editions }))));
     const uiFiltered = (data || []).filter(p =>
       p.show_in_ui && (p.applicable_editions || 'corp,pro').split(',').includes(companyEdition)
     );
+    console.log('🔍 PRACTICE DEBUG — uiFiltered inclui AGILE?', uiFiltered.some(p => p.name === 'AGILE'));
     setUiPractices(uiFiltered);
 
     // Practices visíveis no UI (mesma regra acima), excluindo General se for a única
