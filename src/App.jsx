@@ -5091,10 +5091,13 @@ const [currentCvUrl, setCurrentCvUrl] = useState(null);
   };
   const addSubtitle = async () => {
     if (!newSubtitle.line1.trim()) { alert(t('please_enter_quote_text')); return; }
-    if (newSubtitle.editions.length === 0) { alert(t('select_at_least_one_edition')); return; }
+    // Empresa real não escolhe edição — a dela já é fixa desde o cadastro.
+    // Só o Default (curando conteúdo pras 3 edições) usa os checkboxes.
+    const effectiveEditions = showDefaultOnlyTools ? newSubtitle.editions : [companyEdition];
+    if (effectiveEditions.length === 0) { alert(t('select_at_least_one_edition')); return; }
     // Limite é 3 por edição, não 3 no total — senão, uma entrada só pra
     // Corp já ocuparia "espaço" que deveria valer pra Pro/Edu também.
-    const wouldExceedLimit = newSubtitle.editions.some(ed => {
+    const wouldExceedLimit = effectiveEditions.some(ed => {
       const countForThisEdition = pageSubtitles.filter(s =>
         (s.applicable_editions || 'corp,pro,edu').split(',').includes(ed)
       ).length;
@@ -5107,7 +5110,7 @@ const [currentCvUrl, setCurrentCvUrl] = useState(null);
         line1: newSubtitle.line1.trim(),
         line2: newSubtitle.line2.trim() || null,
         language: effectiveViewingLanguage,
-        applicable_editions: newSubtitle.editions.length === 3 ? 'all' : newSubtitle.editions.join(','),
+        applicable_editions: effectiveEditions.length === 3 ? 'all' : effectiveEditions.join(','),
         display_order: pageSubtitles.length + 1
       }]);
       if (error) throw error;
@@ -5748,7 +5751,9 @@ useEffect(() => {
       alert(t('author_required_bottom'));
       return;
     }
-    if (newQuote.editions.length === 0) {
+    // Empresa real não escolhe edição — a dela já é fixa desde o cadastro.
+    const effectiveEditions = showDefaultOnlyTools ? newQuote.editions : [companyEdition];
+    if (effectiveEditions.length === 0) {
       alert(t('select_at_least_one_edition'));
       return;
     }
@@ -5763,7 +5768,7 @@ useEffect(() => {
           active: true,
           company_id: effectiveCompanyId,
           language: effectiveViewingLanguage,
-          edition: newQuote.editions.join(',')
+          edition: effectiveEditions.join(',')
         }]);
       
       if (error) throw error;
@@ -7816,6 +7821,7 @@ autoComplete="off"
         <option value="pt">Português</option>
         <option value="zh">中文 (Chinese)</option>
       </select>
+      {(isViewingDefault || loggedInIsDemoId) && (
       <select
         value={viewingEdition}
         onChange={(e) => setViewingEdition(e.target.value)}
@@ -7826,6 +7832,7 @@ autoComplete="off"
         <option value="pro">Pro</option>
         <option value="edu">Edu</option>
       </select>
+      )}
       <p className="text-purple-800 text-sm font-medium text-center flex-1 min-w-[180px]">
         {t('demo_mode_leave')}
       </p>
@@ -7855,6 +7862,7 @@ autoComplete="off"
           <option value="pt">Português</option>
           <option value="zh">中文 (Chinese)</option>
         </select>
+        {(isViewingDefault || loggedInIsDemoId) && (
         <select
           value={viewingEdition}
           onChange={(e) => setViewingEdition(e.target.value)}
@@ -7865,6 +7873,7 @@ autoComplete="off"
           <option value="pro">Pro</option>
           <option value="edu">Edu</option>
         </select>
+        )}
       </div>
       <div className="flex items-center w-full gap-2">
         <p className={`text-purple-800 text-sm font-medium ${currentDemoSessionId ? 'flex-1 text-center' : 'w-full text-center'}`}>
@@ -9307,6 +9316,7 @@ autoComplete="off"
             placeholder={t('subtitle_line2_placeholder')}
             className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm"
           />
+          {showDefaultOnlyTools && (
           <div className="flex flex-wrap gap-3">
             {['corp', 'pro', 'edu'].map(ed => (
               <label key={ed} className="flex items-center gap-1.5 cursor-pointer">
@@ -9324,7 +9334,8 @@ autoComplete="off"
               </label>
             ))}
           </div>
-          {newSubtitle.editions.length > 0 && (
+          )}
+          {showDefaultOnlyTools && newSubtitle.editions.length > 0 && (
             <p className="text-xs text-gray-400 italic">
               {t('subtitle_if_blank_default')} {newSubtitle.editions.map(ed => `${ed.toUpperCase()}: ${t('subtitle_line1_label')} - ${SUBTITLE_DEFAULTS[ed]?.line1} / ${t('subtitle_line2_label')} - ${SUBTITLE_DEFAULTS[ed]?.line2}`).join(' | ')}
             </p>
@@ -9362,6 +9373,7 @@ autoComplete="off"
                     placeholder={t('subtitle_line2_placeholder')}
                     className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm"
                   />
+                  {showDefaultOnlyTools && (
                   <div className="flex flex-wrap gap-3">
                     {['corp', 'pro', 'edu'].map(ed => {
                       return (
@@ -9381,15 +9393,18 @@ autoComplete="off"
                       );
                     })}
                   </div>
+                  )}
+                  {showDefaultOnlyTools && (
                   <p className="text-xs text-gray-400 italic">
                     {t('subtitle_overrides_default')} {editingSubtitleEditions.map(ed => `${ed.toUpperCase()}: ${t('subtitle_line1_label')} - ${SUBTITLE_DEFAULTS[ed]?.line1} / ${t('subtitle_line2_label')} - ${SUBTITLE_DEFAULTS[ed]?.line2}`).join(' | ')}
                   </p>
+                  )}
                   <div className="flex gap-2">
                     <button
                       onClick={() => {
                         const line1 = document.getElementById(`edit-subtitle-line1-${sub.id}`).value;
                         const line2 = document.getElementById(`edit-subtitle-line2-${sub.id}`).value;
-                        const editions = editingSubtitleEditions;
+                        const editions = showDefaultOnlyTools ? editingSubtitleEditions : [companyEdition];
                         updateSubtitle(sub.id, line1, line2, editions);
                       }}
                       className="px-3 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700"
@@ -9839,6 +9854,7 @@ autoComplete="off"
                       <option value="bottom">{t('bottom_below_top3')}</option>
                     </select>
                   </div>
+                  {showDefaultOnlyTools && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">{t('applicable_editions_label')}</label>
                     <div className="flex flex-wrap gap-3">
@@ -9859,6 +9875,7 @@ autoComplete="off"
                       ))}
                     </div>
                   </div>
+                  )}
                   <button
                     onClick={addQuote}
                     className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
@@ -9898,6 +9915,7 @@ autoComplete="off"
                               <option value="top">{t('top_above_top3')}</option>
                               <option value="bottom">{t('bottom_below_top3')}</option>
                             </select>
+                            {showDefaultOnlyTools && (
                             <div className="flex flex-wrap gap-3 p-2 border-2 border-gray-300 rounded">
                               {['corp', 'pro', 'edu'].map(ed => {
                                 const currentList = (quote.edition || 'corp,pro,edu').split(',');
@@ -9909,13 +9927,18 @@ autoComplete="off"
                                 );
                               })}
                             </div>
+                            )}
                             <div className="flex gap-2">
                               <button
                                 onClick={() => {
                                   const text = document.getElementById(`edit-text-${quote.id}`).value;
                                   const author = document.getElementById(`edit-author-${quote.id}`).value;
                                   const position = document.getElementById(`edit-position-${quote.id}`).value;
-                                  const editions = ['corp', 'pro', 'edu'].filter(ed => document.getElementById(`edit-edition-${quote.id}-${ed}`).checked);
+                                  // Empresa real não tem os checkboxes (estão escondidos) — usa
+                                  // direto a edição fixa dela, sem tentar ler do DOM.
+                                  const editions = showDefaultOnlyTools
+                                    ? ['corp', 'pro', 'edu'].filter(ed => document.getElementById(`edit-edition-${quote.id}-${ed}`).checked)
+                                    : [companyEdition];
                                   if (editions.length === 0) { alert(t('select_at_least_one_edition')); return; }
                                   updateQuote(quote.id, text, author, position, editions.join(','));
                                 }}
