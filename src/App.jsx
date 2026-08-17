@@ -3011,7 +3011,7 @@ const toggleMasterVisibility = async (sectionKey, checked) => {
 // Todas as seções que existem na coluna "View & Edit access" — usado pelo
 // checkbox "ALL" no cabeçalho, pra marcar/desmarcar tudo de uma vez numa
 // chamada só, em vez da empresa ter que marcar item por item.
-const ALL_VISIBILITY_SECTION_KEYS = ['app_config', 'content_pages', 'keyword_filter', 'metadata', 'promotional_videos', 'quotes', 'synthetic'];
+const ALL_VISIBILITY_SECTION_KEYS = ['app_config', 'company_branding', 'content_pages', 'keyword_filter', 'metadata', 'page_subtitles', 'promotional_videos', 'quotes', 'synthetic'];
 const toggleAllMasterVisibility = async (checked) => {
   const updated = checked ? ALL_VISIBILITY_SECTION_KEYS : [];
   setCompanyMasterVisibility(updated);
@@ -3028,7 +3028,7 @@ const toggleAllMasterVisibility = async (checked) => {
 // Todas as seções que têm opção de Import — usado pelo checkbox "ALL" da
 // coluna de Import. Não precisa chamar o banco: é só a seleção antes de
 // clicar em "Import/Update".
-const ALL_IMPORT_SECTION_KEYS = ['company_branding', 'app_config', 'quotes', 'promotional_videos', 'content_pages', 'metadata', 'synthetic'];
+const ALL_IMPORT_SECTION_KEYS = ['company_branding', 'app_config', 'quotes', 'promotional_videos', 'content_pages', 'page_subtitles', 'metadata', 'synthetic'];
 
 // Importa o "pacote" ligado: Practices + Categories + Employees sintéticos +
 // Experiences sintéticas (inclui Key Insights, já que são experiences com
