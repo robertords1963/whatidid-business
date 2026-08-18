@@ -6075,7 +6075,8 @@ useEffect(() => {
         linkUrl: video.link_url || null,
         linkLabel: video.link_label || null,
         visible: video.visible !== false,
-        language: video.language || null
+        language: video.language || null,
+        edition: video.edition
       }));
       setAllPromotionalVideosAdmin(allVideos);
 
