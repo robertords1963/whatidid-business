@@ -9863,18 +9863,18 @@ autoComplete="off"
                                         type="checkbox"
                                         checked={isChecked}
                                         onChange={async (e) => {
-                                          console.log('🔍 CHECKBOX DEBUG — clicou:', ed, '| video.id:', video.id, '| e.target.checked:', e.target.checked);
-                                          // Busca o valor MAIS RECENTE direto do banco, em vez de
-                                          // confiar no `video` do estado React — sem isso, marcar
-                                          // dois checkboxes rapidamente (ex: Pro, depois Edu) podia
-                                          // fazer o segundo clique sobrescrever o primeiro, já que o
-                                          // estado da tela ainda não tinha atualizado entre os cliques.
+                                          // Captura o valor JÁ AQUI, antes de qualquer await — eventos
+                                          // sintéticos do React podem ser reciclados/invalidados assim
+                                          // que a função async "pausa" num await, fazendo e.target
+                                          // virar null ou ler um valor errado depois disso.
+                                          const wasChecked = e.target.checked;
+                                          console.log('🔍 CHECKBOX DEBUG — clicou:', ed, '| video.id:', video.id, '| wasChecked (capturado antes do await):', wasChecked);
                                           const { data: freshRow, error: fetchError } = await supabase
                                             .from('promotional_videos').select('edition').eq('id', video.id).single();
                                           console.log('🔍 CHECKBOX DEBUG — fetch result:', JSON.stringify(freshRow), 'erro:', fetchError);
                                           if (fetchError) { alert(t('generic_error') + ' ' + fetchError.message); return; }
                                           const freshList = freshRow.edition == null ? ['corp', 'pro', 'edu'] : freshRow.edition.split(',').filter(Boolean);
-                                          const newList = e.target.checked ? [...new Set([...freshList, ed])] : freshList.filter(x => x !== ed);
+                                          const newList = wasChecked ? [...new Set([...freshList, ed])] : freshList.filter(x => x !== ed);
                                           console.log('🔍 CHECKBOX DEBUG — freshList:', freshList, '| newList:', newList);
                                           // A coluna `edition` é NOT NULL no banco — nunca pode
                                           // gravar null aqui (era isso que causava a gravação
