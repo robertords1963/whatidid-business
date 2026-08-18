@@ -6846,6 +6846,43 @@ useEffect(() => {
                 {fo.tags.map(tag => <span key={tag} className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">{tag}</span>)}
               </div>
             )}
+            {/* Ícone Document — faltava aqui; o anexo sempre foi salvo
+                certinho (addExperienceToSupabase trata follow-on igual a
+                experience normal), só nunca teve UI pra aparecer neste
+                card específico. */}
+            {fo.cvUrl && fo.author !== 'key_insights' && (
+              <div className="flex items-center gap-2 mb-4">
+                <button
+                  onClick={() => {
+                    setCurrentCvUrl(fo.cvUrl);
+                    setShowCvModal(true);
+                  }}
+                  className="text-blue-600 hover:text-blue-800 inline-flex items-center gap-1 text-xs"
+                  title={`View ${appSettings.documentType === 'cv' ? 'CV' : 'File'} - ${fo.cvFilename || 'Document'}`}
+                >
+                  <span className="font-semibold">{appSettings.documentType === 'cv' ? 'CV' : 'File'}</span> {appSettings.documentType === 'cv' ? '📄' : '📎'}
+                </button>
+                {appSettings.requireEmployeeLogin && fo.employeeId === employeeId && (
+                  <button
+                    onClick={async () => {
+                      if (window.confirm(t('confirm_delete_file'))) {
+                        await deleteFileFromStorage(fo.cvUrl);
+                        const { error } = await supabase
+                          .from('experiences')
+                          .update({ cv_url: null, cv_filename: null })
+                          .eq('id', fo.id);
+                        if (error) { alert('Error removing file'); }
+                        else { await loadExperiences(true); }
+                      }
+                    }}
+                    className="text-red-600 hover:text-red-800 text-xs"
+                    title={t('delete_file_tooltip')}
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            )}
             {/* Matching Common Case / Matching Experiences — mesmo mecanismo do card principal */}
             {(() => {
               const belongsToManagedCompany = fo.companyId === effectiveCompanyId || (!fo.companyId && effectiveCompanyId === defaultCompanyId);
@@ -12197,9 +12234,10 @@ onClick={() => {
           </span>
           <button
             onClick={() => setSelectedCv(null)}
-            className="text-red-600 hover:text-red-800"
+            className="text-red-600 hover:text-red-800 text-xs"
+            title={t('remove')}
           >
-            {t('remove')}
+            ✕
           </button>
         </div>
       )}
