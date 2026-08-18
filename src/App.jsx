@@ -9862,8 +9862,22 @@ autoComplete="off"
                                         type="checkbox"
                                         checked={isChecked}
                                         onChange={async (e) => {
-                                          const newList = e.target.checked ? [...currentList, ed] : currentList.filter(x => x !== ed);
-                                          const newValue = newList.length === 3 ? null : newList.join(',');
+                                          // Busca o valor MAIS RECENTE direto do banco, em vez de
+                                          // confiar no `video` do estado React — sem isso, marcar
+                                          // dois checkboxes rapidamente (ex: Pro, depois Edu) podia
+                                          // fazer o segundo clique sobrescrever o primeiro, já que o
+                                          // estado da tela ainda não tinha atualizado entre os cliques.
+                                          const { data: freshRow, error: fetchError } = await supabase
+                                            .from('promotional_videos').select('edition').eq('id', video.id).single();
+                                          if (fetchError) { alert(t('generic_error') + ' ' + fetchError.message); return; }
+                                          const freshList = freshRow.edition == null ? ['corp', 'pro', 'edu'] : freshRow.edition.split(',').filter(Boolean);
+                                          const newList = e.target.checked ? [...new Set([...freshList, ed])] : freshList.filter(x => x !== ed);
+                                          // A coluna `edition` é NOT NULL no banco — nunca pode
+                                          // gravar null aqui (era isso que causava a gravação
+                                          // falhar silenciosamente sempre que as 3 caixas ficavam
+                                          // marcadas, deixando a linha presa no valor padrão 'corp').
+                                          if (newList.length === 0) { alert(t('select_at_least_one_edition')); return; }
+                                          const newValue = newList.join(',');
                                           const { error } = await supabase.from('promotional_videos').update({ edition: newValue }).eq('id', video.id);
                                           if (error) { alert(t('generic_error') + ' ' + error.message); return; }
                                           await loadPromotionalVideos();
