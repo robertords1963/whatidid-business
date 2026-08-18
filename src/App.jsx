@@ -5768,11 +5768,15 @@ useEffect(() => {
   const loadQuotes = async () => {
     if (!effectiveCompanyId) return;
     try {
+      // Mesmo padrão de loadExperiences/loadPractices/loadPromotionalVideos:
+      // Demo Group ID mostra o conteúdo curado do Default, mantendo a marca
+      // do próprio Prospect (effectiveCompanyId segue valendo pra branding).
+      const contentCompanyId = loggedInIsDemoId ? defaultCompanyId : effectiveCompanyId;
       let query = supabase
         .from('quotes')
         .select('*')
         .eq('active', true)
-        .eq('company_id', effectiveCompanyId)
+        .eq('company_id', contentCompanyId)
         .order('id', { ascending: true });
       if (isViewingDefault) {
         query = query.eq('language', effectiveViewingLanguage);
@@ -5889,10 +5893,11 @@ useEffect(() => {
   const loadContentPages = async () => {
     if (!effectiveCompanyId) return;
     try {
+      const contentCompanyId = loggedInIsDemoId ? defaultCompanyId : effectiveCompanyId;
       const { data, error } = await supabase
         .from('content_pages')
         .select('*')
-        .eq('company_id', effectiveCompanyId)
+        .eq('company_id', contentCompanyId)
         .eq('language', effectiveViewingLanguage);
       if (error) throw error;
 
@@ -5945,10 +5950,11 @@ useEffect(() => {
   const loadAllContentPages = async () => {
     if (!effectiveCompanyId) return;
     try {
+      const contentCompanyId = loggedInIsDemoId ? defaultCompanyId : effectiveCompanyId;
       const { data, error } = await supabase
         .from('content_pages')
         .select('*')
-        .eq('company_id', effectiveCompanyId)
+        .eq('company_id', contentCompanyId)
         .eq('language', effectiveViewingLanguage)
         .order('created_at', { ascending: true });
       if (error) throw error;
@@ -6020,10 +6026,15 @@ useEffect(() => {
   const loadPromotionalVideos = async () => {
     if (!effectiveCompanyId) return;
     try {
+      // Mesmo padrão já usado em loadExperiences/loadProblemCategories/
+      // loadPractices: Demo Group ID mostra o CONTEÚDO do Default (curado),
+      // mas mantém a MARCA (logo/nome) do próprio Prospect — effectiveCompanyId
+      // continua sendo usado só pra branding em outros lugares do app.
+      const contentCompanyId = loggedInIsDemoId ? defaultCompanyId : effectiveCompanyId;
       const { data, error } = await supabase
         .from('promotional_videos')
         .select('*')
-        .eq('company_id', effectiveCompanyId)
+        .eq('company_id', contentCompanyId)
         .order('display_order', { ascending: true });
       
       if (error) throw error;
@@ -6783,6 +6794,41 @@ useEffect(() => {
                   {new Date(fo.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
                 </span>
               )}
+              {/* Ícone Document — junto do Delete Experience, mesmo
+                  agrupamento visual do card raiz (anexo perto das ações). */}
+              {fo.cvUrl && fo.author !== 'key_insights' && (
+                <div className="flex items-center gap-2 mt-1">
+                  <button
+                    onClick={() => {
+                      setCurrentCvUrl(fo.cvUrl);
+                      setShowCvModal(true);
+                    }}
+                    className="text-blue-600 hover:text-blue-800 inline-flex items-center gap-1 text-xs"
+                    title={`View ${appSettings.documentType === 'cv' ? 'CV' : 'File'} - ${fo.cvFilename || 'Document'}`}
+                  >
+                    <span className="font-semibold">{appSettings.documentType === 'cv' ? 'CV' : 'File'}</span> {appSettings.documentType === 'cv' ? '📄' : '📎'}
+                  </button>
+                  {appSettings.requireEmployeeLogin && fo.employeeId === employeeId && (
+                    <button
+                      onClick={async () => {
+                        if (window.confirm(t('confirm_delete_file'))) {
+                          await deleteFileFromStorage(fo.cvUrl);
+                          const { error } = await supabase
+                            .from('experiences')
+                            .update({ cv_url: null, cv_filename: null })
+                            .eq('id', fo.id);
+                          if (error) { alert('Error removing file'); }
+                          else { await loadExperiences(true); }
+                        }
+                      }}
+                      className="text-red-600 hover:text-red-800 text-xs"
+                      title={t('delete_file_tooltip')}
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+              )}
               {appSettings.requireEmployeeLogin && fo.employeeId === employeeId && (
                 <button onClick={async () => { if (window.confirm(t('confirm_delete_experience'))) await deleteExperienceFromSupabase(fo.id); }}
                   className="text-red-600 hover:text-red-800 text-xs mt-3 inline-flex items-center gap-1">
@@ -6844,43 +6890,6 @@ useEffect(() => {
             {fo.tags && fo.tags.length > 0 && (
               <div className="mb-4 flex flex-wrap gap-1">
                 {fo.tags.map(tag => <span key={tag} className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">{tag}</span>)}
-              </div>
-            )}
-            {/* Ícone Document — faltava aqui; o anexo sempre foi salvo
-                certinho (addExperienceToSupabase trata follow-on igual a
-                experience normal), só nunca teve UI pra aparecer neste
-                card específico. */}
-            {fo.cvUrl && fo.author !== 'key_insights' && (
-              <div className="flex items-center gap-2 mb-4">
-                <button
-                  onClick={() => {
-                    setCurrentCvUrl(fo.cvUrl);
-                    setShowCvModal(true);
-                  }}
-                  className="text-blue-600 hover:text-blue-800 inline-flex items-center gap-1 text-xs"
-                  title={`View ${appSettings.documentType === 'cv' ? 'CV' : 'File'} - ${fo.cvFilename || 'Document'}`}
-                >
-                  <span className="font-semibold">{appSettings.documentType === 'cv' ? 'CV' : 'File'}</span> {appSettings.documentType === 'cv' ? '📄' : '📎'}
-                </button>
-                {appSettings.requireEmployeeLogin && fo.employeeId === employeeId && (
-                  <button
-                    onClick={async () => {
-                      if (window.confirm(t('confirm_delete_file'))) {
-                        await deleteFileFromStorage(fo.cvUrl);
-                        const { error } = await supabase
-                          .from('experiences')
-                          .update({ cv_url: null, cv_filename: null })
-                          .eq('id', fo.id);
-                        if (error) { alert('Error removing file'); }
-                        else { await loadExperiences(true); }
-                      }
-                    }}
-                    className="text-red-600 hover:text-red-800 text-xs"
-                    title={t('delete_file_tooltip')}
-                  >
-                    ✕
-                  </button>
-                )}
               </div>
             )}
             {/* Matching Common Case / Matching Experiences — mesmo mecanismo do card principal */}
