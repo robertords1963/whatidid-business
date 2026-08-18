@@ -9863,6 +9863,7 @@ autoComplete="off"
                                         type="checkbox"
                                         checked={isChecked}
                                         onChange={async (e) => {
+                                          console.log('🔍 CHECKBOX DEBUG — clicou:', ed, '| video.id:', video.id, '| e.target.checked:', e.target.checked);
                                           // Busca o valor MAIS RECENTE direto do banco, em vez de
                                           // confiar no `video` do estado React — sem isso, marcar
                                           // dois checkboxes rapidamente (ex: Pro, depois Edu) podia
@@ -9870,9 +9871,11 @@ autoComplete="off"
                                           // estado da tela ainda não tinha atualizado entre os cliques.
                                           const { data: freshRow, error: fetchError } = await supabase
                                             .from('promotional_videos').select('edition').eq('id', video.id).single();
+                                          console.log('🔍 CHECKBOX DEBUG — fetch result:', JSON.stringify(freshRow), 'erro:', fetchError);
                                           if (fetchError) { alert(t('generic_error') + ' ' + fetchError.message); return; }
                                           const freshList = freshRow.edition == null ? ['corp', 'pro', 'edu'] : freshRow.edition.split(',').filter(Boolean);
                                           const newList = e.target.checked ? [...new Set([...freshList, ed])] : freshList.filter(x => x !== ed);
+                                          console.log('🔍 CHECKBOX DEBUG — freshList:', freshList, '| newList:', newList);
                                           // A coluna `edition` é NOT NULL no banco — nunca pode
                                           // gravar null aqui (era isso que causava a gravação
                                           // falhar silenciosamente sempre que as 3 caixas ficavam
@@ -9880,8 +9883,10 @@ autoComplete="off"
                                           if (newList.length === 0) { alert(t('select_at_least_one_edition')); return; }
                                           const newValue = newList.join(',');
                                           const { error } = await supabase.from('promotional_videos').update({ edition: newValue }).eq('id', video.id);
+                                          console.log('🔍 CHECKBOX DEBUG — update newValue:', newValue, '| erro:', error);
                                           if (error) { alert(t('generic_error') + ' ' + error.message); return; }
                                           await loadPromotionalVideos();
+                                          console.log('🔍 CHECKBOX DEBUG — loadPromotionalVideos concluído');
                                         }}
                                         className="w-3 h-3"
                                       />
