@@ -678,12 +678,12 @@ const UI_STRINGS = {
   cat_help_export: { en: 'Export — always exports one Function/Practice at a time: the one selected in the dropdown above. To get another Practice, switch the selection and export again.', es: 'Exportar — siempre exporta una Función/Práctica a la vez: la seleccionada en el menú de arriba. Para obtener otra Práctica, cambie la selección y exporte de nuevo.', pt: 'Export — sempre exporta uma Function/Practice de cada vez: a que estiver selecionada no dropdown acima. Pra pegar outra Practice, troque a seleção e exporte de novo.', zh: '导出——每次只导出一个职能/领域（Function/Practice）：即上方下拉菜单中当前选中的那个。要导出其他领域，请切换选择后重新导出。' },
   cat_help_import: { en: 'Import — can mix multiple Practices in a single file. Each row is routed by the "Practice" column — if filled in, the app looks for a Practice with that exact name (case-insensitive); if not found, that row is skipped as an error, nothing is created. If left blank, the row uses the Practice selected in the dropdown.', es: 'Importar — puede mezclar varias Prácticas en un solo archivo. Cada fila se dirige por la columna "Practice" — si está completa, la app busca una Práctica con ese nombre exacto (sin distinguir mayúsculas/minúsculas); si no la encuentra, esa fila se omite como error, no se crea nada. Si queda en blanco, la fila usa la Práctica seleccionada en el menú.', pt: 'Import — pode misturar várias Practices num único arquivo. Cada linha é roteada pela coluna "Practice" — se vier preenchida, o app procura uma Practice com esse nome exato (sem diferenciar maiúsculas/minúsculas); se não encontrar, essa linha é pulada como erro, sem criar nada. Se a coluna vier em branco, a linha usa a Practice selecionada no dropdown.', zh: '导入——单个文件中可以混合多个领域（Practice）。每一行根据"Practice"列进行分配——如果填写了，应用会查找名称完全匹配的领域（不区分大小写）；如果找不到，该行将被跳过并计为错误，不会创建任何内容。如果留空，该行将使用下拉菜单中选中的领域。' },
   cat_help_tags: { en: 'Tags: separate multiple tags with a comma (e.g. sales, marketing, b2b) — there\'s no limit on how many, and you don\'t need to worry about spaces around the comma, they\'re ignored automatically.', es: 'Etiquetas: separe varias etiquetas con una coma (ej: ventas, marketing, b2b) — no hay límite de cantidad, y no necesita preocuparse por espacios alrededor de la coma, se ignoran automáticamente.', pt: 'Tags: separe múltiplas tags por vírgula (ex: vendas, marketing, b2b) — não tem limite de quantidade, e não precisa se preocupar com espaço em volta da vírgula, ele é ignorado automaticamente.', zh: '标签：用逗号分隔多个标签（例如：销售, 市场, b2b）——数量没有限制，逗号周围的空格也无需担心，系统会自动忽略。' },
-  cat_help_new_title: { en: 'Step by step — New Categories', es: 'Paso a Paso — Categorías Nuevas', pt: 'Passo a passo — Categorias Novas', zh: '步骤说明——新建分类' },
+  cat_help_new_title: { en: 'Step by step — New Function/Practice', es: 'Paso a Paso — Función/Práctica Nueva', pt: 'Passo a passo — Function/Practice Nova', zh: '步骤说明——新建职能/领域' },
   cat_help_new_1: { en: 'Create the new Function/Practice (if it doesn\'t exist yet) and select it in the dropdown', es: 'Cree la nueva Función/Práctica (si aún no existe) y selecciónela en el menú', pt: 'Crie a Function/Practice nova (se ainda não existir) e selecione ela no dropdown', zh: '创建新的职能/领域（如果尚不存在），并在下拉菜单中选中它' },
   cat_help_new_2: { en: 'Export Excel — comes out with 3 template rows (Practice already filled in) plus one final hint row ("[Add as many rows as you need]")', es: 'Exportar Excel — sale con 3 filas modelo (Practice ya completo) más una fila final de ayuda ("[Agregue tantas filas como necesite]")', pt: 'Export Excel — sai com 3 linhas modelo (Practice já preenchido) + uma linha final de dica ("[Adicione quantas linhas você precisar]")', zh: '导出Excel——将生成3行模板（Practice已填写）以及最后一行提示（"[根据需要添加更多行]"）' },
   cat_help_new_3: { en: 'Fill in Category and Description on each row (both required) — Tags is up to you. Add as many rows as you want, one per new category', es: 'Complete Category y Description en cada fila (ambos obligatorios) — Tags queda a su criterio. Agregue tantas filas como quiera, una por categoría nueva', pt: 'Preencha Category e Description em cada linha (ambos obrigatórios) — Tags fica a seu critério. Adicione quantas linhas quiser, uma por categoria nova', zh: '在每一行中填写Category和Description（两者均为必填）——Tags可自行决定。可以根据需要添加任意数量的行，每行对应一个新分类' },
   cat_help_new_4: { en: 'Save the file and click Import Excel, selecting that same file', es: 'Guarde el archivo y haga clic en Import Excel, seleccionando ese mismo archivo', pt: 'Salve o arquivo e clique em Import Excel, selecionando esse mesmo arquivo', zh: '保存文件，点击导入Excel（Import Excel），选择刚才保存的这个文件' },
-  cat_help_existing_title: { en: 'Step by step — Existing Categories', es: 'Paso a Paso — Categorías Existentes', pt: 'Passo a passo — Categorias Existentes', zh: '步骤说明——修改现有分类' },
+  cat_help_existing_title: { en: 'Step by step — Existing Function/Practice', es: 'Paso a Paso — Función/Práctica Existente', pt: 'Passo a passo — Function/Practice Existente', zh: '步骤说明——已有职能/领域' },
   cat_help_existing_1: { en: 'Select the Practice in the dropdown', es: 'Seleccione la Práctica en el menú', pt: 'Selecione a Practice no dropdown', zh: '在下拉菜单中选中该领域（Practice）' },
   cat_help_existing_2: { en: 'Export Excel — comes out with all current categories of that Practice, already filled in with today\'s values (Practice, Category, Description, Tags)', es: 'Exportar Excel — sale con todas las categorías actuales de esa Práctica, ya completas con los valores de hoy (Practice, Category, Description, Tags)', pt: 'Export Excel — sai com todas as categorias atuais dessa Practice, já preenchidas com os valores de hoje (Practice, Category, Description, Tags)', zh: '导出Excel——将生成该领域下所有现有分类，并已填入当前的数值（Practice、Category、Description、Tags）' },
   cat_help_existing_3: { en: 'Edit whatever you want to change: update Description/Tags of an existing row, or add new rows to create new categories in the same batch. Leave a cell blank only if you want to clear that field on purpose — the current value already came filled in from the export, so a blank cell is treated as a deliberate decision, not an oversight', es: 'Edite lo que quiera cambiar: actualice Description/Tags de una fila existente, o agregue filas nuevas para crear categorías nuevas en la misma tanda. Deje una celda en blanco solo si quiere borrar ese campo a propósito — el valor actual ya vino completo desde la exportación, así que una celda vacía se trata como una decisión deliberada, no un olvido', pt: 'Edite o que quiser mudar: altere Description/Tags de uma linha existente, ou adicione linhas novas pra criar categorias novas na mesma leva. Deixe uma célula em branco só se quiser apagar aquele campo de propósito — o valor atual já veio preenchido no export, então célula vazia é tratada como decisão deliberada, não esquecimento', zh: '编辑您想要更改的内容：更新现有行的Description/Tags，或添加新行以在同一批次中创建新分类。仅在您想故意清空某字段时才将单元格留空——当前数值已从导出文件中填好，因此空白单元格会被视为有意为之，而非疏漏' },
@@ -3888,7 +3888,8 @@ const handleExcelUpload = async (file) => {
       const email = String(row['Email'] || row['email'] || row['Correo'] || row['E-mail'] || row['邮箱'] || '').trim();
       if (!empId || !name) { errors++; continue; }
       const { error } = await supabase.from('employees').insert([{
-        employee_id: empId, name, country, email, status: 'pending', active: true
+        employee_id: empId, name, country, email, status: 'pending', active: true,
+        company_id: effectiveCompanyId
       }]);
       if (error) { errors++; } else { added++; }
     }
@@ -10368,10 +10369,6 @@ autoComplete="off"
         <button onClick={addEmployee} className="px-4 py-2 bg-slate-600 text-white rounded-lg text-sm hover:bg-slate-700">
           {t('add_employee_btn')}
         </button>
-        <label className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 cursor-pointer">
-          {t('import_excel_btn')}
-          <input type="file" accept=".xlsx,.xls" className="hidden" onChange={(e) => { if(e.target.files[0]) handleExcelUpload(e.target.files[0]); e.target.value=''; }} />
-        </label>
         <button
           onClick={async () => {
             try {
@@ -10393,6 +10390,10 @@ autoComplete="off"
         >
           {t('export_excel_btn')}
         </button>
+        <label className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 cursor-pointer">
+          {t('import_excel_btn')}
+          <input type="file" accept=".xlsx,.xls" className="hidden" onChange={(e) => { if(e.target.files[0]) handleExcelUpload(e.target.files[0]); e.target.value=''; }} />
+        </label>
         <span className="text-xs text-gray-500 self-center">{t('excel_columns_employee_full')}</span>
       </div>
     </div>
@@ -10818,6 +10819,36 @@ autoComplete="off"
 
       {/* Import / Export Excel */}
       <div className="border-t pt-3 mt-1 flex gap-2 flex-wrap items-center">
+        {/* Export */}
+        <button
+          onClick={async () => {
+            try {
+              const XLSX = await import('https://cdn.sheetjs.com/xlsx-0.20.0/package/xlsx.mjs');
+              const practiceName = practices.find(p => p.id === selectedPracticeId)?.name || 'Practice';
+              // Practice nova, sem nenhuma categoria ainda — em vez de sair
+              // totalmente vazio (só cabeçalho), gera 3 linhas modelo com
+              // "Practice" já preenchido certinho, evitando erro de digitação
+              // na hora de preencher manualmente, com mais espaço de cara.
+              const rows = adminCategories.length > 0
+                ? adminCategories.map(cat => ({
+                    Practice: practiceName,
+                    Category: cat.name,
+                    Description: cat.description || '',
+                    Tags: (cat.tags || []).join(', ')
+                  }))
+                : [
+                    ...Array.from({ length: 3 }, () => ({ Practice: practiceName, Category: '', Description: '', Tags: '' })),
+                    { Practice: '', Category: t('excel_add_more_rows_hint'), Description: '', Tags: '' }
+                  ];
+              const ws = XLSX.utils.json_to_sheet(rows);
+              const wb = XLSX.utils.book_new();
+              XLSX.utils.book_append_sheet(wb, ws, 'Categories');
+              XLSX.writeFile(wb, `categories_${practiceName.replace(/\s+/g,'_')}.xlsx`);
+            } catch(err) { alert(t('error_exporting') + ' ' + err.message); }
+          }}
+          className="px-3 py-1.5 bg-gray-600 text-white rounded-lg text-xs hover:bg-gray-700 flex items-center gap-1"
+        >{t('export_excel_btn')}</button>
+
         {/* Import */}
         <label className="px-3 py-1.5 bg-green-600 text-white rounded-lg text-xs hover:bg-green-700 cursor-pointer flex items-center gap-1">
           {t('import_excel_btn2')}
@@ -10894,36 +10925,6 @@ for (const row of rows) {
             }}
           />
         </label>
-
-        {/* Export */}
-        <button
-          onClick={async () => {
-            try {
-              const XLSX = await import('https://cdn.sheetjs.com/xlsx-0.20.0/package/xlsx.mjs');
-              const practiceName = practices.find(p => p.id === selectedPracticeId)?.name || 'Practice';
-              // Practice nova, sem nenhuma categoria ainda — em vez de sair
-              // totalmente vazio (só cabeçalho), gera 3 linhas modelo com
-              // "Practice" já preenchido certinho, evitando erro de digitação
-              // na hora de preencher manualmente, com mais espaço de cara.
-              const rows = adminCategories.length > 0
-                ? adminCategories.map(cat => ({
-                    Practice: practiceName,
-                    Category: cat.name,
-                    Description: cat.description || '',
-                    Tags: (cat.tags || []).join(', ')
-                  }))
-                : [
-                    ...Array.from({ length: 3 }, () => ({ Practice: practiceName, Category: '', Description: '', Tags: '' })),
-                    { Practice: '', Category: t('excel_add_more_rows_hint'), Description: '', Tags: '' }
-                  ];
-              const ws = XLSX.utils.json_to_sheet(rows);
-              const wb = XLSX.utils.book_new();
-              XLSX.utils.book_append_sheet(wb, ws, 'Categories');
-              XLSX.writeFile(wb, `categories_${practiceName.replace(/\s+/g,'_')}.xlsx`);
-            } catch(err) { alert(t('error_exporting') + ' ' + err.message); }
-          }}
-          className="px-3 py-1.5 bg-gray-600 text-white rounded-lg text-xs hover:bg-gray-700 flex items-center gap-1"
-        >{t('export_excel_btn')}</button>
 
         {/* "i" — ajuda */}
         <button
