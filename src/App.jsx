@@ -689,6 +689,19 @@ const UI_STRINGS = {
   cat_help_existing_3: { en: 'Edit whatever you want to change: update Description/Tags of an existing row, or add new rows to create new categories in the same batch. Leave a cell blank only if you want to clear that field on purpose — the current value already came filled in from the export, so a blank cell is treated as a deliberate decision, not an oversight', es: 'Edite lo que quiera cambiar: actualice Description/Tags de una fila existente, o agregue filas nuevas para crear categorías nuevas en la misma tanda. Deje una celda en blanco solo si quiere borrar ese campo a propósito — el valor actual ya vino completo desde la exportación, así que una celda vacía se trata como una decisión deliberada, no un olvido', pt: 'Edite o que quiser mudar: altere Description/Tags de uma linha existente, ou adicione linhas novas pra criar categorias novas na mesma leva. Deixe uma célula em branco só se quiser apagar aquele campo de propósito — o valor atual já veio preenchido no export, então célula vazia é tratada como decisão deliberada, não esquecimento', zh: '编辑您想要更改的内容：更新现有行的Description/Tags，或添加新行以在同一批次中创建新分类。仅在您想故意清空某字段时才将单元格留空——当前数值已从导出文件中填好，因此空白单元格会被视为有意为之，而非疏漏' },
   cat_help_existing_4: { en: 'Deleting a category can\'t be done via Excel — removing the row from the spreadsheet doesn\'t delete anything in the database; deletion is always manual, via the trash icon in the categories list', es: 'Eliminar una categoría no se puede hacer por Excel — quitar la fila de la planilla no borra nada en la base de datos; la eliminación siempre es manual, por el ícono de basura en la lista de categorías', pt: 'Excluir uma categoria não pode ser feito pelo Excel — remover a linha da planilha não apaga nada no banco; exclusão é sempre manual, pelo botão de lixeira na lista de categorias', zh: '无法通过Excel删除分类——从表格中删除某行并不会删除数据库中的对应内容；删除操作必须手动进行，通过分类列表中的垃圾桶图标完成' },
   cat_help_existing_5: { en: 'Save the file and click Import Excel, selecting that same file', es: 'Guarde el archivo y haga clic en Import Excel, seleccionando ese mismo archivo', pt: 'Salve o arquivo e clique em Import Excel, selecionando esse mesmo arquivo', zh: '保存文件，点击导入Excel（Import Excel），选择刚才保存的这个文件' },
+  emp_help_title: { en: 'How Import/Export Works', es: 'Cómo Funciona el Import/Export', pt: 'Como Funciona o Import/Export', zh: '导入/导出如何运作' },
+  emp_help_export: { en: 'Export — brings all employees of the current company, with Employee ID, Name, Country, Email and Status.', es: 'Exportar — trae todos los empleados de la empresa actual, con Employee ID, Name, Country, Email y Status.', pt: 'Export — traz todos os funcionários da empresa atual, com Employee ID, Name, Country, Email e Status.', zh: '导出——将带出当前公司的所有员工信息，包括Employee ID、Name、Country、Email和Status。' },
+  emp_help_new_title: { en: 'Step by step — New Employees', es: 'Paso a Paso — Empleados Nuevos', pt: 'Passo a passo — Novos Funcionários', zh: '步骤说明——新增员工' },
+  emp_help_new_1: { en: 'Export Excel — comes out with the employees that already exist (serves as a template)', es: 'Exportar Excel — sale con los empleados que ya existen (sirve de modelo)', pt: 'Export Excel — sai com os funcionários que já existem (serve de modelo)', zh: '导出Excel——将生成已有员工的列表（可作为模板参考）' },
+  emp_help_new_2: { en: 'Add a new row for each employee: Employee ID, Name and Email are required (Email is necessary for 1st Access to work); Country is up to you', es: 'Agregue una fila nueva por cada empleado: Employee ID, Name y Email son obligatorios (Email es necesario para que funcione el 1st Access); Country queda a su criterio', pt: 'Adicione uma linha nova pra cada funcionário: Employee ID, Name e Email são obrigatórios (Email é necessário pro 1st Access funcionar); Country fica a seu critério', zh: '为每位员工添加一行：Employee ID、Name和Email为必填项（Email是首次登录1st Access功能正常运作所必需的）；Country可自行决定是否填写' },
+  emp_help_new_3: { en: 'Save the file and click Import Excel — new employees always start with "pending" status, regardless of what\'s written in the Status column', es: 'Guarde el archivo y haga clic en Import Excel — los empleados nuevos siempre entran con estado "pending", sin importar lo que esté escrito en la columna Status', pt: 'Salve o arquivo e clique em Import Excel — funcionários novos sempre entram com status "pending", independente do que estiver escrito na coluna Status', zh: '保存文件，点击导入Excel（Import Excel）——新员工的状态始终为"pending"（待处理），无论Status列中写了什么内容' },
+  emp_help_existing_title: { en: 'Step by step — Existing Employees', es: 'Paso a Paso — Empleados Existentes', pt: 'Passo a passo — Funcionários Existentes', zh: '步骤说明——修改现有员工' },
+  emp_help_existing_1: { en: 'Export Excel — comes out with the current data of each employee', es: 'Exportar Excel — sale con los datos actuales de cada empleado', pt: 'Export Excel — sai com os dados atuais de cada funcionário', zh: '导出Excel——将生成每位员工当前的数据' },
+  emp_help_existing_2: { en: 'Edit Country on the rows you want to change — a blank cell deletes that field on purpose (the current value already came filled in from the export, so blank is a deliberate decision)', es: 'Edite Country en las filas que quiera cambiar — una celda en blanco borra ese campo a propósito (el valor actual ya vino completo desde la exportación, así que en blanco es una decisión deliberada)', pt: 'Edite Country das linhas que quiser mudar — célula em branco apaga esse campo de propósito (o valor atual já veio preenchido no export, então vazio é uma decisão deliberada)', zh: '编辑您想更改的行的Country——空白单元格会故意清空该字段（当前数值已从导出文件中填好，因此留空是有意为之）' },
+  emp_help_existing_3: { en: 'Name and Email cannot be left blank — if either comes empty on a row for an existing employee, that row becomes an error and nothing on that employee is changed (to avoid the risk of accidentally deleting someone\'s name or locking their access)', es: 'Name y Email no pueden quedar en blanco — si alguno de los dos viene vacío en una fila de un empleado existente, esa fila se convierte en error y no se cambia nada de ese empleado (para evitar el riesgo de borrar el nombre de alguien o bloquear su acceso sin querer)', pt: 'Name e Email não podem ficar em branco — se um dos dois vier vazio numa linha de um funcionário já existente, essa linha vira erro e nada é alterado nele (pra não correr o risco de apagar o nome ou travar o acesso de alguém sem querer)', zh: 'Name和Email不能留空——如果某个已有员工的这两项中有任意一项为空，该行将被视为错误，且不会对该员工做任何更改（以避免意外删除姓名或导致其无法登录）' },
+  emp_help_existing_4: { en: 'Status is not changed by Import, even for an existing employee — to change status, it\'s always manual, in the list', es: 'Status no se cambia por Import, incluso para un empleado existente — para cambiar el estado, siempre es manual, en la lista', pt: 'Status não é alterado pelo Import, mesmo pra funcionário já existente — pra mudar o status, é sempre manual, na lista', zh: '导入操作不会更改Status，即使是已有员工也是如此——要更改状态，必须在列表中手动操作' },
+  emp_help_existing_5: { en: 'Deleting an employee can\'t be done via Excel — removing the row from the spreadsheet doesn\'t delete anything; deletion is always manual', es: 'Eliminar un empleado no se puede hacer por Excel — quitar la fila de la planilla no borra nada; la eliminación siempre es manual', pt: 'Excluir um funcionário não pode ser feito pelo Excel — remover a linha da planilha não apaga nada; exclusão é sempre manual', zh: '无法通过Excel删除员工——从表格中删除某行并不会删除任何内容；删除操作必须手动进行' },
+  emp_help_existing_6: { en: 'Save the file and click Import Excel, selecting that same file', es: 'Guarde el archivo y haga clic en Import Excel, seleccionando ese mismo archivo', pt: 'Salve o arquivo e clique em Import Excel, selecionando esse mesmo arquivo', zh: '保存文件，点击导入Excel（Import Excel），选择刚才保存的这个文件' },
   error_adding_category: { en: 'Error adding category', es: 'Error al agregar la categoría', pt: 'Erro ao adicionar a categoria', zh: '添加分类时出错' },
   new_practice_name_prompt: { en: 'New Practice name:', es: 'Nombre de la nueva Práctica:', pt: 'Nome da nova Prática:', zh: '新领域名称：' },
   new_practice_name_label: { en: 'Practice name', es: 'Nombre de la Práctica', pt: 'Nome da Prática', zh: '领域名称' },
@@ -955,6 +968,7 @@ const [showNewPracticeForm, setShowNewPracticeForm] = useState(false);
 const [newPracticeName, setNewPracticeName] = useState('');
 const [newPracticeEditions, setNewPracticeEditions] = useState(['corp', 'pro']); // padrão: mesmo valor default da migration
 const [showCategoriesImportHelp, setShowCategoriesImportHelp] = useState(false);
+const [showEmployeesImportHelp, setShowEmployeesImportHelp] = useState(false);
 const [editingPracticeEditions, setEditingPracticeEditions] = useState([]);
 useEffect(() => {
   const p = practices.find(pr => pr.id === selectedPracticeId);
@@ -1451,8 +1465,8 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
         pt: (v) => `Funcionário adicionado com sucesso a ${v.company}!`, zh: (v) => `已成功将员工添加到 ${v.company}！`,
       },
       upload_complete: {
-        en: (v) => `Upload complete! Added: ${v.added}, Errors/Skipped: ${v.errors}`, es: (v) => `¡Carga completa! Agregados: ${v.added}, Errores/Omitidos: ${v.errors}`,
-        pt: (v) => `Upload concluído! Adicionados: ${v.added}, Erros/Ignorados: ${v.errors}`, zh: (v) => `上传完成！已添加：${v.added}，出错/跳过：${v.errors}`,
+        en: (v) => `Upload complete! Added: ${v.added}, Updated: ${v.updated}, Errors/Skipped: ${v.errors}`, es: (v) => `¡Carga completa! Agregados: ${v.added}, Actualizados: ${v.updated}, Errores/Omitidos: ${v.errors}`,
+        pt: (v) => `Upload concluído! Adicionados: ${v.added}, Atualizados: ${v.updated}, Erros/Ignorados: ${v.errors}`, zh: (v) => `上传完成！已添加：${v.added}，已更新：${v.updated}，出错/跳过：${v.errors}`,
       },
       already_top_position: {
         en: (v) => `This experience is already set as Top ${v.position}`, es: (v) => `Esta experiencia ya está marcada como Top ${v.position}`,
@@ -3879,22 +3893,46 @@ const handleExcelUpload = async (file) => {
     const wb = XLSX.read(data);
     const ws = wb.Sheets[wb.SheetNames[0]];
     const rows = XLSX.utils.sheet_to_json(ws);
-    
-    let added = 0, errors = 0;
+
+    let added = 0, updated = 0, errors = 0;
+    // Busca os employees já cadastrados nessa empresa, pra decidir
+    // update vs insert por Employee ID (mesmo padrão de Categories).
+    const { data: existingEmployees } = await supabase.from('employees').select('id, employee_id').eq('company_id', effectiveCompanyId);
+
     for (const row of rows) {
       const empId = String(row['Employee ID'] || row['employee_id'] || row['ID de Empleado'] || row['ID do Funcionário'] || row['员工 ID'] || '').trim();
       const name = String(row['Name'] || row['name'] || row['Nombre'] || row['Nome'] || row['姓名'] || '').trim();
       const country = String(row['Country'] || row['country'] || row['País'] || row['国家'] || '').trim();
       const email = String(row['Email'] || row['email'] || row['Correo'] || row['E-mail'] || row['邮箱'] || '').trim();
-      if (!empId || !name) { errors++; continue; }
-      const { error } = await supabase.from('employees').insert([{
-        employee_id: empId, name, country, email, status: 'pending', active: true,
-        company_id: effectiveCompanyId
-      }]);
-      if (error) { errors++; } else { added++; }
+      if (!empId) { errors++; continue; }
+
+      const existing = (existingEmployees || []).find(e => e.employee_id === empId);
+
+      if (existing) {
+        // Name e Email são protegidos — célula vazia numa linha de
+        // atualização vira erro, sem tocar em nada, em vez de apagar
+        // (Name quebraria telas que mostram emp.name; Email travaria o
+        // 1st Access de alguém que já tem conta). Country segue o mesmo
+        // padrão de Categories — vazio apaga de propósito.
+        if (!name || !email) { errors++; continue; }
+        const { error } = await supabase.from('employees')
+          .update({ name, email, country: country || null })
+          .eq('id', existing.id);
+        if (error) { errors++; } else { updated++; }
+      } else {
+        // Employee novo — Employee ID, Name e Email são obrigatórios
+        // (Email é necessário pro 1st Access funcionar). Country fica
+        // a critério.
+        if (!name || !email) { errors++; continue; }
+        const { error } = await supabase.from('employees').insert([{
+          employee_id: empId, name, country, email, status: 'pending', active: true,
+          company_id: effectiveCompanyId
+        }]);
+        if (error) { errors++; } else { added++; }
+      }
     }
     await loadEmployees();
-    alert(tAlert('upload_complete', { added, errors }));
+    alert(tAlert('upload_complete', { added, updated, errors }));
   } catch (error) {
     console.error('Error uploading Excel:', error);
     alert(t('error_reading_excel'));
@@ -10394,8 +10432,45 @@ autoComplete="off"
           {t('import_excel_btn')}
           <input type="file" accept=".xlsx,.xls" className="hidden" onChange={(e) => { if(e.target.files[0]) handleExcelUpload(e.target.files[0]); e.target.value=''; }} />
         </label>
+        <button
+          onClick={() => setShowEmployeesImportHelp(true)}
+          title={t('emp_help_title')}
+          className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 hover:bg-blue-200 text-xs font-bold flex items-center justify-center flex-shrink-0"
+        >i</button>
         <span className="text-xs text-gray-500 self-center">{t('excel_columns_employee_full')}</span>
       </div>
+      {showEmployeesImportHelp && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowEmployeesImportHelp(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-6 max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-gray-800">{t('emp_help_title')}</h3>
+              <button onClick={() => setShowEmployeesImportHelp(false)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
+            </div>
+            <div className="space-y-3 text-sm text-gray-700">
+              <p><strong>{t('export_excel_btn')}</strong> — {t('emp_help_export')}</p>
+              <div className="border-t pt-3">
+                <p className="font-semibold text-gray-800 mb-2">{t('emp_help_new_title')}</p>
+                <ol className="list-decimal list-inside space-y-1">
+                  <li>{t('emp_help_new_1')}</li>
+                  <li>{t('emp_help_new_2')}</li>
+                  <li>{t('emp_help_new_3')}</li>
+                </ol>
+              </div>
+              <div className="border-t pt-3">
+                <p className="font-semibold text-gray-800 mb-2">{t('emp_help_existing_title')}</p>
+                <ol className="list-decimal list-inside space-y-1">
+                  <li>{t('emp_help_existing_1')}</li>
+                  <li>{t('emp_help_existing_2')}</li>
+                  <li>{t('emp_help_existing_3')}</li>
+                  <li>{t('emp_help_existing_4')}</li>
+                  <li>{t('emp_help_existing_5')}</li>
+                  <li>{t('emp_help_existing_6')}</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
     )}
 
