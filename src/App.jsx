@@ -702,6 +702,39 @@ const UI_STRINGS = {
   emp_help_existing_4: { en: 'Status is not changed by Import, even for an existing employee — to change status, it\'s always manual, in the list', es: 'Status no se cambia por Import, incluso para un empleado existente — para cambiar el estado, siempre es manual, en la lista', pt: 'Status não é alterado pelo Import, mesmo pra funcionário já existente — pra mudar o status, é sempre manual, na lista', zh: '导入操作不会更改Status，即使是已有员工也是如此——要更改状态，必须在列表中手动操作' },
   emp_help_existing_5: { en: 'Deleting an employee can\'t be done via Excel — removing the row from the spreadsheet doesn\'t delete anything; deletion is always manual', es: 'Eliminar un empleado no se puede hacer por Excel — quitar la fila de la planilla no borra nada; la eliminación siempre es manual', pt: 'Excluir um funcionário não pode ser feito pelo Excel — remover a linha da planilha não apaga nada; exclusão é sempre manual', zh: '无法通过Excel删除员工——从表格中删除某行并不会删除任何内容；删除操作必须手动进行' },
   emp_help_existing_6: { en: 'Save the file and click Import Excel, selecting that same file', es: 'Guarde el archivo y haga clic en Import Excel, seleccionando ese mismo archivo', pt: 'Salve o arquivo e clique em Import Excel, selecionando esse mesmo arquivo', zh: '保存文件，点击导入Excel（Import Excel），选择刚才保存的这个文件' },
+  cc_missing_required_fields: { en: 'Function/Practice, Category and Common Case are required', es: 'Función/Práctica, Category y Common Case son obligatorios', pt: 'Function/Practice, Category e Common Case são obrigatórios', zh: 'Function/Practice、Category和Common Case均为必填项' },
+  cc_need_at_least_one_action: { en: 'Add at least one action in one of the three sections', es: 'Agregue al menos una acción en una de las tres secciones', pt: 'Adicione pelo menos uma ação em uma das três seções', zh: '请至少在三个部分中的一个添加一项行动' },
+  cc_result_varies_text: { en: 'Outcomes may vary depending on the actions taken, which reflect not only what is done, but also how, when, and in what manner it is carried out, as outlined here.', es: 'Los resultados pueden variar según las acciones tomadas, que reflejan no solo lo que se hace, sino también cómo, cuándo y de qué manera se lleva a cabo, como se describe aquí.', pt: 'Os resultados podem variar dependendo das ações tomadas, que refletem não só o que é feito, mas também como, quando e de que maneira é realizado, conforme descrito aqui.', zh: '结果可能因所采取的行动而异，这不仅反映了所做的事情，还反映了如何、何时以及以何种方式执行，如本文所述。' },
+  confirm_delete_common_case: { en: 'Delete this Common Case? This cannot be undone.', es: '¿Eliminar este Common Case? Esta acción no se puede deshacer.', pt: 'Excluir este Common Case? Isso não pode ser desfeito.', zh: '删除此Common Case？此操作无法撤销。' },
+  manage_common_cases_title: { en: '📋 Manage Common Cases', es: '📋 Gestionar Common Cases', pt: '📋 Gerenciar Common Cases', zh: '📋 管理Common Cases' },
+  cc_add_btn: { en: '+ Add Common Case', es: '+ Agregar Common Case', pt: '+ Adicionar Common Case', zh: '+ 添加Common Case' },
+  cc_none_yet: { en: 'No Common Cases registered for this Function/Practice yet.', es: 'Aún no hay Common Cases registrados para esta Función/Práctica.', pt: 'Nenhum Common Case cadastrado ainda para essa Function/Practice.', zh: '该职能/领域尚未注册任何Common Case。' },
+  cc_origin_imported: { en: 'Imported from Default', es: 'Importado del Default', pt: 'Importado do Default', zh: '从Default导入' },
+  cc_origin_created_by_you: { en: 'Created by you', es: 'Creado por usted', pt: 'Criado por você', zh: '由您创建' },
+  cc_edit_title: { en: 'Edit Common Case', es: 'Editar Common Case', pt: 'Editar Common Case', zh: '编辑Common Case' },
+  function_practice_label: { en: 'Function/Practice', es: 'Función/Práctica', pt: 'Function/Practice', zh: '职能/领域' },
+  category_label: { en: 'Category', es: 'Categoría', pt: 'Categoria', zh: '分类' },
+  cc_category_placeholder: { en: 'e.g. Project Execution', es: 'ej: Ejecución de Proyectos', pt: 'ex: Execução de Projetos', zh: '例如：项目执行' },
+  cc_common_case_label: { en: 'Common Case', es: 'Common Case', pt: 'Common Case', zh: 'Common Case' },
+  cc_common_case_placeholder: { en: 'e.g. Scope Creep', es: 'ej: Aumento de Alcance', pt: 'ex: Aumento de Escopo', zh: '例如：范围蔓延' },
+  cc_worked_label: { en: 'What Worked', es: 'Lo Que Funcionó', pt: 'O Que Funcionou', zh: '有效的做法' },
+  cc_no_change_label: { en: 'No Change', es: 'Sin Cambios', pt: 'Sem Mudança', zh: '无变化' },
+  cc_got_worse_label: { en: 'Got Worse', es: 'Empeoró', pt: 'Piorou', zh: '恶化' },
+  cc_add_action_placeholder: { en: 'Describe an action...', es: 'Describa una acción...', pt: 'Descreva uma ação...', zh: '描述一项行动……' },
+  cc_add_action_btn: { en: '+ Add', es: '+ Agregar', pt: '+ Adicionar', zh: '+ 添加' },
+  cc_help_title: { en: 'How Import/Export Works', es: 'Cómo Funciona el Import/Export', pt: 'Como Funciona o Import/Export', zh: '导入/导出如何运作' },
+  cc_help_export: { en: 'Export — brings all Common Cases of the selected Function/Practice, broken back down into one row per action, with Function/Practice, Category, Common Case, Result and Action Description.', es: 'Exportar — trae todos los Common Cases de la Función/Práctica seleccionada, desglosados de vuelta en una fila por acción, con Function/Practice, Category, Common Case, Result y Action Description.', pt: 'Export — traz todos os Common Cases da Function/Practice selecionada, desmontados de volta em uma linha por ação, com Function/Practice, Category, Common Case, Result e Action Description.', zh: '导出——将带出所选职能/领域的所有Common Case，并按每个行动重新拆分为一行，包含Function/Practice、Category、Common Case、Result和Action Description。' },
+  cc_help_import: { en: 'Import — groups the rows by Function/Practice + Category + Common Case. If that exact combination already exists, its content is completely replaced by what\'s in the file for that group (removing a row from the spreadsheet removes that action from the Common Case); if it doesn\'t exist, a new Common Case is created.', es: 'Importar — agrupa las filas por Function/Practice + Category + Common Case. Si esa combinación exacta ya existe, su contenido se reemplaza completamente por lo que está en el archivo para ese grupo (quitar una fila de la planilla quita esa acción del Common Case); si no existe, se crea un Common Case nuevo.', pt: 'Import — agrupa as linhas por Function/Practice + Category + Common Case. Se essa combinação exata já existir, o conteúdo dela é totalmente substituído pelo que estiver no arquivo pra esse grupo (remover uma linha da planilha remove aquela ação do Common Case); se não existir, cria um Common Case novo.', zh: '导入——按Function/Practice + Category + Common Case对行进行分组。如果该确切组合已存在，其内容将完全被文件中该分组的内容替换（从表格中删除某行，即会从该Common Case中移除对应的行动）；如果不存在，则会创建一个新的Common Case。' },
+  cc_help_new_title: { en: 'Step by step — New Common Case', es: 'Paso a Paso — Common Case Nuevo', pt: 'Passo a passo — Common Case Novo', zh: '步骤说明——新建Common Case' },
+  cc_help_new_1: { en: 'Export Excel — comes out with a template row for each Result (WORKED, NO CHANGE, GOT WORSE), plus a final hint row', es: 'Exportar Excel — sale con una fila modelo para cada Result (WORKED, NO CHANGE, GOT WORSE), más una fila final de ayuda', pt: 'Export Excel — sai com uma linha modelo pra cada Result (WORKED, NO CHANGE, GOT WORSE), mais uma linha final de dica', zh: '导出Excel——将为每个Result（WORKED、NO CHANGE、GOT WORSE）生成一行模板，并附带最后一行提示' },
+  cc_help_new_2: { en: 'Fill in Category and Common Case (the same on every row of this group) and add one row per action, with the right Result. Add as many action rows as you need in each of the three sections', es: 'Complete Category y Common Case (lo mismo en todas las filas de este grupo) y agregue una fila por acción, con el Result correcto. Agregue tantas filas de acción como necesite en cada una de las tres secciones', pt: 'Preencha Category e Common Case (o mesmo em todas as linhas desse grupo) e adicione uma linha por ação, com o Result certo. Adicione quantas linhas de ação quiser em cada uma das três seções', zh: '填写Category和Common Case（该分组的每一行都相同），并为每个行动添加一行，标注正确的Result。可以在三个部分中的每一个添加任意数量的行动行' },
+  cc_help_new_3: { en: 'Save the file and click Import Excel, selecting that same file', es: 'Guarde el archivo y haga clic en Import Excel, seleccionando ese mismo archivo', pt: 'Salve o arquivo e clique em Import Excel, selecionando esse mesmo arquivo', zh: '保存文件，点击导入Excel（Import Excel），选择刚才保存的这个文件' },
+  cc_help_existing_title: { en: 'Step by step — Existing Common Case', es: 'Paso a Paso — Common Case Existente', pt: 'Passo a passo — Common Case Existente', zh: '步骤说明——修改现有Common Case' },
+  cc_help_existing_1: { en: 'Select the Function/Practice in the dropdown', es: 'Seleccione la Función/Práctica en el menú', pt: 'Selecione a Function/Practice no dropdown', zh: '在下拉菜单中选中该职能/领域' },
+  cc_help_existing_2: { en: 'Export Excel — comes out with all current Common Cases of that Practice, one row per action', es: 'Exportar Excel — sale con todos los Common Cases actuales de esa Práctica, una fila por acción', pt: 'Export Excel — sai com todos os Common Cases atuais dessa Practice, uma linha por ação', zh: '导出Excel——将生成该领域下所有现有Common Case，每个行动占一行' },
+  cc_help_existing_3: { en: 'Edit the Action Description of a row, remove a row entirely to delete that action, or add new rows for new actions — the whole content of that Common Case is rebuilt from what\'s in the file when you reimport', es: 'Edite el Action Description de una fila, quite una fila por completo para eliminar esa acción, o agregue filas nuevas para acciones nuevas — todo el contenido de ese Common Case se reconstruye a partir de lo que está en el archivo al reimportar', pt: 'Edite o Action Description de uma linha, remova uma linha inteira pra apagar aquela ação, ou adicione linhas novas pra ações novas — todo o conteúdo desse Common Case é reconstruído a partir do que estiver no arquivo ao reimportar', zh: '编辑某一行的Action Description，完全删除某一行以删除该行动，或添加新行以增加新的行动——重新导入时，该Common Case的全部内容将根据文件中的数据重新生成' },
+  cc_help_existing_4: { en: 'Deleting an entire Common Case can\'t be done via Excel (removing all its rows just clears its content on the next import, it doesn\'t delete the record) — deletion is always manual, via the Delete button in the list', es: 'Eliminar un Common Case completo no se puede hacer por Excel (quitar todas sus filas solo vacía su contenido en la próxima importación, no elimina el registro) — la eliminación siempre es manual, por el botón Delete en la lista', pt: 'Excluir um Common Case inteiro não pode ser feito pelo Excel (remover todas as linhas dele só esvazia o conteúdo na próxima importação, não apaga o registro) — exclusão é sempre manual, pelo botão Delete na lista', zh: '无法通过Excel删除整个Common Case（删除其所有行只会在下次导入时清空其内容，并不会删除该记录）——删除操作必须手动进行，通过列表中的Delete按钮完成' },
+  cc_help_existing_5: { en: 'Save the file and click Import Excel, selecting that same file', es: 'Guarde el archivo y haga clic en Import Excel, seleccionando ese mismo archivo', pt: 'Salve o arquivo e clique em Import Excel, selecionando esse mesmo arquivo', zh: '保存文件，点击导入Excel（Import Excel），选择刚才保存的这个文件' },
   error_adding_category: { en: 'Error adding category', es: 'Error al agregar la categoría', pt: 'Erro ao adicionar a categoria', zh: '添加分类时出错' },
   new_practice_name_prompt: { en: 'New Practice name:', es: 'Nombre de la nueva Práctica:', pt: 'Nome da nova Prática:', zh: '新领域名称：' },
   new_practice_name_label: { en: 'Practice name', es: 'Nombre de la Práctica', pt: 'Nome da Prática', zh: '领域名称' },
@@ -969,6 +1002,16 @@ const [newPracticeName, setNewPracticeName] = useState('');
 const [newPracticeEditions, setNewPracticeEditions] = useState(['corp', 'pro']); // padrão: mesmo valor default da migration
 const [showCategoriesImportHelp, setShowCategoriesImportHelp] = useState(false);
 const [showEmployeesImportHelp, setShowEmployeesImportHelp] = useState(false);
+const [showCommonCasesImportHelp, setShowCommonCasesImportHelp] = useState(false);
+const [showCommonCaseForm, setShowCommonCaseForm] = useState(false);
+const [editingCommonCaseId, setEditingCommonCaseId] = useState(null);
+const [ccPracticeId, setCcPracticeId] = useState(null);
+const [ccCategory, setCcCategory] = useState('');
+const [ccCommonCase, setCcCommonCase] = useState('');
+const [ccWorked, setCcWorked] = useState([]);
+const [ccNoChange, setCcNoChange] = useState([]);
+const [ccGotWorse, setCcGotWorse] = useState([]);
+const [ccNewActionText, setCcNewActionText] = useState({ worked: '', noChange: '', gotWorse: '' });
 const [editingPracticeEditions, setEditingPracticeEditions] = useState([]);
 useEffect(() => {
   const p = practices.find(pr => pr.id === selectedPracticeId);
@@ -977,6 +1020,7 @@ useEffect(() => {
 const [shareFormPracticeId, setShareFormPracticeId] = useState(null); // practice escolhida no Share Your Experience
 const [filterPracticeId, setFilterPracticeId] = useState(null);
 const [adminCategories, setAdminCategories] = useState([]);
+const [adminCommonCases, setAdminCommonCases] = useState([]);
 const [uiPractices, setUiPractices] = useState([]);
 const [demoGroups, setDemoGroups] = useState([]);
 // Vendedores (Sellers): lista de contas com is_seller=true, e estado do form de criação.
@@ -2808,6 +2852,7 @@ const loadPractices = async () => {
     if (data && data.length > 0) {
       setSelectedPracticeId(data[0].id);
       loadAdminCategories(data[0].id);
+      loadAdminCommonCases(data[0].id);
     } else {
       // Empresa sem nenhuma Practice ainda (nada importado) — limpa qualquer
       // resíduo de uma empresa anterior, não deixa "herdado" na tela.
@@ -2843,6 +2888,243 @@ const loadAdminCategories = async (practiceId) => {
     console.error('Error loading admin categories:', error);
   }
 };
+
+// Monta o texto de `solution` de um Common Case a partir das 3 listas de
+// bullets — mesmo formato exato já usado nos 192 Common Cases existentes
+// (título com emoji + bullets com •), pra manter consistência visual com
+// o que já está publicado.
+const buildSolutionFromBullets = (worked, noChange, gotWorse) => {
+  const sections = [];
+  if (worked.length > 0) sections.push(`✅ WHAT WORKED:\n${worked.map(a => `• ${a}`).join('\n')}`);
+  if (noChange.length > 0) sections.push(`⚠️ NO CHANGE:\n${noChange.map(a => `• ${a}`).join('\n')}`);
+  if (gotWorse.length > 0) sections.push(`❌ GOT WORSE:\n${gotWorse.map(a => `• ${a}`).join('\n')}`);
+  return sections.join('\n\n');
+};
+
+// Caminho inverso — desmonta um `solution` já salvo de volta em 3 listas
+// de bullets, pra edição manual ou export em Excel.
+const parseSolutionToBullets = (solutionText) => {
+  const worked = [], noChange = [], gotWorse = [];
+  if (!solutionText) return { worked, noChange, gotWorse };
+  const sections = solutionText.split(/\n\n+/);
+  for (const section of sections) {
+    const lines = section.split('\n').filter(Boolean);
+    if (lines.length === 0) continue;
+    const header = lines[0];
+    const bullets = lines.slice(1).map(l => l.replace(/^•\s*/, '').trim()).filter(Boolean);
+    if (header.includes('WHAT WORKED')) worked.push(...bullets);
+    else if (header.includes('NO CHANGE')) noChange.push(...bullets);
+    else if (header.includes('GOT WORSE')) gotWorse.push(...bullets);
+  }
+  return { worked, noChange, gotWorse };
+};
+
+const loadAdminCommonCases = async (practiceId) => {
+  const contentCompanyId = loggedInIsDemoId ? defaultCompanyId : effectiveCompanyId;
+  const isContentDefault = contentCompanyId === defaultCompanyId;
+  if (!contentCompanyId) return;
+  try {
+    let query = supabase
+      .from('experiences')
+      .select('*')
+      .eq('author', 'key_insights')
+      .eq('company_id', contentCompanyId)
+      .order('id', { ascending: true });
+    if (isContentDefault) {
+      query = query.eq('language', effectiveViewingLanguage);
+    }
+    if (practiceId) {
+      query = query.eq('practice_id', practiceId);
+    }
+    const { data, error } = await query;
+    if (error) throw error;
+    setAdminCommonCases(data || []);
+  } catch (error) {
+    console.error('Error loading admin common cases:', error);
+  }
+};
+
+const openNewCommonCaseForm = () => {
+  setEditingCommonCaseId(null);
+  setCcPracticeId(selectedPracticeId);
+  setCcCategory('');
+  setCcCommonCase('');
+  setCcWorked([]);
+  setCcNoChange([]);
+  setCcGotWorse([]);
+  setCcNewActionText({ worked: '', noChange: '', gotWorse: '' });
+  setShowCommonCaseForm(true);
+};
+
+const openEditCommonCaseForm = (cc) => {
+  const { worked, noChange, gotWorse } = parseSolutionToBullets(cc.solution);
+  setEditingCommonCaseId(cc.id);
+  setCcPracticeId(cc.practice_id);
+  setCcCategory(cc.problem_category || '');
+  setCcCommonCase(cc.problem || '');
+  setCcWorked(worked);
+  setCcNoChange(noChange);
+  setCcGotWorse(gotWorse);
+  setCcNewActionText({ worked: '', noChange: '', gotWorse: '' });
+  setShowCommonCaseForm(true);
+};
+
+const saveCommonCaseForm = async () => {
+  if (!ccPracticeId || !ccCategory.trim() || !ccCommonCase.trim()) {
+    alert(t('cc_missing_required_fields'));
+    return;
+  }
+  if (ccWorked.length === 0 && ccNoChange.length === 0 && ccGotWorse.length === 0) {
+    alert(t('cc_need_at_least_one_action'));
+    return;
+  }
+  const solution = buildSolutionFromBullets(ccWorked, ccNoChange, ccGotWorse);
+  try {
+    if (editingCommonCaseId) {
+      const { error } = await supabase.from('experiences').update({
+        practice_id: ccPracticeId,
+        problem_category: ccCategory.trim(),
+        problem: ccCommonCase.trim(),
+        solution
+      }).eq('id', editingCommonCaseId);
+      if (error) throw error;
+    } else {
+      const { error } = await supabase.from('experiences').insert([{
+        practice_id: ccPracticeId,
+        problem_category: ccCategory.trim(),
+        problem: ccCommonCase.trim(),
+        solution,
+        result: t('cc_result_varies_text'),
+        result_category: 'varies',
+        author: 'key_insights',
+        source: 'uploaded',
+        company_id: effectiveCompanyId,
+        language: effectiveViewingLanguage
+      }]);
+      if (error) throw error;
+    }
+    setShowCommonCaseForm(false);
+    await loadAdminCommonCases(selectedPracticeId);
+  } catch (error) {
+    console.error('Error saving common case:', error);
+    alert(t('generic_error') + ' ' + error.message);
+  }
+};
+
+const deleteCommonCase = async (cc) => {
+  if (!window.confirm(t('confirm_delete_common_case'))) return;
+  try {
+    const { error } = await supabase.from('experiences').delete().eq('id', cc.id);
+    if (error) throw error;
+    await loadAdminCommonCases(selectedPracticeId);
+  } catch (error) {
+    console.error('Error deleting common case:', error);
+    alert(t('generic_error') + ' ' + error.message);
+  }
+};
+
+const exportCommonCasesExcel = async () => {
+  try {
+    const XLSX = await import('https://cdn.sheetjs.com/xlsx-0.20.0/package/xlsx.mjs');
+    const rows = [];
+    for (const cc of adminCommonCases) {
+      const practiceName = practices.find(p => p.id === cc.practice_id)?.name || '';
+      const { worked, noChange, gotWorse } = parseSolutionToBullets(cc.solution);
+      worked.forEach(a => rows.push({ Practice: practiceName, Category: cc.problem_category, 'Common Case': cc.problem, Result: 'WORKED', 'Action Description': a }));
+      noChange.forEach(a => rows.push({ Practice: practiceName, Category: cc.problem_category, 'Common Case': cc.problem, Result: 'NO CHANGE', 'Action Description': a }));
+      gotWorse.forEach(a => rows.push({ Practice: practiceName, Category: cc.problem_category, 'Common Case': cc.problem, Result: 'GOT WORSE', 'Action Description': a }));
+    }
+    if (rows.length === 0) {
+      const practiceName = practices.find(p => p.id === selectedPracticeId)?.name || 'Practice';
+      rows.push(
+        { Practice: practiceName, Category: '', 'Common Case': '', Result: 'WORKED', 'Action Description': '' },
+        { Practice: practiceName, Category: '', 'Common Case': '', Result: 'NO CHANGE', 'Action Description': '' },
+        { Practice: practiceName, Category: '', 'Common Case': '', Result: 'GOT WORSE', 'Action Description': '' },
+        { Practice: '', Category: '', 'Common Case': t('excel_add_more_rows_hint'), Result: '', 'Action Description': '' }
+      );
+    }
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'CommonCases');
+    XLSX.writeFile(wb, `common_cases_${new Date().toISOString().slice(0,10)}.xlsx`);
+  } catch (error) {
+    alert(t('error_exporting') + ' ' + error.message);
+  }
+};
+
+const importCommonCasesExcel = async (file) => {
+  try {
+    const XLSX = await import('https://cdn.sheetjs.com/xlsx-0.20.0/package/xlsx.mjs');
+    const data = await file.arrayBuffer();
+    const wb = XLSX.read(data);
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(ws);
+
+    // Agrupa as linhas por Practice + Category + Common Case — cada
+    // grupo vira UM registro no banco, com as ações separadas nas 3
+    // seções conforme o Result de cada linha.
+    const groups = {};
+    const groupOrder = [];
+    for (const row of rows) {
+      const practiceName = String(row['Practice'] || row['Función/Práctica'] || row['Function/Practice'] || '').trim();
+      const category = String(row['Category'] || row['Categoría'] || row['Categoria'] || '').trim();
+      const commonCase = String(row['Common Case'] || '').trim();
+      const result = String(row['Result'] || '').trim().toUpperCase();
+      const action = String(row['Action Description'] || '').trim();
+      if (!practiceName || !category || !commonCase || !action) continue;
+      const key = `${practiceName}|||${category}|||${commonCase}`;
+      if (!groups[key]) {
+        groups[key] = { practiceName, category, commonCase, worked: [], noChange: [], gotWorse: [] };
+        groupOrder.push(key);
+      }
+      if (result === 'WORKED') groups[key].worked.push(action);
+      else if (result === 'NO CHANGE') groups[key].noChange.push(action);
+      else if (result === 'GOT WORSE') groups[key].gotWorse.push(action);
+    }
+
+    let added = 0, updated = 0, errors = 0;
+    const { data: existingCC } = await supabase.from('experiences').select('*').eq('author', 'key_insights').eq('company_id', effectiveCompanyId);
+
+    for (const key of groupOrder) {
+      const g = groups[key];
+      const matchedPractice = practices.find(p => p.name.toLowerCase() === g.practiceName.toLowerCase());
+      if (!matchedPractice) { errors++; continue; }
+      const solution = buildSolutionFromBullets(g.worked, g.noChange, g.gotWorse);
+
+      const existing = (existingCC || []).find(cc =>
+        cc.practice_id === matchedPractice.id &&
+        (cc.problem_category || '').toLowerCase() === g.category.toLowerCase() &&
+        (cc.problem || '').toLowerCase() === g.commonCase.toLowerCase()
+      );
+
+      if (existing) {
+        const { error } = await supabase.from('experiences').update({ solution }).eq('id', existing.id);
+        if (error) { errors++; } else { updated++; }
+      } else {
+        const { error } = await supabase.from('experiences').insert([{
+          practice_id: matchedPractice.id,
+          problem_category: g.category,
+          problem: g.commonCase,
+          solution,
+          result: t('cc_result_varies_text'),
+          result_category: 'varies',
+          author: 'key_insights',
+          source: 'uploaded',
+          company_id: effectiveCompanyId,
+          language: effectiveViewingLanguage
+        }]);
+        if (error) { errors++; } else { added++; }
+      }
+    }
+    await loadAdminCommonCases(selectedPracticeId);
+    alert(tAlert('upload_complete', { added, updated, errors }));
+  } catch (error) {
+    console.error('Error importing common cases:', error);
+    alert(t('error_reading_excel'));
+  }
+};
+
+
   
 // ==================== EMPLOYEE MANAGEMENT ====================
 
@@ -10404,7 +10686,7 @@ autoComplete="off"
         {t('is_admin_hint')}
       </label>
       <div className="flex gap-2 flex-wrap">
-        <button onClick={addEmployee} className="px-4 py-2 bg-slate-600 text-white rounded-lg text-sm hover:bg-slate-700">
+        <button onClick={addEmployee} className="px-3 py-1.5 bg-slate-600 text-white rounded-lg text-xs hover:bg-slate-700">
           {t('add_employee_btn')}
         </button>
         <button
@@ -10424,11 +10706,11 @@ autoComplete="off"
               XLSX.writeFile(wb, `employees_${new Date().toISOString().slice(0,10)}.xlsx`);
             } catch(err) { alert(t('error_exporting') + ' ' + err.message); }
           }}
-          className="px-4 py-2 bg-gray-600 text-white rounded-lg text-sm hover:bg-gray-700"
+          className="px-3 py-1.5 bg-gray-600 text-white rounded-lg text-xs hover:bg-gray-700"
         >
           {t('export_excel_btn')}
         </button>
-        <label className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 cursor-pointer">
+        <label className="px-3 py-1.5 bg-green-600 text-white rounded-lg text-xs hover:bg-green-700 cursor-pointer">
           {t('import_excel_btn')}
           <input type="file" accept=".xlsx,.xls" className="hidden" onChange={(e) => { if(e.target.files[0]) handleExcelUpload(e.target.files[0]); e.target.value=''; }} />
         </label>
@@ -10706,6 +10988,7 @@ autoComplete="off"
             const id = parseInt(e.target.value);
             setSelectedPracticeId(id);
             loadAdminCategories(id);
+            loadAdminCommonCases(id);
           }}
           className="flex-1 p-2 border-2 border-gray-300 rounded-lg text-sm"
         >
@@ -11151,6 +11434,196 @@ for (const row of rows) {
     </div>
   </div>
 )}
+
+{isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('metadata')) && activeAdminNavTab === 'settings' && (
+  <div className="mt-4 bg-rose-50 border-2 border-rose-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
+    <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+      {t('manage_common_cases_title')}
+      {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">{t('read_only_sample')}</span>}
+    </h3>
+
+    <div className={isReadOnlyOrMasterManaging ? 'opacity-60 pointer-events-none' : ''}>
+      <div className="flex gap-2 flex-wrap items-center mb-3">
+        <button onClick={exportCommonCasesExcel} className="px-3 py-1.5 bg-gray-600 text-white rounded-lg text-xs hover:bg-gray-700">{t('export_excel_btn')}</button>
+        <label className="px-3 py-1.5 bg-green-600 text-white rounded-lg text-xs hover:bg-green-700 cursor-pointer">
+          {t('import_excel_btn2')}
+          <input type="file" accept=".xlsx,.xls" className="hidden" onChange={(e) => { if(e.target.files[0]) importCommonCasesExcel(e.target.files[0]); e.target.value=''; }} />
+        </label>
+        <button
+          onClick={() => setShowCommonCasesImportHelp(true)}
+          title={t('cc_help_title')}
+          className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 hover:bg-blue-200 text-xs font-bold flex items-center justify-center flex-shrink-0"
+        >i</button>
+        <button onClick={openNewCommonCaseForm} className="px-3 py-1.5 bg-rose-600 text-white rounded-lg text-xs hover:bg-rose-700 ml-auto">
+          {t('cc_add_btn')}
+        </button>
+      </div>
+
+      <div className="space-y-2 max-h-96 overflow-y-auto">
+        {adminCommonCases.length === 0 && (
+          <p className="text-sm text-gray-400 italic">{t('cc_none_yet')}</p>
+        )}
+        {adminCommonCases.map(cc => (
+          <div key={cc.id} className="flex items-center justify-between gap-2 p-2 bg-white rounded border">
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium text-gray-800 truncate">{cc.problem}</p>
+              <p className="text-xs text-gray-500">
+                {cc.problem_category}
+                {' · '}
+                <span className={cc.imported_from_id ? 'text-amber-600' : 'text-green-600'}>
+                  {cc.imported_from_id ? t('cc_origin_imported') : t('cc_origin_created_by_you')}
+                </span>
+              </p>
+            </div>
+            <div className="flex gap-2 flex-shrink-0">
+              <button onClick={() => openEditCommonCaseForm(cc)} className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700">{t('edit')}</button>
+              <button onClick={() => deleteCommonCase(cc)} className="px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700">{t('delete')}</button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+)}
+
+{showCommonCasesImportHelp && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowCommonCasesImportHelp(false)}>
+    <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-6 max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-bold text-gray-800">{t('cc_help_title')}</h3>
+        <button onClick={() => setShowCommonCasesImportHelp(false)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
+      </div>
+      <div className="space-y-3 text-sm text-gray-700">
+        <p><strong>{t('export_excel_btn')}</strong> — {t('cc_help_export')}</p>
+        <p><strong>{t('import_excel_btn2')}</strong> — {t('cc_help_import')}</p>
+        <div className="border-t pt-3">
+          <p className="font-semibold text-gray-800 mb-2">{t('cc_help_new_title')}</p>
+          <ol className="list-decimal list-inside space-y-1">
+            <li>{t('cc_help_new_1')}</li>
+            <li>{t('cc_help_new_2')}</li>
+            <li>{t('cc_help_new_3')}</li>
+          </ol>
+        </div>
+        <div className="border-t pt-3">
+          <p className="font-semibold text-gray-800 mb-2">{t('cc_help_existing_title')}</p>
+          <ol className="list-decimal list-inside space-y-1">
+            <li>{t('cc_help_existing_1')}</li>
+            <li>{t('cc_help_existing_2')}</li>
+            <li>{t('cc_help_existing_3')}</li>
+            <li>{t('cc_help_existing_4')}</li>
+            <li>{t('cc_help_existing_5')}</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
+{showCommonCaseForm && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowCommonCaseForm(false)}>
+    <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-bold text-gray-800">{editingCommonCaseId ? t('cc_edit_title') : t('cc_add_btn')}</h3>
+        <button onClick={() => setShowCommonCaseForm(false)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
+      </div>
+
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t('function_practice_label')}</label>
+          <select
+            value={ccPracticeId || ''}
+            onChange={(e) => setCcPracticeId(parseInt(e.target.value))}
+            className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm"
+          >
+            {practices.map(p => (
+              <option key={p.id} value={p.id}>{p.name}</option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t('category_label')}</label>
+          <input
+            type="text"
+            value={ccCategory}
+            onChange={(e) => setCcCategory(e.target.value)}
+            className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm"
+            placeholder={t('cc_category_placeholder')}
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t('cc_common_case_label')}</label>
+          <input
+            type="text"
+            value={ccCommonCase}
+            onChange={(e) => setCcCommonCase(e.target.value)}
+            className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm"
+            placeholder={t('cc_common_case_placeholder')}
+          />
+        </div>
+
+        {/* Os 3 blocos de ações — cada Common Case pode ter quantas ações
+            quiser em cada seção; pelo menos uma em alguma das 3 é exigido
+            no momento de salvar. */}
+        {[
+          { key: 'worked', label: t('cc_worked_label'), list: ccWorked, setList: setCcWorked, icon: '✅', color: 'green' },
+          { key: 'noChange', label: t('cc_no_change_label'), list: ccNoChange, setList: setCcNoChange, icon: '⚠️', color: 'amber' },
+          { key: 'gotWorse', label: t('cc_got_worse_label'), list: ccGotWorse, setList: setCcGotWorse, icon: '❌', color: 'red' },
+        ].map(section => (
+          <div key={section.key} className={`border-2 border-${section.color}-200 rounded-lg p-3 bg-${section.color}-50`}>
+            <p className="text-sm font-semibold text-gray-800 mb-2">{section.icon} {section.label}</p>
+            <div className="space-y-1 mb-2">
+              {section.list.map((action, idx) => (
+                <div key={idx} className="flex items-center gap-2 bg-white rounded p-1.5">
+                  <span className="text-xs text-gray-700 flex-1">• {action}</span>
+                  <button
+                    onClick={() => section.setList(section.list.filter((_, i) => i !== idx))}
+                    className="text-red-600 hover:text-red-800 text-xs flex-shrink-0"
+                  >✕</button>
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={ccNewActionText[section.key]}
+                onChange={(e) => setCcNewActionText({...ccNewActionText, [section.key]: e.target.value})}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && ccNewActionText[section.key].trim()) {
+                    section.setList([...section.list, ccNewActionText[section.key].trim()]);
+                    setCcNewActionText({...ccNewActionText, [section.key]: ''});
+                  }
+                }}
+                className="flex-1 p-1.5 border-2 border-gray-300 rounded text-xs"
+                placeholder={t('cc_add_action_placeholder')}
+              />
+              <button
+                onClick={() => {
+                  if (ccNewActionText[section.key].trim()) {
+                    section.setList([...section.list, ccNewActionText[section.key].trim()]);
+                    setCcNewActionText({...ccNewActionText, [section.key]: ''});
+                  }
+                }}
+                className="px-3 py-1.5 bg-gray-600 text-white rounded text-xs hover:bg-gray-700"
+              >{t('cc_add_action_btn')}</button>
+            </div>
+          </div>
+        ))}
+
+        <div className="flex gap-2 pt-2">
+          <button onClick={() => setShowCommonCaseForm(false)} className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm hover:bg-gray-300">
+            {t('cancel')}
+          </button>
+          <button onClick={saveCommonCaseForm} className="flex-1 px-4 py-2 bg-rose-600 text-white rounded-lg text-sm hover:bg-rose-700">
+            {t('save')}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
 
 {isAdmin && showDefaultOnlyTools && !isSeller && activeAdminNavTab === 'settings' && (
   <div className="mt-4 bg-orange-50 border-2 border-orange-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
@@ -13413,10 +13886,10 @@ onClick={() => {
                 )}
                 <div>
                 <div id={`exp-${exp.id}`} className="bg-white rounded-2xl shadow-lg p-6">
-                  {exp.source !== 'app' && (
+                  {exp.author === 'key_insights' && (
                     <span className="inline-flex items-center gap-1 mb-2">
                       <span className="text-[8px] font-semibold uppercase bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">
-                        {t("curator")}
+                        {t("common_cases")}
                       </span>
                       {exp.language && exp.language !== 'en' && (
                         <span className="text-[8px] text-gray-400 italic">
@@ -13433,7 +13906,8 @@ onClick={() => {
   {(exp.author || exp.gender || exp.age || exp.country || exp.employeeId) && (
     <div>
       <span className="text-xs text-gray-600 block">
-        {t('by')} {exp.author === 'key_insights' ? t('common_cases') : 
+        {t('by')} {exp.author === 'key_insights' ? t('curator') : 
+             exp.source !== 'app' ? `${exp.author} (${t('curator').toUpperCase()})` :
              appSettings.requireEmployeeLogin 
                ? [exp.author, exp.employeeId, exp.country].filter(Boolean).join(', ')
                : [exp.author, exp.gender, exp.age, exp.country].filter(Boolean).join(', ')
