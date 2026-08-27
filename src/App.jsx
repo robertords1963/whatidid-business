@@ -706,9 +706,10 @@ const UI_STRINGS = {
   cc_need_at_least_one_action: { en: 'Add at least one action in one of the three sections', es: 'Agregue al menos una acción en una de las tres secciones', pt: 'Adicione pelo menos uma ação em uma das três seções', zh: '请至少在三个部分中的一个添加一项行动' },
   cc_result_varies_text: { en: 'Outcomes may vary depending on the actions taken, which reflect not only what is done, but also how, when, and in what manner it is carried out, as outlined here.', es: 'Los resultados pueden variar según las acciones tomadas, que reflejan no solo lo que se hace, sino también cómo, cuándo y de qué manera se lleva a cabo, como se describe aquí.', pt: 'Os resultados podem variar dependendo das ações tomadas, que refletem não só o que é feito, mas também como, quando e de que maneira é realizado, conforme descrito aqui.', zh: '结果可能因所采取的行动而异，这不仅反映了所做的事情，还反映了如何、何时以及以何种方式执行，如本文所述。' },
   confirm_delete_common_case: { en: 'Delete this Common Case? This cannot be undone.', es: '¿Eliminar este Common Case? Esta acción no se puede deshacer.', pt: 'Excluir este Common Case? Isso não pode ser desfeito.', zh: '删除此Common Case？此操作无法撤销。' },
-  manage_common_cases_title: { en: '📋 Manage Common Cases', es: '📋 Gestionar Common Cases', pt: '📋 Gerenciar Common Cases', zh: '📋 管理Common Cases' },
+  manage_common_cases_title: { en: '📋 Manage Key Insights / Common Cases', es: '📋 Gestionar Key Insights / Common Cases', pt: '📋 Gerenciar Key Insights / Common Cases', zh: '📋 管理Key Insights / Common Cases' },
   cc_add_btn: { en: '+ Add Common Case', es: '+ Agregar Common Case', pt: '+ Adicionar Common Case', zh: '+ 添加Common Case' },
   cc_none_yet: { en: 'No Common Cases registered for this Function/Practice yet.', es: 'Aún no hay Common Cases registrados para esta Función/Práctica.', pt: 'Nenhum Common Case cadastrado ainda para essa Function/Practice.', zh: '该职能/领域尚未注册任何Common Case。' },
+  cc_all_categories: { en: 'All Categories', es: 'Todas las Categorías', pt: 'Todas as Categories', zh: '所有分类' },
   cc_origin_imported: { en: 'Imported from Default', es: 'Importado del Default', pt: 'Importado do Default', zh: '从Default导入' },
   cc_origin_created_by_you: { en: 'Created by you', es: 'Creado por usted', pt: 'Criado por você', zh: '由您创建' },
   cc_edit_title: { en: 'Edit Common Case', es: 'Editar Common Case', pt: 'Editar Common Case', zh: '编辑Common Case' },
@@ -1021,6 +1022,7 @@ const [shareFormPracticeId, setShareFormPracticeId] = useState(null); // practic
 const [filterPracticeId, setFilterPracticeId] = useState(null);
 const [adminCategories, setAdminCategories] = useState([]);
 const [adminCommonCases, setAdminCommonCases] = useState([]);
+const [ccFilterCategory, setCcFilterCategory] = useState('');
 const [uiPractices, setUiPractices] = useState([]);
 const [demoGroups, setDemoGroups] = useState([]);
 // Vendedores (Sellers): lista de contas com is_seller=true, e estado do form de criação.
@@ -2177,6 +2179,7 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null, override
       companyId: exp.company_id || null,
       demoSessionId: exp.demo_session_id || null,
       practiceId: exp.practice_id || null,
+      displayOrder: exp.display_order || 0,
       tags: exp.tags || [],
       parentExperienceId: exp.parent_experience_id || null,
       createdAt: exp.created_at || null,
@@ -2216,7 +2219,7 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null, override
       });
     }
 
-const keyInsights = transformedData.filter(e => e.author === 'key_insights');
+const keyInsights = transformedData.filter(e => e.author === 'key_insights').sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
   const syntheticExps = transformedData.filter(e => e.source !== 'app' && e.author !== 'key_insights');
 
   // Lógica de visibilidade por grupo
@@ -2929,7 +2932,7 @@ const loadAdminCommonCases = async (practiceId) => {
       .select('*')
       .eq('author', 'key_insights')
       .eq('company_id', contentCompanyId)
-      .order('id', { ascending: true });
+      .order('display_order', { ascending: true });
     if (isContentDefault) {
       query = query.eq('language', effectiveViewingLanguage);
     }
@@ -3019,6 +3022,27 @@ const deleteCommonCase = async (cc) => {
     await loadAdminCommonCases(selectedPracticeId);
   } catch (error) {
     console.error('Error deleting common case:', error);
+    alert(t('generic_error') + ' ' + error.message);
+  }
+};
+
+// Move um Common Case pra cima/baixo, só dentro da mesma category (a
+// ordem é sempre relativa aos "vizinhos" que compartilham a mesma
+// category, não a lista inteira da Practice).
+const moveCommonCase = async (cc, direction) => {
+  const siblings = adminCommonCases
+    .filter(c => c.problem_category === cc.problem_category)
+    .sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+  const idx = siblings.findIndex(c => c.id === cc.id);
+  const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+  if (swapIdx < 0 || swapIdx >= siblings.length) return;
+  const other = siblings[swapIdx];
+  try {
+    await supabase.from('experiences').update({ display_order: other.display_order || 0 }).eq('id', cc.id);
+    await supabase.from('experiences').update({ display_order: cc.display_order || 0 }).eq('id', other.id);
+    await loadAdminCommonCases(selectedPracticeId);
+  } catch (error) {
+    console.error('Error reordering common case:', error);
     alert(t('generic_error') + ' ' + error.message);
   }
 };
@@ -4970,7 +4994,7 @@ if (matches.length > 0) {
     });
     setMappedFilter(null);
     // ⭐ CALCULAR PÁGINA CORRETA DO COMMON CASE
-const keyInsights = experiences.filter(e => e.author === 'key_insights');
+const keyInsights = experiences.filter(e => e.author === 'key_insights').sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
 const index = keyInsights.findIndex(e => e.id === commonCaseId);
 const correctPage = Math.ceil((index + 1) / experiencesPerPage);
 
@@ -11444,6 +11468,33 @@ for (const row of rows) {
 
     <div className={isReadOnlyOrMasterManaging ? 'opacity-60 pointer-events-none' : ''}>
       <div className="flex gap-2 flex-wrap items-center mb-3">
+        <select
+          value={selectedPracticeId || ''}
+          onChange={(e) => {
+            const id = parseInt(e.target.value);
+            setSelectedPracticeId(id);
+            setCcFilterCategory('');
+            loadAdminCategories(id);
+            loadAdminCommonCases(id);
+          }}
+          className="p-2 border-2 border-gray-300 rounded-lg text-sm"
+        >
+          {practices.map(p => (
+            <option key={p.id} value={p.id}>{p.name}</option>
+          ))}
+        </select>
+        <select
+          value={ccFilterCategory}
+          onChange={(e) => setCcFilterCategory(e.target.value)}
+          className="p-2 border-2 border-gray-300 rounded-lg text-sm"
+        >
+          <option value="">{t('cc_all_categories')}</option>
+          {[...new Set(adminCommonCases.map(cc => cc.problem_category).filter(Boolean))].sort().map(cat => (
+            <option key={cat} value={cat}>{cat}</option>
+          ))}
+        </select>
+      </div>
+      <div className="flex gap-2 flex-wrap items-center mb-3">
         <button onClick={exportCommonCasesExcel} className="px-3 py-1.5 bg-gray-600 text-white rounded-lg text-xs hover:bg-gray-700">{t('export_excel_btn')}</button>
         <label className="px-3 py-1.5 bg-green-600 text-white rounded-lg text-xs hover:bg-green-700 cursor-pointer">
           {t('import_excel_btn2')}
@@ -11460,10 +11511,15 @@ for (const row of rows) {
       </div>
 
       <div className="space-y-2 max-h-96 overflow-y-auto">
-        {adminCommonCases.length === 0 && (
+        {adminCommonCases.filter(cc => !ccFilterCategory || cc.problem_category === ccFilterCategory).length === 0 && (
           <p className="text-sm text-gray-400 italic">{t('cc_none_yet')}</p>
         )}
-        {adminCommonCases.map(cc => (
+        {adminCommonCases.filter(cc => !ccFilterCategory || cc.problem_category === ccFilterCategory).map(cc => {
+          const siblings = adminCommonCases
+            .filter(c => c.problem_category === cc.problem_category)
+            .sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+          const idx = siblings.findIndex(c => c.id === cc.id);
+          return (
           <div key={cc.id} className="flex items-center justify-between gap-2 p-2 bg-white rounded border">
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium text-gray-800 truncate">{cc.problem}</p>
@@ -11476,11 +11532,22 @@ for (const row of rows) {
               </p>
             </div>
             <div className="flex gap-2 flex-shrink-0">
+              <button
+                onClick={() => moveCommonCase(cc, 'up')}
+                disabled={idx === 0}
+                className="px-2 py-1 bg-gray-500 text-white rounded text-xs hover:bg-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
+              >▲</button>
+              <button
+                onClick={() => moveCommonCase(cc, 'down')}
+                disabled={idx === siblings.length - 1}
+                className="px-2 py-1 bg-gray-500 text-white rounded text-xs hover:bg-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
+              >▼</button>
               <button onClick={() => openEditCommonCaseForm(cc)} className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700">{t('edit')}</button>
               <button onClick={() => deleteCommonCase(cc)} className="px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700">{t('delete')}</button>
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   </div>
@@ -11577,6 +11644,26 @@ for (const row of rows) {
               {section.list.map((action, idx) => (
                 <div key={idx} className="flex items-center gap-2 bg-white rounded p-1.5">
                   <span className="text-xs text-gray-700 flex-1">• {action}</span>
+                  <button
+                    onClick={() => {
+                      if (idx === 0) return;
+                      const newList = [...section.list];
+                      [newList[idx - 1], newList[idx]] = [newList[idx], newList[idx - 1]];
+                      section.setList(newList);
+                    }}
+                    disabled={idx === 0}
+                    className="text-gray-500 hover:text-gray-800 text-xs flex-shrink-0 disabled:opacity-30 disabled:cursor-not-allowed"
+                  >▲</button>
+                  <button
+                    onClick={() => {
+                      if (idx === section.list.length - 1) return;
+                      const newList = [...section.list];
+                      [newList[idx], newList[idx + 1]] = [newList[idx + 1], newList[idx]];
+                      section.setList(newList);
+                    }}
+                    disabled={idx === section.list.length - 1}
+                    className="text-gray-500 hover:text-gray-800 text-xs flex-shrink-0 disabled:opacity-30 disabled:cursor-not-allowed"
+                  >▼</button>
                   <button
                     onClick={() => section.setList(section.list.filter((_, i) => i !== idx))}
                     className="text-red-600 hover:text-red-800 text-xs flex-shrink-0"
