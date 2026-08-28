@@ -7508,7 +7508,7 @@ useEffect(() => {
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center">
       <div className="text-center">
         <div className="mb-4">
-          <Share2 className="text-purple-600 mx-auto mb-3" size={48} />
+          <img src="/icons/icon-192.png" alt="WhatIDid" className="mx-auto mb-3 w-12 h-12 rounded-xl" />
           <h1 className="text-3xl font-bold text-gray-800">WhatIDid</h1>
         </div>
         <div className="animate-spin rounded-full h-12 w-12 border-b-3 border-purple-600 mx-auto mb-3"></div>
@@ -7766,7 +7766,7 @@ useEffect(() => {
   </div>
   <div className="text-center mb-6">
     <h1 className="text-3xl font-bold text-gray-800 flex items-center justify-center gap-2">
-      <Share2 className="text-purple-600" size={28} />
+      <img src="/icons/icon-192.png" alt="WhatIDid" className="w-7 h-7 rounded-lg" />
       WhatIDid{' '}
       <span className="text-xl font-normal italic text-gray-600">
         {{corp: 'Corp', pro: 'Pro', edu: 'Edu'}[companyEdition] || 'Corp'}
@@ -8065,7 +8065,7 @@ autoComplete="off"
   <div className="flex-1"></div>
   <div className="flex flex-col items-center">
     <h1 className="text-4xl font-bold text-gray-800 mb-2 flex items-center justify-center gap-3">
-      <Share2 className="text-purple-600" size={36} />
+      <img src="/icons/icon-192.png" alt="WhatIDid" className="w-9 h-9 rounded-lg" />
       WhatIDid{' '}
       <span className="text-2xl font-normal italic text-gray-600">
         {{corp: 'Corp', pro: 'Pro', edu: 'Edu'}[companyEdition] || 'Corp'}
