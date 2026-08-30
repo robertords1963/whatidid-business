@@ -2437,7 +2437,8 @@ const loadAppSettings = async () => {
     documentType: effectiveDocumentType,
     showTop3: data.show_top3 || false,
     top3StartVisible: data.top3_start_visible !== false,
-    showMarquee: data.show_marquee || false
+    showMarquee: data.show_marquee || false,
+    industrySectorEnabledEditions: data.industry_sector_enabled_editions || 'pro,edu'
   });
   // Se o campo opcional de nome (usado só pra decoração do cabeçalho)
   // nunca foi preenchido, cai no nome real da empresa — busca direto no
@@ -5756,6 +5757,10 @@ const [currentCvUrl, setCurrentCvUrl] = useState(null);
 const industrySectors = adminIndustrySectors
   .filter(s => (s.applicable_editions || 'pro,edu').split(',').includes(companyEdition))
   .map(s => s.name);
+// Interruptor geral — separado da lista de setores em si. Só faz
+// sentido mostrar o dropdown se AMBOS estiverem verdadeiros: a feature
+// está ligada pra essa edição E existe pelo menos um setor disponível.
+const industrySectorFeatureEnabled = (appSettings.industrySectorEnabledEditions || 'pro,edu').split(',').includes(companyEdition);
 
   const genderOptions = ['Male', 'Female', 'Other'];
   const ageOptions = ['0-20', '21-40', '41-60', '61-Up'];
@@ -11114,6 +11119,173 @@ autoComplete="off"
   </div>
 )}
 
+
+
+{isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (showDefaultOnlyTools || companyEdition !== 'corp') && (!masterMustRespectVisibility || companyMasterVisibility.includes('metadata')) && activeAdminNavTab === 'settings' && (
+  <div className="mt-4 bg-cyan-50 border-2 border-cyan-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
+    <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+      {t('manage_industry_sectors_title')}
+      {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">{t('read_only_sample')}</span>}
+    </h3>
+
+    {/* Interruptor geral — controla se o dropdown INTEIRO aparece
+        naquela edição, independente do que cada setor individual tiver
+        marcado. Os checkboxes por setor (mais abaixo) só têm efeito se
+        a edição correspondente estiver marcada aqui. */}
+    <div className="mb-3 flex items-center gap-3 flex-wrap">
+      <span className="text-sm font-medium text-gray-700">{t('applicable_editions_label')}</span>
+      {(showDefaultOnlyTools ? ['edu', 'pro'] : [companyEdition]).map(ed => {
+        const currentList = (appSettings.industrySectorEnabledEditions || 'pro,edu').split(',');
+        const isChecked = currentList.includes(ed);
+        return (
+          <label key={ed} className="flex items-center gap-1.5 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={isChecked}
+              onChange={async (e) => {
+                const newList = e.target.checked ? [...new Set([...currentList, ed])] : currentList.filter(x => x !== ed);
+                const newValue = newList.join(',');
+                const { error } = await supabase.from('app_settings').update({ industry_sector_enabled_editions: newValue }).eq('company_id', effectiveCompanyId);
+                if (error) { alert(t('generic_error') + ' ' + error.message); return; }
+                await loadAppSettings();
+              }}
+            />
+            <span className="text-sm text-gray-700 uppercase">{ed}</span>
+          </label>
+        );
+      })}
+    </div>
+
+    <div className={isReadOnlyOrMasterManaging ? 'opacity-60 pointer-events-none' : ''}>
+      <div className="flex gap-2 flex-wrap items-center mb-3">
+        {!showDefaultOnlyTools && (
+          <button onClick={importIndustrySectorsFromDefault} className="px-3 py-1.5 bg-cyan-600 text-white rounded-lg text-xs hover:bg-cyan-700">
+            {t('is_import_from_default_btn')}
+          </button>
+        )}
+        <button
+          onClick={() => {
+            setEditingIndustrySectorId(null);
+            setIsNewIndustrySector(true);
+            setNewSectorName('');
+            setNewSectorEditions(showDefaultOnlyTools ? ['pro', 'edu'] : [companyEdition]);
+            setShowIndustrySectorForm(true);
+          }}
+          className="px-3 py-1.5 bg-cyan-600 text-white rounded-lg text-xs hover:bg-cyan-700 ml-auto"
+        >
+          {t('is_add_btn')}
+        </button>
+      </div>
+
+      <div className="space-y-2 max-h-96 overflow-y-auto">
+        {adminIndustrySectors.length === 0 && (
+          <p className="text-sm text-gray-400 italic">{t('is_none_yet')}</p>
+        )}
+        {adminIndustrySectors.map(sector => {
+          const editionsList = (sector.applicable_editions || 'pro,edu').split(',');
+          return (
+            <div key={sector.id} className="flex items-center justify-between gap-2 p-2 bg-white rounded border">
+              <span className="text-sm font-medium text-gray-800 flex-1">{sector.name}</span>
+              {showDefaultOnlyTools ? (
+                <div className="flex gap-3 flex-shrink-0">
+                  {['pro', 'edu'].map(ed => (
+                    <label key={ed} className="flex items-center gap-1 text-xs text-gray-600 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={editionsList.includes(ed)}
+                        onChange={async (e) => {
+                          const newList = e.target.checked ? [...editionsList, ed] : editionsList.filter(x => x !== ed);
+                          if (newList.length === 0) return;
+                          await supabase.from('industry_sectors').update({ applicable_editions: newList.join(',') }).eq('id', sector.id);
+                          await loadIndustrySectors();
+                        }}
+                      />
+                      {ed.toUpperCase()}
+                    </label>
+                  ))}
+                </div>
+              ) : (
+                <label className="flex items-center gap-1 text-xs text-gray-600 cursor-pointer flex-shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={editionsList.includes(companyEdition)}
+                    onChange={async (e) => {
+                      const newList = e.target.checked ? [...new Set([...editionsList, companyEdition])] : editionsList.filter(x => x !== companyEdition);
+                      await supabase.from('industry_sectors').update({ applicable_editions: newList.length > 0 ? newList.join(',') : companyEdition }).eq('id', sector.id);
+                      await loadIndustrySectors();
+                    }}
+                  />
+                  {t('is_show_checkbox')}
+                </label>
+              )}
+              <div className="flex gap-2 flex-shrink-0">
+                <button
+                  onClick={() => {
+                    setEditingIndustrySectorId(sector.id);
+                    setIsNewIndustrySector(false);
+                    setNewSectorName(sector.name);
+                    setNewSectorEditions(editionsList);
+                    setShowIndustrySectorForm(true);
+                  }}
+                  className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700"
+                >{t('edit')}</button>
+                <button onClick={() => deleteIndustrySector(sector)} className="px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700">{t('delete')}</button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  </div>
+)}
+
+{showIndustrySectorForm && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowIndustrySectorForm(false)}>
+    <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-bold text-gray-800">{isNewIndustrySector ? t('is_add_btn') : t('is_edit_title')}</h3>
+        <button onClick={() => setShowIndustrySectorForm(false)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
+      </div>
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t('is_name_label')}</label>
+          <input
+            type="text"
+            value={newSectorName}
+            onChange={(e) => setNewSectorName(e.target.value)}
+            className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm"
+            placeholder={t('is_name_placeholder')}
+          />
+        </div>
+        {showDefaultOnlyTools && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{t('applicable_editions_label')}</label>
+            <div className="flex gap-3">
+              {['pro', 'edu'].map(ed => (
+                <label key={ed} className="flex items-center gap-1.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={newSectorEditions.includes(ed)}
+                    onChange={(e) => setNewSectorEditions(prev => e.target.checked ? [...prev, ed] : prev.filter(x => x !== ed))}
+                  />
+                  <span className="text-sm text-gray-700 capitalize">{ed}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
+        <div className="flex gap-2 pt-2">
+          <button onClick={() => setShowIndustrySectorForm(false)} className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm hover:bg-gray-300">
+            {t('cancel')}
+          </button>
+          <button onClick={saveIndustrySectorForm} className="flex-1 px-4 py-2 bg-cyan-600 text-white rounded-lg text-sm hover:bg-cyan-700">
+            {t('save')}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
 {isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('metadata')) && activeAdminNavTab === 'settings' && (
   <div className="mt-4 bg-teal-50 border-2 border-teal-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
@@ -11823,145 +11995,6 @@ for (const row of rows) {
             {t('cancel')}
           </button>
           <button onClick={saveCommonCaseForm} className="flex-1 px-4 py-2 bg-rose-600 text-white rounded-lg text-sm hover:bg-rose-700">
-            {t('save')}
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-)}
-
-
-{isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (showDefaultOnlyTools || companyEdition !== 'corp') && (!masterMustRespectVisibility || companyMasterVisibility.includes('metadata')) && activeAdminNavTab === 'settings' && (
-  <div className="mt-4 bg-cyan-50 border-2 border-cyan-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
-    <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-      {t('manage_industry_sectors_title')}
-      {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">{t('read_only_sample')}</span>}
-    </h3>
-
-    <div className={isReadOnlyOrMasterManaging ? 'opacity-60 pointer-events-none' : ''}>
-      <div className="flex gap-2 flex-wrap items-center mb-3">
-        {!showDefaultOnlyTools && (
-          <button onClick={importIndustrySectorsFromDefault} className="px-3 py-1.5 bg-cyan-600 text-white rounded-lg text-xs hover:bg-cyan-700">
-            {t('is_import_from_default_btn')}
-          </button>
-        )}
-        <button
-          onClick={() => {
-            setEditingIndustrySectorId(null);
-            setIsNewIndustrySector(true);
-            setNewSectorName('');
-            setNewSectorEditions(showDefaultOnlyTools ? ['pro', 'edu'] : [companyEdition]);
-            setShowIndustrySectorForm(true);
-          }}
-          className="px-3 py-1.5 bg-cyan-600 text-white rounded-lg text-xs hover:bg-cyan-700 ml-auto"
-        >
-          {t('is_add_btn')}
-        </button>
-      </div>
-
-      <div className="space-y-2 max-h-96 overflow-y-auto">
-        {adminIndustrySectors.length === 0 && (
-          <p className="text-sm text-gray-400 italic">{t('is_none_yet')}</p>
-        )}
-        {adminIndustrySectors.map(sector => {
-          const editionsList = (sector.applicable_editions || 'pro,edu').split(',');
-          return (
-            <div key={sector.id} className="flex items-center justify-between gap-2 p-2 bg-white rounded border">
-              <span className="text-sm font-medium text-gray-800 flex-1">{sector.name}</span>
-              {showDefaultOnlyTools ? (
-                <div className="flex gap-3 flex-shrink-0">
-                  {['pro', 'edu'].map(ed => (
-                    <label key={ed} className="flex items-center gap-1 text-xs text-gray-600 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={editionsList.includes(ed)}
-                        onChange={async (e) => {
-                          const newList = e.target.checked ? [...editionsList, ed] : editionsList.filter(x => x !== ed);
-                          if (newList.length === 0) return;
-                          await supabase.from('industry_sectors').update({ applicable_editions: newList.join(',') }).eq('id', sector.id);
-                          await loadIndustrySectors();
-                        }}
-                      />
-                      {ed.toUpperCase()}
-                    </label>
-                  ))}
-                </div>
-              ) : (
-                <label className="flex items-center gap-1 text-xs text-gray-600 cursor-pointer flex-shrink-0">
-                  <input
-                    type="checkbox"
-                    checked={editionsList.includes(companyEdition)}
-                    onChange={async (e) => {
-                      const newList = e.target.checked ? [...new Set([...editionsList, companyEdition])] : editionsList.filter(x => x !== companyEdition);
-                      await supabase.from('industry_sectors').update({ applicable_editions: newList.length > 0 ? newList.join(',') : companyEdition }).eq('id', sector.id);
-                      await loadIndustrySectors();
-                    }}
-                  />
-                  {t('is_show_checkbox')}
-                </label>
-              )}
-              <div className="flex gap-2 flex-shrink-0">
-                <button
-                  onClick={() => {
-                    setEditingIndustrySectorId(sector.id);
-                    setIsNewIndustrySector(false);
-                    setNewSectorName(sector.name);
-                    setNewSectorEditions(editionsList);
-                    setShowIndustrySectorForm(true);
-                  }}
-                  className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700"
-                >{t('edit')}</button>
-                <button onClick={() => deleteIndustrySector(sector)} className="px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700">{t('delete')}</button>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  </div>
-)}
-
-{showIndustrySectorForm && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowIndustrySectorForm(false)}>
-    <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-bold text-gray-800">{isNewIndustrySector ? t('is_add_btn') : t('is_edit_title')}</h3>
-        <button onClick={() => setShowIndustrySectorForm(false)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
-      </div>
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">{t('is_name_label')}</label>
-          <input
-            type="text"
-            value={newSectorName}
-            onChange={(e) => setNewSectorName(e.target.value)}
-            className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm"
-            placeholder={t('is_name_placeholder')}
-          />
-        </div>
-        {showDefaultOnlyTools && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">{t('applicable_editions_label')}</label>
-            <div className="flex gap-3">
-              {['pro', 'edu'].map(ed => (
-                <label key={ed} className="flex items-center gap-1.5 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={newSectorEditions.includes(ed)}
-                    onChange={(e) => setNewSectorEditions(prev => e.target.checked ? [...prev, ed] : prev.filter(x => x !== ed))}
-                  />
-                  <span className="text-sm text-gray-700 capitalize">{ed}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-        )}
-        <div className="flex gap-2 pt-2">
-          <button onClick={() => setShowIndustrySectorForm(false)} className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm hover:bg-gray-300">
-            {t('cancel')}
-          </button>
-          <button onClick={saveIndustrySectorForm} className="flex-1 px-4 py-2 bg-cyan-600 text-white rounded-lg text-sm hover:bg-cyan-700">
             {t('save')}
           </button>
         </div>
@@ -12913,7 +12946,7 @@ onClick={() => {
               </div>
               
               {/* Industry Sector - só no Pro, vem antes do Function/Practice */}
-              {(companyEdition === 'pro' || companyEdition === 'edu') && industrySectors.length > 0 && (
+              {(companyEdition === 'pro' || companyEdition === 'edu') && industrySectorFeatureEnabled && industrySectors.length > 0 && (
                 <div className="mb-2 relative">
                   <select
                     value={currentEntry.industrySector}
@@ -13457,7 +13490,7 @@ onClick={() => {
                 {/* Filtros principais */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                   {/* Industry Sector filter - só no Pro, vem antes do Function/Practice */}
-                  {(companyEdition === 'pro' || companyEdition === 'edu') && industrySectors.length > 0 && (
+                  {(companyEdition === 'pro' || companyEdition === 'edu') && industrySectorFeatureEnabled && industrySectors.length > 0 && (
   <div>
     <label className="block text-sm font-medium text-gray-600 mb-2">
       <Briefcase className="inline mr-1" size={14} />
