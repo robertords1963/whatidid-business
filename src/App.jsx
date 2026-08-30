@@ -244,7 +244,7 @@ const UI_STRINGS = {
   cv_preview_tooltip: { en: 'CV Preview', es: 'Vista Previa del CV', pt: 'Pré-visualização do Currículo', zh: '简历预览' },
   select_industry_sector: { en: 'Select your industry sector...', es: 'Selecciona tu sector industrial...', pt: 'Selecione seu setor de atuação...', zh: '选择你的行业领域……' },
   select_country: { en: 'Select country', es: 'Selecciona el país', pt: 'Selecione o país', zh: '选择国家' },
-  all_sectors: { en: 'All Sectors', es: 'Todos los Sectores', pt: 'Todos os Setores', zh: '所有行业' },
+  all_sectors: { en: 'All', es: 'Todos', pt: 'Todos', zh: '所有' },
   my_seller_view: { en: 'My Seller View', es: 'Mi Vista de Vendedor', pt: 'Minha Visão de Vendedor', zh: '我的销售代表视图' },
   my_company: { en: 'My Company', es: 'Mi Empresa', pt: 'Minha Empresa', zh: '我的公司' },
   prospect: { en: 'Prospect', es: 'Prospecto', pt: 'Prospect', zh: '潜在客户' },
@@ -7031,6 +7031,10 @@ useEffect(() => {
     setFollowOnParentId(null);
     setSelectedPracticeId(null);
     setShareFormPracticeId(null);
+    // Sem isso, Category e Industry Sector ficavam "presos" com o valor
+    // herdado do Follow-On abandonado, mesmo com Practice já limpa —
+    // currentEntry nunca era tocado aqui, só os states separados de Practice.
+    setCurrentEntry(prev => ({ ...prev, problemCategory: '', industrySector: '' }));
     setTimeout(() => {
       window.scrollTo({ top: scrollY, behavior: 'smooth' });
     }, 100);
