@@ -4895,7 +4895,9 @@ if (matches.length > 0) {
       solution: '',
       result: '',
       resultCategory: '',
-      industrySector: '',
+      // Mesmo raciocínio de problemCategory — em Follow-On já veio
+      // pré-preenchido do parent, não deve ser apagado pelo Clear All.
+      industrySector: followOnParentId ? prev.industrySector : '',
       author: '',
       gender: '',
       age: '',
@@ -7488,7 +7490,7 @@ useEffect(() => {
                     setShareFormPracticeId(fo.practiceId);
                     loadProblemCategories(fo.practiceId);
                   }
-                  setCurrentEntry(prev => ({ ...prev, problemCategory: fo.problemCategory || '' }));
+                  setCurrentEntry(prev => ({ ...prev, problemCategory: fo.problemCategory || '', industrySector: fo.industrySector || '' }));
                   setActiveMainTab('share'); scrollToTabs();
                 }} className="mt-3 text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">
                   {t('add_follow_on')}
@@ -14818,7 +14820,8 @@ onClick={() => {
         }
         setCurrentEntry(prev => ({
           ...prev,
-          problemCategory: exp.problemCategory || ''
+          problemCategory: exp.problemCategory || '',
+          industrySector: exp.industrySector || ''
         }));
         if (exp.practiceId) loadProblemCategories(exp.practiceId);
         setActiveMainTab('share'); scrollToTabs();
