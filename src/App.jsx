@@ -5750,17 +5750,12 @@ const [currentCvUrl, setCurrentCvUrl] = useState(null);
   const [newCategoryName, setNewCategoryName] = useState('');
 
 
-const industrySectors = [
-    'Technology & Digital',
-    'Financial Services',
-    'Industrial & Manufacturing',
-    'Retail & Consumer',
-    'Healthcare & Life Sciences',
-    'Energy & Infrastructure',
-    'Professional Services',
-    'Public Sector / Non-Profit',
-    'Others'
-  ];
+// Antes fixa no código — agora vem da tabela `industry_sectors`,
+// filtrada pela edição atual (cada empresa decide, por setor, se ele
+// aparece ou não pra ela, via o checkbox "Mostrar" na tela de admin).
+const industrySectors = adminIndustrySectors
+  .filter(s => (s.applicable_editions || 'pro,edu').split(',').includes(companyEdition))
+  .map(s => s.name);
 
   const genderOptions = ['Male', 'Female', 'Other'];
   const ageOptions = ['0-20', '21-40', '41-60', '61-Up'];
@@ -12918,7 +12913,7 @@ onClick={() => {
               </div>
               
               {/* Industry Sector - só no Pro, vem antes do Function/Practice */}
-              {companyEdition === 'pro' && (
+              {(companyEdition === 'pro' || companyEdition === 'edu') && industrySectors.length > 0 && (
                 <div className="mb-2 relative">
                   <select
                     value={currentEntry.industrySector}
@@ -13462,7 +13457,7 @@ onClick={() => {
                 {/* Filtros principais */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                   {/* Industry Sector filter - só no Pro, vem antes do Function/Practice */}
-                  {companyEdition === 'pro' && (
+                  {(companyEdition === 'pro' || companyEdition === 'edu') && industrySectors.length > 0 && (
   <div>
     <label className="block text-sm font-medium text-gray-600 mb-2">
       <Briefcase className="inline mr-1" size={14} />
@@ -14329,7 +14324,7 @@ onClick={() => {
   </button>
 )}                   
                     
-{exp.industrySector && companyEdition === 'pro' && (
+{exp.industrySector && (companyEdition === 'pro' || companyEdition === 'edu') && (
   <div className="mb-3">
     <span className="inline-flex items-center gap-1 text-xs bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full">
       <Briefcase size={12} />
