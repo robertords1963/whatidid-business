@@ -709,6 +709,15 @@ const UI_STRINGS = {
   manage_common_cases_title: { en: '📋 Manage Key Insights / Common Cases', es: '📋 Gestionar Key Insights / Common Cases', pt: '📋 Gerenciar Key Insights / Common Cases', zh: '📋 管理Key Insights / Common Cases' },
   cc_add_btn: { en: '+ Add Common Case', es: '+ Agregar Common Case', pt: '+ Adicionar Common Case', zh: '+ 添加Common Case' },
   cc_none_yet: { en: 'No Common Cases registered for this Function/Practice yet.', es: 'Aún no hay Common Cases registrados para esta Función/Práctica.', pt: 'Nenhum Common Case cadastrado ainda para essa Function/Practice.', zh: '该职能/领域尚未注册任何Common Case。' },
+  confirm_delete_industry_sector: { en: 'Delete this Industry Sector? This cannot be undone.', es: '¿Eliminar este Industry Sector? Esta acción no se puede deshacer.', pt: 'Excluir este Industry Sector? Isso não pode ser desfeito.', zh: '删除此Industry Sector？此操作无法撤销。' },
+  manage_industry_sectors_title: { en: '🏭 Manage Industry Sectors', es: '🏭 Gestionar Industry Sectors', pt: '🏭 Gerenciar Industry Sectors', zh: '🏭 管理Industry Sectors' },
+  is_import_from_default_btn: { en: 'Import from Default', es: 'Importar del Default', pt: 'Importar do Default', zh: '从Default导入' },
+  is_add_btn: { en: '+ Add Sector', es: '+ Agregar Sector', pt: '+ Adicionar Sector', zh: '+ 添加行业' },
+  is_edit_title: { en: 'Edit Industry Sector', es: 'Editar Industry Sector', pt: 'Editar Industry Sector', zh: '编辑Industry Sector' },
+  is_none_yet: { en: 'No Industry Sectors registered yet.', es: 'Aún no hay Industry Sectors registrados.', pt: 'Nenhum Industry Sector cadastrado ainda.', zh: '尚未注册任何Industry Sector。' },
+  is_show_checkbox: { en: 'Show', es: 'Mostrar', pt: 'Mostrar', zh: '显示' },
+  is_name_label: { en: 'Sector Name', es: 'Nombre del Sector', pt: 'Nome do Sector', zh: '行业名称' },
+  is_name_placeholder: { en: 'e.g. Technology & Digital', es: 'ej: Tecnología y Digital', pt: 'ex: Tecnologia e Digital', zh: '例如：科技与数字' },
   cc_all_categories: { en: 'All Categories', es: 'Todas las Categorías', pt: 'Todas as Categories', zh: '所有分类' },
   cc_origin_imported: { en: 'Imported from Default', es: 'Importado del Default', pt: 'Importado do Default', zh: '从Default导入' },
   cc_origin_created_by_you: { en: 'Created by you', es: 'Creado por usted', pt: 'Criado por você', zh: '由您创建' },
@@ -1023,6 +1032,12 @@ const [filterPracticeId, setFilterPracticeId] = useState(null);
 const [adminCategories, setAdminCategories] = useState([]);
 const [adminCommonCases, setAdminCommonCases] = useState([]);
 const [ccFilterCategory, setCcFilterCategory] = useState('');
+const [adminIndustrySectors, setAdminIndustrySectors] = useState([]);
+const [showIndustrySectorForm, setShowIndustrySectorForm] = useState(false);
+const [editingIndustrySectorId, setEditingIndustrySectorId] = useState(null);
+const [isNewIndustrySector, setIsNewIndustrySector] = useState(false);
+const [newSectorName, setNewSectorName] = useState('');
+const [newSectorEditions, setNewSectorEditions] = useState(['pro', 'edu']);
 const [uiPractices, setUiPractices] = useState([]);
 const [demoGroups, setDemoGroups] = useState([]);
 // Vendedores (Sellers): lista de contas com is_seller=true, e estado do form de criação.
@@ -2846,6 +2861,10 @@ const loadPractices = async () => {
     );
     setUiPractices(uiFiltered);
 
+    // Industry Sector é independente de Practice — carrega sempre que a
+    // empresa/edição é (re)carregada, junto do resto.
+    loadIndustrySectors();
+
     // Practices visíveis no UI (mesma regra acima), excluindo General se for a única
     const uiPractices = uiFiltered;
     const onlyGeneral = uiPractices.length === 1 && uiPractices[0].name === 'General';
@@ -2864,6 +2883,106 @@ const loadPractices = async () => {
     }
   } catch (error) {
     console.error('Error loading practices:', error);
+  }
+};
+
+// Industry Sector é um eixo independente de Practice/Category — não tem
+// hierarquia, é uma lista plana. Segue o MESMO padrão de sample/import
+// já usado em Practices/Categories/Common Cases: o Default sugere uma
+// lista, a empresa importa e depois modifica à vontade, sem vínculo
+// contínuo com o que o Default fizer depois.
+const loadIndustrySectors = async () => {
+  const contentCompanyId = loggedInIsDemoId ? defaultCompanyId : effectiveCompanyId;
+  if (!contentCompanyId) return;
+  try {
+    let query = supabase
+      .from('industry_sectors')
+      .select('*')
+      .eq('active', true)
+      .eq('company_id', contentCompanyId)
+      .order('display_order', { ascending: true });
+    if (contentCompanyId === defaultCompanyId) {
+      query = query.eq('language', effectiveViewingLanguage);
+    }
+    const { data, error } = await query;
+    if (error) throw error;
+    setAdminIndustrySectors(data || []);
+  } catch (error) {
+    console.error('Error loading industry sectors:', error);
+  }
+};
+
+const saveIndustrySectorForm = async () => {
+  if (!newSectorName.trim()) { alert(t('cc_missing_required_fields')); return; }
+  if (newSectorEditions.length === 0) { alert(t('select_at_least_one_edition')); return; }
+  try {
+    if (editingIndustrySectorId) {
+      const { error } = await supabase.from('industry_sectors').update({
+        name: newSectorName.trim(),
+        applicable_editions: newSectorEditions.join(',')
+      }).eq('id', editingIndustrySectorId);
+      if (error) throw error;
+    } else {
+      const maxOrder = adminIndustrySectors.length > 0 ? Math.max(...adminIndustrySectors.map(s => s.display_order || 0)) : 0;
+      const { error } = await supabase.from('industry_sectors').insert([{
+        name: newSectorName.trim(),
+        applicable_editions: newSectorEditions.join(','),
+        display_order: maxOrder + 1,
+        company_id: effectiveCompanyId,
+        language: effectiveViewingLanguage
+      }]);
+      if (error) throw error;
+    }
+    setShowIndustrySectorForm(false);
+    await loadIndustrySectors();
+  } catch (error) {
+    console.error('Error saving industry sector:', error);
+    alert(t('generic_error') + ' ' + error.message);
+  }
+};
+
+const deleteIndustrySector = async (sector) => {
+  if (!window.confirm(t('confirm_delete_industry_sector'))) return;
+  try {
+    const { error } = await supabase.from('industry_sectors').update({ active: false }).eq('id', sector.id);
+    if (error) throw error;
+    await loadIndustrySectors();
+  } catch (error) {
+    console.error('Error deleting industry sector:', error);
+    alert(t('generic_error') + ' ' + error.message);
+  }
+};
+
+// Cópia única (não é um vínculo contínuo) — a empresa recebe o que o
+// Default tinha registrado NESTE momento, e depois é dona da própria
+// lista, totalmente independente.
+const importIndustrySectorsFromDefault = async () => {
+  try {
+    const { data: defaultSectors, error: fetchError } = await supabase
+      .from('industry_sectors')
+      .select('*')
+      .eq('active', true)
+      .eq('company_id', defaultCompanyId)
+      .eq('language', effectiveViewingLanguage);
+    if (fetchError) throw fetchError;
+    if (!defaultSectors || defaultSectors.length === 0) {
+      alert(t('no_app_config_to_copy'));
+      return;
+    }
+    const rows = defaultSectors.map(s => ({
+      name: s.name,
+      applicable_editions: s.applicable_editions,
+      display_order: s.display_order,
+      company_id: effectiveCompanyId,
+      language: effectiveViewingLanguage,
+      imported_from_id: s.id
+    }));
+    const { error } = await supabase.from('industry_sectors').insert(rows);
+    if (error) throw error;
+    await loadIndustrySectors();
+  } catch (error) {
+    console.error('Error importing industry sectors:', error);
+    alert(t('generic_error') + ' ' + error.message);
   }
 };
 
@@ -11709,6 +11828,145 @@ for (const row of rows) {
             {t('cancel')}
           </button>
           <button onClick={saveCommonCaseForm} className="flex-1 px-4 py-2 bg-rose-600 text-white rounded-lg text-sm hover:bg-rose-700">
+            {t('save')}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
+
+{isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (showDefaultOnlyTools || companyEdition !== 'corp') && (!masterMustRespectVisibility || companyMasterVisibility.includes('metadata')) && activeAdminNavTab === 'settings' && (
+  <div className="mt-4 bg-cyan-50 border-2 border-cyan-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
+    <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+      {t('manage_industry_sectors_title')}
+      {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">{t('read_only_sample')}</span>}
+    </h3>
+
+    <div className={isReadOnlyOrMasterManaging ? 'opacity-60 pointer-events-none' : ''}>
+      <div className="flex gap-2 flex-wrap items-center mb-3">
+        {!showDefaultOnlyTools && (
+          <button onClick={importIndustrySectorsFromDefault} className="px-3 py-1.5 bg-cyan-600 text-white rounded-lg text-xs hover:bg-cyan-700">
+            {t('is_import_from_default_btn')}
+          </button>
+        )}
+        <button
+          onClick={() => {
+            setEditingIndustrySectorId(null);
+            setIsNewIndustrySector(true);
+            setNewSectorName('');
+            setNewSectorEditions(showDefaultOnlyTools ? ['pro', 'edu'] : [companyEdition]);
+            setShowIndustrySectorForm(true);
+          }}
+          className="px-3 py-1.5 bg-cyan-600 text-white rounded-lg text-xs hover:bg-cyan-700 ml-auto"
+        >
+          {t('is_add_btn')}
+        </button>
+      </div>
+
+      <div className="space-y-2 max-h-96 overflow-y-auto">
+        {adminIndustrySectors.length === 0 && (
+          <p className="text-sm text-gray-400 italic">{t('is_none_yet')}</p>
+        )}
+        {adminIndustrySectors.map(sector => {
+          const editionsList = (sector.applicable_editions || 'pro,edu').split(',');
+          return (
+            <div key={sector.id} className="flex items-center justify-between gap-2 p-2 bg-white rounded border">
+              <span className="text-sm font-medium text-gray-800 flex-1">{sector.name}</span>
+              {showDefaultOnlyTools ? (
+                <div className="flex gap-3 flex-shrink-0">
+                  {['pro', 'edu'].map(ed => (
+                    <label key={ed} className="flex items-center gap-1 text-xs text-gray-600 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={editionsList.includes(ed)}
+                        onChange={async (e) => {
+                          const newList = e.target.checked ? [...editionsList, ed] : editionsList.filter(x => x !== ed);
+                          if (newList.length === 0) return;
+                          await supabase.from('industry_sectors').update({ applicable_editions: newList.join(',') }).eq('id', sector.id);
+                          await loadIndustrySectors();
+                        }}
+                      />
+                      {ed.toUpperCase()}
+                    </label>
+                  ))}
+                </div>
+              ) : (
+                <label className="flex items-center gap-1 text-xs text-gray-600 cursor-pointer flex-shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={editionsList.includes(companyEdition)}
+                    onChange={async (e) => {
+                      const newList = e.target.checked ? [...new Set([...editionsList, companyEdition])] : editionsList.filter(x => x !== companyEdition);
+                      await supabase.from('industry_sectors').update({ applicable_editions: newList.length > 0 ? newList.join(',') : companyEdition }).eq('id', sector.id);
+                      await loadIndustrySectors();
+                    }}
+                  />
+                  {t('is_show_checkbox')}
+                </label>
+              )}
+              <div className="flex gap-2 flex-shrink-0">
+                <button
+                  onClick={() => {
+                    setEditingIndustrySectorId(sector.id);
+                    setIsNewIndustrySector(false);
+                    setNewSectorName(sector.name);
+                    setNewSectorEditions(editionsList);
+                    setShowIndustrySectorForm(true);
+                  }}
+                  className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700"
+                >{t('edit')}</button>
+                <button onClick={() => deleteIndustrySector(sector)} className="px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700">{t('delete')}</button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  </div>
+)}
+
+{showIndustrySectorForm && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowIndustrySectorForm(false)}>
+    <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-bold text-gray-800">{isNewIndustrySector ? t('is_add_btn') : t('is_edit_title')}</h3>
+        <button onClick={() => setShowIndustrySectorForm(false)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
+      </div>
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t('is_name_label')}</label>
+          <input
+            type="text"
+            value={newSectorName}
+            onChange={(e) => setNewSectorName(e.target.value)}
+            className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm"
+            placeholder={t('is_name_placeholder')}
+          />
+        </div>
+        {showDefaultOnlyTools && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{t('applicable_editions_label')}</label>
+            <div className="flex gap-3">
+              {['pro', 'edu'].map(ed => (
+                <label key={ed} className="flex items-center gap-1.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={newSectorEditions.includes(ed)}
+                    onChange={(e) => setNewSectorEditions(prev => e.target.checked ? [...prev, ed] : prev.filter(x => x !== ed))}
+                  />
+                  <span className="text-sm text-gray-700 capitalize">{ed}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
+        <div className="flex gap-2 pt-2">
+          <button onClick={() => setShowIndustrySectorForm(false)} className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm hover:bg-gray-300">
+            {t('cancel')}
+          </button>
+          <button onClick={saveIndustrySectorForm} className="flex-1 px-4 py-2 bg-cyan-600 text-white rounded-lg text-sm hover:bg-cyan-700">
             {t('save')}
           </button>
         </div>
