@@ -719,6 +719,7 @@ const UI_STRINGS = {
   is_show_dropdown_ui: { en: 'Show dropdown in UI', es: 'Mostrar menú en la interfaz', pt: 'Mostrar dropdown no UI', zh: '在界面中显示下拉菜单' },
   is_show_in_dropdown_title: { en: 'Show in dropdown', es: 'Mostrar en el menú', pt: 'Mostrar no dropdown', zh: '在下拉菜单中显示' },
   select_all: { en: 'All', es: 'Todos', pt: 'Todos', zh: '全部' },
+  home_btn: { en: '🏠 Home', es: '🏠 Inicio', pt: '🏠 Home', zh: '🏠 首页' },
   is_name_label: { en: 'Sector Name', es: 'Nombre del Sector', pt: 'Nome do Sector', zh: '行业名称' },
   is_name_placeholder: { en: 'e.g. Technology & Digital', es: 'ej: Tecnología y Digital', pt: 'ex: Tecnologia e Digital', zh: '例如：科技与数字' },
   cc_all_categories: { en: 'All Categories', es: 'Todas las Categorías', pt: 'Todas as Categories', zh: '所有分类' },
@@ -7192,6 +7193,16 @@ useEffect(() => {
     });
   };
 
+  // Botão "Home" de cada seção usa isso pra voltar direto pro menu de
+  // navegação, no topo da aba Settings.
+  const scrollToAdminNavMenu = () => {
+    const el = document.getElementById('admin-settings-anchor');
+    if (el) {
+      const y = el.getBoundingClientRect().top + window.pageYOffset - 12;
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    }
+  };
+
   // ⭐ Hide/Show Top3 — testando remover TODA a compensação manual de scroll.
   // As 3 tentativas anteriores (altura do bloco, delta de posição uma vez,
   // delta contínuo por 20 frames) falharam igualmente em Chrome E Safari
@@ -9746,6 +9757,7 @@ autoComplete="off"
     <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
       {t('manage_company_branding_title')}
       {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">{t('read_only_sample')}</span>}
+      <button onClick={scrollToAdminNavMenu} className="ml-auto text-xs font-normal text-gray-400 hover:text-gray-600 flex-shrink-0">{t('home_btn')}</button>
     </h3>
     <div className={`bg-white rounded p-4 ${isReadOnlyOrMasterManaging ? 'pointer-events-none opacity-60' : ''}`}>
 
@@ -9946,6 +9958,7 @@ autoComplete="off"
     <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
       {t('manage_subtitles_title')}
       {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">{t('read_only_sample')}</span>}
+      <button onClick={scrollToAdminNavMenu} className="ml-auto text-xs font-normal text-gray-400 hover:text-gray-600 flex-shrink-0">{t('home_btn')}</button>
     </h3>
     <div className={`bg-white rounded p-4 ${isReadOnlyOrMasterManaging ? 'pointer-events-none opacity-60' : ''}`}>
       {pageSubtitles.length < 3 && (
@@ -10119,6 +10132,7 @@ autoComplete="off"
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 🎬 {t('manage_promotional_videos')}
                 {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">{t('read_only_sample')}</span>}
+      <button onClick={scrollToAdminNavMenu} className="ml-auto text-xs font-normal text-gray-400 hover:text-gray-600 flex-shrink-0">{t('home_btn')}</button>
               </h3>
               
               <div className={`bg-white rounded p-4 mb-4 ${isReadOnlyOrMasterManaging ? "pointer-events-none opacity-60" : ""}`}>
@@ -10484,6 +10498,7 @@ autoComplete="off"
                 <MessageCircle size={20} />
                 {t('manage_inspirational_quotes')}
                 {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">{t('read_only_sample')}</span>}
+      <button onClick={scrollToAdminNavMenu} className="ml-auto text-xs font-normal text-gray-400 hover:text-gray-600 flex-shrink-0">{t('home_btn')}</button>
               </h3>
 
               <div className={isReadOnlyOrMasterManaging ? 'pointer-events-none opacity-60' : ''}>
@@ -10834,6 +10849,7 @@ autoComplete="off"
   <div id="section-employees" className="mt-4 bg-slate-50 border-2 border-slate-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
       👥 {t('manage_employees')}
+      <button onClick={scrollToAdminNavMenu} className="ml-auto text-xs font-normal text-gray-400 hover:text-gray-600 flex-shrink-0">{t('home_btn')}</button>
     </h3>
 
     {showDefaultOnlyTools && (
@@ -11074,6 +11090,7 @@ autoComplete="off"
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
       {t('app_configuration_title')}
       {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">{t('read_only_sample')}</span>}
+      <button onClick={scrollToAdminNavMenu} className="ml-auto text-xs font-normal text-gray-400 hover:text-gray-600 flex-shrink-0">{t('home_btn')}</button>
     </h3>
     
     <div className={`bg-white rounded p-4 space-y-4 ${isReadOnlyOrMasterManaging ? 'pointer-events-none opacity-60' : ''}`}>
@@ -11177,6 +11194,7 @@ autoComplete="off"
     <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
       {t('manage_industry_sectors_title')}
       {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">{t('read_only_sample')}</span>}
+      <button onClick={scrollToAdminNavMenu} className="ml-auto text-xs font-normal text-gray-400 hover:text-gray-600 flex-shrink-0">{t('home_btn')}</button>
     </h3>
 
     {/* Interruptor geral — controla se o dropdown INTEIRO aparece
@@ -11185,7 +11203,7 @@ autoComplete="off"
         a edição correspondente estiver marcada aqui. */}
     <div className="mb-3 flex items-center gap-3 flex-wrap">
       <span className="text-sm font-medium text-gray-700">{t('is_show_dropdown_ui')}</span>
-      {(showDefaultOnlyTools ? ['edu', 'pro'] : [companyEdition]).map(ed => {
+      {(showDefaultOnlyTools ? ['pro', 'edu'] : [companyEdition]).map(ed => {
         const currentList = (appSettings.industrySectorEnabledEditions || 'pro,edu').split(',');
         const isChecked = currentList.includes(ed);
         return (
@@ -11248,9 +11266,15 @@ autoComplete="off"
                     type="checkbox"
                     checked={allChecked}
                     onChange={async (e) => {
+                      // Captura ANTES do loop com await — sem isso, o evento
+                      // sintético do React fica inválido depois da primeira
+                      // pausa assíncrona, e e.target.checked vira impreciso
+                      // nas iterações seguintes (mesmo bug já visto antes,
+                      // nos checkboxes de Promotional Videos).
+                      const wasChecked = e.target.checked;
                       for (const s of adminIndustrySectors) {
                         const list = (s.applicable_editions || 'pro,edu').split(',');
-                        const newList = e.target.checked ? [...new Set([...list, ed])] : list.filter(x => x !== ed);
+                        const newList = wasChecked ? [...new Set([...list, ed])] : list.filter(x => x !== ed);
                         if (newList.length === 0) continue;
                         await supabase.from('industry_sectors').update({ applicable_editions: newList.join(',') }).eq('id', s.id);
                       }
@@ -11392,6 +11416,7 @@ autoComplete="off"
     <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
       {t('manage_problem_categories')}
       {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">{t('read_only_sample')}</span>}
+      <button onClick={scrollToAdminNavMenu} className="ml-auto text-xs font-normal text-gray-400 hover:text-gray-600 flex-shrink-0">{t('home_btn')}</button>
     </h3>
 
     <div className="">
@@ -11857,6 +11882,7 @@ for (const row of rows) {
     <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
       {t('manage_common_cases_title')}
       {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">{t('read_only_sample')}</span>}
+      <button onClick={scrollToAdminNavMenu} className="ml-auto text-xs font-normal text-gray-400 hover:text-gray-600 flex-shrink-0">{t('home_btn')}</button>
     </h3>
 
     <div className={isReadOnlyOrMasterManaging ? 'opacity-60 pointer-events-none' : ''}>
@@ -12109,6 +12135,7 @@ for (const row of rows) {
   <div id="section-ratings" className="mt-4 bg-orange-50 border-2 border-orange-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
       {t('assign_ratings_title')}
+      <button onClick={scrollToAdminNavMenu} className="ml-auto text-xs font-normal text-gray-400 hover:text-gray-600 flex-shrink-0">{t('home_btn')}</button>
     </h3>
     
     <div className="bg-white rounded p-4">
