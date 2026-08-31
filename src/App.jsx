@@ -8595,6 +8595,22 @@ autoComplete="off"
         }`}
       >
         {t('live_preview_title')}
+        {/* Dropdown Edition — só faz sentido aqui dentro, já que só
+            afeta o que é exibido nesse preview (não grava nada
+            diferente no banco, confirmado por auditoria). Posicionado
+            absoluto pra não desbalancear a centralização do texto. */}
+        {(isDefaultAdmin || isSeller) && !adminCompanyContext && (
+          <select
+            value={viewingEdition}
+            onChange={(e) => { e.stopPropagation(); setViewingEdition(e.target.value); }}
+            onClick={(e) => e.stopPropagation()}
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 border-2 border-gray-300 rounded-lg text-xs font-medium bg-white text-gray-700"
+          >
+            <option value="corp">Corp</option>
+            <option value="pro">Pro</option>
+            <option value="edu">Edu</option>
+          </select>
+        )}
       </button>
       <div
         className={`absolute bottom-0 h-0.5 ${activeAdminNavTab === 'settings' ? 'bg-gray-300 right-0 left-1/2' : 'bg-indigo-300 left-0 right-1/2'}`}
@@ -8620,16 +8636,6 @@ autoComplete="off"
             <option value="es">Español</option>
             <option value="pt">Português</option>
             <option value="zh">中文 (Chinese)</option>
-          </select>
-          <label className="text-sm font-medium text-gray-700 ml-2">{t('edition_label')}</label>
-          <select
-            value={viewingEdition}
-            onChange={(e) => setViewingEdition(e.target.value)}
-            className="p-2 border-2 border-gray-300 rounded-lg text-sm font-medium"
-          >
-            <option value="corp">Corp</option>
-            <option value="pro">Pro</option>
-            <option value="edu">Edu</option>
           </select>
         </>
       )}
@@ -8679,20 +8685,6 @@ autoComplete="off"
         <option value="pt">Português</option>
         <option value="zh">中文 (Chinese)</option>
       </select>
-      {!adminCompanyContext && (
-        <>
-          <label className="text-sm font-medium text-gray-700 ml-2">{t('edition_label')}</label>
-          <select
-            value={viewingEdition}
-            onChange={(e) => setViewingEdition(e.target.value)}
-            className="p-2 border-2 border-gray-300 rounded-lg text-sm font-medium"
-          >
-            <option value="corp">Corp</option>
-            <option value="pro">Pro</option>
-            <option value="edu">Edu</option>
-          </select>
-        </>
-      )}
       <label className="text-sm font-medium text-gray-700 ml-2">{t('viewing')}</label>
       <select
         value={adminCompanyContext ? 'company' : (companyViewMode === 'sample' ? 'sample' : 'seller')}
