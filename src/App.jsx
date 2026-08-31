@@ -11836,7 +11836,7 @@ for (const row of rows) {
                     }}
                     disabled={isReadOnlyOrMasterManaging || index === 0}
                     className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 disabled:opacity-30 disabled:cursor-not-allowed"
-                  >{t('up_arrow')}</button>
+                  >▲</button>
                   <button
                     onClick={async () => {
                       if (isReadOnlyOrMasterManaging || index === adminCategories.length - 1) return;
@@ -11846,7 +11846,7 @@ for (const row of rows) {
                     }}
                     disabled={isReadOnlyOrMasterManaging || index === adminCategories.length - 1}
                     className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 disabled:opacity-30 disabled:cursor-not-allowed"
-                  >{t('down_arrow')}</button>
+                  >▼</button>
                 <div className="flex-1 min-w-0">
                   <span className="text-sm text-gray-700 font-medium">{cat.name}</span>
                   {cat.description && (
@@ -11939,7 +11939,17 @@ for (const row of rows) {
             .sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
           const idx = siblings.findIndex(c => c.id === cc.id);
           return (
-          <div key={cc.id} className="flex items-center justify-between gap-2 p-2 bg-white rounded border">
+          <div key={cc.id} className="flex items-center gap-2 p-2 bg-white rounded border">
+            <button
+              onClick={() => moveCommonCase(cc, 'up')}
+              disabled={idx === 0}
+              className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 disabled:opacity-30 disabled:cursor-not-allowed flex-shrink-0"
+            >▲</button>
+            <button
+              onClick={() => moveCommonCase(cc, 'down')}
+              disabled={idx === siblings.length - 1}
+              className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 disabled:opacity-30 disabled:cursor-not-allowed flex-shrink-0"
+            >▼</button>
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium text-gray-800 truncate">{cc.problem}</p>
               <p className="text-xs text-gray-500">
@@ -11951,16 +11961,6 @@ for (const row of rows) {
               </p>
             </div>
             <div className="flex gap-2 flex-shrink-0">
-              <button
-                onClick={() => moveCommonCase(cc, 'up')}
-                disabled={idx === 0}
-                className="px-2 py-1 bg-gray-500 text-white rounded text-xs hover:bg-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
-              >▲</button>
-              <button
-                onClick={() => moveCommonCase(cc, 'down')}
-                disabled={idx === siblings.length - 1}
-                className="px-2 py-1 bg-gray-500 text-white rounded text-xs hover:bg-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
-              >▼</button>
               <button onClick={() => openEditCommonCaseForm(cc)} className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700">{t('edit')}</button>
               <button onClick={() => deleteCommonCase(cc)} className="px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700">{t('delete')}</button>
             </div>
