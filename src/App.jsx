@@ -8642,6 +8642,44 @@ autoComplete="off"
 {isAdmin && (
   <div id="admin-settings-anchor"></div>
 )}
+{isAdmin && activeAdminNavTab === 'settings' && (() => {
+  // Cada item reaproveita EXATAMENTE a mesma condição de visibilidade
+  // da seção correspondente — assim o menu nunca mostra um link morto
+  // pra algo que não vai aparecer na tela pra essa pessoa.
+  const navItems = [
+    { id: 'section-branding', label: t('manage_company_branding_title'), visible: isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('company_branding')) },
+    { id: 'section-subtitles', label: t('manage_subtitles_title'), visible: isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('page_subtitles')) },
+    { id: 'section-videos', label: t('manage_promotional_videos'), visible: isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('promotional_videos')) },
+    { id: 'section-quotes', label: t('manage_inspirational_quotes'), visible: isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('quotes')) },
+    { id: 'section-employees', label: t('manage_employees'), visible: isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('synthetic') || canBootstrapFirstAdmin) },
+    { id: 'section-app-config', label: t('app_configuration_title'), visible: isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('app_config')) },
+    { id: 'section-industry-sectors', label: t('manage_industry_sectors_title'), visible: isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (showDefaultOnlyTools || companyEdition !== 'corp') && (!masterMustRespectVisibility || companyMasterVisibility.includes('metadata')) },
+    { id: 'section-categories', label: t('manage_problem_categories'), visible: isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('metadata')) },
+    { id: 'section-common-cases', label: t('manage_common_cases_title'), visible: isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('metadata')) },
+    { id: 'section-ratings', label: t('assign_ratings_title'), visible: isAdmin && showDefaultOnlyTools && !isSeller },
+  ].filter(item => item.visible);
+
+  if (navItems.length === 0) return null;
+
+  return (
+    <div className="max-w-4xl mx-auto mt-3 mb-1 px-1">
+      <div className="flex flex-wrap gap-1.5 p-2 bg-gray-50 border-2 border-gray-200 rounded-lg">
+        {navItems.map(item => (
+          <button
+            key={item.id}
+            onClick={() => {
+              const el = document.getElementById(item.id);
+              if (el) { const y = el.getBoundingClientRect().top + window.pageYOffset - 12; window.scrollTo({ top: y, behavior: 'smooth' }); }
+            }}
+            className="px-2.5 py-1 bg-white border border-gray-300 rounded-full text-xs text-gray-600 hover:bg-gray-100 hover:border-gray-400 whitespace-nowrap"
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+})()}
 {isAdmin && isDefaultAdmin && activeAdminNavTab === 'settings' && (
   <div className={`mt-4 rounded-lg shadow-md p-4 max-w-4xl mx-auto border-2 ${adminCompanyContext ? 'bg-amber-50 border-amber-400' : 'bg-gray-50 border-gray-300'}`}>
     <div className="flex items-center gap-3 flex-wrap">
@@ -9704,7 +9742,7 @@ autoComplete="off"
 
 
 {isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('company_branding')) && activeAdminNavTab === 'settings' && (
-  <div className="mt-4 bg-purple-50 border-2 border-purple-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
+  <div id="section-branding" className="mt-4 bg-purple-50 border-2 border-purple-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
       {t('manage_company_branding_title')}
       {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">{t('read_only_sample')}</span>}
@@ -9904,7 +9942,7 @@ autoComplete="off"
 
 
 {isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('page_subtitles')) && activeAdminNavTab === 'settings' && (
-  <div className="mt-4 bg-blue-50 border-2 border-blue-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
+  <div id="section-subtitles" className="mt-4 bg-blue-50 border-2 border-blue-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
       {t('manage_subtitles_title')}
       {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">{t('read_only_sample')}</span>}
@@ -10077,7 +10115,7 @@ autoComplete="off"
   </div>
 )}
           {isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('promotional_videos')) && activeAdminNavTab === 'settings' && (
-            <div className="mt-4 bg-purple-50 border-2 border-purple-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
+            <div id="section-videos" className="mt-4 bg-purple-50 border-2 border-purple-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 🎬 {t('manage_promotional_videos')}
                 {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">{t('read_only_sample')}</span>}
@@ -10441,7 +10479,7 @@ autoComplete="off"
             </div>
           )}
           {isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('quotes')) && activeAdminNavTab === 'settings' && (
-            <div className="mt-4 bg-green-50 border-2 border-green-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
+            <div id="section-quotes" className="mt-4 bg-green-50 border-2 border-green-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 <MessageCircle size={20} />
                 {t('manage_inspirational_quotes')}
@@ -10793,7 +10831,7 @@ autoComplete="off"
        
 
 {isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('synthetic') || canBootstrapFirstAdmin) && activeAdminNavTab === 'settings' && (
-  <div className="mt-4 bg-slate-50 border-2 border-slate-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
+  <div id="section-employees" className="mt-4 bg-slate-50 border-2 border-slate-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
       👥 {t('manage_employees')}
     </h3>
@@ -11032,7 +11070,7 @@ autoComplete="off"
 )}
 
 {isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('app_config')) && activeAdminNavTab === 'settings' && (
-  <div className="mt-4 bg-indigo-50 border-2 border-indigo-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
+  <div id="section-app-config" className="mt-4 bg-indigo-50 border-2 border-indigo-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
       {t('app_configuration_title')}
       {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">{t('read_only_sample')}</span>}
@@ -11135,7 +11173,7 @@ autoComplete="off"
 
 
 {isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (showDefaultOnlyTools || companyEdition !== 'corp') && (!masterMustRespectVisibility || companyMasterVisibility.includes('metadata')) && activeAdminNavTab === 'settings' && (
-  <div className="mt-4 bg-cyan-50 border-2 border-cyan-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
+  <div id="section-industry-sectors" className="mt-4 bg-cyan-50 border-2 border-cyan-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
       {t('manage_industry_sectors_title')}
       {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">{t('read_only_sample')}</span>}
@@ -11192,38 +11230,39 @@ autoComplete="off"
 
       <p className="text-sm font-medium text-gray-700 mb-2">{t('is_show_in_dropdown_title')}</p>
 
-      {/* Cabeçalho de coluna — só pro Default, já que ele tem 2 colunas
-          (PRO/EDU). Cada cabeçalho já inclui o "ALL" daquela coluna,
-          evitando repetir PRO/EDU em cada linha da lista. */}
+      {/* Grid com colunas explícitas, EXATAMENTE iguais entre cabeçalho e
+          linhas — évita o desalinhamento que rolava com flexbox (linhas
+          têm setas ▲▼ extras que o cabeçalho não tinha, desalinhando os
+          checkboxes). */}
       {showDefaultOnlyTools && (
-        <div className="flex items-center gap-2 mb-1 pr-[76px]">
-          <span className="flex-1"></span>
-          <div className="flex gap-3 flex-shrink-0">
-            {['pro', 'edu'].map(ed => {
-              const allChecked = adminIndustrySectors.length > 0 && adminIndustrySectors.every(s => (s.applicable_editions || 'pro,edu').split(',').includes(ed));
-              return (
-                <div key={ed} className="flex flex-col items-center gap-0.5 w-10">
-                  <span className="text-xs font-semibold text-gray-600 uppercase">{ed}</span>
-                  <label className="flex items-center gap-1 text-[10px] text-gray-500 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={allChecked}
-                      onChange={async (e) => {
-                        for (const s of adminIndustrySectors) {
-                          const list = (s.applicable_editions || 'pro,edu').split(',');
-                          const newList = e.target.checked ? [...new Set([...list, ed])] : list.filter(x => x !== ed);
-                          if (newList.length === 0) continue;
-                          await supabase.from('industry_sectors').update({ applicable_editions: newList.join(',') }).eq('id', s.id);
-                        }
-                        await loadIndustrySectors();
-                      }}
-                    />
-                    {t('select_all')}
-                  </label>
-                </div>
-              );
-            })}
-          </div>
+        <div className="grid gap-2 mb-1 items-end" style={{ gridTemplateColumns: '56px 1fr 40px 40px 90px' }}>
+          <span></span>
+          <span></span>
+          {['pro', 'edu'].map(ed => {
+            const allChecked = adminIndustrySectors.length > 0 && adminIndustrySectors.every(s => (s.applicable_editions || 'pro,edu').split(',').includes(ed));
+            return (
+              <div key={ed} className="flex flex-col items-center gap-0.5">
+                <span className="text-xs font-semibold text-gray-600 uppercase">{ed}</span>
+                <label className="flex items-center gap-1 text-[10px] text-gray-500 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={allChecked}
+                    onChange={async (e) => {
+                      for (const s of adminIndustrySectors) {
+                        const list = (s.applicable_editions || 'pro,edu').split(',');
+                        const newList = e.target.checked ? [...new Set([...list, ed])] : list.filter(x => x !== ed);
+                        if (newList.length === 0) continue;
+                        await supabase.from('industry_sectors').update({ applicable_editions: newList.join(',') }).eq('id', s.id);
+                      }
+                      await loadIndustrySectors();
+                    }}
+                  />
+                  {t('select_all')}
+                </label>
+              </div>
+            );
+          })}
+          <span></span>
         </div>
       )}
 
@@ -11234,8 +11273,12 @@ autoComplete="off"
         {[...adminIndustrySectors].sort((a, b) => (a.display_order || 0) - (b.display_order || 0)).map((sector, idx, sortedArr) => {
           const editionsList = (sector.applicable_editions || 'pro,edu').split(',');
           return (
-            <div key={sector.id} className="flex items-center justify-between gap-2 p-2 bg-white rounded border">
-              <div className="flex gap-1 flex-shrink-0">
+            <div
+              key={sector.id}
+              className="grid gap-2 items-center p-2 bg-white rounded border"
+              style={{ gridTemplateColumns: showDefaultOnlyTools ? '56px 1fr 40px 40px 90px' : '56px 1fr 40px 90px' }}
+            >
+              <div className="flex gap-1">
                 <button
                   onClick={() => moveIndustrySector(sector, 'up')}
                   disabled={idx === 0}
@@ -11247,37 +11290,36 @@ autoComplete="off"
                   className="px-1.5 py-1 bg-gray-500 text-white rounded text-xs hover:bg-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
                 >▼</button>
               </div>
-              <span className="text-sm font-medium text-gray-800 flex-1">{sector.name}</span>
+              <span className="text-sm font-medium text-gray-800 truncate">{sector.name}</span>
               {showDefaultOnlyTools ? (
-                <div className="flex gap-3 flex-shrink-0">
-                  {['pro', 'edu'].map(ed => (
-                    <div key={ed} className="w-10 flex justify-center">
-                      <input
-                        type="checkbox"
-                        checked={editionsList.includes(ed)}
-                        onChange={async (e) => {
-                          const newList = e.target.checked ? [...editionsList, ed] : editionsList.filter(x => x !== ed);
-                          if (newList.length === 0) return;
-                          await supabase.from('industry_sectors').update({ applicable_editions: newList.join(',') }).eq('id', sector.id);
-                          await loadIndustrySectors();
-                        }}
-                      />
-                    </div>
-                  ))}
-                </div>
+                ['pro', 'edu'].map(ed => (
+                  <div key={ed} className="flex justify-center">
+                    <input
+                      type="checkbox"
+                      checked={editionsList.includes(ed)}
+                      onChange={async (e) => {
+                        const newList = e.target.checked ? [...editionsList, ed] : editionsList.filter(x => x !== ed);
+                        if (newList.length === 0) return;
+                        await supabase.from('industry_sectors').update({ applicable_editions: newList.join(',') }).eq('id', sector.id);
+                        await loadIndustrySectors();
+                      }}
+                    />
+                  </div>
+                ))
               ) : (
-                <input
-                  type="checkbox"
-                  checked={editionsList.includes(companyEdition)}
-                  onChange={async (e) => {
-                    const newList = e.target.checked ? [...new Set([...editionsList, companyEdition])] : editionsList.filter(x => x !== companyEdition);
-                    await supabase.from('industry_sectors').update({ applicable_editions: newList.length > 0 ? newList.join(',') : companyEdition }).eq('id', sector.id);
-                    await loadIndustrySectors();
-                  }}
-                  className="flex-shrink-0"
-                />
+                <div className="flex justify-center">
+                  <input
+                    type="checkbox"
+                    checked={editionsList.includes(companyEdition)}
+                    onChange={async (e) => {
+                      const newList = e.target.checked ? [...new Set([...editionsList, companyEdition])] : editionsList.filter(x => x !== companyEdition);
+                      await supabase.from('industry_sectors').update({ applicable_editions: newList.length > 0 ? newList.join(',') : companyEdition }).eq('id', sector.id);
+                      await loadIndustrySectors();
+                    }}
+                  />
+                </div>
               )}
-              <div className="flex gap-2 flex-shrink-0">
+              <div className="flex gap-2">
                 <button
                   onClick={() => {
                     setEditingIndustrySectorId(sector.id);
@@ -11346,7 +11388,7 @@ autoComplete="off"
   </div>
 )}
 {isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('metadata')) && activeAdminNavTab === 'settings' && (
-  <div className="mt-4 bg-teal-50 border-2 border-teal-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
+  <div id="section-categories" className="mt-4 bg-teal-50 border-2 border-teal-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
       {t('manage_problem_categories')}
       {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">{t('read_only_sample')}</span>}
@@ -11811,7 +11853,7 @@ for (const row of rows) {
 )}
 
 {isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('metadata')) && activeAdminNavTab === 'settings' && (
-  <div className="mt-4 bg-rose-50 border-2 border-rose-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
+  <div id="section-common-cases" className="mt-4 bg-rose-50 border-2 border-rose-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
       {t('manage_common_cases_title')}
       {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">{t('read_only_sample')}</span>}
@@ -12064,7 +12106,7 @@ for (const row of rows) {
 
 
 {isAdmin && showDefaultOnlyTools && !isSeller && activeAdminNavTab === 'settings' && (
-  <div className="mt-4 bg-orange-50 border-2 border-orange-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
+  <div id="section-ratings" className="mt-4 bg-orange-50 border-2 border-orange-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
       {t('assign_ratings_title')}
     </h3>
