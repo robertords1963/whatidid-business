@@ -206,6 +206,9 @@ const UI_STRINGS = {
   category_name_placeholder_short: { en: 'Category name', es: 'Nombre de la categoría', pt: 'Nome da categoria', zh: '分类名称' },
   add_to_desktop: { en: 'Add to Desktop', es: 'Agregar al Escritorio', pt: 'Adicionar à Área de Trabalho', zh: '添加到桌面' },
   add_to_phone: { en: 'Add to Phone', es: 'Agregar al Teléfono', pt: 'Adicionar ao Celular', zh: '添加到手机' },
+  add_prefix: { en: 'Add', es: 'Agregar', pt: 'Adicionar', zh: '添加' },
+  add_to_desktop_suffix: { en: 'to Desktop', es: 'al Escritorio', pt: 'à Área de Trabalho', zh: '到桌面' },
+  add_to_phone_suffix: { en: 'to Phone', es: 'al Teléfono', pt: 'ao Celular', zh: '到手机' },
   clear_all: { en: 'Clear All', es: 'Limpiar Todo', pt: 'Limpar Tudo', zh: '清空全部' },
   follow_on_to: { en: '🔗 Follow-On to:', es: '🔗 Continuación de:', pt: '🔗 Continuação de:', zh: '🔗 续写自：' },
   require_employee_id: { en: 'Require Employee ID for access', es: 'Requerir ID de Empleado para acceder', pt: 'Exigir ID de Funcionário para acesso', zh: '需要员工 ID 才能访问' },
@@ -8420,14 +8423,15 @@ autoComplete="off"
       onClick={handleInstallClick}
       className="text-sm bg-gray-200 text-gray-700 px-3 py-1 rounded hover:bg-gray-300 transition-colors flex items-center gap-1.5 whitespace-nowrap"
     >
-            <img
+      {t('add_prefix')}
+      <img
         src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAIYElEQVR4nJ2Xa6xcVRXHf2vv85iZ+yod2t7Slt4+aMsjApWgxCgQDYkBQtWAQSQxYtSIH0j8Smw/mKDxE18MBA1RSIQQRcVoVBLgAyI0UKWlve3c9raF3nt7+7yPmTPnsffyw5mZO20RlUkmZ+fMnPNf6/9f+7/WFlUVEVGAvz01+9VTDfPw/Jlie577moKogAdUQOl8BbyAKhQeCqc4B4VXCgfOK4UHp+XagzpIMOYdL4tPPv27bc8CgIrs3Klm165G+Ntdy546eSB68MzJjCRt4/A9UC+gSHntv9cNziwFpga46L4XwBiMjRFryfz883b+6DfGbrstEwSee/TEr86+u+rBYx+8X5gYI1ZML2uRviD6sr9o7QVEPA6DU4OxBR7BIb1APeoR8ZXa6mCxPfnC83/cep+8/OTMjkOvxC8eb5wvbE0Cr/0vl48E7ZcHUVquSmBz4rDJXLYMawqszXtB9LGZB/FgmLupB4Lphj5ydqZQidWoyscE97RcjRtW72bHNc8yHM/TOLuVZ/Z9i/PpMqzNL5DQ423hC/VSeSRYPOe3J2kiWCP+Y2ae+pg1I8f4/qd+TBgkuKLCp8f+QjVo89ibP8T0PacAIqbwKWLs9abIdchpp+A+CpxLwVUA42n7mE+seocwXKSdDeMx5O062+r7WTk4TeojVLQngS9ZQG0QGd+raPlocPnwtUdAlLlsGMQD4LzFSkHmIlpFFYxfemffexEw2tli+l+o/k9rhyEOW7w1fQuHZrdTqZ6iEs1jwiZ/OLKD02mdwFxYiN3nMRD0ttD/qPmHrUU8qY/4yVuPcuuVL1OvzbLv1PW8NXszlTDBYS7xD9XyGvS0vFjn/4MFFcGanNTFvNi4t0zIOKph69It2O8bBoJSRzAdcGz5g5ReifNLgCpgbIe+DmvedwMXjCkYqZzrFBk4Ccr/6KX6q/ZJ0F8gSUvJcy3BQogHTA8wd9Ba8KgpAWwoxDXpbC2l6apkeVnx3gi4FkZy4mqZkfYF4gGsdCSgzDpLlU/eXmN0Y4gqzE4VvPlqkyAS0ly5fDTgzs8Pk+dKEAsfHMv5x+stohgSF3PLFa+zdfl+Ch+jLmN6+AscaW3m0IEFvAhhRVC/xICYTg14AWOgnSpbb6py65cGATgzVfD23xNUlHZbufEzNb7yzWU9zaaP5ex+M8FT9oC7NrzEttE3oBiCbBHuuQN/ZZ1391R5/GfnmDpZEFekJ4kYWGo6gFh4b3cLX0BrzjMwZKmvtqS5YiNhy7Ux3kFzwdNeVC6rB6xaE9BKLSOV81xeOY1rryBNKuTVzbjLtpG2lBu21/jRzlWMLLOkBagRPIJYwThXRuOgpHUyp9302ECoDAprN0YkiTJSt2zYEoODwAqqUBkUNm0JWUhD1gydoF49jVNLGCTMpquZmB6gWoHF85416wK+ft8ISVsRI72ETeG0VxQmEk7NOmbezwmjssw3bI1IUs+6jRHLV1jyTLHB0i65+tqIXAM2jRxGbJvCG0zkeGNyjO/+4Dz73kuoDRrylvLZW2qsWBmQFtqZGwRTuD5DMZAknslDGSYELWBsS4xY4aprYyQoQRcXfFn5DjZviakNwsahBiAICt4wmWyh2S547jdzGAOFg2XLLOuvDGnnCgY8iim8XjBqqYGJ8RSAIldG1wRcPhqweVsEHqJY+OufF5mfc6iHlaMxm9ZnrK0cAY0ITUGWD9KYX89QzXHshGNhzmNtSXl9uaXwWlIoXQlMx9cVbCQcnchImwrAwKDhmhsqrF4b4h3kufLaq02mpnLEKFFV+NyN51kezOB9RGByppNRpturCGxOOxfSTJEOoLUdJ+yaV+l0QtcRg0iYmS44OVUQhKXSd9w9xOCQwRiYmSmYPJox0cjAKpmH2687wUCwSKEBmIzDi2MsuAHEeDAlaPdzQVcUMM7rhY3FQrPpmZxIkQBcAVdfFyMiYGF8f0rS9hwYT9G8ZGkkPYgRj3Za8/j8VagYvCrDw4bBAYNzZYbNdql/iakYpxd6vXa2ZGM8KyMGvKPTLmHv3jZRxXB4MuPcGU9owJ06DCbA4FAXc3B+E1BwZk656foqYbU0mqytHJ/OsYHgOrNnyQBLna0rw+GJlKKtPc1CC615z8FGSnXAcOpMQeOoxxQJnJ1AbUwgOWeSOlP5OkYGC3Z8cZgHvjxM2lTimnBwMqPxfl66YQcv6GfAd1K2kXDiRMHsyYJVq0PStieKDUcbGTOzBXHFsJB49h5Ubt50HJqnIK7iswXC0U389LENDMWe+vKQNC1lEgu//P08mVMi6QYgGA8Lagwe7RWICWBuwXH8aI6NIAgECeDAeErSLndNEMK+Qx7/wT4ibRJYMK7N0Ng1jK2z1OsGgHhACGPh8afP8cruFgMDhkIBIxjj08Djd5ugcntRLChSHkikw8aePW02botIFj2VmuGdfyaYUHBeCWNh8njKkbfHucKMkGc1RC9jwVxHccKRLea08oKJ4xl/eq3JvxoptQGDU/CqPoiqMjiQ7ZEH7957V2BGX0qLpFC8VZELzoMmkF6N5B0D6R7VHFALmgTW9QbaFoPkasi9khVKO1dsKFSrncITyAotRleOBDduad0rAPffefDnterGh5rJlPPiRUVM70jWN0r1g3frpsDi+joq4srhQzpjVmd46WaeK355fU0wtmL617/Yte5rwc6davbvf+E7zcRio5GHBMhdWs7tF41RvjNe9QJTUHHdYa4MUJcCVwfqO4dTMQRRbOrDgVm78vQzTzxQfPspr6brRwrK/feM79Bg4GGv3ORxI2oQOpmIkU5GgnTnRiuIWWKm63RLQUvnQCIahnZ+aDh8e/3K/Ild31v9ggKoyr8B15ALulG8K+wAAAAASUVORK5CYII="
         alt=""
         width="16"
         height="16"
         style={{ borderRadius: '3px', flexShrink: 0 }}
       />
-      {isDesktopDevice ? t('add_to_desktop') : t('add_to_phone')}
+      {isDesktopDevice ? t('add_to_desktop_suffix') : t('add_to_phone_suffix')}
     </button>
   )}
 </div>
@@ -8663,11 +8667,15 @@ autoComplete="off"
   // da seção correspondente — assim o menu nunca mostra um link morto
   // pra algo que não vai aparecer na tela pra essa pessoa.
   const navItems = [
+    { id: 'section-sellers', label: '🧑‍💼 ' + t('manage_sellers'), visible: isAdmin && showDefaultOnlyTools && !isSeller },
+    { id: 'section-companies', label: '🏢 ' + t('manage_companies'), visible: isAdmin && (showDefaultOnlyTools || (isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample')) },
+    { id: 'section-demo-groups', label: '🎯 ' + t('manage_demo_groups'), visible: isAdmin && (showDefaultOnlyTools || (isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample')) },
+    { id: 'section-demo-activity', label: '📊 ' + t('sellers_demo_activity_overview'), visible: isAdmin && showDefaultOnlyTools && !isSeller },
     { id: 'section-branding', label: t('manage_company_branding_title'), visible: isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('company_branding')) },
-    { id: 'section-subtitles', label: t('manage_subtitles_title'), visible: isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('page_subtitles')) },
-    { id: 'section-videos', label: t('manage_promotional_videos'), visible: isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('promotional_videos')) },
-    { id: 'section-quotes', label: t('manage_inspirational_quotes'), visible: isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('quotes')) },
-    { id: 'section-employees', label: t('manage_employees'), visible: isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('synthetic') || canBootstrapFirstAdmin) },
+    { id: 'section-subtitles', label: '📝 ' + t('manage_subtitles_title'), visible: isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('page_subtitles')) },
+    { id: 'section-videos', label: '🎬 ' + t('manage_promotional_videos'), visible: isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('promotional_videos')) },
+    { id: 'section-quotes', label: '💬 ' + t('manage_inspirational_quotes'), visible: isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('quotes')) },
+    { id: 'section-employees', label: '👥 ' + t('manage_employees'), visible: isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('synthetic') || canBootstrapFirstAdmin) },
     { id: 'section-app-config', label: t('app_configuration_title'), visible: isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('app_config')) },
     { id: 'section-industry-sectors', label: t('manage_industry_sectors_title'), visible: isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (showDefaultOnlyTools || companyEdition !== 'corp') && (!masterMustRespectVisibility || companyMasterVisibility.includes('metadata')) },
     { id: 'section-categories', label: t('manage_problem_categories'), visible: isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('metadata')) },
@@ -9018,9 +9026,10 @@ autoComplete="off"
   </div>
 )}
 {isAdmin && showDefaultOnlyTools && !isSeller && activeAdminNavTab === 'settings' && (
-  <div className="mt-4 bg-teal-50 border-2 border-teal-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
+  <div id="section-sellers" className="mt-4 bg-teal-50 border-2 border-teal-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
       🧑‍💼 {t('manage_sellers')}
+      <button onClick={scrollToAdminNavMenu} className="ml-auto text-xs font-normal text-gray-400 hover:text-gray-600 flex-shrink-0">{t('home_btn')}</button>
     </h3>
 
     {/* Add Seller */}
@@ -9136,9 +9145,10 @@ autoComplete="off"
 
 
 {isAdmin && (showDefaultOnlyTools || (isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample')) && activeAdminNavTab === 'settings' && (
-  <div className="mt-4 bg-indigo-50 border-2 border-indigo-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
+  <div id="section-companies" className="mt-4 bg-indigo-50 border-2 border-indigo-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
       🏢 {t('manage_companies')}
+      <button onClick={scrollToAdminNavMenu} className="ml-auto text-xs font-normal text-gray-400 hover:text-gray-600 flex-shrink-0">{t('home_btn')}</button>
     </h3>
 
     {/* Add Company */}
@@ -9394,9 +9404,10 @@ autoComplete="off"
 )}
 
 {isAdmin && (showDefaultOnlyTools || (isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample')) && activeAdminNavTab === 'settings' && (
-  <div className="mt-4 bg-pink-50 border-2 border-pink-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
+  <div id="section-demo-groups" className="mt-4 bg-pink-50 border-2 border-pink-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
       🎯 {t('manage_demo_groups')}
+      <button onClick={scrollToAdminNavMenu} className="ml-auto text-xs font-normal text-gray-400 hover:text-gray-600 flex-shrink-0">{t('home_btn')}</button>
     </h3>
 
     {isSeller && (() => {
@@ -9686,9 +9697,10 @@ autoComplete="off"
 )}
 
 {isAdmin && showDefaultOnlyTools && !isSeller && activeAdminNavTab === 'settings' && (
-  <div className="mt-4 bg-cyan-50 border-2 border-cyan-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
+  <div id="section-demo-activity" className="mt-4 bg-cyan-50 border-2 border-cyan-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
       📊 {t('sellers_demo_activity_overview')}
+      <button onClick={scrollToAdminNavMenu} className="ml-auto text-xs font-normal text-gray-400 hover:text-gray-600 flex-shrink-0">{t('home_btn')}</button>
     </h3>
     <div className="bg-white rounded p-4">
       <p className="text-xs text-gray-400 mb-3">{t('expired_ids_autoclear')}</p>
@@ -9970,7 +9982,7 @@ autoComplete="off"
 {isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('page_subtitles')) && activeAdminNavTab === 'settings' && (
   <div id="section-subtitles" className="mt-4 bg-blue-50 border-2 border-blue-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
     <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-      {t('manage_subtitles_title')}
+      📝 {t('manage_subtitles_title')}
       {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">{t('read_only_sample')}</span>}
       <button onClick={scrollToAdminNavMenu} className="ml-auto text-xs font-normal text-gray-400 hover:text-gray-600 flex-shrink-0">{t('home_btn')}</button>
     </h3>
