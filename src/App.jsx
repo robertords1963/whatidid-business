@@ -11253,7 +11253,7 @@ autoComplete="off"
           têm setas ▲▼ extras que o cabeçalho não tinha, desalinhando os
           checkboxes). */}
       {showDefaultOnlyTools && (
-        <div className="grid gap-2 mb-1 items-end" style={{ gridTemplateColumns: '56px 1fr 40px 40px 90px' }}>
+        <div className="grid gap-2 mb-1 items-end" style={{ gridTemplateColumns: '68px 1fr 40px 40px 90px' }}>
           <span></span>
           <span></span>
           {['pro', 'edu'].map(ed => {
@@ -11300,18 +11300,18 @@ autoComplete="off"
             <div
               key={sector.id}
               className="grid gap-2 items-center p-2 bg-white rounded border"
-              style={{ gridTemplateColumns: showDefaultOnlyTools ? '56px 1fr 40px 40px 90px' : '56px 1fr 40px 90px' }}
+              style={{ gridTemplateColumns: showDefaultOnlyTools ? '68px 1fr 40px 40px 90px' : '68px 1fr 40px 90px' }}
             >
-              <div className="flex gap-1">
+              <div className="flex gap-2">
                 <button
                   onClick={() => moveIndustrySector(sector, 'up')}
                   disabled={idx === 0}
-                  className="px-1.5 py-1 bg-gray-500 text-white rounded text-xs hover:bg-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 disabled:opacity-30 disabled:cursor-not-allowed"
                 >▲</button>
                 <button
                   onClick={() => moveIndustrySector(sector, 'down')}
                   disabled={idx === sortedArr.length - 1}
-                  className="px-1.5 py-1 bg-gray-500 text-white rounded text-xs hover:bg-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 disabled:opacity-30 disabled:cursor-not-allowed"
                 >▼</button>
               </div>
               <span className="text-sm font-medium text-gray-800 truncate">{sector.name}</span>
