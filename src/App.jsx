@@ -737,6 +737,10 @@ const UI_STRINGS = {
   cc_got_worse_label: { en: 'Got Worse', es: 'Empeoró', pt: 'Piorou', zh: '恶化' },
   cc_add_action_placeholder: { en: 'Describe an action...', es: 'Describa una acción...', pt: 'Descreva uma ação...', zh: '描述一项行动……' },
   cc_add_action_btn: { en: '+ Add', es: '+ Agregar', pt: '+ Adicionar', zh: '+ 添加' },
+  choose_file_btn: { en: '📎 Choose File', es: '📎 Elegir Archivo', pt: '📎 Escolher Arquivo', zh: '📎 选择文件' },
+  top_position_label: { en: 'Top', es: 'Arriba', pt: 'Topo', zh: '顶部' },
+  bottom_position_label: { en: 'Bottom', es: 'Abajo', pt: 'Rodapé', zh: '底部' },
+  no_file_chosen: { en: 'No file chosen', es: 'Ningún archivo elegido', pt: 'Nenhum arquivo escolhido', zh: '未选择文件' },
   cc_help_title: { en: 'How Import/Export Works', es: 'Cómo Funciona el Importar/Exportar', pt: 'Como Funciona o Importar/Exportar', zh: '导入/导出如何运作' },
   cc_help_export: { en: 'Export — brings all Common Cases of the selected Function/Practice, broken back down into one row per action, with Function/Practice, Category, Common Case, Result and Action Description.', es: 'Exportar — trae todos los Casos Comunes de la Función/Práctica seleccionada, desglosados de vuelta en una fila por acción, con Función/Práctica, Categoría, Caso Común, Resultado y Descripción de la Acción.', pt: 'Export — traz todos os Casos Comuns da Função/Prática selecionada, desmontados de volta em uma linha por ação, com Função/Prática, Categoria, Caso Comum, Resultado e Descrição da Ação.', zh: '导出——将带出所选职能/领域的所有常见案例，并按每个行动重新拆分为一行，包含职能/领域、分类、常见案例、结果和行动描述。' },
   cc_help_import: { en: 'Import — groups the rows by Function/Practice + Category + Common Case. If that exact combination already exists, its content is completely replaced by what\'s in the file for that group (removing a row from the spreadsheet removes that action from the Common Case); if it doesn\'t exist, a new Common Case is created.', es: 'Importar — agrupa las filas por Función/Práctica + Categoría + Caso Común. Si esa combinación exacta ya existe, su contenido se reemplaza completamente por lo que está en el archivo para ese grupo (quitar una fila de la planilla quita esa acción del Caso Común); si no existe, se crea un Caso Común nuevo.', pt: 'Import — agrupa as linhas por Função/Prática + Categoria + Caso Comum. Se essa combinação exata já existir, o conteúdo dela é totalmente substituído pelo que estiver no arquivo pra esse grupo (remover uma linha da planilha remove aquela ação do Caso Comum); se não existir, cria um Caso Comum novo.', zh: '导入——按职能/领域 + 分类 + 常见案例对行进行分组。如果该确切组合已存在，其内容将完全被文件中该分组的内容替换（从表格中删除某行，即会从该常见案例中移除对应的行动）；如果不存在，则会创建一个新的常见案例。' },
@@ -9154,9 +9158,15 @@ autoComplete="off"
       </div>
       <div className="mb-3">
         <label className="block text-xs font-medium text-gray-600 mb-1">{t('company_logo_optional')}</label>
-        <input type="file" accept="image/png,image/jpeg,image/svg+xml,image/gif,image/webp"
-          onChange={(e) => setNewCompany({...newCompany, logoFile: e.target.files[0] || null})}
-          className="text-sm" />
+        <div className="flex items-center gap-2">
+          <label className="px-3 py-1.5 bg-gray-200 text-gray-700 rounded-lg text-xs hover:bg-gray-300 cursor-pointer whitespace-nowrap">
+            {t('choose_file_btn')}
+            <input type="file" accept="image/png,image/jpeg,image/svg+xml,image/gif,image/webp"
+              onChange={(e) => setNewCompany({...newCompany, logoFile: e.target.files[0] || null})}
+              className="hidden" />
+          </label>
+          <span className="text-xs text-gray-500 truncate">{newCompany.logoFile?.name || t('no_file_chosen')}</span>
+        </div>
       </div>
       <button onClick={addCompany} className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700">
         {t('add_company_btn')}
@@ -9299,7 +9309,9 @@ autoComplete="off"
                       ))}
                     </div>
                   )}
-                  <input type="file" accept="image/png,image/jpeg,image/svg+xml,image/gif,image/webp"
+                  <label className="inline-block px-3 py-1.5 bg-gray-200 text-gray-700 rounded-lg text-xs hover:bg-gray-300 cursor-pointer">
+                    {t('choose_file_btn')}
+                    <input type="file" accept="image/png,image/jpeg,image/svg+xml,image/gif,image/webp"
                     onChange={async (e) => {
                       const file = e.target.files[0];
                       if (!file) return;
@@ -9330,7 +9342,8 @@ autoComplete="off"
                       }
                       e.target.value = '';
                     }}
-                    className="text-sm" />
+                    className="hidden" />
+                  </label>
                 </div>
                 {c.edition === 'pro' && (
                   <div className="border-t border-gray-300 pt-2 mt-2 space-y-1.5">
@@ -10194,23 +10207,29 @@ autoComplete="off"
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         {newItemType === 'video' ? t('video_file_label') : t('pdf_file_label')}
                       </label>
-                      <input
-                        type="file"
-                        ref={promoVideoFileInputRef}
-                        accept={newItemType === 'video' ? 'video/mp4,video/webm' : '.pdf'}
-                        onChange={(e) => {
-                          const file = e.target.files[0];
-                          setNewVideoFile(file);
-                          // Preenche o Name com o nome do arquivo automaticamente,
-                          // só se o campo ainda estiver vazio — não sobrescreve
-                          // se a pessoa já tiver digitado algo.
-                          if (file && !newLinkLabel.trim()) {
-                            const nameWithoutExt = file.name.replace(/\.[^/.]+$/, '');
-                            setNewLinkLabel(nameWithoutExt);
-                          }
-                        }}
-                        className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm"
-                      />
+                      <div className="flex items-center gap-2">
+                        <label className="px-3 py-1.5 bg-gray-200 text-gray-700 rounded-lg text-xs hover:bg-gray-300 cursor-pointer whitespace-nowrap">
+                          {t('choose_file_btn')}
+                          <input
+                            type="file"
+                            ref={promoVideoFileInputRef}
+                            accept={newItemType === 'video' ? 'video/mp4,video/webm' : '.pdf'}
+                            onChange={(e) => {
+                              const file = e.target.files[0];
+                              setNewVideoFile(file);
+                              // Preenche o Name com o nome do arquivo automaticamente,
+                              // só se o campo ainda estiver vazio — não sobrescreve
+                              // se a pessoa já tiver digitado algo.
+                              if (file && !newLinkLabel.trim()) {
+                                const nameWithoutExt = file.name.replace(/\.[^/.]+$/, '');
+                                setNewLinkLabel(nameWithoutExt);
+                              }
+                            }}
+                            className="hidden"
+                          />
+                        </label>
+                        <span className="text-xs text-gray-500 truncate">{newVideoFile?.name || t('no_file_chosen')}</span>
+                      </div>
                       <p className="text-xs text-gray-500 mt-1">
                         {newItemType === 'video' ? t('supported_mp4_webm') : t('supported_pdf')}
                       </p>
@@ -10654,7 +10673,7 @@ autoComplete="off"
                             <div className="flex items-start justify-between mb-2">
                               <p className="text-sm italic text-gray-700 flex-1">"{quote.text}"</p>
                               <span className={`ml-2 px-2 py-1 text-xs rounded ${quote.position === 'top' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'}`}>
-                                {quote.position === 'top' ? 'Top' : 'Bottom'}
+                                {quote.position === 'top' ? t('top_position_label') : t('bottom_position_label')}
                               </span>
                             </div>
                             <p className="text-xs text-gray-600 mb-1">— {quote.author}</p>
@@ -10666,7 +10685,7 @@ autoComplete="off"
                                 onClick={() => setEditingQuote(quote.id)}
                                 className="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700"
                               >
-                                Edit
+                                {t('edit')}
                               </button>
                               <button
                                 onClick={() => {
@@ -10677,7 +10696,7 @@ autoComplete="off"
                                 className="px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 flex items-center gap-1"
                               >
                                 <Trash2 size={12} />
-                                Delete
+                                {t('delete')}
                               </button>
                             </div>
                           </>
