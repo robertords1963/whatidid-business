@@ -716,6 +716,9 @@ const UI_STRINGS = {
   is_edit_title: { en: 'Edit Industry Sector', es: 'Editar Industry Sector', pt: 'Editar Industry Sector', zh: '编辑Industry Sector' },
   is_none_yet: { en: 'No Industry Sectors registered yet.', es: 'Aún no hay Industry Sectors registrados.', pt: 'Nenhum Industry Sector cadastrado ainda.', zh: '尚未注册任何Industry Sector。' },
   is_show_checkbox: { en: 'Show', es: 'Mostrar', pt: 'Mostrar', zh: '显示' },
+  is_show_dropdown_ui: { en: 'Show dropdown in UI', es: 'Mostrar menú en la interfaz', pt: 'Mostrar dropdown no UI', zh: '在界面中显示下拉菜单' },
+  is_show_in_dropdown_title: { en: 'Show in dropdown', es: 'Mostrar en el menú', pt: 'Mostrar no dropdown', zh: '在下拉菜单中显示' },
+  select_all: { en: 'All', es: 'Todos', pt: 'Todos', zh: '全部' },
   is_name_label: { en: 'Sector Name', es: 'Nombre del Sector', pt: 'Nome do Sector', zh: '行业名称' },
   is_name_placeholder: { en: 'e.g. Technology & Digital', es: 'ej: Tecnología y Digital', pt: 'ex: Tecnologia e Digital', zh: '例如：科技与数字' },
   cc_all_categories: { en: 'All Categories', es: 'Todas las Categorías', pt: 'Todas as Categories', zh: '所有分类' },
@@ -2950,6 +2953,24 @@ const deleteIndustrySector = async (sector) => {
     await loadIndustrySectors();
   } catch (error) {
     console.error('Error deleting industry sector:', error);
+    alert(t('generic_error') + ' ' + error.message);
+  }
+};
+
+// Industry Sector é uma lista plana (sem agrupamento por category, ao
+// contrário de Common Cases) — a ordem é sempre relativa à lista inteira.
+const moveIndustrySector = async (sector, direction) => {
+  const sorted = [...adminIndustrySectors].sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+  const idx = sorted.findIndex(s => s.id === sector.id);
+  const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+  if (swapIdx < 0 || swapIdx >= sorted.length) return;
+  const other = sorted[swapIdx];
+  try {
+    await supabase.from('industry_sectors').update({ display_order: other.display_order || 0 }).eq('id', sector.id);
+    await supabase.from('industry_sectors').update({ display_order: sector.display_order || 0 }).eq('id', other.id);
+    await loadIndustrySectors();
+  } catch (error) {
+    console.error('Error reordering industry sector:', error);
     alert(t('generic_error') + ' ' + error.message);
   }
 };
@@ -11125,7 +11146,7 @@ autoComplete="off"
         marcado. Os checkboxes por setor (mais abaixo) só têm efeito se
         a edição correspondente estiver marcada aqui. */}
     <div className="mb-3 flex items-center gap-3 flex-wrap">
-      <span className="text-sm font-medium text-gray-700">{t('applicable_editions_label')}</span>
+      <span className="text-sm font-medium text-gray-700">{t('is_show_dropdown_ui')}</span>
       {(showDefaultOnlyTools ? ['edu', 'pro'] : [companyEdition]).map(ed => {
         const currentList = (appSettings.industrySectorEnabledEditions || 'pro,edu').split(',');
         const isChecked = currentList.includes(ed);
@@ -11169,19 +11190,68 @@ autoComplete="off"
         </button>
       </div>
 
+      <p className="text-sm font-medium text-gray-700 mb-2">{t('is_show_in_dropdown_title')}</p>
+
+      {/* Cabeçalho de coluna — só pro Default, já que ele tem 2 colunas
+          (PRO/EDU). Cada cabeçalho já inclui o "ALL" daquela coluna,
+          evitando repetir PRO/EDU em cada linha da lista. */}
+      {showDefaultOnlyTools && (
+        <div className="flex items-center gap-2 mb-1 pr-[76px]">
+          <span className="flex-1"></span>
+          <div className="flex gap-3 flex-shrink-0">
+            {['pro', 'edu'].map(ed => {
+              const allChecked = adminIndustrySectors.length > 0 && adminIndustrySectors.every(s => (s.applicable_editions || 'pro,edu').split(',').includes(ed));
+              return (
+                <div key={ed} className="flex flex-col items-center gap-0.5 w-10">
+                  <span className="text-xs font-semibold text-gray-600 uppercase">{ed}</span>
+                  <label className="flex items-center gap-1 text-[10px] text-gray-500 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={allChecked}
+                      onChange={async (e) => {
+                        for (const s of adminIndustrySectors) {
+                          const list = (s.applicable_editions || 'pro,edu').split(',');
+                          const newList = e.target.checked ? [...new Set([...list, ed])] : list.filter(x => x !== ed);
+                          if (newList.length === 0) continue;
+                          await supabase.from('industry_sectors').update({ applicable_editions: newList.join(',') }).eq('id', s.id);
+                        }
+                        await loadIndustrySectors();
+                      }}
+                    />
+                    {t('select_all')}
+                  </label>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       <div className="space-y-2 max-h-96 overflow-y-auto">
         {adminIndustrySectors.length === 0 && (
           <p className="text-sm text-gray-400 italic">{t('is_none_yet')}</p>
         )}
-        {adminIndustrySectors.map(sector => {
+        {[...adminIndustrySectors].sort((a, b) => (a.display_order || 0) - (b.display_order || 0)).map((sector, idx, sortedArr) => {
           const editionsList = (sector.applicable_editions || 'pro,edu').split(',');
           return (
             <div key={sector.id} className="flex items-center justify-between gap-2 p-2 bg-white rounded border">
+              <div className="flex gap-1 flex-shrink-0">
+                <button
+                  onClick={() => moveIndustrySector(sector, 'up')}
+                  disabled={idx === 0}
+                  className="px-1.5 py-1 bg-gray-500 text-white rounded text-xs hover:bg-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                >▲</button>
+                <button
+                  onClick={() => moveIndustrySector(sector, 'down')}
+                  disabled={idx === sortedArr.length - 1}
+                  className="px-1.5 py-1 bg-gray-500 text-white rounded text-xs hover:bg-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                >▼</button>
+              </div>
               <span className="text-sm font-medium text-gray-800 flex-1">{sector.name}</span>
               {showDefaultOnlyTools ? (
                 <div className="flex gap-3 flex-shrink-0">
                   {['pro', 'edu'].map(ed => (
-                    <label key={ed} className="flex items-center gap-1 text-xs text-gray-600 cursor-pointer">
+                    <div key={ed} className="w-10 flex justify-center">
                       <input
                         type="checkbox"
                         checked={editionsList.includes(ed)}
@@ -11192,23 +11262,20 @@ autoComplete="off"
                           await loadIndustrySectors();
                         }}
                       />
-                      {ed.toUpperCase()}
-                    </label>
+                    </div>
                   ))}
                 </div>
               ) : (
-                <label className="flex items-center gap-1 text-xs text-gray-600 cursor-pointer flex-shrink-0">
-                  <input
-                    type="checkbox"
-                    checked={editionsList.includes(companyEdition)}
-                    onChange={async (e) => {
-                      const newList = e.target.checked ? [...new Set([...editionsList, companyEdition])] : editionsList.filter(x => x !== companyEdition);
-                      await supabase.from('industry_sectors').update({ applicable_editions: newList.length > 0 ? newList.join(',') : companyEdition }).eq('id', sector.id);
-                      await loadIndustrySectors();
-                    }}
-                  />
-                  {t('is_show_checkbox')}
-                </label>
+                <input
+                  type="checkbox"
+                  checked={editionsList.includes(companyEdition)}
+                  onChange={async (e) => {
+                    const newList = e.target.checked ? [...new Set([...editionsList, companyEdition])] : editionsList.filter(x => x !== companyEdition);
+                    await supabase.from('industry_sectors').update({ applicable_editions: newList.length > 0 ? newList.join(',') : companyEdition }).eq('id', sector.id);
+                    await loadIndustrySectors();
+                  }}
+                  className="flex-shrink-0"
+                />
               )}
               <div className="flex gap-2 flex-shrink-0">
                 <button
