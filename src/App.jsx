@@ -8681,6 +8681,7 @@ autoComplete="off"
     { id: 'section-categories', label: t('manage_problem_categories'), visible: isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('metadata')) },
     { id: 'section-common-cases', label: t('manage_common_cases_title'), visible: isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('metadata')) },
     { id: 'section-ratings', label: t('assign_ratings_title'), visible: isAdmin && showDefaultOnlyTools && !isSeller },
+    { id: 'section-group-deletion', label: '🔍 ' + t('manage_group_deletion'), visible: isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('keyword_filter')) },
   ].filter(item => item.visible);
 
   if (navItems.length === 0) return null;
@@ -12471,10 +12472,11 @@ for (const row of rows) {
   </div>
 )}
           {isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('keyword_filter')) && activeAdminNavTab === 'settings' && (
-            <div className="mt-4 bg-yellow-50 border-2 border-yellow-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
+            <div id="section-group-deletion" className="mt-4 bg-yellow-50 border-2 border-yellow-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 <Search size={20} />
                 {t('manage_group_deletion')}
+                <button onClick={scrollToAdminNavMenu} className="ml-auto text-xs font-normal text-gray-400 hover:text-gray-600 flex-shrink-0">{t('home_btn')}</button>
               </h3>
               <div className="space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
