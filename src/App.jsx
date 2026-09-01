@@ -7201,10 +7201,11 @@ useEffect(() => {
     });
   };
 
-  // Botão "Home" de cada seção usa isso pra voltar direto pro menu de
-  // navegação, no topo da aba Settings.
+  // Botão "Home" de cada seção usa isso pra voltar direto até as abas
+  // "Admin Settings / Live Preview" ficarem visíveis — não só o menu de
+  // navegação (que fica logo abaixo delas de qualquer forma).
   const scrollToAdminNavMenu = () => {
-    const el = document.getElementById('admin-settings-anchor');
+    const el = document.getElementById('admin-nav-tabs-anchor');
     if (el) {
       const y = el.getBoundingClientRect().top + window.pageYOffset - 12;
       window.scrollTo({ top: y, behavior: 'smooth' });
