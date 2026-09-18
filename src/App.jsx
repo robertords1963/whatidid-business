@@ -1702,7 +1702,7 @@ useEffect(() => {
     // de página real.
     loadDemoGroups();
   }
-}, [effectiveCompanyId, effectiveViewingLanguage, companyEdition, defaultCompanyId, companies.length, loggedInSellerId, editionDefaults]);
+}, [effectiveCompanyId, effectiveViewingLanguage, companyEdition, defaultCompanyId, companies.length, loggedInSellerId, editionDefaults, loggedInIsDemoId]);
 
 // Limpeza automática: assim que o Master/Seller troca o "Managing" pra uma
 // empresa real (saindo do Default direto), qualquer sessão de demo ativa é
@@ -2362,10 +2362,17 @@ if (lastCommentIds.length > 0) {
 const loadTopExperiences = async () => {
     if (!effectiveCompanyId) return;
     try {
+      // Mesma regra de loadExperiences/loadProblemCategories/etc: Demo
+      // Group ID vê o Top 3 do Default, mesmo tendo seu próprio branding
+      // — a linha de top_experiences do Prospect provavelmente nunca
+      // existiu (empresa recém-criada), então buscar por effectiveCompanyId
+      // direto sempre voltava vazio.
+      const contentCompanyId = loggedInIsDemoId ? defaultCompanyId : effectiveCompanyId;
+      if (!contentCompanyId) return;
       const { data, error } = await supabase
         .from('top_experiences')
         .select('position, experience_id')
-        .eq('company_id', effectiveCompanyId);
+        .eq('company_id', contentCompanyId);
       
       if (error) throw error;
       
@@ -2378,7 +2385,7 @@ const loadTopExperiences = async () => {
       // configurado (inglês). Resolve pro id certo no idioma atual via
       // translation_group_id, que já existe desde a tradução do conteúdo.
       let resolvedByOriginalId = {};
-      if (rawIds.length > 0 && isViewingDefault) {
+      if (rawIds.length > 0 && (isViewingDefault || loggedInIsDemoId)) {
         const { data: sourceRows } = await supabase
           .from('experiences')
           .select('id, translation_group_id')
@@ -2391,7 +2398,7 @@ const loadTopExperiences = async () => {
           const { data: translatedRows } = await supabase
             .from('experiences')
             .select('id, translation_group_id')
-            .eq('company_id', effectiveCompanyId)
+            .eq('company_id', contentCompanyId)
             .eq('language', effectiveViewingLanguage)
             .in('translation_group_id', groupIds);
           (translatedRows || []).forEach(r => { translatedByGroup[r.translation_group_id] = r.id; });
@@ -6315,7 +6322,7 @@ useEffect(() => {
         .eq('active', true)
         .eq('company_id', contentCompanyId)
         .order('id', { ascending: true });
-      if (isViewingDefault) {
+      if (isViewingDefault || loggedInIsDemoId) {
         query = query.eq('language', effectiveViewingLanguage);
       }
       const { data, error } = await query;
@@ -6325,7 +6332,7 @@ useEffect(() => {
       // Filtro de edição — lista separada por vírgula, feito no cliente
       // (o valor 'corp,pro,edu' representa "todas", já que a coluna não
       // aceita nulo). Só filtra quando isViewingDefault, igual idioma.
-      const filtered = isViewingDefault
+      const filtered = (isViewingDefault || loggedInIsDemoId)
         ? (data || []).filter(q => (q.edition || 'corp,pro,edu').split(',').includes(companyEdition))
         : (data || []);
       
