@@ -2426,6 +2426,18 @@ const loadAppSettings = async () => {
       .maybeSingle();
     
     if (error) throw error;
+
+    // Demo Group ID: se o Default tiver Top3/marquee configurados, o
+    // Prospect vê eles também (mesmo padrão de conteúdo herdado já usado
+    // em Experiences/Categories/Quotes/Videos), mesmo sem ter configurado
+    // nada na própria linha. Marca (nome/logo) nunca vem do Default,
+    // sempre do Prospect — representa quem está sendo demonstrado.
+    let defaultSettingsData = null;
+    if (loggedInIsDemoId && defaultCompanyId) {
+      const { data: defaultData } = await supabase
+        .from('app_settings').select('*').eq('company_id', defaultCompanyId).maybeSingle();
+      defaultSettingsData = defaultData;
+    }
     
     if (data) {
   // O tipo de anexo (CV apenas vs qualquer arquivo) tem um valor padrão
@@ -2442,14 +2454,20 @@ const loadAppSettings = async () => {
   const effectiveDocumentType = rule
     ? (rule.upload_mode === 'none' ? 'cv' : rule.upload_mode)
     : (data.document_type || 'cv');
+  // Se aparece ou não (show_top3) herda do Default no Demo Group ID —
+  // mas SE aparece, sempre nasce FECHADO (top3_start_visible = false),
+  // nunca herdando esse estado do Default. Isso é intencional: o
+  // Prospect vê que a feature existe, sem abrir automaticamente.
+  const contentSettingsSource = (loggedInIsDemoId && defaultSettingsData) ? defaultSettingsData : data;
+  const resolvedTop3StartVisible = loggedInIsDemoId ? false : (data.top3_start_visible !== false);
   setAppSettings({
     requireEmployeeLogin: data.require_employee_login !== false,
     editionName: data.edition_name,
     allowCvUpload: effectiveAllowCvUpload,
     documentType: effectiveDocumentType,
-    showTop3: data.show_top3 || false,
-    top3StartVisible: data.top3_start_visible !== false,
-    showMarquee: data.show_marquee || false,
+    showTop3: contentSettingsSource.show_top3 || false,
+    top3StartVisible: resolvedTop3StartVisible,
+    showMarquee: contentSettingsSource.show_marquee || false,
     industrySectorEnabledEditions: data.industry_sector_enabled_editions || 'pro,edu'
   });
   // Se o campo opcional de nome (usado só pra decoração do cabeçalho)
@@ -2466,34 +2484,40 @@ const loadAppSettings = async () => {
   setCompanyLogoUrl(data.company_logo_url || '');
   setCompanyNameSize(data.company_name_size || 'medium');
   setCompanyLogoSize(data.company_logo_size || 'medium');
-  setTop3VisibleInSession(data.top3_start_visible !== false);
+  setTop3VisibleInSession(resolvedTop3StartVisible);
 } else {
   // Essa empresa ainda não tem uma linha de app_settings — cria uma com
   // valores padrão, pra não quebrar os updates (que dependem de já existir
-  // uma linha pra dar .eq('company_id', ...) e achar algo).
+  // uma linha pra dar .eq('company_id', ...) e achar algo). Pra Demo
+  // Group ID, show_top3/show_marquee já nascem herdados do Default (se
+  // ele tiver), mas top3_start_visible sempre nasce false (fechado) —
+  // nunca herdado, mesmo que o Default tenha o dele aberto.
   const companyEditionForDefaults = companies.find(comp => comp.id === effectiveCompanyId)?.edition || 'corp';
   const defaultDocType = companyEditionForDefaults === 'pro' ? 'cv' : 'other';
+  const inheritedShowTop3 = (loggedInIsDemoId && defaultSettingsData) ? (defaultSettingsData.show_top3 || false) : false;
+  const inheritedShowMarquee = (loggedInIsDemoId && defaultSettingsData) ? (defaultSettingsData.show_marquee || false) : false;
+  const resolvedTop3StartVisible = loggedInIsDemoId ? false : true;
   const { error: insertError } = await supabase.from('app_settings').insert([{
     company_id: effectiveCompanyId,
     require_employee_login: true,
     edition_name: 'corp',
     allow_cv_upload: true,
     document_type: defaultDocType,
-    show_top3: false,
-    top3_start_visible: true,
-    show_marquee: false
+    show_top3: inheritedShowTop3,
+    top3_start_visible: resolvedTop3StartVisible,
+    show_marquee: inheritedShowMarquee
   }]);
   if (!insertError) {
     setAppSettings({
       requireEmployeeLogin: true, editionName: 'corp', allowCvUpload: true,
-      documentType: defaultDocType, showTop3: false, top3StartVisible: true, showMarquee: false
+      documentType: defaultDocType, showTop3: inheritedShowTop3, top3StartVisible: resolvedTop3StartVisible, showMarquee: inheritedShowMarquee
     });
     const { data: companyRow } = await supabase.from('companies').select('name').eq('id', effectiveCompanyId).maybeSingle();
     setCompanyName(companyRow?.name || '');
     setCompanyLogoUrl('');
     setCompanyNameSize('medium');
     setCompanyLogoSize('medium');
-    setTop3VisibleInSession(true);
+    setTop3VisibleInSession(resolvedTop3StartVisible);
   }
 }
   } catch (error) {
