@@ -14726,7 +14726,7 @@ onClick={() => {
     Gera conteúdo baseado em pesquisa de mercado real (via Claude + web
     search), nunca inventa uma vivência pessoal. */}
 {!isReadOnlyOrMasterManaging && appSettings.requireEmployeeLogin && exp.author !== 'key_insights' && (() => {
-  const settingsList = (isAdmin ? appSettings.aiAdminSettings : appSettings.aiUserSettings || '').split(',');
+  const settingsList = (isAdmin ? (appSettings.aiAdminSettings || '') : (appSettings.aiUserSettings || '')).split(',');
   const isSynthetic = exp.source !== 'app';
   const isOwner = exp.employeeId === employeeId;
   const matchesParType = isSynthetic ? settingsList.includes('synthetic') : settingsList.includes('real');
