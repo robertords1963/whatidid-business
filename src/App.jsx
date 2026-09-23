@@ -2311,15 +2311,16 @@ const keyInsights = transformedData.filter(e => e.author === 'key_insights').sor
   }
 
 // Follow-ons (têm parentExperienceId) não aparecem como itens de nível
-// superior no feed — só ficam aninhados dentro do card do pai. Sem esse
-// filtro, adicionar um Follow-on a um PAR já existente (ex: via AI
-// Reflection) contava como "item novo" e reembaralhava a lista inteira,
-// fazendo o PAR pai (que não mudou de posição de verdade) pular pra um
-// lugar aleatório no feed.
-const hasNewSyntheticItems = shuffleOrderRef.current
+// superior no feed — só ficam aninhados dentro do card do pai. Um
+// Follow-on novo (ex: via AI Reflection) não deveria reembaralhar a
+// lista inteira (isso jogava o PAR pai pra uma posição aleatória sem
+// necessidade) — mas seu ID ainda precisa ENTRAR em shuffleOrderRef,
+// senão orderedSynthetic (que é construído mapeando sobre esse array)
+// nunca inclui o item novo, e ele some da lista mesmo salvo no banco.
+const hasNewRootItems = shuffleOrderRef.current
   ? syntheticExps.some(e => !e.parentExperienceId && !shuffleOrderRef.current.includes(e.id))
   : false;
-if (!shuffleOrderRef.current || shuffleOrderCompanyRef.current !== contentCompanyId || shuffleOrderLanguageRef.current !== effectiveViewingLanguage || hasNewSyntheticItems) {
+if (!shuffleOrderRef.current || shuffleOrderCompanyRef.current !== contentCompanyId || shuffleOrderLanguageRef.current !== effectiveViewingLanguage || hasNewRootItems) {
   for (let i = syntheticExps.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [syntheticExps[i], syntheticExps[j]] = [syntheticExps[j], syntheticExps[i]];
@@ -2327,6 +2328,14 @@ if (!shuffleOrderRef.current || shuffleOrderCompanyRef.current !== contentCompan
   shuffleOrderRef.current = syntheticExps.map(e => e.id);
   shuffleOrderCompanyRef.current = contentCompanyId;
   shuffleOrderLanguageRef.current = effectiveViewingLanguage;
+} else {
+  // Sem reembaralhar: só acrescenta ao final os IDs de follow-ons novos
+  // que ainda não estavam na lista conhecida (mantém a posição de tudo
+  // mais intacta).
+  const newFollowOnIds = syntheticExps.filter(e => !shuffleOrderRef.current.includes(e.id)).map(e => e.id);
+  if (newFollowOnIds.length > 0) {
+    shuffleOrderRef.current = [...shuffleOrderRef.current, ...newFollowOnIds];
+  }
 }
 
 const orderedSynthetic = shuffleOrderRef.current
@@ -5555,7 +5564,7 @@ const requestAiReflection = async (experienceId, type) => {
   try {
     const charLimit = type === 'comment' ? appSettings.aiCommentCharLimit : appSettings.aiFollowonCharLimit;
     const { data, error } = await supabase.functions.invoke('ai-reflection', {
-      body: { experienceId, type, charLimit },
+      body: { experienceId, type, charLimit, demoSessionId: currentDemoSessionId || null },
     });
     if (error) throw error;
     if (data?.error) throw new Error(data.error);
@@ -5588,11 +5597,15 @@ const requestAiReflection = async (experienceId, type) => {
       });
     }
 
-    // Rola até o card recém-gerado — Follow-on: até o card novo em si;
-    // Comment: até o PAR original (onde o comment aparece na lista).
-    const scrollTargetId = type === 'followon' && data?.data?.id ? data.data.id : experienceId;
+    // Rola até o elemento recém-gerado em si — Follow-on: card novo
+    // (exp-ID); Comment: o comentário específico (comment-ID), não só o
+    // topo do card do PAR, que poderia deixar o comment novo escondido
+    // mais embaixo se já houvesse vários outros comments antes dele.
+    const scrollElementId = type === 'followon' && data?.data?.id
+      ? `exp-${data.data.id}`
+      : (data?.data?.id ? `comment-${data.data.id}` : `exp-${experienceId}`);
     setTimeout(() => {
-      const el = document.getElementById(`exp-${scrollTargetId}`);
+      const el = document.getElementById(scrollElementId);
       if (el) {
         const y = el.getBoundingClientRect().top + window.pageYOffset - 20;
         window.scrollTo({ top: y, behavior: 'smooth' });
@@ -15218,7 +15231,7 @@ onClick={() => {
    {showComments[exp.id] === true && (
   <div className="space-y-3">
     {exp.comments.map(comment => (
-      <div key={comment.id} className={comment.isAiGenerated ? "bg-purple-50 border border-purple-200 rounded-lg p-3 relative" : "bg-gray-50 rounded-lg p-3 relative"}>
+      <div key={comment.id} id={`comment-${comment.id}`} className={comment.isAiGenerated ? "bg-purple-50 border border-purple-200 rounded-lg p-3 relative" : "bg-gray-50 rounded-lg p-3 relative"}>
 
 {comment.isAiGenerated && (
   <div className="mb-2 text-xs text-purple-700 font-medium">
