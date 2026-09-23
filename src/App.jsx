@@ -14726,7 +14726,12 @@ onClick={() => {
     Gera conteúdo baseado em pesquisa de mercado real (via Claude + web
     search), nunca inventa uma vivência pessoal. */}
 {!isReadOnlyOrMasterManaging && appSettings.requireEmployeeLogin && exp.author !== 'key_insights' && (() => {
-  const settingsList = (isAdmin ? (appSettings.aiAdminSettings || '') : (appSettings.aiUserSettings || '')).split(',');
+  // employeeIsAdmin = tem privilégio de admin de verdade (independente
+  // de estar com o toggle "Admin Mode" ligado ou não) — isAdmin sozinho
+  // faria alguém com privilégio, mas navegando a tela normal (como no
+  // ambiente de demo pra prospects), cair incorretamente na coluna
+  // "Usuário" da tabela de permissões.
+  const settingsList = (employeeIsAdmin ? (appSettings.aiAdminSettings || '') : (appSettings.aiUserSettings || '')).split(',');
   const isSynthetic = exp.source !== 'app';
   const isOwner = exp.employeeId === employeeId;
   const matchesParType = isSynthetic ? settingsList.includes('synthetic') : settingsList.includes('real');
