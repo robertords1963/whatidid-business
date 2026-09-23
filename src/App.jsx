@@ -724,6 +724,27 @@ const UI_STRINGS = {
   is_show_in_dropdown_title: { en: 'Show in dropdown', es: 'Mostrar en el menú', pt: 'Mostrar no dropdown', zh: '在下拉菜单中显示' },
   select_all: { en: 'All', es: 'Todos', pt: 'Todos', zh: '全部' },
   home_btn: { en: '🏠 Home', es: '🏠 Inicio', pt: '🏠 Home', zh: '🏠 首页' },
+  ai_comment_btn: { en: '🤖 AI Comment', es: '🤖 Comentario IA', pt: '🤖 AI Comment', zh: '🤖 AI点评' },
+  ai_followon_btn: { en: '🤖 AI Follow-on', es: '🤖 Follow-on IA', pt: '🤖 AI Follow-on', zh: '🤖 AI后续案例' },
+  ai_reflection_loading: { en: '🤖 Thinking…', es: '🤖 Pensando…', pt: '🤖 Pensando…', zh: '🤖 思考中…' },
+  ai_reflection_error: { en: 'Could not generate AI reflection.', es: 'No se pudo generar la reflexión de IA.', pt: 'Não foi possível gerar a reflexão de IA.', zh: '无法生成AI点评。' },
+  ai_generated_badge: { en: '🤖 AI-Generated (based on researched market practices)', es: '🤖 Generado por IA (basado en prácticas de mercado investigadas)', pt: '🤖 Gerado por IA (baseado em práticas de mercado pesquisadas)', zh: '🤖 AI生成（基于调研的市场实践）' },
+  delete_ai_content: { en: 'Delete AI content', es: 'Eliminar contenido de IA', pt: 'Excluir conteúdo de IA', zh: '删除AI内容' },
+  ai_reflection_settings_title: { en: 'Who Can See the AI Buttons', es: 'Quién Puede Ver los Botones de IA', pt: 'Quem Pode Ver os Botões de IA', zh: '谁可以看到AI按钮' },
+  ai_col_admin: { en: 'Admin', es: 'Admin', pt: 'Admin', zh: '管理员' },
+  ai_col_user: { en: 'User', es: 'Usuario', pt: 'Usuário', zh: '用户' },
+  ai_row_comments: { en: 'Comments', es: 'Comentarios', pt: 'Comments', zh: '点评' },
+  ai_row_followon: { en: 'Follow-On', es: 'Follow-On', pt: 'Follow-On', zh: '后续案例' },
+  ai_row_synthetic: { en: 'Synthetic Exp', es: 'Exp. Sintéticas', pt: 'Exp. Sintéticas', zh: '合成经验' },
+  ai_row_real: { en: 'Real Exp', es: 'Exp. Reales', pt: 'Exp. Reais', zh: '真实经验' },
+  ai_row_own: { en: 'Own Exp', es: 'Exp. Propias', pt: 'Exp. Próprias', zh: '自己的经验' },
+  ai_row_all: { en: 'All Exp', es: 'Todas las Exp.', pt: 'Todas as Exp.', zh: '所有经验' },
+  ai_char_limit_comment: { en: 'Character limit — Comments', es: 'Límite de caracteres — Comentarios', pt: 'Limite de caracteres — Comments', zh: '字符限制——点评' },
+  ai_char_limit_followon: { en: 'Character limit — Follow-On', es: 'Límite de caracteres — Follow-On', pt: 'Limite de caracteres — Follow-On', zh: '字符限制——后续案例' },
+  ai_reflection_permission_desc: { en: 'Who can request each type — check as many as apply. This controls API cost, so decide carefully.', es: 'Quién puede solicitar cada tipo — marque cuantos apliquen. Esto controla el costo de API, decida con cuidado.', pt: 'Quem pode solicitar cada tipo — marque quantos se aplicarem. Isso controla o custo de API, decida com cuidado.', zh: '谁可以请求每种类型——可勾选多项。这会影响API成本，请谨慎决定。' },
+  ai_reflection_admin_only: { en: 'Admins only', es: 'Solo Admins', pt: 'Só Admins', zh: '仅管理员' },
+  ai_reflection_author_only: { en: 'Only whoever added the PAR', es: 'Solo quien agregó el PAR', pt: 'Só quem adicionou o PAR', zh: '仅添加该案例的人' },
+  ai_reflection_anyone: { en: 'Anyone', es: 'Cualquiera', pt: 'Qualquer um', zh: '任何人' },
   is_name_label: { en: 'Sector Name', es: 'Nombre del Sector', pt: 'Nome do Setor', zh: '行业名称' },
   is_name_placeholder: { en: 'e.g. Technology & Digital', es: 'ej: Tecnología y Digital', pt: 'ex: Tecnologia e Digital', zh: '例如：科技与数字' },
   cc_all_categories: { en: 'All Categories', es: 'Todas las Categorías', pt: 'Todas as Categorias', zh: '所有分类' },
@@ -2207,6 +2228,7 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null, override
       demoSessionId: exp.demo_session_id || null,
       practiceId: exp.practice_id || null,
       displayOrder: exp.display_order || 0,
+      isAiGenerated: exp.is_ai_generated || false,
       tags: exp.tags || [],
       parentExperienceId: exp.parent_experience_id || null,
       createdAt: exp.created_at || null,
@@ -2237,7 +2259,8 @@ const loadExperiences = async (skipLoading = false, loggedEmpId = null, override
       country: c.country,
       cvUrl: c.cv_url || null,
       cvFilename: c.cv_filename || null,
-      createdAt: c.created_at || null
+      createdAt: c.created_at || null,
+      isAiGenerated: c.is_ai_generated || false
     });
       });
       
@@ -2475,7 +2498,11 @@ const loadAppSettings = async () => {
     showTop3: contentSettingsSource.show_top3 || false,
     top3StartVisible: resolvedTop3StartVisible,
     showMarquee: contentSettingsSource.show_marquee || false,
-    industrySectorEnabledEditions: data.industry_sector_enabled_editions || 'pro,edu'
+    industrySectorEnabledEditions: data.industry_sector_enabled_editions || 'pro,edu',
+    aiAdminSettings: data.ai_admin_settings || 'comment,followon,synthetic,real,all',
+    aiUserSettings: data.ai_user_settings || 'comment,followon,real,own',
+    aiCommentCharLimit: data.ai_comment_char_limit || 400,
+    aiFollowonCharLimit: data.ai_followon_char_limit || 800
   });
   // Se o campo opcional de nome (usado só pra decoração do cabeçalho)
   // nunca foi preenchido, cai no nome real da empresa — busca direto no
@@ -2517,7 +2544,7 @@ const loadAppSettings = async () => {
   if (!insertError) {
     setAppSettings({
       requireEmployeeLogin: true, editionName: 'corp', allowCvUpload: true,
-      documentType: defaultDocType, showTop3: inheritedShowTop3, top3StartVisible: resolvedTop3StartVisible, showMarquee: inheritedShowMarquee
+      documentType: defaultDocType, showTop3: inheritedShowTop3, top3StartVisible: resolvedTop3StartVisible, showMarquee: inheritedShowMarquee, aiAdminSettings: 'comment,followon,synthetic,real,all', aiUserSettings: 'comment,followon,real,own', aiCommentCharLimit: 400, aiFollowonCharLimit: 800
     });
     const { data: companyRow } = await supabase.from('companies').select('name').eq('id', effectiveCompanyId).maybeSingle();
     setCompanyName(companyRow?.name || '');
@@ -5437,8 +5464,11 @@ setTimeout(() => {
     // Buscar a experiência para verificar owner e arquivos
     const exp = experiences.find(e => e.id === id);
     
-    // Verificar se é o dono (modo Corp)
-if (appSettings.requireEmployeeLogin && !isAdmin && exp.employeeId !== employeeId) {
+    // Verificar se é o dono (modo Corp) — Follow-on de IA nasce sem
+    // employeeId próprio, então também libera se for de IA e o usuário
+    // for dono do PAR pai (mesma regra usada pra exibir o botão).
+    const ownsAsAiFollowOnParent = exp.isAiGenerated && experiences.find(e => e.id === exp.parentExperienceId)?.employeeId === employeeId;
+if (appSettings.requireEmployeeLogin && !isAdmin && exp.employeeId !== employeeId && !ownsAsAiFollowOnParent) {
   alert(t('can_only_delete_own_experiences'));
   return false;
 }
@@ -5485,6 +5515,28 @@ if (appSettings.requireEmployeeLogin && !isAdmin && exp.employeeId !== employeeI
     console.error('Error deleting experience:', error);
     alert(t('error_deleting_experience'));
     return false;
+  }
+};
+
+// Chama a Edge Function "ai-reflection" — ela mesma faz a chamada à API
+// da Claude (com busca web) e já salva o resultado no banco (comments
+// ou experiences, conforme o tipo). Aqui só recarrega os dados pra
+// mostrar o resultado na tela.
+const requestAiReflection = async (experienceId, type) => {
+  setAiReflectionLoading(prev => ({ ...prev, [experienceId]: type }));
+  try {
+    const charLimit = type === 'comment' ? appSettings.aiCommentCharLimit : appSettings.aiFollowonCharLimit;
+    const { data, error } = await supabase.functions.invoke('ai-reflection', {
+      body: { experienceId, type, charLimit },
+    });
+    if (error) throw error;
+    if (data?.error) throw new Error(data.error);
+    await loadExperiences(true);
+  } catch (error) {
+    console.error('Error requesting AI reflection:', error);
+    alert(t('ai_reflection_error') + ' ' + error.message);
+  } finally {
+    setAiReflectionLoading(prev => ({ ...prev, [experienceId]: null }));
   }
 };
 
@@ -5613,6 +5665,7 @@ const [currentEntry, setCurrentEntry] = useState({
 // ⭐ Estados para gerenciar CVs
 const [selectedCv, setSelectedCv] = useState(null);
 const [commentCvFiles, setCommentCvFiles] = useState({});
+const [aiReflectionLoading, setAiReflectionLoading] = useState({}); // { [experienceId]: 'comment'|'followon'|null }
 const [showCvModal, setShowCvModal] = useState(false);
 const [currentCvUrl, setCurrentCvUrl] = useState(null);
   
@@ -6891,8 +6944,11 @@ useEffect(() => {
       return;
     }
     
-    // Verificar se é o dono (modo Corp)
-if (appSettings.requireEmployeeLogin && !isAdmin && comment.employeeId !== employeeId) {
+    // Verificar se é o dono (modo Corp) — AI Comment nasce sem employeeId
+    // próprio, então também libera se for de IA e o usuário for dono do
+    // PAR onde o comentário foi gerado.
+    const ownsAsAiCommentParent = comment.isAiGenerated && exp?.employeeId === employeeId;
+if (appSettings.requireEmployeeLogin && !isAdmin && comment.employeeId !== employeeId && !ownsAsAiCommentParent) {
   alert(t('can_only_delete_own_comments'));
   return;
 }
@@ -7335,11 +7391,20 @@ useEffect(() => {
         )}
         {/* Card */}
         <div className="sm:mx-6">
-          <div id={`exp-${fo.id}`} className={`bg-white rounded-2xl shadow-lg p-6 border-l-4 border-blue-300 ${isGreyed ? 'opacity-40' : ''}`}>
+          <div id={`exp-${fo.id}`} className={`bg-white rounded-2xl shadow-lg p-6 border-l-4 ${fo.isAiGenerated ? 'border-purple-400' : 'border-blue-300'} ${isGreyed ? 'opacity-40' : ''}`}>
             {/* Badge */}
             <div className="mb-3 text-center">
               <span className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">{tFollowOnExperience(threadIndex)}</span>
             </div>
+            {/* Aviso destacado — Follow-on de IA usa o mesmo formato visual
+                de uma experience real, então precisa de um sinal mais forte
+                que o badge simples dos Comments, pra não confundir quem só
+                passa o olho rápido. */}
+            {fo.isAiGenerated && (
+              <div className="mb-3 bg-purple-100 border border-purple-300 rounded-lg px-3 py-2 text-center">
+                <span className="text-xs text-purple-800 font-semibold">{t('ai_generated_badge')}</span>
+              </div>
+            )}
             {/* By + delete */}
             <div className="mb-3">
               {(fo.author || fo.gender || fo.age || fo.country || fo.employeeId) && (
@@ -7389,7 +7454,7 @@ useEffect(() => {
                   )}
                 </div>
               )}
-              {appSettings.requireEmployeeLogin && fo.employeeId === employeeId && (
+              {appSettings.requireEmployeeLogin && (fo.employeeId === employeeId || (fo.isAiGenerated && experiences.find(e => e.id === fo.parentExperienceId)?.employeeId === employeeId)) && (
                 <button onClick={async () => { if (window.confirm(t('confirm_delete_experience'))) await deleteExperienceFromSupabase(fo.id); }}
                   className="text-red-600 hover:text-red-800 text-xs mt-3 inline-flex items-center gap-1">
                   {t('delete_experience')}
@@ -7582,8 +7647,10 @@ useEffect(() => {
                               </div>
                             </div>
                           </div>
-                          {/* Delete - só para o dono */}
-                          {comment.employeeId === employeeId && (
+                          {/* Delete - só para o dono (comment próprio, ou
+                              comment de IA gerado a pedido do dono desse
+                              Follow-on) */}
+                          {(comment.employeeId === employeeId || (comment.isAiGenerated && fo.employeeId === employeeId)) && (
                             <button
                               onClick={() => { if (window.confirm(t('confirm_delete_comment'))) handleDeleteComment(fo.id, comment.id); }}
                               className="text-red-600 hover:text-red-800 text-xs mt-1 inline-flex items-center gap-1"
@@ -8713,6 +8780,7 @@ autoComplete="off"
     { id: 'section-categories', label: t('manage_problem_categories'), visible: isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('metadata')) },
     { id: 'section-common-cases', label: t('manage_common_cases_title'), visible: isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('metadata')) },
     { id: 'section-ratings', label: t('assign_ratings_title'), visible: isAdmin && showDefaultOnlyTools && !isSeller },
+    { id: 'section-ai-reflection', label: '🤖 ' + t('ai_reflection_settings_title'), visible: isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') },
     { id: 'section-group-deletion', label: '🔍 ' + t('manage_group_deletion'), visible: isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('keyword_filter')) },
   ].filter(item => item.visible);
 
@@ -11246,8 +11314,6 @@ autoComplete="off"
         </div>
       )}
 
-
-
     </div>
   </div>
 )}
@@ -12503,6 +12569,108 @@ for (const row of rows) {
     </div>
   </div>
 )}
+
+{isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && activeAdminNavTab === 'settings' && (
+  <div id="section-ai-reflection" className="mt-4 bg-fuchsia-50 border-2 border-fuchsia-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
+    <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+      🤖 {t('ai_reflection_settings_title')}
+      {isReadOnlyOrMasterManaging && <span className="text-xs font-normal text-blue-600">{t('read_only_sample')}</span>}
+      <button onClick={scrollToAdminNavMenu} className="ml-auto text-xs font-normal text-gray-400 hover:text-gray-600 flex-shrink-0">{t('home_btn')}</button>
+    </h3>
+    <div className={isReadOnlyOrMasterManaging ? 'opacity-60 pointer-events-none' : ''}>
+      <p className="text-xs text-gray-500 mb-3">{t('ai_reflection_permission_desc')}</p>
+      <table className="w-full text-sm mb-4">
+        <thead>
+          <tr className="border-b border-gray-300">
+            <th className="text-left py-2 font-medium text-gray-700"></th>
+            <th className="text-center py-2 font-medium text-gray-700">{t('ai_col_admin')}</th>
+            <th className="text-center py-2 font-medium text-gray-700">{t('ai_col_user')}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {[
+            { key: 'comment', label: t('ai_row_comments'), radio: false },
+            { key: 'followon', label: t('ai_row_followon'), radio: false },
+            { key: 'synthetic', label: t('ai_row_synthetic'), radio: false },
+            { key: 'real', label: t('ai_row_real'), radio: false },
+            { key: 'own', label: t('ai_row_own'), radio: true, group: 'ownership' },
+            { key: 'all', label: t('ai_row_all'), radio: true, group: 'ownership' },
+          ].map(row => {
+            const adminList = (appSettings.aiAdminSettings || '').split(',');
+            const userList = (appSettings.aiUserSettings || '').split(',');
+            const toggle = async (column, list, settingKey, dbKey) => {
+              let newList;
+              if (row.radio) {
+                // Own/All são mutuamente exclusivos — marcar um desmarca o outro.
+                newList = [...list.filter(k => k !== 'own' && k !== 'all'), row.key];
+              } else {
+                newList = list.includes(row.key) ? list.filter(k => k !== row.key) : [...list, row.key];
+              }
+              const newValue = newList.join(',');
+              setAppSettings({...appSettings, [settingKey]: newValue});
+              await supabase.from('app_settings').update({ [dbKey]: newValue }).eq('company_id', effectiveCompanyId);
+            };
+            return (
+              <tr key={row.key} className="border-b border-gray-100">
+                <td className="py-2 text-gray-700">{row.label}</td>
+                <td className="text-center py-2">
+                  <input
+                    type={row.radio ? 'radio' : 'checkbox'}
+                    name={row.radio ? 'ai-admin-ownership' : undefined}
+                    checked={adminList.includes(row.key)}
+                    onChange={() => toggle('admin', adminList, 'aiAdminSettings', 'ai_admin_settings')}
+                  />
+                </td>
+                <td className="text-center py-2">
+                  <input
+                    type={row.radio ? 'radio' : 'checkbox'}
+                    name={row.radio ? 'ai-user-ownership' : undefined}
+                    checked={userList.includes(row.key)}
+                    onChange={() => toggle('user', userList, 'aiUserSettings', 'ai_user_settings')}
+                  />
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+
+      {/* Limite de caracteres — controla o tamanho da resposta gerada,
+          repassado como instrução no prompt da Edge Function. */}
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">{t('ai_char_limit_comment')}</label>
+          <input
+            type="number"
+            min="50"
+            value={appSettings.aiCommentCharLimit}
+            onChange={async (e) => {
+              const val = parseInt(e.target.value) || 400;
+              setAppSettings({...appSettings, aiCommentCharLimit: val});
+              await supabase.from('app_settings').update({ ai_comment_char_limit: val }).eq('company_id', effectiveCompanyId);
+            }}
+            className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">{t('ai_char_limit_followon')}</label>
+          <input
+            type="number"
+            min="50"
+            value={appSettings.aiFollowonCharLimit}
+            onChange={async (e) => {
+              const val = parseInt(e.target.value) || 800;
+              setAppSettings({...appSettings, aiFollowonCharLimit: val});
+              await supabase.from('app_settings').update({ ai_followon_char_limit: val }).eq('company_id', effectiveCompanyId);
+            }}
+            className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
           {isAdmin && canManageThisCompany && !(isSeller && !isSellerManagingOwnCompany && companyViewMode !== 'sample') && (!masterMustRespectVisibility || companyMasterVisibility.includes('keyword_filter')) && activeAdminNavTab === 'settings' && (
             <div id="section-group-deletion" className="mt-4 bg-yellow-50 border-2 border-yellow-300 rounded-lg shadow-md p-4 max-w-4xl mx-auto">
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
@@ -14550,6 +14718,45 @@ onClick={() => {
     {t('delete_experience')}
   </button>
 )}                   
+
+{/* AI Reflection — a coluna certa (Admin ou User) é consultada conforme
+    quem está logado; cada uma precisa bater nos 4 critérios (tipo,
+    synthetic/real, own/all) pro botão aparecer. Configurável em
+    "AI Reflection Settings". Controla custo de API, quem paga decide.
+    Gera conteúdo baseado em pesquisa de mercado real (via Claude + web
+    search), nunca inventa uma vivência pessoal. */}
+{!isReadOnlyOrMasterManaging && appSettings.requireEmployeeLogin && exp.author !== 'key_insights' && (() => {
+  const settingsList = (isAdmin ? appSettings.aiAdminSettings : appSettings.aiUserSettings || '').split(',');
+  const isSynthetic = exp.source !== 'app';
+  const isOwner = exp.employeeId === employeeId;
+  const matchesParType = isSynthetic ? settingsList.includes('synthetic') : settingsList.includes('real');
+  const matchesOwnership = isOwner ? settingsList.includes('own') : settingsList.includes('all');
+  const canComment = settingsList.includes('comment') && matchesParType && matchesOwnership;
+  const canFollowon = settingsList.includes('followon') && matchesParType && matchesOwnership;
+  if (!canComment && !canFollowon) return null;
+  return (
+    <div className="flex gap-2 mt-2">
+      {canComment && (
+        <button
+          onClick={() => requestAiReflection(exp.id, 'comment')}
+          disabled={!!aiReflectionLoading[exp.id]}
+          className="text-purple-600 hover:text-purple-800 text-xs inline-flex items-center gap-1 disabled:opacity-50 disabled:cursor-wait"
+        >
+          {aiReflectionLoading[exp.id] === 'comment' ? t('ai_reflection_loading') : t('ai_comment_btn')}
+        </button>
+      )}
+      {canFollowon && (
+        <button
+          onClick={() => requestAiReflection(exp.id, 'followon')}
+          disabled={!!aiReflectionLoading[exp.id]}
+          className="text-purple-600 hover:text-purple-800 text-xs inline-flex items-center gap-1 disabled:opacity-50 disabled:cursor-wait"
+        >
+          {aiReflectionLoading[exp.id] === 'followon' ? t('ai_reflection_loading') : t('ai_followon_btn')}
+        </button>
+      )}
+    </div>
+  );
+})()}
                     
 {exp.industrySector && (companyEdition === 'pro' || companyEdition === 'edu') && (
   <div className="mb-3">
@@ -14971,7 +15178,13 @@ onClick={() => {
    {showComments[exp.id] === true && (
   <div className="space-y-3">
     {exp.comments.map(comment => (
-      <div key={comment.id} className="bg-gray-50 rounded-lg p-3 relative">
+      <div key={comment.id} className={comment.isAiGenerated ? "bg-purple-50 border border-purple-200 rounded-lg p-3 relative" : "bg-gray-50 rounded-lg p-3 relative"}>
+
+{comment.isAiGenerated && (
+  <div className="mb-2 text-xs text-purple-700 font-medium">
+    {t('ai_generated_badge')}
+  </div>
+)}
 
 {/* By: info - SÓ NO CORP */}
         {appSettings.requireEmployeeLogin && (comment.author || comment.employeeId || comment.country) && (
@@ -15107,8 +15320,10 @@ onClick={() => {
             </div>
           </div>
         </div>
-        {/* Delete Comment - só para o dono */}
-        {comment.employeeId === employeeId && (
+        {/* Delete Comment - só para o dono (comment próprio, ou comment de
+            IA gerado a pedido do dono do PAR — esses nascem sem
+            employeeId próprio, então precisam dessa segunda condição). */}
+        {(comment.employeeId === employeeId || (comment.isAiGenerated && exp.employeeId === employeeId)) && (
           <button
             onClick={() => {
               if (window.confirm(t('confirm_delete_comment'))) {
