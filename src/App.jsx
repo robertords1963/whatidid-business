@@ -2052,7 +2052,7 @@ useEffect(() => {
     }
   };
   
-const loadExperiences = async (skipLoading = false, loggedEmpId = null, overrideDemoSessionId = undefined) => {
+const loadExperiences = async (skipLoading = false, loggedEmpId = null, overrideDemoSessionId = undefined, forceStaleProtection = false) => {
   // Um Group Demo ID (Prospect testando o app) vê o CONTEÚDO do Default —
   // mesma experiência que o ADM Default/Seller veem em modo Demo. O
   // branding (nome/logo) continua vindo da própria empresa/Prospect
@@ -2338,7 +2338,7 @@ const allExps = [...keyInsights, ...userExps, ...orderedSynthetic];
 // uma ação concluída, tipo import/delete/comentário) voltam a ser imunes:
 // representam "acabei de mudar dados, mostre agora" e não podem ser
 // descartadas só porque uma automática rodou em paralelo.
-if (!skipLoading && latestExperiencesRequestRef.current !== thisRequestId) {
+if ((!skipLoading || forceStaleProtection) && latestExperiencesRequestRef.current !== thisRequestId) {
   console.log('🟠 loadExperiences IGNOROU resultado desatualizado — request #', thisRequestId, 'mas o mais recente agora é #', latestExperiencesRequestRef.current);
   return;
 }
@@ -5522,6 +5522,28 @@ if (appSettings.requireEmployeeLogin && !isAdmin && exp.employeeId !== employeeI
 // da Claude (com busca web) e já salva o resultado no banco (comments
 // ou experiences, conforme o tipo). Aqui só recarrega os dados pra
 // mostrar o resultado na tela.
+// Calcula se Comment/Follow-on de IA são permitidos pra um PAR
+// específico — reaproveitado nos dois lugares onde os botões aparecem
+// agora (perto de Add a Comment, perto de Add a Follow-On).
+const getAiReflectionAccess = (exp) => {
+  if (isReadOnlyOrMasterManaging || !appSettings.requireEmployeeLogin || exp.author === 'key_insights') {
+    return { canComment: false, canFollowon: false };
+  }
+  // employeeIsAdmin = privilégio de admin de verdade, independente do
+  // toggle "Admin Mode" estar ligado — isAdmin sozinho faria alguém com
+  // privilégio, navegando a tela normal (como no ambiente de demo pra
+  // prospects), cair incorretamente na coluna "Usuário" da tabela.
+  const settingsList = (employeeIsAdmin ? (appSettings.aiAdminSettings || '') : (appSettings.aiUserSettings || '')).split(',');
+  const isSynthetic = exp.source !== 'app';
+  const isOwner = exp.employeeId === employeeId;
+  const matchesParType = isSynthetic ? settingsList.includes('synthetic') : settingsList.includes('real');
+  const matchesOwnership = isOwner ? settingsList.includes('own') : settingsList.includes('all');
+  return {
+    canComment: settingsList.includes('comment') && matchesParType && matchesOwnership,
+    canFollowon: settingsList.includes('followon') && matchesParType && matchesOwnership,
+  };
+};
+
 const requestAiReflection = async (experienceId, type) => {
   setAiReflectionLoading(prev => ({ ...prev, [experienceId]: type }));
   try {
@@ -5531,7 +5553,12 @@ const requestAiReflection = async (experienceId, type) => {
     });
     if (error) throw error;
     if (data?.error) throw new Error(data.error);
-    await loadExperiences(true);
+    // skipLoading=true evita o spinner de tela cheia; forceStaleProtection=true
+    // garante a proteção contra resultado desatualizado mesmo assim — sem
+    // isso, uma chamada automática paralela terminando depois desta poderia
+    // sobrescrever o resultado certo com um antigo, fazendo o que acabou de
+    // ser gerado sumir da tela (mesmo continuando salvo no banco).
+    await loadExperiences(true, null, undefined, true);
   } catch (error) {
     console.error('Error requesting AI reflection:', error);
     alert(t('ai_reflection_error') + ' ' + error.message);
@@ -14719,49 +14746,9 @@ onClick={() => {
   </button>
 )}                   
 
-{/* AI Reflection — a coluna certa (Admin ou User) é consultada conforme
-    quem está logado; cada uma precisa bater nos 4 critérios (tipo,
-    synthetic/real, own/all) pro botão aparecer. Configurável em
-    "AI Reflection Settings". Controla custo de API, quem paga decide.
-    Gera conteúdo baseado em pesquisa de mercado real (via Claude + web
-    search), nunca inventa uma vivência pessoal. */}
-{!isReadOnlyOrMasterManaging && appSettings.requireEmployeeLogin && exp.author !== 'key_insights' && (() => {
-  // employeeIsAdmin = tem privilégio de admin de verdade (independente
-  // de estar com o toggle "Admin Mode" ligado ou não) — isAdmin sozinho
-  // faria alguém com privilégio, mas navegando a tela normal (como no
-  // ambiente de demo pra prospects), cair incorretamente na coluna
-  // "Usuário" da tabela de permissões.
-  const settingsList = (employeeIsAdmin ? (appSettings.aiAdminSettings || '') : (appSettings.aiUserSettings || '')).split(',');
-  const isSynthetic = exp.source !== 'app';
-  const isOwner = exp.employeeId === employeeId;
-  const matchesParType = isSynthetic ? settingsList.includes('synthetic') : settingsList.includes('real');
-  const matchesOwnership = isOwner ? settingsList.includes('own') : settingsList.includes('all');
-  const canComment = settingsList.includes('comment') && matchesParType && matchesOwnership;
-  const canFollowon = settingsList.includes('followon') && matchesParType && matchesOwnership;
-  if (!canComment && !canFollowon) return null;
-  return (
-    <div className="flex gap-2 mt-2">
-      {canComment && (
-        <button
-          onClick={() => requestAiReflection(exp.id, 'comment')}
-          disabled={!!aiReflectionLoading[exp.id]}
-          className="text-purple-600 hover:text-purple-800 text-xs inline-flex items-center gap-1 disabled:opacity-50 disabled:cursor-wait"
-        >
-          {aiReflectionLoading[exp.id] === 'comment' ? t('ai_reflection_loading') : t('ai_comment_btn')}
-        </button>
-      )}
-      {canFollowon && (
-        <button
-          onClick={() => requestAiReflection(exp.id, 'followon')}
-          disabled={!!aiReflectionLoading[exp.id]}
-          className="text-purple-600 hover:text-purple-800 text-xs inline-flex items-center gap-1 disabled:opacity-50 disabled:cursor-wait"
-        >
-          {aiReflectionLoading[exp.id] === 'followon' ? t('ai_reflection_loading') : t('ai_followon_btn')}
-        </button>
-      )}
-    </div>
-  );
-})()}
+{/* Botões AI Comment/AI Follow-on foram movidos pra perto de cada ação
+    correspondente (Add a Comment / Add a Follow-On), pra evitar
+    confusão visual entre eles. Ver useAiReflectionAccess mais abaixo. */}
                     
 {exp.industrySector && (companyEdition === 'pro' || companyEdition === 'edu') && (
   <div className="mb-3">
@@ -15081,6 +15068,15 @@ onClick={() => {
                       <h4 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
                         <MessageCircle size={18} />
                         {t('add_a_comment')}
+                        {getAiReflectionAccess(exp).canComment && (
+                          <button
+                            onClick={() => requestAiReflection(exp.id, 'comment')}
+                            disabled={!!aiReflectionLoading[exp.id]}
+                            className="text-purple-600 hover:text-purple-800 text-xs font-normal inline-flex items-center gap-1 disabled:opacity-50 disabled:cursor-wait ml-2"
+                          >
+                            {aiReflectionLoading[exp.id] === 'comment' ? t('ai_reflection_loading') : t('ai_comment_btn')}
+                          </button>
+                        )}
                       </h4>
                       
 <div className="space-y-2">
@@ -15504,36 +15500,48 @@ onClick={() => {
               </div>
             )}
 
-{/* ⭐ FOLLOW-ON BUTTON — abaixo dos comments, inibido se já tem follow-on */}
+{/* ⭐ FOLLOW-ON BUTTON — abaixo dos comments, inibido se já tem follow-on.
+    AI Follow-on fica ao lado (mesma linha), não embaixo. */}
 {exp.author !== 'key_insights' && (() => {
   const hasFollowOn = experiences.some(e => e.parentExperienceId === exp.id);
   if (hasFollowOn) return null;
   return (
-    <button
-      onClick={() => {
-        captureNavSnapshot('share');
-        setFollowOnParentId(exp.id);
-        // Pré-preencher practice e category do parent — precisa setar as
-        // DUAS variáveis (selectedPracticeId controla o que é salvo,
-        // shareFormPracticeId controla o que o dropdown mostra visualmente;
-        // eram tratadas como uma só por engano, causando a tela mostrar
-        // errado mesmo com o valor salvo estando correto).
-        if (exp.practiceId) {
-          setSelectedPracticeId(exp.practiceId);
-          setShareFormPracticeId(exp.practiceId);
-        }
-        setCurrentEntry(prev => ({
-          ...prev,
-          problemCategory: exp.problemCategory || '',
-          industrySector: exp.industrySector || ''
-        }));
-        if (exp.practiceId) loadProblemCategories(exp.practiceId);
-        setActiveMainTab('share'); scrollToTabs();
-      }}
-      className="mt-3 text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
-    >
-      {t('add_follow_on')}
-    </button>
+    <div className="mt-3 flex items-center gap-3">
+      <button
+        onClick={() => {
+          captureNavSnapshot('share');
+          setFollowOnParentId(exp.id);
+          // Pré-preencher practice e category do parent — precisa setar as
+          // DUAS variáveis (selectedPracticeId controla o que é salvo,
+          // shareFormPracticeId controla o que o dropdown mostra visualmente;
+          // eram tratadas como uma só por engano, causando a tela mostrar
+          // errado mesmo com o valor salvo estando correto).
+          if (exp.practiceId) {
+            setSelectedPracticeId(exp.practiceId);
+            setShareFormPracticeId(exp.practiceId);
+          }
+          setCurrentEntry(prev => ({
+            ...prev,
+            problemCategory: exp.problemCategory || '',
+            industrySector: exp.industrySector || ''
+          }));
+          if (exp.practiceId) loadProblemCategories(exp.practiceId);
+          setActiveMainTab('share'); scrollToTabs();
+        }}
+        className="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
+      >
+        {t('add_follow_on')}
+      </button>
+      {getAiReflectionAccess(exp).canFollowon && (
+        <button
+          onClick={() => requestAiReflection(exp.id, 'followon')}
+          disabled={!!aiReflectionLoading[exp.id]}
+          className="text-xs text-purple-600 hover:text-purple-800 font-medium flex items-center gap-1 disabled:opacity-50 disabled:cursor-wait"
+        >
+          {aiReflectionLoading[exp.id] === 'followon' ? t('ai_reflection_loading') : t('ai_followon_btn')}
+        </button>
+      )}
+    </div>
   );
 })()}
 
