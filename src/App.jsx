@@ -5614,6 +5614,17 @@ const requestAiReflection = async (experienceId, type) => {
       }
     }
 
+    if (type === 'comment') {
+      // Força um ciclo de esconder/mostrar os comments — na prática, isso
+      // é exatamente o gesto manual (Hide All Comments → Show All
+      // Comments) que já confirmamos resolver a lixeirinha não aparecer
+      // de primeira. Em vez de continuar caçando a causa exata no React,
+      // replica programaticamente o que já sabemos que funciona.
+      setShowComments(prev => ({ ...prev, [experienceId]: false }));
+      await new Promise(resolve => setTimeout(resolve, 50));
+      setShowComments(prev => ({ ...prev, [experienceId]: true }));
+    }
+
     if (type === 'followon' && data?.data?.id) {
       // Expande automaticamente o PAR pai (e ancestrais, se ele mesmo for
       // um Follow-on de algo) — sem isso, o Follow-on novo ficava criado
@@ -16834,7 +16845,7 @@ if (selected.length === 0) {
     >
       Exit
     </button>
-  </div>  
+  </div>
 ) : (
   <button
     onClick={() => {
