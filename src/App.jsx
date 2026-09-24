@@ -993,6 +993,9 @@ export default function WhatIDid() {
   // (que fica "congelada" no valor que existia quando a função foi
   // criada, mesmo depois de await loadExperiences() atualizar o state).
   const experiencesRef = useRef([]);
+  // Fila de execução de loadExperiences — ver comentário completo na
+  // definição do wrapper, mais abaixo.
+  const loadExperiencesQueueRef = useRef(Promise.resolve());
   const [experiences, setExperiences] = useState([]);
   useEffect(() => { experiencesRef.current = experiences; }, [experiences]);
   const shuffleOrderRef = useRef(null);
@@ -2058,7 +2061,7 @@ useEffect(() => {
     }
   };
   
-const loadExperiences = async (skipLoading = false, loggedEmpId = null, overrideDemoSessionId = undefined, forceStaleProtection = false) => {
+const loadExperiencesInner = async (skipLoading = false, loggedEmpId = null, overrideDemoSessionId = undefined, forceStaleProtection = false) => {
   // Um Group Demo ID (Prospect testando o app) vê o CONTEÚDO do Default —
   // mesma experiência que o ADM Default/Seller veem em modo Demo. O
   // branding (nome/logo) continua vindo da própria empresa/Prospect
@@ -2401,6 +2404,20 @@ if (lastCommentIds.length > 0) {
       setLoading(false);
     }
   }
+};
+
+// Fila — garante que chamadas de loadExperiences NUNCA rodem em
+// paralelo entre si. Sem isso, múltiplas chamadas concorrentes (ex:
+// gerar AI Comment em vários PARs em sequência rápida) competiam entre
+// si por "quem é a mais recente", causando resultados imprevisíveis —
+// às vezes o mais recente vencia, às vezes um mais antigo, dependendo
+// só de qual terminava por último. Enfileirando, cada chamada só
+// começa depois que a anterior já terminou por completo.
+const loadExperiences = (...args) => {
+  loadExperiencesQueueRef.current = loadExperiencesQueueRef.current
+    .then(() => loadExperiencesInner(...args))
+    .catch(err => console.error('Erro na fila de loadExperiences:', err));
+  return loadExperiencesQueueRef.current;
 };
 
 const loadTopExperiences = async () => {
