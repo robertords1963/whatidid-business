@@ -5622,10 +5622,19 @@ const requestAiReflection = async (experienceId, type) => {
       ? `exp-${data.data.id}`
       : (data?.data?.id ? `comment-${data.data.id}` : `exp-${experienceId}`);
     console.log(`🔍 AI Reflection scroll — tipo=${type}, data.data.id=${data?.data?.id}, scrollElementId=${scrollElementId}`);
+    // Diagnóstico extra: confirma se o CARD do PAR pai existe no DOM
+    // (separado do comment específico), e quantos comments esse PAR
+    // tem no estado do React — isola se o problema é o card inteiro
+    // sumindo, ou só o comment específico dentro dele.
+    const parentCardExists = !!document.getElementById(`exp-${experienceId}`);
+    const parentExpInState = experiences.find(e => e.id === experienceId);
+    console.log(`🔍 card do PAR pai (exp-${experienceId}) existe no DOM? ${parentCardExists} | comments no estado React: ${parentExpInState?.comments?.length ?? 'PAR não encontrado no estado'}`);
     let attempts = 0;
     const tryScroll = () => {
       const el = document.getElementById(scrollElementId);
-      console.log(`🔍 tentativa ${attempts + 1}/15 — elemento "${scrollElementId}" encontrado? ${!!el}`);
+      const parentStillExists = !!document.getElementById(`exp-${experienceId}`);
+      const parentExpNow = experiences.find(e => e.id === experienceId);
+      console.log(`🔍 tentativa ${attempts + 1}/15 — elemento "${scrollElementId}" encontrado? ${!!el} | card pai existe? ${parentStillExists} | comments no estado agora: ${parentExpNow?.comments?.length ?? 'N/A'}`);
       if (el) {
         const y = el.getBoundingClientRect().top + window.pageYOffset - 20;
         console.log(`🔍 rolando até y=${y}`);
