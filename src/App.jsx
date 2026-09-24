@@ -988,7 +988,13 @@ export default function WhatIDid() {
   // { chave: { en: '...', es: '...', pt: '...', zh: '...', ... } }.
   // Começa vazio; até carregar, t()/tt() usam a reserva embutida no código.
   const [uiTranslationsDB, setUiTranslationsDB] = useState({});
+  // Sempre aponta pro valor MAIS ATUAL de experiences — diferente da
+  // variável `experiences` capturada dentro de uma função assíncrona
+  // (que fica "congelada" no valor que existia quando a função foi
+  // criada, mesmo depois de await loadExperiences() atualizar o state).
+  const experiencesRef = useRef([]);
   const [experiences, setExperiences] = useState([]);
+  useEffect(() => { experiencesRef.current = experiences; }, [experiences]);
   const shuffleOrderRef = useRef(null);
   // Lembra de qual empresa era o embaralhamento salvo — se a empresa mudar,
   // o embaralhamento precisa ser refeito (senão fica "travado" na primeira
@@ -5577,17 +5583,36 @@ const requestAiReflection = async (experienceId, type) => {
     });
     if (error) throw error;
     if (data?.error) throw new Error(data.error);
-    // skipLoading=true PURO (sem forceStaleProtection) — essa combinação
-    // garante que ESSA chamada nunca é descartada, mesmo se uma chamada
-    // automática paralela (comuns logo após refresh/login) incrementar o
-    // contador de "mais recente" enquanto essa ainda está em voo.
-    // forceStaleProtection tinha o efeito CONTRÁRIO do pretendido: em vez
-    // de proteger esse resultado fresco, ela sujeitava essa chamada à
-    // MESMA regra de "só o mais recente vale" que todo mundo segue —
-    // fazendo o comentário recém-gerado ficar invisível até uma próxima
-    // atualização de tela (como Hide/Show Comments) forçar um re-render
-    // com os dados que, por essa altura, já tinham chegado.
+    // skipLoading=true PURO — garante que ESSA chamada nunca é
+    // descartada por sua própria proteção interna. Mas isso não impede
+    // que OUTRA chamada automática não-relacionada (comuns logo após
+    // refresh/login — o app dispara várias no carregamento inicial),
+    // também usando skipLoading=true, termine DEPOIS dessa aqui e
+    // sobrescreva o resultado com dados que ainda não incluíam o que
+    // acabou de ser gerado. Por isso, confirma de verdade usando
+    // experiencesRef (sempre atual, sem closure obsoleta) — se o item
+    // novo não aparecer, tenta de novo, algumas vezes.
     await loadExperiences(true);
+    if (data?.data?.id) {
+      const newItemId = data.data.id;
+      let confirmAttempts = 0;
+      while (confirmAttempts < 5) {
+        // Dá um instante pro useEffect (que sincroniza experiencesRef)
+        // rodar depois do re-render disparado por setExperiences —
+        // sem isso, a checagem correria antes do ref refletir o valor
+        // mais recente.
+        await new Promise(resolve => setTimeout(resolve, 400));
+        const parentNow = experiencesRef.current.find(e => e.id === experienceId);
+        const itemExists = type === 'followon'
+          ? experiencesRef.current.some(e => e.id === newItemId)
+          : parentNow?.comments?.some(c => c.id === newItemId);
+        console.log(`🔍 confirmação ${confirmAttempts + 1}/5 — item ${newItemId} presente no estado? ${itemExists}`);
+        if (itemExists) break;
+        confirmAttempts++;
+        console.log(`🔍 não confirmado — chamando loadExperiences de novo (tentativa ${confirmAttempts})`);
+        await loadExperiences(true);
+      }
+    }
 
     if (type === 'followon' && data?.data?.id) {
       // Expande automaticamente o PAR pai (e ancestrais, se ele mesmo for
