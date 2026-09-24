@@ -5577,12 +5577,17 @@ const requestAiReflection = async (experienceId, type) => {
     });
     if (error) throw error;
     if (data?.error) throw new Error(data.error);
-    // skipLoading=true evita o spinner de tela cheia; forceStaleProtection=true
-    // garante a proteção contra resultado desatualizado mesmo assim — sem
-    // isso, uma chamada automática paralela terminando depois desta poderia
-    // sobrescrever o resultado certo com um antigo, fazendo o que acabou de
-    // ser gerado sumir da tela (mesmo continuando salvo no banco).
-    await loadExperiences(true, null, undefined, true);
+    // skipLoading=true PURO (sem forceStaleProtection) — essa combinação
+    // garante que ESSA chamada nunca é descartada, mesmo se uma chamada
+    // automática paralela (comuns logo após refresh/login) incrementar o
+    // contador de "mais recente" enquanto essa ainda está em voo.
+    // forceStaleProtection tinha o efeito CONTRÁRIO do pretendido: em vez
+    // de proteger esse resultado fresco, ela sujeitava essa chamada à
+    // MESMA regra de "só o mais recente vale" que todo mundo segue —
+    // fazendo o comentário recém-gerado ficar invisível até uma próxima
+    // atualização de tela (como Hide/Show Comments) forçar um re-render
+    // com os dados que, por essa altura, já tinham chegado.
+    await loadExperiences(true);
 
     if (type === 'followon' && data?.data?.id) {
       // Expande automaticamente o PAR pai (e ancestrais, se ele mesmo for
