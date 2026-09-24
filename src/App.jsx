@@ -5482,7 +5482,10 @@ setTimeout(() => {
     // Verificar se é o dono (modo Corp) — Follow-on de IA nasce sem
     // employeeId próprio, então também libera se for de IA e o usuário
     // for dono do PAR pai (mesma regra usada pra exibir o botão).
-    const ownsAsAiFollowOnParent = exp.isAiGenerated && experiences.find(e => e.id === exp.parentExperienceId)?.employeeId === employeeId;
+    // PARs sintéticos têm employeeId fictício, que nunca bate com o de
+    // um admin real logado — por isso também libera pra qualquer admin
+    // de verdade (employeeIsAdmin), não só pro dono exato do PAR pai.
+    const ownsAsAiFollowOnParent = exp.isAiGenerated && (experiences.find(e => e.id === exp.parentExperienceId)?.employeeId === employeeId || employeeIsAdmin);
 if (appSettings.requireEmployeeLogin && !isAdmin && exp.employeeId !== employeeId && !ownsAsAiFollowOnParent) {
   alert(t('can_only_delete_own_experiences'));
   return false;
@@ -5563,8 +5566,14 @@ const requestAiReflection = async (experienceId, type) => {
   setAiReflectionLoading(prev => ({ ...prev, [experienceId]: type }));
   try {
     const charLimit = type === 'comment' ? appSettings.aiCommentCharLimit : appSettings.aiFollowonCharLimit;
+    // ensureDemoSessionId() cria a sessão na hora se ainda não existir —
+    // sem isso, currentDemoSessionId ficava null quando o AI Reflection
+    // era a PRIMEIRA ação da sessão de demo (nenhum comment/follow-on
+    // normal tinha rodado antes pra "criar" a sessão), e o conteúdo de
+    // IA nascia sem demo_session_id, nunca sendo limpo no logout.
+    const demoSessionIdForInsert = (isDemoModeActive || loggedInIsDemoId) ? await ensureDemoSessionId() : null;
     const { data, error } = await supabase.functions.invoke('ai-reflection', {
-      body: { experienceId, type, charLimit, demoSessionId: currentDemoSessionId || null },
+      body: { experienceId, type, charLimit, demoSessionId: demoSessionIdForInsert },
     });
     if (error) throw error;
     if (data?.error) throw new Error(data.error);
@@ -5601,16 +5610,24 @@ const requestAiReflection = async (experienceId, type) => {
     // (exp-ID); Comment: o comentário específico (comment-ID), não só o
     // topo do card do PAR, que poderia deixar o comment novo escondido
     // mais embaixo se já houvesse vários outros comments antes dele.
+    // Usa polling (não um tempo fixo) — em conexões mais lentas, 300ms
+    // podia não ser suficiente pro React terminar de renderizar o
+    // elemento novo antes da tentativa de encontrá-lo.
     const scrollElementId = type === 'followon' && data?.data?.id
       ? `exp-${data.data.id}`
       : (data?.data?.id ? `comment-${data.data.id}` : `exp-${experienceId}`);
-    setTimeout(() => {
+    let attempts = 0;
+    const tryScroll = () => {
       const el = document.getElementById(scrollElementId);
       if (el) {
         const y = el.getBoundingClientRect().top + window.pageYOffset - 20;
         window.scrollTo({ top: y, behavior: 'smooth' });
+      } else if (attempts < 15) {
+        attempts++;
+        setTimeout(tryScroll, 200);
       }
-    }, 300);
+    };
+    setTimeout(tryScroll, 200);
   } catch (error) {
     console.error('Error requesting AI reflection:', error);
     alert(t('ai_reflection_error') + ' ' + error.message);
@@ -5679,6 +5696,22 @@ const requestAiReflection = async (experienceId, type) => {
         return updated;
       });
       await loadReactions(freshComments.map(c => c.id));
+      // Rola até o comentário recém-criado (maior id = mais recente) —
+      // mesmo tratamento que já vale pro AI Comment. Polling em vez de
+      // tempo fixo, pra funcionar mesmo em conexões mais lentas.
+      const newestCommentId = Math.max(...freshComments.map(c => c.id));
+      let scrollAttempts = 0;
+      const tryScrollToComment = () => {
+        const el = document.getElementById(`comment-${newestCommentId}`);
+        if (el) {
+          const y = el.getBoundingClientRect().top + window.pageYOffset - 20;
+          window.scrollTo({ top: y, behavior: 'smooth' });
+        } else if (scrollAttempts < 15) {
+          scrollAttempts++;
+          setTimeout(tryScrollToComment, 200);
+        }
+      };
+      setTimeout(tryScrollToComment, 200);
     }
   } catch (error) {
     console.error('Error adding comment:', error);
@@ -7025,8 +7058,10 @@ useEffect(() => {
     
     // Verificar se é o dono (modo Corp) — AI Comment nasce sem employeeId
     // próprio, então também libera se for de IA e o usuário for dono do
-    // PAR onde o comentário foi gerado.
-    const ownsAsAiCommentParent = comment.isAiGenerated && exp?.employeeId === employeeId;
+    // PAR onde o comentário foi gerado, OU se for um admin de verdade
+    // (PARs sintéticos têm employeeId fictício, que nunca bate com o de
+    // um admin real logado).
+    const ownsAsAiCommentParent = comment.isAiGenerated && (exp?.employeeId === employeeId || employeeIsAdmin);
 if (appSettings.requireEmployeeLogin && !isAdmin && comment.employeeId !== employeeId && !ownsAsAiCommentParent) {
   alert(t('can_only_delete_own_comments'));
   return;
@@ -7533,7 +7568,7 @@ useEffect(() => {
                   )}
                 </div>
               )}
-              {appSettings.requireEmployeeLogin && (fo.employeeId === employeeId || (fo.isAiGenerated && experiences.find(e => e.id === fo.parentExperienceId)?.employeeId === employeeId)) && (
+              {appSettings.requireEmployeeLogin && (fo.employeeId === employeeId || (fo.isAiGenerated && (experiences.find(e => e.id === fo.parentExperienceId)?.employeeId === employeeId || employeeIsAdmin))) && (
                 <button onClick={async () => { if (window.confirm(t('confirm_delete_experience'))) await deleteExperienceFromSupabase(fo.id); }}
                   className="text-red-600 hover:text-red-800 text-xs mt-3 inline-flex items-center gap-1">
                   {t('delete_experience')}
@@ -7647,7 +7682,18 @@ useEffect(() => {
             })()}
             {/* Comments */}
             <div className="border-t pt-4 mt-4">
-              <h4 className="font-semibold text-gray-700 mb-3 flex items-center gap-2"><MessageCircle size={18}/>{t('add_a_comment')}</h4>
+              <h4 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <MessageCircle size={18}/>{t('add_a_comment')}
+                {!fo.isAiGenerated && getAiReflectionAccess(fo).canComment && !fo.comments.some(c => c.isAiGenerated) && (
+                  <button
+                    onClick={() => requestAiReflection(fo.id, 'comment')}
+                    disabled={!!aiReflectionLoading[fo.id]}
+                    className="text-purple-600 hover:text-purple-800 text-xs font-normal inline-flex items-center gap-1 disabled:opacity-50 disabled:cursor-wait ml-2"
+                  >
+                    {aiReflectionLoading[fo.id] === 'comment' ? t('ai_reflection_loading') : t('ai_comment_btn')}
+                  </button>
+                )}
+              </h4>
               <div className="space-y-2">
                 <textarea value={newComment[fo.id] || ''}
                   onChange={(e) => { if (e.target.value.length <= maxChars.comment) setNewComment(c => ({...c, [fo.id]: e.target.value})); }}
@@ -7729,7 +7775,7 @@ useEffect(() => {
                           {/* Delete - só para o dono (comment próprio, ou
                               comment de IA gerado a pedido do dono desse
                               Follow-on) */}
-                          {(comment.employeeId === employeeId || (comment.isAiGenerated && fo.employeeId === employeeId)) && (
+                          {(comment.employeeId === employeeId || (comment.isAiGenerated && (fo.employeeId === employeeId || employeeIsAdmin))) && (
                             <button
                               onClick={() => { if (window.confirm(t('confirm_delete_comment'))) handleDeleteComment(fo.id, comment.id); }}
                               className="text-red-600 hover:text-red-800 text-xs mt-1 inline-flex items-center gap-1"
@@ -15120,7 +15166,7 @@ onClick={() => {
                       <h4 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
                         <MessageCircle size={18} />
                         {t('add_a_comment')}
-                        {getAiReflectionAccess(exp).canComment && (
+                        {getAiReflectionAccess(exp).canComment && !exp.comments.some(c => c.isAiGenerated) && (
                           <button
                             onClick={() => requestAiReflection(exp.id, 'comment')}
                             disabled={!!aiReflectionLoading[exp.id]}
@@ -15376,7 +15422,7 @@ onClick={() => {
         {/* Delete Comment - só para o dono (comment próprio, ou comment de
             IA gerado a pedido do dono do PAR — esses nascem sem
             employeeId próprio, então precisam dessa segunda condição). */}
-        {(comment.employeeId === employeeId || (comment.isAiGenerated && exp.employeeId === employeeId)) && (
+        {(comment.employeeId === employeeId || (comment.isAiGenerated && (exp.employeeId === employeeId || employeeIsAdmin))) && (
           <button
             onClick={() => {
               if (window.confirm(t('confirm_delete_comment'))) {
