@@ -5544,7 +5544,7 @@ if (appSettings.requireEmployeeLogin && !isAdmin && exp.employeeId !== employeeI
 // específico — reaproveitado nos dois lugares onde os botões aparecem
 // agora (perto de Add a Comment, perto de Add a Follow-On).
 const getAiReflectionAccess = (exp) => {
-  if (isReadOnlyOrMasterManaging || !appSettings.requireEmployeeLogin || exp.author === 'key_insights') {
+  if (!aiFeaturesSettled || isReadOnlyOrMasterManaging || !appSettings.requireEmployeeLogin || exp.author === 'key_insights') {
     return { canComment: false, canFollowon: false };
   }
   // employeeIsAdmin = privilégio de admin de verdade, independente do
@@ -5616,15 +5616,20 @@ const requestAiReflection = async (experienceId, type) => {
     const scrollElementId = type === 'followon' && data?.data?.id
       ? `exp-${data.data.id}`
       : (data?.data?.id ? `comment-${data.data.id}` : `exp-${experienceId}`);
+    console.log(`🔍 AI Reflection scroll — tipo=${type}, data.data.id=${data?.data?.id}, scrollElementId=${scrollElementId}`);
     let attempts = 0;
     const tryScroll = () => {
       const el = document.getElementById(scrollElementId);
+      console.log(`🔍 tentativa ${attempts + 1}/15 — elemento "${scrollElementId}" encontrado? ${!!el}`);
       if (el) {
         const y = el.getBoundingClientRect().top + window.pageYOffset - 20;
+        console.log(`🔍 rolando até y=${y}`);
         window.scrollTo({ top: y, behavior: 'smooth' });
       } else if (attempts < 15) {
         attempts++;
         setTimeout(tryScroll, 200);
+      } else {
+        console.log(`🔍 desistiu — elemento "${scrollElementId}" nunca apareceu no DOM`);
       }
     };
     setTimeout(tryScroll, 200);
@@ -5778,6 +5783,23 @@ const [currentEntry, setCurrentEntry] = useState({
 const [selectedCv, setSelectedCv] = useState(null);
 const [commentCvFiles, setCommentCvFiles] = useState({});
 const [aiReflectionLoading, setAiReflectionLoading] = useState({}); // { [experienceId]: 'comment'|'followon'|null }
+// Logo após um login novo, existe uma janela curta onde employeeIsAdmin
+// ainda reflete o valor "zerado" do localStorage (limpo no logout
+// anterior), antes da consulta assíncrona ao employee confirmar o valor
+// real. Clicar nos botões de IA nesse intervalo causava comportamento
+// inconsistente (conteúdo gerado sem aparecer corretamente, ou sem
+// lixeirinha). Esse flag só libera os botões depois de um pequeno
+// período de segurança, dando tempo suficiente pro login assentar.
+const [aiFeaturesSettled, setAiFeaturesSettled] = useState(false);
+useEffect(() => {
+  if (isEmployeeLoggedIn) {
+    setAiFeaturesSettled(false);
+    const timer = setTimeout(() => setAiFeaturesSettled(true), 1500);
+    return () => clearTimeout(timer);
+  } else {
+    setAiFeaturesSettled(false);
+  }
+}, [isEmployeeLoggedIn, employeeId]);
 const [showCvModal, setShowCvModal] = useState(false);
 const [currentCvUrl, setCurrentCvUrl] = useState(null);
   
