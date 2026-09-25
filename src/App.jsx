@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react';
 import { Share2, TrendingUp, AlertCircle, Star, MessageCircle, Send, Shield, Trash2, Search, Users, Target, Briefcase } from 'lucide-react';
-import { createClient } from '@supabase/supabase-js';  
+import { createClient } from '@supabase/supabase-js'; 
 
 const supabaseUrl = 'https://scurkpoasiulwkmmechz.supabase.co';
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNjdXJrcG9hc2l1bHdrbW1lY2h6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzExOTAyNTAsImV4cCI6MjA4Njc2NjI1MH0.M1THE2tNymvwmAQ4P6wKii_ISAyKdzGS95Ou_T-VxCw';
@@ -1631,6 +1631,12 @@ const [autoOpenedInstall, setAutoOpenedInstall] = useState(false);
   const [currentDemoSessionId, setCurrentDemoSessionId] = useState(() => {
     return localStorage.getItem('currentDemoSessionId') || null;
   });
+  // Sempre aponta pro valor MAIS ATUAL de currentDemoSessionId — usado
+  // dentro de loadExperiencesInner (que fecha sobre o state via closure,
+  // e pode ficar obsoleta se lida logo após um setCurrentDemoSessionId
+  // que o React ainda não processou num re-render).
+  const currentDemoSessionIdRef = useRef(currentDemoSessionId);
+  useEffect(() => { currentDemoSessionIdRef.current = currentDemoSessionId; }, [currentDemoSessionId]);
   const [employeeSearch, setEmployeeSearch] = useState('');
   const [newEmployee, setNewEmployee] = useState({ employee_id: '', name: '', country: '', email: '', is_admin: false });
   const [editingEmployee, setEditingEmployee] = useState(null);
@@ -2079,7 +2085,7 @@ const loadExperiencesInner = async (skipLoading = false, loggedEmpId = null, ove
   // explícita logo após criar conteúdo em modo demo pegava um valor
   // "preso" (antigo), fazendo o item recém-criado não aparecer até a
   // próxima ação atualizar o state de verdade.
-  const activeDemoSessionId = overrideDemoSessionId !== undefined ? overrideDemoSessionId : currentDemoSessionId;
+  const activeDemoSessionId = overrideDemoSessionId !== undefined ? overrideDemoSessionId : currentDemoSessionIdRef.current;
   // Marca essa chamada como a mais recente.
   latestExperiencesRequestRef.current += 1;
   const thisRequestId = latestExperiencesRequestRef.current;
@@ -2861,8 +2867,14 @@ const runExpiredDemoCleanup = async () => {
 // uma, e persiste tanto no state/localStorage quanto no próprio employee no
 // banco (pra sobreviver a refresh de página).
 const ensureDemoSessionId = async () => {
-  if (currentDemoSessionId) return currentDemoSessionId;
+  // Lê e escreve no REF (não no state direto) — o state React só reflete
+  // a mudança no PRÓXIMO ciclo de render, então uma chamada de
+  // loadExperiences rodando logo em seguida (como a que acontece
+  // depois de gerar um AI Comment) podia ainda enxergar o valor antigo
+  // (null), mesmo a sessão já tendo sido "criada" segundos antes.
+  if (currentDemoSessionIdRef.current) return currentDemoSessionIdRef.current;
   const newId = `demo-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  currentDemoSessionIdRef.current = newId;
   setCurrentDemoSessionId(newId);
   localStorage.setItem('currentDemoSessionId', newId);
   try {
