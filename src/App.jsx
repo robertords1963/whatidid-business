@@ -741,6 +741,16 @@ const UI_STRINGS = {
   ai_row_all: { en: 'All Exp', es: 'Todas las Exp.', pt: 'Todas as Exp.', zh: '所有经验' },
   ai_char_limit_comment: { en: 'Character limit — Comments', es: 'Límite de caracteres — Comentarios', pt: 'Limite de caracteres — Comments', zh: '字符限制——点评' },
   ai_char_limit_followon: { en: 'Character limit — Follow-On', es: 'Límite de caracteres — Follow-On', pt: 'Limite de caracteres — Follow-On', zh: '字符限制——后续案例' },
+  ai_search_limit_comment: { en: 'Web search limit — Comments', es: 'Límite de búsquedas web — Comentarios', pt: 'Limite de buscas web — Comments', zh: '网络搜索限制——点评' },
+  ai_search_limit_followon: { en: 'Web search limit — Follow-On', es: 'Límite de búsquedas web — Follow-On', pt: 'Limite de buscas web — Follow-On', zh: '网络搜索限制——后续案例' },
+  ai_search_limit_placeholder: { en: 'No limit', es: 'Sin límite', pt: 'Sem limite', zh: '无限制' },
+  ai_stats_title: { en: 'Historical usage', es: 'Uso histórico', pt: 'Uso histórico', zh: '历史使用情况' },
+  ai_stats_loading: { en: 'Loading stats…', es: 'Cargando estadísticas…', pt: 'Carregando estatísticas…', zh: '正在加载统计…' },
+  ai_stats_total_calls: { en: 'Total calls', es: 'Total de llamadas', pt: 'Total de chamadas', zh: '总调用次数' },
+  ai_stats_total_searches: { en: 'Total searches', es: 'Total de búsquedas', pt: 'Total de buscas', zh: '总搜索次数' },
+  ai_stats_total_tokens: { en: 'Total tokens', es: 'Total de tokens', pt: 'Total de tokens', zh: '总令牌数' },
+  ai_stats_avg_searches: { en: 'Avg. searches/call', es: 'Prom. búsquedas/llamada', pt: 'Média de buscas/chamada', zh: '平均搜索/次' },
+  ai_stats_avg_tokens: { en: 'Avg. tokens/call', es: 'Prom. tokens/llamada', pt: 'Média de tokens/chamada', zh: '平均令牌/次' },
   ai_reflection_permission_desc: { en: 'Who can request each type — check as many as apply. This controls API cost, so decide carefully.', es: 'Quién puede solicitar cada tipo — marque cuantos apliquen. Esto controla el costo de API, decida con cuidado.', pt: 'Quem pode solicitar cada tipo — marque quantos se aplicarem. Isso controla o custo de API, decida com cuidado.', zh: '谁可以请求每种类型——可勾选多项。这会影响API成本，请谨慎决定。' },
   ai_reflection_admin_only: { en: 'Admins only', es: 'Solo Admins', pt: 'Só Admins', zh: '仅管理员' },
   ai_reflection_author_only: { en: 'Only whoever added the PAR', es: 'Solo quien agregó el PAR', pt: 'Só quem adicionou o PAR', zh: '仅添加该案例的人' },
@@ -909,6 +919,82 @@ function CategoryBadge({ label }) {
         <span key={i} className="whitespace-nowrap">{line}</span>
       ))}
     </span>
+  );
+}
+
+// Estatísticas agregadas de uso de IA (buscas/tokens) — histórico
+// completo por empresa, separado por Comment e Follow-on. Calculado sob
+// demanda (não fica guardado em nenhum state global) toda vez que a
+// seção "Who Can See the AI Buttons" é aberta/re-renderizada.
+function AiUsageStats({ companyId, t }) {
+  const [stats, setStats] = useState(null);
+  const [loadingStats, setLoadingStats] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      if (!companyId) return;
+      setLoadingStats(true);
+      const [{ data: aiComments }, { data: aiFollowons }] = await Promise.all([
+        supabase.from('comments').select('ai_search_count, ai_input_tokens, ai_output_tokens')
+          .eq('company_id', companyId).eq('is_ai_generated', true),
+        supabase.from('experiences').select('ai_search_count, ai_input_tokens, ai_output_tokens')
+          .eq('company_id', companyId).eq('is_ai_generated', true),
+      ]);
+      if (cancelled) return;
+      const summarize = (rows) => {
+        const list = rows || [];
+        const totalCalls = list.length;
+        const totalSearches = list.reduce((sum, r) => sum + (r.ai_search_count || 0), 0);
+        const totalTokens = list.reduce((sum, r) => sum + (r.ai_input_tokens || 0) + (r.ai_output_tokens || 0), 0);
+        return {
+          totalCalls,
+          totalSearches,
+          totalTokens,
+          avgSearches: totalCalls > 0 ? (totalSearches / totalCalls).toFixed(1) : '0',
+          avgTokens: totalCalls > 0 ? Math.round(totalTokens / totalCalls) : 0,
+        };
+      };
+      setStats({ comment: summarize(aiComments), followon: summarize(aiFollowons) });
+      setLoadingStats(false);
+    };
+    load();
+    return () => { cancelled = true; };
+  }, [companyId]);
+
+  if (loadingStats) return <div className="mt-4 text-xs text-gray-400">{t('ai_stats_loading')}</div>;
+  if (!stats) return null;
+
+  const rows = [
+    { label: t('ai_stats_total_calls'), comment: stats.comment.totalCalls, followon: stats.followon.totalCalls },
+    { label: t('ai_stats_total_searches'), comment: stats.comment.totalSearches, followon: stats.followon.totalSearches },
+    { label: t('ai_stats_total_tokens'), comment: stats.comment.totalTokens, followon: stats.followon.totalTokens },
+    { label: t('ai_stats_avg_searches'), comment: stats.comment.avgSearches, followon: stats.followon.avgSearches },
+    { label: t('ai_stats_avg_tokens'), comment: stats.comment.avgTokens, followon: stats.followon.avgTokens },
+  ];
+
+  return (
+    <div className="mt-4 pt-4 border-t border-gray-200">
+      <p className="text-xs font-medium text-gray-700 mb-2">{t('ai_stats_title')}</p>
+      <table className="w-full text-xs">
+        <thead>
+          <tr className="border-b border-gray-200 text-gray-500">
+            <th className="text-left py-1 font-normal"></th>
+            <th className="text-center py-1 font-normal">{t('ai_comment_btn')}</th>
+            <th className="text-center py-1 font-normal">{t('ai_followon_btn')}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, i) => (
+            <tr key={i} className="text-gray-600">
+              <td className="py-1">{row.label}</td>
+              <td className="text-center py-1">{row.comment}</td>
+              <td className="text-center py-1">{row.followon}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
@@ -2244,6 +2330,9 @@ const loadExperiencesInner = async (skipLoading = false, loggedEmpId = null, ove
       practiceId: exp.practice_id || null,
       displayOrder: exp.display_order || 0,
       isAiGenerated: exp.is_ai_generated || false,
+      aiSearchCount: exp.ai_search_count,
+      aiInputTokens: exp.ai_input_tokens,
+      aiOutputTokens: exp.ai_output_tokens,
       tags: exp.tags || [],
       parentExperienceId: exp.parent_experience_id || null,
       createdAt: exp.created_at || null,
@@ -2275,7 +2364,10 @@ const loadExperiencesInner = async (skipLoading = false, loggedEmpId = null, ove
       cvUrl: c.cv_url || null,
       cvFilename: c.cv_filename || null,
       createdAt: c.created_at || null,
-      isAiGenerated: c.is_ai_generated || false
+      isAiGenerated: c.is_ai_generated || false,
+      aiSearchCount: c.ai_search_count,
+      aiInputTokens: c.ai_input_tokens,
+      aiOutputTokens: c.ai_output_tokens
     });
       });
       
@@ -2546,7 +2638,9 @@ const loadAppSettings = async () => {
     aiAdminSettings: data.ai_admin_settings || 'comment,followon,synthetic,real,all',
     aiUserSettings: data.ai_user_settings || 'comment,followon,real,own',
     aiCommentCharLimit: data.ai_comment_char_limit || 400,
-    aiFollowonCharLimit: data.ai_followon_char_limit || 800
+    aiFollowonCharLimit: data.ai_followon_char_limit || 800,
+    aiCommentSearchLimit: data.ai_comment_search_limit || null,
+    aiFollowonSearchLimit: data.ai_followon_search_limit || null
   });
   // Se o campo opcional de nome (usado só pra decoração do cabeçalho)
   // nunca foi preenchido, cai no nome real da empresa — busca direto no
@@ -2588,7 +2682,7 @@ const loadAppSettings = async () => {
   if (!insertError) {
     setAppSettings({
       requireEmployeeLogin: true, editionName: 'corp', allowCvUpload: true,
-      documentType: defaultDocType, showTop3: inheritedShowTop3, top3StartVisible: resolvedTop3StartVisible, showMarquee: inheritedShowMarquee, aiAdminSettings: 'comment,followon,synthetic,real,all', aiUserSettings: 'comment,followon,real,own', aiCommentCharLimit: 400, aiFollowonCharLimit: 800
+      documentType: defaultDocType, showTop3: inheritedShowTop3, top3StartVisible: resolvedTop3StartVisible, showMarquee: inheritedShowMarquee, aiAdminSettings: 'comment,followon,synthetic,real,all', aiUserSettings: 'comment,followon,real,own', aiCommentCharLimit: 400, aiFollowonCharLimit: 800, aiCommentSearchLimit: null, aiFollowonSearchLimit: null
     });
     const { data: companyRow } = await supabase.from('companies').select('name').eq('id', effectiveCompanyId).maybeSingle();
     setCompanyName(companyRow?.name || '');
@@ -5578,6 +5672,13 @@ if (appSettings.requireEmployeeLogin && !isAdmin && exp.employeeId !== employeeI
 // Calcula se Comment/Follow-on de IA são permitidos pra um PAR
 // específico — reaproveitado nos dois lugares onde os botões aparecem
 // agora (perto de Add a Comment, perto de Add a Follow-On).
+// Preço do claude-sonnet-4-6: $3/milhão tokens de entrada, $15/milhão
+// de saída — usado só pra exibição individual (Live Preview, Admin).
+const calcAiCost = (inputTokens, outputTokens) => {
+  if (inputTokens == null || outputTokens == null) return null;
+  return ((inputTokens * 3 + outputTokens * 15) / 1_000_000);
+};
+
 const getAiReflectionAccess = (exp) => {
   if (!aiFeaturesSettled || isReadOnlyOrMasterManaging || !appSettings.requireEmployeeLogin || exp.author === 'key_insights') {
     return { canComment: false, canFollowon: false };
@@ -5601,6 +5702,7 @@ const requestAiReflection = async (experienceId, type) => {
   setAiReflectionLoading(prev => ({ ...prev, [experienceId]: type }));
   try {
     const charLimit = type === 'comment' ? appSettings.aiCommentCharLimit : appSettings.aiFollowonCharLimit;
+    const searchLimit = type === 'comment' ? appSettings.aiCommentSearchLimit : appSettings.aiFollowonSearchLimit;
     // ensureDemoSessionId() cria a sessão na hora se ainda não existir —
     // sem isso, currentDemoSessionId ficava null quando o AI Reflection
     // era a PRIMEIRA ação da sessão de demo (nenhum comment/follow-on
@@ -5608,7 +5710,7 @@ const requestAiReflection = async (experienceId, type) => {
     // IA nascia sem demo_session_id, nunca sendo limpo no logout.
     const demoSessionIdForInsert = (isDemoModeActive || loggedInIsDemoId) ? await ensureDemoSessionId() : null;
     const { data, error } = await supabase.functions.invoke('ai-reflection', {
-      body: { experienceId, type, charLimit, demoSessionId: demoSessionIdForInsert },
+      body: { experienceId, type, charLimit, demoSessionId: demoSessionIdForInsert, searchLimit },
     });
     if (error) throw error;
     if (data?.error) throw new Error(data.error);
@@ -7606,7 +7708,7 @@ useEffect(() => {
         )}
         {/* Card */}
         <div className="sm:mx-6">
-          <div id={`exp-${fo.id}`} className={`bg-white rounded-2xl shadow-lg p-6 border-l-4 ${fo.isAiGenerated ? 'border-purple-400' : 'border-blue-300'} ${isGreyed ? 'opacity-40' : ''}`}>
+          <div id={`exp-${fo.id}`} className={`relative bg-white rounded-2xl shadow-lg p-6 border-l-4 ${fo.isAiGenerated ? 'border-purple-400' : 'border-blue-300'} ${isGreyed ? 'opacity-40' : ''}`}>
             {/* Badge */}
             <div className="mb-3 text-center">
               <span className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">{tFollowOnExperience(threadIndex)}</span>
@@ -7618,6 +7720,12 @@ useEffect(() => {
             {fo.isAiGenerated && (
               <div className="mb-3 bg-purple-100 border border-purple-300 rounded-lg px-3 py-2 text-center">
                 <span className="text-xs text-purple-800 font-semibold">{t('ai_generated_badge')}</span>
+              </div>
+            )}
+            {/* Custo individual — só Admin, só Live Preview. */}
+            {fo.isAiGenerated && employeeIsAdmin && activeAdminNavTab === 'preview' && fo.aiInputTokens != null && (
+              <div className="absolute bottom-1 right-3 text-[10px] text-gray-400">
+                🔍 {fo.aiSearchCount ?? 0} · 🪙 {(fo.aiInputTokens || 0) + (fo.aiOutputTokens || 0)} · 💰 ${calcAiCost(fo.aiInputTokens, fo.aiOutputTokens)?.toFixed(4)}
               </div>
             )}
             {/* By + delete */}
@@ -12893,6 +13001,45 @@ for (const row of rows) {
           />
         </div>
       </div>
+
+      {/* Limite de buscas web por chamada — controla custo (cada busca
+          adicional consome mais tokens de entrada). Vazio = sem limite. */}
+      <div className="grid grid-cols-2 gap-4 mt-4">
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">{t('ai_search_limit_comment')}</label>
+          <input
+            type="number"
+            min="1"
+            placeholder={t('ai_search_limit_placeholder')}
+            value={appSettings.aiCommentSearchLimit || ''}
+            onChange={async (e) => {
+              const val = e.target.value ? parseInt(e.target.value) : null;
+              setAppSettings({...appSettings, aiCommentSearchLimit: val});
+              await supabase.from('app_settings').update({ ai_comment_search_limit: val }).eq('company_id', effectiveCompanyId);
+            }}
+            className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">{t('ai_search_limit_followon')}</label>
+          <input
+            type="number"
+            min="1"
+            placeholder={t('ai_search_limit_placeholder')}
+            value={appSettings.aiFollowonSearchLimit || ''}
+            onChange={async (e) => {
+              const val = e.target.value ? parseInt(e.target.value) : null;
+              setAppSettings({...appSettings, aiFollowonSearchLimit: val});
+              await supabase.from('app_settings').update({ ai_followon_search_limit: val }).eq('company_id', effectiveCompanyId);
+            }}
+            className="w-full p-2 border-2 border-gray-300 rounded-lg text-sm"
+          />
+        </div>
+      </div>
+
+      {/* Estatísticas agregadas — histórico de uso, calculado sob
+          demanda quando a seção é aberta. */}
+      <AiUsageStats companyId={effectiveCompanyId} t={t} />
     </div>
   </div>
 )}
@@ -15383,6 +15530,14 @@ onClick={() => {
 {comment.isAiGenerated && (
   <div className="mb-2 text-xs text-purple-700 font-medium">
     {t('ai_generated_badge')}
+  </div>
+)}
+
+{/* Custo individual — só Admin, só Live Preview. Dado granular, não faz
+    sentido pro Employee comum ver. */}
+{comment.isAiGenerated && employeeIsAdmin && activeAdminNavTab === 'preview' && comment.aiInputTokens != null && (
+  <div className="absolute bottom-1 right-2 text-[10px] text-gray-400">
+    🔍 {comment.aiSearchCount ?? 0} · 🪙 {(comment.aiInputTokens || 0) + (comment.aiOutputTokens || 0)} · 💰 ${calcAiCost(comment.aiInputTokens, comment.aiOutputTokens)?.toFixed(4)}
   </div>
 )}
 
