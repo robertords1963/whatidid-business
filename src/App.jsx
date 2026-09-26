@@ -5304,6 +5304,8 @@ if (matches.length > 0) {
     }
     setSelectedTags([]);
     setSelectedCv(null);
+    setFreeTextInput('');
+    setWasAiPrefilled(false);
   };
 
   const resetForm = () => {
@@ -5570,6 +5572,7 @@ setTimeout(() => {
         result: newExperience.result,
         result_category: newExperience.resultCategory,
         industry_sector: newExperience.industrySector || '',
+        ai_assisted: wasAiPrefilled,
         related_common_case_id: relatedCommonCaseId,
         author: appSettings.requireEmployeeLogin ? (await getEmployeeName(employeeId)) : (newExperience.author || ''),
         gender: newExperience.gender || '',
@@ -5732,6 +5735,55 @@ const getAiReflectionAccess = (exp) => {
     canComment: settingsList.includes('comment') && matchesParType && matchesOwnership,
     canFollowon: settingsList.includes('followon') && matchesParType && matchesOwnership,
   };
+};
+
+// Pega o texto livre que a pessoa escreveu, manda pra IA reestruturar
+// em Problem/Action/Result + Practice/Category/Industry Sector, e
+// pré-preenche o formulário normal de "Share Your Experience" com o
+// resultado — a pessoa revisa/edita usando os campos já existentes,
+// nunca uma tela separada.
+const structureWithAi = async () => {
+  if (!freeTextInput.trim()) return;
+  setAiStructuring(true);
+  try {
+    const { data, error } = await supabase.functions.invoke('ai-structure-par', {
+      body: {
+        freeText: freeTextInput,
+        language: effectiveViewingLanguage,
+        companyId: effectiveCompanyId,
+        resultCategoryOptions: resultCategories.map(r => ({ value: r.value, label: r.label })),
+      },
+    });
+    if (error) throw error;
+    if (data?.error) throw new Error(data.error);
+
+    const result = data.data;
+    setSelectedPracticeId(result.practiceId);
+    setShareFormPracticeId(result.practiceId);
+    await loadProblemCategories(result.practiceId);
+    setCurrentEntry(prev => ({
+      ...prev,
+      problem: result.problem || '',
+      problemCategory: result.problemCategory || '',
+      solution: result.action || '',
+      result: result.result || '',
+      resultCategory: result.resultCategory || '',
+      industrySector: result.industrySector || '',
+    }));
+    setWasAiPrefilled(true);
+    setTimeout(() => {
+      const el = document.getElementById('share-section');
+      if (el) {
+        const y = el.getBoundingClientRect().top + window.pageYOffset - 20;
+        window.scrollTo({ top: y, behavior: 'smooth' });
+      }
+    }, 300);
+  } catch (error) {
+    console.error('Error structuring PAR with AI:', error);
+    alert(t('ai_structure_error') + ' ' + error.message);
+  } finally {
+    setAiStructuring(false);
+  }
 };
 
 const requestAiReflection = async (experienceId, type) => {
@@ -6017,6 +6069,12 @@ useEffect(() => {
     setAiFeaturesSettled(false);
   }
 }, [isEmployeeLoggedIn, employeeId]);
+// AI Structure PAR — texto livre no topo do Share Your Experience,
+// reestruturado por IA em Problem/Action/Result + Practice/Category/
+// Industry Sector, pré-preenchendo o formulário normal pra revisão.
+const [freeTextInput, setFreeTextInput] = useState('');
+const [aiStructuring, setAiStructuring] = useState(false);
+const [wasAiPrefilled, setWasAiPrefilled] = useState(false);
 const [showCvModal, setShowCvModal] = useState(false);
 const [currentCvUrl, setCurrentCvUrl] = useState(null);
   
@@ -13686,6 +13744,29 @@ onClick={() => {
 
 <div id="share-section" className={`bg-white p-8 rounded-b-2xl border-2 border-t-0 border-blue-300 ${activeMainTab !== 'share' || (isAdmin && activeAdminNavTab !== 'preview') ? 'hidden' : ''} ${isReadOnlyOrMasterManaging ? 'pointer-events-none opacity-60' : ''}`}>
 
+  {/* AI Structure PAR — texto livre reestruturado por IA em Problem/
+      Action/Result + Practice/Category/Industry Sector. Não faz sentido
+      pra Follow-on, que já tem contexto pré-definido do PAR pai. */}
+  {!followOnParentId && (
+    <div className="mb-6 p-4 bg-purple-50 border-2 border-purple-200 rounded-lg">
+      <label className="block text-sm font-medium text-purple-800 mb-2">{t('ai_structure_label')}</label>
+      <textarea
+        value={freeTextInput}
+        onChange={(e) => setFreeTextInput(e.target.value)}
+        placeholder={t('ai_structure_placeholder')}
+        rows={4}
+        className="w-full p-3 border-2 border-purple-200 rounded-lg focus:border-purple-500 focus:outline-none text-sm"
+      />
+      <button
+        onClick={structureWithAi}
+        disabled={aiStructuring || !freeTextInput.trim()}
+        className="mt-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-wait"
+      >
+        {aiStructuring ? t('ai_structure_loading') : t('ai_structure_btn')}
+      </button>
+    </div>
+  )}
+
   {/* Clear All — limpa só o que o usuário digitou */}
   <div className="flex justify-end mb-3">
     <button
@@ -14001,6 +14082,15 @@ onClick={() => {
     </div>
   )}
 </div>
+
+{/* Mensagem de orientação — só aparece quando a IA pré-preencheu os
+    campos acima, explicando o que fazer com os botões que já existem
+    (sem precisar de botões "Aprovar"/"Editar e Aprovar" novos). */}
+{wasAiPrefilled && (
+  <div className="md:col-span-2 p-3 bg-purple-50 border border-purple-200 rounded-lg text-sm text-purple-700">
+    {t('ai_structure_review_message')}
+  </div>
+)}
 
 {/* Upload Document - dinâmico baseado em documentType */}
 {appSettings.allowCvUpload && (
