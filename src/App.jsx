@@ -924,6 +924,16 @@ function CategoryBadge({ label }) {
   );
 }
 
+// Preço do claude-sonnet-4-6: $3/milhão tokens de entrada, $15/milhão
+// de saída — usado pra exibição individual (dentro de WhatIDid) e pras
+// estatísticas agregadas (AiUsageStats, logo abaixo). Precisa estar aqui
+// fora, em nível de módulo — dentro de WhatIDid ela ficaria inacessível
+// pra AiUsageStats, que é um componente à parte.
+const calcAiCost = (inputTokens, outputTokens) => {
+  if (inputTokens == null || outputTokens == null) return null;
+  return ((inputTokens * 3 + outputTokens * 15) / 1_000_000);
+};
+
 // Estatísticas agregadas de uso de IA (buscas/tokens) — histórico
 // completo por empresa, separado por Comment e Follow-on. Calculado sob
 // demanda (não fica guardado em nenhum state global) toda vez que a
@@ -5695,13 +5705,6 @@ if (appSettings.requireEmployeeLogin && !isAdmin && exp.employeeId !== employeeI
 // Calcula se Comment/Follow-on de IA são permitidos pra um PAR
 // específico — reaproveitado nos dois lugares onde os botões aparecem
 // agora (perto de Add a Comment, perto de Add a Follow-On).
-// Preço do claude-sonnet-4-6: $3/milhão tokens de entrada, $15/milhão
-// de saída — usado só pra exibição individual (Live Preview, Admin).
-const calcAiCost = (inputTokens, outputTokens) => {
-  if (inputTokens == null || outputTokens == null) return null;
-  return ((inputTokens * 3 + outputTokens * 15) / 1_000_000);
-};
-
 const getAiReflectionAccess = (exp) => {
   if (!aiFeaturesSettled || isReadOnlyOrMasterManaging || !appSettings.requireEmployeeLogin || exp.author === 'key_insights') {
     return { canComment: false, canFollowon: false };
