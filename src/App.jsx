@@ -739,6 +739,7 @@ const UI_STRINGS = {
   ai_row_real: { en: 'Real Exp', es: 'Exp. Reales', pt: 'Exp. Reais', zh: '真实经验' },
   ai_row_own: { en: 'Own Exp', es: 'Exp. Propias', pt: 'Exp. Próprias', zh: '自己的经验' },
   ai_row_all: { en: 'All Exp', es: 'Todas las Exp.', pt: 'Todas as Exp.', zh: '所有经验' },
+  ai_row_structure: { en: 'AI Structure PAR', es: 'Estructurar PAR con IA', pt: 'AI Structure PAR', zh: 'AI结构化经验' },
   ai_char_limit_comment: { en: 'Character limit — Comments', es: 'Límite de caracteres — Comentarios', pt: 'Limite de caracteres — Comments', zh: '字符限制——点评' },
   ai_char_limit_followon: { en: 'Character limit — Follow-On', es: 'Límite de caracteres — Follow-On', pt: 'Limite de caracteres — Follow-On', zh: '字符限制——后续案例' },
   ai_search_limit_comment: { en: 'Web search limit — Comments', es: 'Límite de búsquedas web — Comentarios', pt: 'Limite de buscas web — Comments', zh: '网络搜索限制——点评' },
@@ -751,12 +752,12 @@ const UI_STRINGS = {
   ai_stats_total_tokens: { en: 'Total tokens', es: 'Total de tokens', pt: 'Total de tokens', zh: '总令牌数' },
   ai_stats_total_cost: { en: 'Total dollars charged', es: 'Total de dólares cobrados', pt: 'Total de dólares cobrados', zh: '总收费金额' },
   ai_stats_avg_cost: { en: 'Avg. dollars/call', es: 'Prom. dólares/llamada', pt: 'Média de dólares/chamada', zh: '平均费用/次' },
-  ai_structure_label: { en: '✨ Describe your experience freely', es: '✨ Describe tu experiencia libremente', pt: '✨ Descreva sua experiência livremente', zh: '✨ 自由描述您的经历' },
-  ai_structure_placeholder: { en: 'Write what happened, in your own words — no need to organize it into Problem/Action/Result, AI will do that for you...', es: 'Escribe lo que pasó, con tus propias palabras — no necesitas organizarlo en Problema/Acción/Resultado, la IA lo hará por ti...', pt: 'Escreva o que aconteceu, com suas próprias palavras — não precisa organizar em Problema/Ação/Resultado, a IA fará isso por você...', zh: '用您自己的话写下发生的事情——不需要将其组织成问题/行动/结果，AI会为您完成...' },
+  ai_structure_label: { en: '✨ Describe your experience freely (or fill it in piece by piece using the fields below)', es: '✨ Describe tu experiencia libremente (o descríbela por partes usando los campos de abajo)', pt: '✨ Descreva sua experiência livremente (ou descreva-a por partes usando os espaços abaixo)', zh: '✨ 自由描述您的经历（或使用下方的字段分段描述）' },
+  ai_structure_placeholder: { en: 'Tell us what happened, in your own words — try to cover: what the problem was, what you did about it, and what happened in the end.', es: 'Cuéntanos lo que pasó, con tus propias palabras — intenta cubrir: cuál era el problema, qué hiciste al respecto, y qué pasó al final.', pt: 'Conte o que aconteceu com suas próprias palavras — tente cobrir: qual era o problema, o que você fez a respeito, e o que aconteceu no final.', zh: '用您自己的话告诉我们发生了什么——尽量涵盖：问题是什么，您做了什么，最后结果如何。' },
   ai_structure_btn: { en: '✨ Structure with AI', es: '✨ Estructurar con IA', pt: '✨ Estruturar com IA', zh: '✨ 用AI结构化' },
   ai_structure_loading: { en: '✨ Structuring…', es: '✨ Estructurando…', pt: '✨ Estruturando…', zh: '✨ 结构化中…' },
   ai_structure_error: { en: 'Could not structure your experience with AI.', es: 'No se pudo estructurar tu experiencia con IA.', pt: 'Não foi possível estruturar sua experiência com IA.', zh: '无法使用AI结构化您的经历。' },
-  ai_structure_review_message: { en: 'AI filled in the fields above based on what you wrote. If it looks good, use the buttons below to attach a file (optional) and submit. If not, edit anything you\'d like, then use the buttons below.', es: 'La IA completó los campos de arriba según lo que escribiste. Si está bien, usa los botones de abajo para adjuntar un archivo (opcional) y enviar. Si no, edita lo que quieras y luego usa los botones de abajo.', pt: 'A IA preencheu os campos acima com base no que você escreveu. Se estiver bom, use os botões abaixo para anexar um arquivo (opcional) e enviar. Se não, edite o que quiser e depois use os botões abaixo.', zh: 'AI根据您写的内容填写了上面的字段。如果没问题，请使用下方按钮附加文件（可选）并提交。如果需要修改，请先编辑，然后使用下方按钮。' },
+  ai_structure_review_message: { en: 'AI filled in the fields above based on what you wrote. If it looks good, use the buttons below to attach a file (optional) and submit. If not, edit anything you\'d like, then use the buttons below to submit.', es: 'La IA completó los campos de arriba según lo que escribiste. Si está bien, usa los botones de abajo para adjuntar un archivo (opcional) y enviar. Si no, edita lo que quieras y luego usa los botones de abajo para enviar.', pt: 'A IA preencheu os campos acima com base no que você escreveu. Se estiver bom, use os botões abaixo para anexar um arquivo (opcional) e enviar. Se não, edite o que quiser e depois use os botões abaixo para enviar.', zh: 'AI根据您写的内容填写了上面的字段。如果没问题，请使用下方按钮附加文件（可选）并提交。如果需要修改，请先编辑，然后使用下方按钮提交。' },
   ai_assisted_badge: { en: '✨ Structured with AI', es: '✨ Estructurado con IA', pt: '✨ Estruturado com IA', zh: '✨ AI结构化' },
   ai_stats_avg_searches: { en: 'Avg. searches/call', es: 'Prom. búsquedas/llamada', pt: 'Média de buscas/chamada', zh: '平均搜索/次' },
   ai_stats_avg_tokens: { en: 'Avg. tokens/call', es: 'Prom. tokens/llamada', pt: 'Média de tokens/chamada', zh: '平均令牌/次' },
@@ -965,15 +966,20 @@ function AiUsageStats({ companyId, t }) {
       // essas colunas preenchidas) ficariam de fora, senão "Total de
       // chamadas" incluiria eles, mas buscas/tokens/custo não teriam
       // nada pra somar desses mesmos registros — números inconsistentes.
-      const [{ data: aiComments, error: commentsError }, { data: aiFollowons, error: followonsError }] = await Promise.all([
+      // AI Structure PAR usa ai_assisted (não is_ai_generated) — é uma
+      // experiência REAL da pessoa, só a estrutura foi assistida, então
+      // não faz sentido marcá-la como "totalmente gerada por IA".
+      const [{ data: aiComments, error: commentsError }, { data: aiFollowons, error: followonsError }, { data: aiStructured, error: structuredError }] = await Promise.all([
         supabase.from('comments').select('ai_search_count, ai_input_tokens, ai_output_tokens')
           .eq('company_id', companyId).eq('is_ai_generated', true).not('ai_search_count', 'is', null),
         supabase.from('experiences').select('ai_search_count, ai_input_tokens, ai_output_tokens')
           .eq('company_id', companyId).eq('is_ai_generated', true).not('ai_search_count', 'is', null),
+        supabase.from('experiences').select('ai_search_count, ai_input_tokens, ai_output_tokens')
+          .eq('company_id', companyId).eq('ai_assisted', true).not('ai_search_count', 'is', null),
       ]);
       if (cancelled) return;
-      if (commentsError || followonsError) {
-        console.error('Error loading AI usage stats:', commentsError || followonsError);
+      if (commentsError || followonsError || structuredError) {
+        console.error('Error loading AI usage stats:', commentsError || followonsError || structuredError);
         setLoadingStats(false);
         return;
       }
@@ -993,7 +999,7 @@ function AiUsageStats({ companyId, t }) {
           avgCost: totalCalls > 0 ? (totalCost / totalCalls) : 0,
         };
       };
-      setStats({ comment: summarize(aiComments), followon: summarize(aiFollowons) });
+      setStats({ comment: summarize(aiComments), followon: summarize(aiFollowons), structured: summarize(aiStructured) });
       setLoadingStats(false);
     };
     load();
@@ -1004,13 +1010,13 @@ function AiUsageStats({ companyId, t }) {
   if (!stats) return null;
 
   const rows = [
-    { label: t('ai_stats_total_calls'), comment: stats.comment.totalCalls, followon: stats.followon.totalCalls },
-    { label: t('ai_stats_total_searches'), comment: stats.comment.totalSearches, followon: stats.followon.totalSearches },
-    { label: t('ai_stats_total_tokens'), comment: stats.comment.totalTokens, followon: stats.followon.totalTokens },
-    { label: t('ai_stats_total_cost'), comment: `$${stats.comment.totalCost.toFixed(4)}`, followon: `$${stats.followon.totalCost.toFixed(4)}` },
-    { label: t('ai_stats_avg_searches'), comment: stats.comment.avgSearches, followon: stats.followon.avgSearches },
-    { label: t('ai_stats_avg_tokens'), comment: stats.comment.avgTokens, followon: stats.followon.avgTokens },
-    { label: t('ai_stats_avg_cost'), comment: `$${stats.comment.avgCost.toFixed(4)}`, followon: `$${stats.followon.avgCost.toFixed(4)}` },
+    { label: t('ai_stats_total_calls'), comment: stats.comment.totalCalls, followon: stats.followon.totalCalls, structured: stats.structured.totalCalls },
+    { label: t('ai_stats_total_searches'), comment: stats.comment.totalSearches, followon: stats.followon.totalSearches, structured: stats.structured.totalSearches },
+    { label: t('ai_stats_total_tokens'), comment: stats.comment.totalTokens, followon: stats.followon.totalTokens, structured: stats.structured.totalTokens },
+    { label: t('ai_stats_total_cost'), comment: `$${stats.comment.totalCost.toFixed(4)}`, followon: `$${stats.followon.totalCost.toFixed(4)}`, structured: `$${stats.structured.totalCost.toFixed(4)}` },
+    { label: t('ai_stats_avg_searches'), comment: stats.comment.avgSearches, followon: stats.followon.avgSearches, structured: stats.structured.avgSearches },
+    { label: t('ai_stats_avg_tokens'), comment: stats.comment.avgTokens, followon: stats.followon.avgTokens, structured: stats.structured.avgTokens },
+    { label: t('ai_stats_avg_cost'), comment: `$${stats.comment.avgCost.toFixed(4)}`, followon: `$${stats.followon.avgCost.toFixed(4)}`, structured: `$${stats.structured.avgCost.toFixed(4)}` },
   ];
 
   return (
@@ -1022,6 +1028,7 @@ function AiUsageStats({ companyId, t }) {
             <th className="text-left py-1 font-normal"></th>
             <th className="text-center py-1 font-normal">{t('ai_comment_btn')}</th>
             <th className="text-center py-1 font-normal">{t('ai_followon_btn')}</th>
+            <th className="text-center py-1 font-normal">{t('ai_structure_btn')}</th>
           </tr>
         </thead>
         <tbody>
@@ -1030,6 +1037,7 @@ function AiUsageStats({ companyId, t }) {
               <td className="py-1">{row.label}</td>
               <td className="text-center py-1">{row.comment}</td>
               <td className="text-center py-1">{row.followon}</td>
+              <td className="text-center py-1">{row.structured}</td>
             </tr>
           ))}
         </tbody>
@@ -5306,6 +5314,7 @@ if (matches.length > 0) {
     setSelectedCv(null);
     setFreeTextInput('');
     setWasAiPrefilled(false);
+    setAiStructureUsage(null);
   };
 
   const resetForm = () => {
@@ -5333,6 +5342,7 @@ if (matches.length > 0) {
     setShareFormPracticeId(null);
     setFreeTextInput('');
     setWasAiPrefilled(false);
+    setAiStructureUsage(null);
     setCurrentPage(1);
     
     setTimeout(() => {
@@ -5573,6 +5583,9 @@ setTimeout(() => {
         result_category: newExperience.resultCategory,
         industry_sector: newExperience.industrySector || '',
         ai_assisted: wasAiPrefilled,
+        ai_search_count: wasAiPrefilled ? 0 : null,
+        ai_input_tokens: wasAiPrefilled ? aiStructureUsage?.inputTokens : null,
+        ai_output_tokens: wasAiPrefilled ? aiStructureUsage?.outputTokens : null,
         related_common_case_id: relatedCommonCaseId,
         author: appSettings.requireEmployeeLogin ? (await getEmployeeName(employeeId)) : (newExperience.author || ''),
         gender: newExperience.gender || '',
@@ -5758,9 +5771,13 @@ const structureWithAi = async () => {
     if (data?.error) throw new Error(data.error);
 
     const result = data.data;
-    setSelectedPracticeId(result.practiceId);
-    setShareFormPracticeId(result.practiceId);
-    await loadProblemCategories(result.practiceId);
+    // parseInt garante o mesmo tipo (número) que o dropdown espera —
+    // a IA pode retornar practiceId como string mesmo pedindo "number"
+    // no prompt, e isso quebra a comparação de valor do <select>.
+    const practiceIdNum = parseInt(result.practiceId);
+    setSelectedPracticeId(practiceIdNum);
+    setShareFormPracticeId(practiceIdNum);
+    await loadProblemCategories(practiceIdNum);
     setCurrentEntry(prev => ({
       ...prev,
       problem: result.problem || '',
@@ -5771,6 +5788,7 @@ const structureWithAi = async () => {
       industrySector: result.industrySector || '',
     }));
     setWasAiPrefilled(true);
+    setAiStructureUsage(result._usage || null);
     setTimeout(() => {
       const el = document.getElementById('share-section');
       if (el) {
@@ -6075,6 +6093,7 @@ useEffect(() => {
 const [freeTextInput, setFreeTextInput] = useState('');
 const [aiStructuring, setAiStructuring] = useState(false);
 const [wasAiPrefilled, setWasAiPrefilled] = useState(false);
+const [aiStructureUsage, setAiStructureUsage] = useState(null); // { inputTokens, outputTokens }
 const [showCvModal, setShowCvModal] = useState(false);
 const [currentCvUrl, setCurrentCvUrl] = useState(null);
   
@@ -13023,6 +13042,7 @@ for (const row of rows) {
             { key: 'real', label: t('ai_row_real'), radio: false },
             { key: 'own', label: t('ai_row_own'), radio: true, group: 'ownership' },
             { key: 'all', label: t('ai_row_all'), radio: true, group: 'ownership' },
+            { key: 'structure', label: t('ai_row_structure'), radio: false },
           ].map(row => {
             const adminList = (appSettings.aiAdminSettings || '').split(',');
             const userList = (appSettings.aiUserSettings || '').split(',');
@@ -13746,8 +13766,11 @@ onClick={() => {
 
   {/* AI Structure PAR — texto livre reestruturado por IA em Problem/
       Action/Result + Practice/Category/Industry Sector. Não faz sentido
-      pra Follow-on, que já tem contexto pré-definido do PAR pai. */}
-  {!followOnParentId && (
+      pra Follow-on, que já tem contexto pré-definido do PAR pai. Não
+      depende de synthetic/real nem own/all (essas distinções não fazem
+      sentido pra criar um PAR novo, sempre real e sempre da própria
+      pessoa) — só checa se 'structure' está habilitado pro papel atual. */}
+  {!followOnParentId && (employeeIsAdmin ? appSettings.aiAdminSettings : appSettings.aiUserSettings || '').split(',').includes('structure') && (
     <div className="mb-6 p-4 bg-purple-50 border-2 border-purple-200 rounded-lg">
       <label className="block text-sm font-medium text-purple-800 mb-2">{t('ai_structure_label')}</label>
       <textarea
@@ -14087,7 +14110,7 @@ onClick={() => {
     campos acima, explicando o que fazer com os botões que já existem
     (sem precisar de botões "Aprovar"/"Editar e Aprovar" novos). */}
 {wasAiPrefilled && (
-  <div className="md:col-span-2 p-3 bg-purple-50 border border-purple-200 rounded-lg text-sm text-purple-700">
+  <div className="md:col-span-2 my-4 p-3 bg-purple-50 border border-purple-200 rounded-lg text-sm text-purple-700 text-center">
     {t('ai_structure_review_message')}
   </div>
 )}
