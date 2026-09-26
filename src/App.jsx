@@ -749,6 +749,8 @@ const UI_STRINGS = {
   ai_stats_total_calls: { en: 'Total calls', es: 'Total de llamadas', pt: 'Total de chamadas', zh: '总调用次数' },
   ai_stats_total_searches: { en: 'Total searches', es: 'Total de búsquedas', pt: 'Total de buscas', zh: '总搜索次数' },
   ai_stats_total_tokens: { en: 'Total tokens', es: 'Total de tokens', pt: 'Total de tokens', zh: '总令牌数' },
+  ai_stats_total_cost: { en: 'Total dollars charged', es: 'Total de dólares cobrados', pt: 'Total de dólares cobrados', zh: '总收费金额' },
+  ai_stats_avg_cost: { en: 'Avg. dollars/call', es: 'Prom. dólares/llamada', pt: 'Média de dólares/chamada', zh: '平均费用/次' },
   ai_stats_avg_searches: { en: 'Avg. searches/call', es: 'Prom. búsquedas/llamada', pt: 'Média de buscas/chamada', zh: '平均搜索/次' },
   ai_stats_avg_tokens: { en: 'Avg. tokens/call', es: 'Prom. tokens/llamada', pt: 'Média de tokens/chamada', zh: '平均令牌/次' },
   ai_reflection_permission_desc: { en: 'Who can request each type — check as many as apply. This controls API cost, so decide carefully.', es: 'Quién puede solicitar cada tipo — marque cuantos apliquen. Esto controla el costo de API, decida con cuidado.', pt: 'Quem pode solicitar cada tipo — marque quantos se aplicarem. Isso controla o custo de API, decida com cuidado.', zh: '谁可以请求每种类型——可勾选多项。这会影响API成本，请谨慎决定。' },
@@ -935,11 +937,16 @@ function AiUsageStats({ companyId, t }) {
     const load = async () => {
       if (!companyId) return;
       setLoadingStats(true);
+      // .not('ai_search_count', 'is', null) — só conta registros com dado
+      // de uso REALMENTE rastreado. Registros de antes da migration (sem
+      // essas colunas preenchidas) ficariam de fora, senão "Total de
+      // chamadas" incluiria eles, mas buscas/tokens/custo não teriam
+      // nada pra somar desses mesmos registros — números inconsistentes.
       const [{ data: aiComments }, { data: aiFollowons }] = await Promise.all([
         supabase.from('comments').select('ai_search_count, ai_input_tokens, ai_output_tokens')
-          .eq('company_id', companyId).eq('is_ai_generated', true),
+          .eq('company_id', companyId).eq('is_ai_generated', true).not('ai_search_count', 'is', null),
         supabase.from('experiences').select('ai_search_count, ai_input_tokens, ai_output_tokens')
-          .eq('company_id', companyId).eq('is_ai_generated', true),
+          .eq('company_id', companyId).eq('is_ai_generated', true).not('ai_search_count', 'is', null),
       ]);
       if (cancelled) return;
       const summarize = (rows) => {
@@ -947,12 +954,15 @@ function AiUsageStats({ companyId, t }) {
         const totalCalls = list.length;
         const totalSearches = list.reduce((sum, r) => sum + (r.ai_search_count || 0), 0);
         const totalTokens = list.reduce((sum, r) => sum + (r.ai_input_tokens || 0) + (r.ai_output_tokens || 0), 0);
+        const totalCost = list.reduce((sum, r) => sum + (calcAiCost(r.ai_input_tokens, r.ai_output_tokens) || 0), 0);
         return {
           totalCalls,
           totalSearches,
           totalTokens,
+          totalCost,
           avgSearches: totalCalls > 0 ? (totalSearches / totalCalls).toFixed(1) : '0',
           avgTokens: totalCalls > 0 ? Math.round(totalTokens / totalCalls) : 0,
+          avgCost: totalCalls > 0 ? (totalCost / totalCalls) : 0,
         };
       };
       setStats({ comment: summarize(aiComments), followon: summarize(aiFollowons) });
@@ -969,8 +979,10 @@ function AiUsageStats({ companyId, t }) {
     { label: t('ai_stats_total_calls'), comment: stats.comment.totalCalls, followon: stats.followon.totalCalls },
     { label: t('ai_stats_total_searches'), comment: stats.comment.totalSearches, followon: stats.followon.totalSearches },
     { label: t('ai_stats_total_tokens'), comment: stats.comment.totalTokens, followon: stats.followon.totalTokens },
+    { label: t('ai_stats_total_cost'), comment: `$${stats.comment.totalCost.toFixed(4)}`, followon: `$${stats.followon.totalCost.toFixed(4)}` },
     { label: t('ai_stats_avg_searches'), comment: stats.comment.avgSearches, followon: stats.followon.avgSearches },
     { label: t('ai_stats_avg_tokens'), comment: stats.comment.avgTokens, followon: stats.followon.avgTokens },
+    { label: t('ai_stats_avg_cost'), comment: `$${stats.comment.avgCost.toFixed(4)}`, followon: `$${stats.followon.avgCost.toFixed(4)}` },
   ];
 
   return (
