@@ -935,20 +935,31 @@ function AiUsageStats({ companyId, t }) {
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
-      if (!companyId) return;
+      if (!companyId) {
+        // Sem isso, se companyId ainda não estivesse disponível no
+        // momento exato em que o componente monta, o loading ficava
+        // preso pra sempre (nunca chegava na linha que desliga).
+        setLoadingStats(false);
+        return;
+      }
       setLoadingStats(true);
       // .not('ai_search_count', 'is', null) — só conta registros com dado
       // de uso REALMENTE rastreado. Registros de antes da migration (sem
       // essas colunas preenchidas) ficariam de fora, senão "Total de
       // chamadas" incluiria eles, mas buscas/tokens/custo não teriam
       // nada pra somar desses mesmos registros — números inconsistentes.
-      const [{ data: aiComments }, { data: aiFollowons }] = await Promise.all([
+      const [{ data: aiComments, error: commentsError }, { data: aiFollowons, error: followonsError }] = await Promise.all([
         supabase.from('comments').select('ai_search_count, ai_input_tokens, ai_output_tokens')
           .eq('company_id', companyId).eq('is_ai_generated', true).not('ai_search_count', 'is', null),
         supabase.from('experiences').select('ai_search_count, ai_input_tokens, ai_output_tokens')
           .eq('company_id', companyId).eq('is_ai_generated', true).not('ai_search_count', 'is', null),
       ]);
       if (cancelled) return;
+      if (commentsError || followonsError) {
+        console.error('Error loading AI usage stats:', commentsError || followonsError);
+        setLoadingStats(false);
+        return;
+      }
       const summarize = (rows) => {
         const list = rows || [];
         const totalCalls = list.length;
