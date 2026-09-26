@@ -751,6 +751,13 @@ const UI_STRINGS = {
   ai_stats_total_tokens: { en: 'Total tokens', es: 'Total de tokens', pt: 'Total de tokens', zh: '总令牌数' },
   ai_stats_total_cost: { en: 'Total dollars charged', es: 'Total de dólares cobrados', pt: 'Total de dólares cobrados', zh: '总收费金额' },
   ai_stats_avg_cost: { en: 'Avg. dollars/call', es: 'Prom. dólares/llamada', pt: 'Média de dólares/chamada', zh: '平均费用/次' },
+  ai_structure_label: { en: '✨ Describe your experience freely', es: '✨ Describe tu experiencia libremente', pt: '✨ Descreva sua experiência livremente', zh: '✨ 自由描述您的经历' },
+  ai_structure_placeholder: { en: 'Write what happened, in your own words — no need to organize it into Problem/Action/Result, AI will do that for you...', es: 'Escribe lo que pasó, con tus propias palabras — no necesitas organizarlo en Problema/Acción/Resultado, la IA lo hará por ti...', pt: 'Escreva o que aconteceu, com suas próprias palavras — não precisa organizar em Problema/Ação/Resultado, a IA fará isso por você...', zh: '用您自己的话写下发生的事情——不需要将其组织成问题/行动/结果，AI会为您完成...' },
+  ai_structure_btn: { en: '✨ Structure with AI', es: '✨ Estructurar con IA', pt: '✨ Estruturar com IA', zh: '✨ 用AI结构化' },
+  ai_structure_loading: { en: '✨ Structuring…', es: '✨ Estructurando…', pt: '✨ Estruturando…', zh: '✨ 结构化中…' },
+  ai_structure_error: { en: 'Could not structure your experience with AI.', es: 'No se pudo estructurar tu experiencia con IA.', pt: 'Não foi possível estruturar sua experiência com IA.', zh: '无法使用AI结构化您的经历。' },
+  ai_structure_review_message: { en: 'AI filled in the fields above based on what you wrote. If it looks good, use the buttons below to attach a file (optional) and submit. If not, edit anything you\'d like, then use the buttons below.', es: 'La IA completó los campos de arriba según lo que escribiste. Si está bien, usa los botones de abajo para adjuntar un archivo (opcional) y enviar. Si no, edita lo que quieras y luego usa los botones de abajo.', pt: 'A IA preencheu os campos acima com base no que você escreveu. Se estiver bom, use os botões abaixo para anexar um arquivo (opcional) e enviar. Se não, edite o que quiser e depois use os botões abaixo.', zh: 'AI根据您写的内容填写了上面的字段。如果没问题，请使用下方按钮附加文件（可选）并提交。如果需要修改，请先编辑，然后使用下方按钮。' },
+  ai_assisted_badge: { en: '✨ Structured with AI', es: '✨ Estructurado con IA', pt: '✨ Estruturado com IA', zh: '✨ AI结构化' },
   ai_stats_avg_searches: { en: 'Avg. searches/call', es: 'Prom. búsquedas/llamada', pt: 'Média de buscas/chamada', zh: '平均搜索/次' },
   ai_stats_avg_tokens: { en: 'Avg. tokens/call', es: 'Prom. tokens/llamada', pt: 'Média de tokens/chamada', zh: '平均令牌/次' },
   ai_reflection_permission_desc: { en: 'Who can request each type — check as many as apply. This controls API cost, so decide carefully.', es: 'Quién puede solicitar cada tipo — marque cuantos apliquen. Esto controla el costo de API, decida con cuidado.', pt: 'Quem pode solicitar cada tipo — marque quantos se aplicarem. Isso controla o custo de API, decida com cuidado.', zh: '谁可以请求每种类型——可勾选多项。这会影响API成本，请谨慎决定。' },
@@ -2363,6 +2370,7 @@ const loadExperiencesInner = async (skipLoading = false, loggedEmpId = null, ove
       practiceId: exp.practice_id || null,
       displayOrder: exp.display_order || 0,
       isAiGenerated: exp.is_ai_generated || false,
+      aiAssisted: exp.ai_assisted || false,
       aiSearchCount: exp.ai_search_count,
       aiInputTokens: exp.ai_input_tokens,
       aiOutputTokens: exp.ai_output_tokens,
@@ -5321,6 +5329,8 @@ if (matches.length > 0) {
     setFollowOnParentId(null);
     setSelectedPracticeId(null);
     setShareFormPracticeId(null);
+    setFreeTextInput('');
+    setWasAiPrefilled(false);
     setCurrentPage(1);
     
     setTimeout(() => {
@@ -15026,6 +15036,13 @@ onClick={() => {
                 )}
                 <div>
                 <div id={`exp-${exp.id}`} className="bg-white rounded-2xl shadow-lg p-6">
+                  {exp.aiAssisted && (
+                    <span className="inline-flex items-center gap-1 mb-2">
+                      <span className="text-[8px] font-medium text-purple-500 bg-purple-50 px-2 py-0.5 rounded-full">
+                        {t('ai_assisted_badge')}
+                      </span>
+                    </span>
+                  )}
                   {exp.author === 'key_insights' && (
                     <span className="inline-flex items-center gap-1 mb-2">
                       <span className="text-[8px] font-semibold uppercase bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">
