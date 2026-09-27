@@ -5831,6 +5831,12 @@ const structureWithAi = async () => {
       resultCategory: result.resultCategory || '',
       industrySector: result.industrySector || '',
     }));
+    // TAGs da Category — mesmos checkboxes que aparecem no formulário
+    // normal depois que a Category é escolhida. A Edge Function já
+    // valida contra a lista real de tags da Category no banco, então só
+    // resta aplicar (substitui qualquer seleção anterior, já que a IA
+    // está preenchendo o PAR inteiro do zero).
+    setSelectedTags(Array.isArray(result.tags) ? result.tags : []);
     setWasAiPrefilled(true);
     setAiStructureUsage(result._usage || null);
     // Rola até o próprio PAR (grid Problem/Action/Result), não até o topo
