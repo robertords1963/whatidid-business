@@ -5744,7 +5744,13 @@ const getAiReflectionAccess = (exp) => {
   const isSynthetic = exp.source !== 'app';
   const isOwner = exp.employeeId === employeeId;
   const matchesParType = isSynthetic ? settingsList.includes('synthetic') : settingsList.includes('real');
-  const matchesOwnership = isOwner ? settingsList.includes('own') : settingsList.includes('all');
+  // "all" sempre bate, inclusive pros próprios PARs (é um superconjunto
+  // de "own", não "só de outros") — "own" é só uma cobertura ADICIONAL
+  // específica pra quando a pessoa é dona, útil quando só "own" está
+  // marcado (sem "all"). Antes, exigir "own" especificamente quando
+  // isOwner=true fazia o Admin (com o padrão 'all', sem 'own') nunca
+  // bater nos próprios PARs.
+  const matchesOwnership = settingsList.includes('all') || (isOwner && settingsList.includes('own'));
   return {
     canComment: settingsList.includes('comment') && matchesParType && matchesOwnership,
     canFollowon: settingsList.includes('followon') && matchesParType && matchesOwnership,
@@ -5765,6 +5771,7 @@ const structureWithAi = async () => {
         freeText: freeTextInput,
         language: effectiveViewingLanguage,
         companyId: effectiveCompanyId,
+        companyEdition,
         resultCategoryOptions: resultCategories.map(r => ({ value: r.value, label: r.label })),
       },
     });
@@ -15151,13 +15158,20 @@ onClick={() => {
                   </div>
                 )}
                 <div>
-                <div id={`exp-${exp.id}`} className="bg-white rounded-2xl shadow-lg p-6">
+                <div id={`exp-${exp.id}`} className="relative bg-white rounded-2xl shadow-lg p-6">
                   {exp.aiAssisted && (
                     <span className="inline-flex items-center gap-1 mb-2">
                       <span className="text-[8px] font-medium text-purple-500 bg-purple-50 px-2 py-0.5 rounded-full">
                         {t('ai_assisted_badge')}
                       </span>
                     </span>
+                  )}
+                  {/* Custo individual do AI Structure PAR — só Admin, só Live
+                      Preview, mesmo padrão do AI Comment/Follow-on. */}
+                  {exp.aiAssisted && employeeIsAdmin && activeAdminNavTab === 'preview' && exp.aiInputTokens != null && (
+                    <div className="absolute bottom-1 right-3 text-[10px] text-gray-400">
+                      🔍 {exp.aiSearchCount ?? 0} · 🪙 {(exp.aiInputTokens || 0) + (exp.aiOutputTokens || 0)} · 💰 ${calcAiCost(exp.aiInputTokens, exp.aiOutputTokens)?.toFixed(4)}
+                    </div>
                   )}
                   {exp.author === 'key_insights' && (
                     <span className="inline-flex items-center gap-1 mb-2">
