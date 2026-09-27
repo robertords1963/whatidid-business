@@ -74,10 +74,6 @@ const marqueeStyles = `
   }
 `;
 
-// Nomes de Practice que não devem aparecer no badge (mostrar só a Category).
-// "General" é o nome legado; "Corporate Areas" é o nome atual pós-rename no Supabase.
-const HIDDEN_PRACTICE_NAMES = ['General', 'Corporate Areas'];
-
 // ============================================================
 // TRADUÇÃO DE UI (não confundir com o idioma do CONTEÚDO, que já
 // é resolvido por effectiveViewingLanguage). Isso traduz os textos
@@ -7861,7 +7857,11 @@ useEffect(() => {
     };
     const totalChildCount = countAllDescendants(fo.id);
     const practiceName = practices.find(p => p.id === fo.practiceId)?.name;
-    const categoryLabel = practiceName && !HIDDEN_PRACTICE_NAMES.includes(practiceName)
+    // Function e Practice são valores normais do mesmo dropdown — o balão
+    // sempre mostra "Function/Practice / Category" completo, sem esconder
+    // nenhum nome (nem "Corporate Areas"/"Áreas Corporativas", que é um
+    // Function como qualquer outro, não um valor genérico a suprimir).
+    const categoryLabel = practiceName
       ? `${practiceName} / ${fo.problemCategory}`
       : fo.problemCategory;
     const searchTerms = filters.searchText ? filters.searchText.toLowerCase().trim().split(/\s+/) : [];
@@ -7997,7 +7997,7 @@ useEffect(() => {
                 isso o espaçamento mobile usa margin (mb-2/mb-6) em vez de
                 gap do grid, que senão ficaria igual entre todos os pares. */}
             <div className="grid grid-cols-1 md:grid-cols-3 md:grid-rows-2 md:gap-x-6 md:gap-y-2 mb-6">
-              <div className="flex items-center justify-between mb-2 md:mb-0 md:col-start-1 md:row-start-1 md:self-end">
+              <div className="flex items-end justify-between mb-2 md:mb-0 md:col-start-1 md:row-start-1 md:self-end">
                 <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>{t('problem')}</h4>
                 <CategoryBadge label={categoryLabel} />
               </div>
@@ -8008,7 +8008,7 @@ useEffect(() => {
               </div>
               <p className="text-sm text-gray-700 mb-6 md:mb-0 md:col-start-2 md:row-start-2">{highlightText(fo.solution, searchTerms)}</p>
 
-              <div className="flex items-center justify-between mb-2 md:mb-0 md:col-start-3 md:row-start-1 md:self-end">
+              <div className="flex items-end justify-between mb-2 md:mb-0 md:col-start-3 md:row-start-1 md:self-end">
                 <h4 className="font-semibold text-green-600 flex items-center gap-2"><Share2 size={16}/>{t('result')}</h4>
                 <span className={`text-xs px-3 py-1 rounded-full ${getResultColor(fo.resultCategory)}`}>{getResultLabel(fo.resultCategory)}</span>
               </div>
@@ -15065,7 +15065,7 @@ onClick={() => {
               const renderFullThread = (exp, isMatched, isRootLevel, threadIndex = 1) => {
                 const children = experiences.filter(e => e.parentExperienceId === exp.id);
                 const pname = practices.find(p => p.id === exp.practiceId)?.name;
-                const catLabel = pname && !HIDDEN_PRACTICE_NAMES.includes(pname) ? `${pname} / ${exp.problemCategory}` : exp.problemCategory;
+                const catLabel = pname ? `${pname} / ${exp.problemCategory}` : exp.problemCategory;
                 const searchTerms = filters.searchText ? filters.searchText.toLowerCase().trim().split(/\s+/) : [];
 
                 return (
@@ -15095,7 +15095,7 @@ onClick={() => {
                         </div>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-3 md:grid-rows-2 md:gap-x-6 md:gap-y-2 mb-4">
-                        <div className="flex items-center justify-between mb-2 md:mb-0 md:col-start-1 md:row-start-1 md:self-end">
+                        <div className="flex items-end justify-between mb-2 md:mb-0 md:col-start-1 md:row-start-1 md:self-end">
                           <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>{t('problem')}</h4>
                           <CategoryBadge label={catLabel} />
                         </div>
@@ -15106,7 +15106,7 @@ onClick={() => {
                         </div>
                         <p className="text-sm text-gray-700 mb-6 md:mb-0 md:col-start-2 md:row-start-2">{highlightText(exp.solution, searchTerms)}</p>
 
-                        <div className="flex items-center justify-between mb-2 md:mb-0 md:col-start-3 md:row-start-1 md:self-end">
+                        <div className="flex items-end justify-between mb-2 md:mb-0 md:col-start-3 md:row-start-1 md:self-end">
                           <h4 className="font-semibold text-green-600 flex items-center gap-2"><Share2 size={16}/>{t('result')}</h4>
                           <span className={`text-xs px-3 py-1 rounded-full ${getResultColor(exp.resultCategory)}`}>{getResultLabel(exp.resultCategory)}</span>
                         </div>
@@ -15194,7 +15194,7 @@ onClick={() => {
                     {expAncestorChain.map((ancestor, idx) => {
                       const isRoot = !ancestor.parentExperienceId;
                       const pname = practices.find(p => p.id === ancestor.practiceId)?.name;
-                      const catLabel = pname && !HIDDEN_PRACTICE_NAMES.includes(pname) ? `${pname} / ${ancestor.problemCategory}` : ancestor.problemCategory;
+                      const catLabel = pname ? `${pname} / ${ancestor.problemCategory}` : ancestor.problemCategory;
                       return (
                         <div key={ancestor.id}>
                           {/* Card ancestral: raiz em tamanho normal, intermediários com mx-6 */}
@@ -15206,7 +15206,7 @@ onClick={() => {
                                 </span>
                               </div>
                               <div className="grid grid-cols-1 md:grid-cols-3 md:grid-rows-2 md:gap-x-6 md:gap-y-2 mb-4">
-                                <div className="flex items-center justify-between mb-2 md:mb-0 md:col-start-1 md:row-start-1 md:self-end">
+                                <div className="flex items-end justify-between mb-2 md:mb-0 md:col-start-1 md:row-start-1 md:self-end">
                                   <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>{t('problem')}</h4>
                                   <CategoryBadge label={catLabel} />
                                 </div>
@@ -15217,7 +15217,7 @@ onClick={() => {
                                 </div>
                                 <p className="text-sm text-gray-700 mb-6 md:mb-0 md:col-start-2 md:row-start-2">{ancestor.solution}</p>
 
-                                <div className="flex items-center justify-between mb-2 md:mb-0 md:col-start-3 md:row-start-1 md:self-end">
+                                <div className="flex items-end justify-between mb-2 md:mb-0 md:col-start-3 md:row-start-1 md:self-end">
                                   <h4 className="font-semibold text-green-600 flex items-center gap-2"><Share2 size={16}/>{t('result')}</h4>
                                   <span className={`text-xs px-3 py-1 rounded-full ${getResultColor(ancestor.resultCategory)}`}>{getResultLabel(ancestor.resultCategory)}</span>
                                 </div>
@@ -15407,14 +15407,14 @@ onClick={() => {
 </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-3 md:grid-rows-2 md:gap-x-6 md:gap-y-2 mb-6">
-                    <div className="flex items-center justify-between mb-2 md:mb-0 md:col-start-1 md:row-start-1 md:self-end">
+                    <div className="flex items-end justify-between mb-2 md:mb-0 md:col-start-1 md:row-start-1 md:self-end">
                         <h4 className="font-semibold text-red-600 flex items-center gap-2">
                           <AlertCircle size={16} />
                           {t('problem')}
                         </h4>
                         <CategoryBadge label={(() => {
                           const pname = practices.find(p => p.id === exp.practiceId)?.name;
-                          return pname && !HIDDEN_PRACTICE_NAMES.includes(pname) ? `${pname} / ${exp.problemCategory}` : exp.problemCategory;
+                          return pname ? `${pname} / ${exp.problemCategory}` : exp.problemCategory;
                         })()} />
                     </div>
                     <p className="text-sm text-gray-700 mb-6 md:mb-0 md:col-start-1 md:row-start-2">
@@ -15431,7 +15431,7 @@ onClick={() => {
   {highlightText(exp.solution, filters.searchText ? filters.searchText.toLowerCase().trim().split(/\s+/) : [])}
 </p>
 
-                    <div className="flex items-center justify-between mb-2 md:mb-0 md:col-start-3 md:row-start-1 md:self-end">
+                    <div className="flex items-end justify-between mb-2 md:mb-0 md:col-start-3 md:row-start-1 md:self-end">
     <h4 className="font-semibold text-green-600 flex items-center gap-2">
       <Share2 size={16} />
       {t('result')}
