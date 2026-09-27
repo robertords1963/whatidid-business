@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react';
-import { Share2, TrendingUp, AlertCircle, Star, MessageCircle, Send, Shield, Trash2, Search, Users, Target, Briefcase } from 'lucide-react';
+import { Share2, TrendingUp, AlertCircle, Star, MessageCircle, Send, Shield, Trash2, Search, Users, Target, Briefcase, Loader2 } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js'; 
 
 const supabaseUrl = 'https://scurkpoasiulwkmmechz.supabase.co';
@@ -757,6 +757,11 @@ const UI_STRINGS = {
   ai_structure_btn: { en: '✨ Structure with AI', es: '✨ Estructurar con IA', pt: '✨ Estruturar com IA', zh: '✨ 用AI结构化' },
   ai_stats_structure_col: { en: 'Structure PAR with AI', es: 'Estructurar PAR con IA', pt: 'Estruturar PAR com IA', zh: '用AI结构化经验' },
   ai_structure_loading: { en: '✨ Structuring…', es: '✨ Estructurando…', pt: '✨ Estruturando…', zh: '✨ 结构化中…' },
+  ai_thinking_reading: { en: 'Reading the text…', es: 'Leyendo el texto…', pt: 'Lendo o texto…', zh: '正在阅读文本…' },
+  ai_thinking_searching: { en: 'Searching…', es: 'Buscando…', pt: 'Pesquisando…', zh: '正在搜索…' },
+  ai_thinking_categorizing: { en: 'Categorizing…', es: 'Categorizando…', pt: 'Categorizando…', zh: '正在分类…' },
+  ai_thinking_structuring: { en: 'Structuring…', es: 'Estructurando…', pt: 'Estruturando…', zh: '正在结构化…' },
+  ai_thinking_almost: { en: 'Almost there…', es: 'Casi listo…', pt: 'Quase lá…', zh: '快好了…' },
   ai_structure_error: { en: 'Could not structure your experience with AI.', es: 'No se pudo estructurar tu experiencia con IA.', pt: 'Não foi possível estruturar sua experiência com IA.', zh: '无法使用AI结构化您的经历。' },
   ai_structure_review_message: { en: 'AI filled in the fields above based on what you wrote. If it looks good, use the buttons below to attach a file (optional) and submit. If not, edit anything you\'d like, then use the buttons below to submit.', es: 'La IA completó los campos de arriba según lo que escribiste. Si está bien, usa los botones de abajo para adjuntar un archivo (opcional) y enviar. Si no, edita lo que quieras y luego usa los botones de abajo para enviar.', pt: 'A IA preencheu os campos acima com base no que você escreveu. Se estiver bom, use os botões abaixo para anexar um arquivo (opcional) e enviar. Se não, edite o que quiser e depois use os botões abaixo para enviar.', zh: 'AI根据您写的内容填写了上面的字段。如果没问题，请使用下方按钮附加文件（可选）并提交。如果需要修改，请先编辑，然后使用下方按钮提交。' },
   ai_assisted_badge: { en: '✨ Structured with AI', es: '✨ Estructurado con IA', pt: '✨ Estruturado com IA', zh: '✨ AI结构化' },
@@ -947,6 +952,25 @@ const calcAiCost = (inputTokens, outputTokens) => {
 // completo por empresa, separado por Comment e Follow-on. Calculado sob
 // demanda (não fica guardado em nenhum state global) toda vez que a
 // seção "Who Can See the AI Buttons" é aberta/re-renderizada.
+// Indicador de "pensando" — ícone girando + mensagens que trocam a cada
+// 1.8s, dando sensação real de progresso durante esperas mais longas
+// (Comment/Follow-on/Structure PAR podem demorar alguns segundos).
+function AiThinkingIndicator({ messages }) {
+  const [index, setIndex] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIndex(prev => (prev + 1) % messages.length);
+    }, 1800);
+    return () => clearInterval(interval);
+  }, [messages]);
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <Loader2 size={13} className="animate-spin" />
+      {messages[index]}
+    </span>
+  );
+}
+
 function AiUsageStats({ companyId, t }) {
   const [stats, setStats] = useState(null);
   const [loadingStats, setLoadingStats] = useState(true);
@@ -8022,7 +8046,7 @@ useEffect(() => {
                     disabled={!!aiReflectionLoading[fo.id]}
                     className="text-purple-600 hover:text-purple-800 text-xs font-normal inline-flex items-center gap-1 disabled:opacity-50 disabled:cursor-wait ml-2"
                   >
-                    {aiReflectionLoading[fo.id] === 'comment' ? t('ai_reflection_loading') : t('ai_comment_btn')}
+                    {aiReflectionLoading[fo.id] === 'comment' ? <AiThinkingIndicator messages={[t('ai_thinking_reading'), t('ai_thinking_searching'), t('ai_thinking_structuring'), t('ai_thinking_almost')]} /> : t('ai_comment_btn')}
                   </button>
                 )}
               </h4>
@@ -13795,7 +13819,7 @@ onClick={() => {
         disabled={aiStructuring || !freeTextInput.trim()}
         className="mt-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-wait"
       >
-        {aiStructuring ? t('ai_structure_loading') : t('ai_structure_btn')}
+        {aiStructuring ? <AiThinkingIndicator messages={[t('ai_thinking_reading'), t('ai_thinking_categorizing'), t('ai_thinking_structuring'), t('ai_thinking_almost')]} /> : t('ai_structure_btn')}
       </button>
     </div>
   )}
@@ -13843,7 +13867,7 @@ onClick={() => {
         disabled={aiStructuring || !freeTextInput.trim()}
         className="mt-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-wait"
       >
-        {aiStructuring ? t('ai_structure_loading') : t('ai_structure_btn')}
+        {aiStructuring ? <AiThinkingIndicator messages={[t('ai_thinking_reading'), t('ai_thinking_categorizing'), t('ai_thinking_structuring'), t('ai_thinking_almost')]} /> : t('ai_structure_btn')}
       </button>
     </div>
   )}
@@ -15618,7 +15642,7 @@ onClick={() => {
                             disabled={!!aiReflectionLoading[exp.id]}
                             className="text-purple-600 hover:text-purple-800 text-xs font-normal inline-flex items-center gap-1 disabled:opacity-50 disabled:cursor-wait ml-2"
                           >
-                            {aiReflectionLoading[exp.id] === 'comment' ? t('ai_reflection_loading') : t('ai_comment_btn')}
+                            {aiReflectionLoading[exp.id] === 'comment' ? <AiThinkingIndicator messages={[t('ai_thinking_reading'), t('ai_thinking_searching'), t('ai_thinking_structuring'), t('ai_thinking_almost')]} /> : t('ai_comment_btn')}
                           </button>
                         )}
                       </h4>
@@ -16090,7 +16114,7 @@ onClick={() => {
           disabled={!!aiReflectionLoading[exp.id]}
           className="text-xs text-purple-600 hover:text-purple-800 font-medium flex items-center gap-1 disabled:opacity-50 disabled:cursor-wait"
         >
-          {aiReflectionLoading[exp.id] === 'followon' ? t('ai_reflection_loading') : t('ai_followon_btn')}
+          {aiReflectionLoading[exp.id] === 'followon' ? <AiThinkingIndicator messages={[t('ai_thinking_reading'), t('ai_thinking_searching'), t('ai_thinking_structuring'), t('ai_thinking_almost')]} /> : t('ai_followon_btn')}
         </button>
       )}
     </div>
