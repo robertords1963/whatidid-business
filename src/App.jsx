@@ -7982,31 +7982,37 @@ useEffect(() => {
               </div>
             </div>
             {/* P/A/R grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-              <div className="space-y-2">
-                {/* items-start (não items-center/items-end): o título
-                    "Problem" fica alinhado no topo, na mesma altura que
-                    "Action"/"Result" — se o balão de Function/Practice for
-                    mais alto (texto longo, quebra em várias linhas), ele
-                    estica pra baixo, sem puxar o título pra cima nem
-                    para baixo e sem desalinhar a linha dos três títulos. */}
-                <div className="flex items-start justify-between">
-                  <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>{t('problem')}</h4>
-                  <CategoryBadge label={categoryLabel} />
-                </div>
-                <p className="text-sm text-gray-700">{highlightText(fo.problem, searchTerms)}</p>
+            {/* Grid de 2 "linhas" no desktop (md:grid-rows-2): linha 1 = os
+                3 títulos (+ balão de Function/Practice, + badge de Result),
+                linha 2 = os 3 parágrafos. md:self-end na linha 1 faz a base
+                do balão (que pode ser alta, várias linhas) ficar alinhada
+                com a base dos 3 títulos — inclusive Action, que não tem
+                balão, também desce até essa mesma base, então os 3 títulos
+                continuam nivelados entre si. Como a linha 2 é uma "linha"
+                de grid separada, os 3 parágrafos sempre começam na mesma
+                altura, não importa quão alto o balão da linha 1 seja. No
+                mobile (grid-cols-1, sem md:), os itens seguem a ordem do
+                DOM normalmente: título+balão do Problem, parágrafo do
+                Problem, título do Action, parágrafo do Action, etc. — por
+                isso o espaçamento mobile usa margin (mb-2/mb-6) em vez de
+                gap do grid, que senão ficaria igual entre todos os pares. */}
+            <div className="grid grid-cols-1 md:grid-cols-3 md:grid-rows-2 md:gap-x-6 md:gap-y-2 mb-6">
+              <div className="flex items-center justify-between mb-2 md:mb-0 md:col-start-1 md:row-start-1 md:self-end">
+                <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>{t('problem')}</h4>
+                <CategoryBadge label={categoryLabel} />
               </div>
-              <div className="space-y-2">
+              <p className="text-sm text-gray-700 mb-6 md:mb-0 md:col-start-1 md:row-start-2">{highlightText(fo.problem, searchTerms)}</p>
+
+              <div className="mb-2 md:mb-0 md:col-start-2 md:row-start-1 md:self-end">
                 <h4 className="font-semibold text-blue-600 flex items-center gap-2"><TrendingUp size={16}/>{t('action')}</h4>
-                <p className="text-sm text-gray-700">{highlightText(fo.solution, searchTerms)}</p>
               </div>
-              <div className="space-y-2">
-                <div className="flex items-start justify-between">
-                  <h4 className="font-semibold text-green-600 flex items-center gap-2"><Share2 size={16}/>{t('result')}</h4>
-                  <span className={`text-xs px-3 py-1 rounded-full ${getResultColor(fo.resultCategory)}`}>{getResultLabel(fo.resultCategory)}</span>
-                </div>
-                <p className="text-sm text-gray-700">{highlightText(fo.result, searchTerms)}</p>
+              <p className="text-sm text-gray-700 mb-6 md:mb-0 md:col-start-2 md:row-start-2">{highlightText(fo.solution, searchTerms)}</p>
+
+              <div className="flex items-center justify-between mb-2 md:mb-0 md:col-start-3 md:row-start-1 md:self-end">
+                <h4 className="font-semibold text-green-600 flex items-center gap-2"><Share2 size={16}/>{t('result')}</h4>
+                <span className={`text-xs px-3 py-1 rounded-full ${getResultColor(fo.resultCategory)}`}>{getResultLabel(fo.resultCategory)}</span>
               </div>
+              <p className="text-sm text-gray-700 md:col-start-3 md:row-start-2">{highlightText(fo.result, searchTerms)}</p>
             </div>
             {/* Tags */}
             {fo.tags && fo.tags.length > 0 && (
@@ -15088,25 +15094,23 @@ onClick={() => {
                           <span className="text-sm font-semibold text-gray-700">{exp.avgRating.toFixed(1)} <span className="text-xs text-gray-500">({exp.totalRatings})</span></span>
                         </div>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
-                        <div className="space-y-2">
-                          <div className="flex items-start justify-between">
-                            <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>{t('problem')}</h4>
-                            <CategoryBadge label={catLabel} />
-                          </div>
-                          <p className="text-sm text-gray-700">{highlightText(exp.problem, searchTerms)}</p>
+                      <div className="grid grid-cols-1 md:grid-cols-3 md:grid-rows-2 md:gap-x-6 md:gap-y-2 mb-4">
+                        <div className="flex items-center justify-between mb-2 md:mb-0 md:col-start-1 md:row-start-1 md:self-end">
+                          <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>{t('problem')}</h4>
+                          <CategoryBadge label={catLabel} />
                         </div>
-                        <div className="space-y-2">
+                        <p className="text-sm text-gray-700 mb-6 md:mb-0 md:col-start-1 md:row-start-2">{highlightText(exp.problem, searchTerms)}</p>
+
+                        <div className="mb-2 md:mb-0 md:col-start-2 md:row-start-1 md:self-end">
                           <h4 className="font-semibold text-blue-600 flex items-center gap-2"><TrendingUp size={16}/>{t('action')}</h4>
-                          <p className="text-sm text-gray-700">{highlightText(exp.solution, searchTerms)}</p>
                         </div>
-                        <div className="space-y-2">
-                          <div className="flex items-start justify-between">
-                            <h4 className="font-semibold text-green-600 flex items-center gap-2"><Share2 size={16}/>{t('result')}</h4>
-                            <span className={`text-xs px-3 py-1 rounded-full ${getResultColor(exp.resultCategory)}`}>{getResultLabel(exp.resultCategory)}</span>
-                          </div>
-                          <p className="text-sm text-gray-700">{highlightText(exp.result, searchTerms)}</p>
+                        <p className="text-sm text-gray-700 mb-6 md:mb-0 md:col-start-2 md:row-start-2">{highlightText(exp.solution, searchTerms)}</p>
+
+                        <div className="flex items-center justify-between mb-2 md:mb-0 md:col-start-3 md:row-start-1 md:self-end">
+                          <h4 className="font-semibold text-green-600 flex items-center gap-2"><Share2 size={16}/>{t('result')}</h4>
+                          <span className={`text-xs px-3 py-1 rounded-full ${getResultColor(exp.resultCategory)}`}>{getResultLabel(exp.resultCategory)}</span>
                         </div>
+                        <p className="text-sm text-gray-700 md:col-start-3 md:row-start-2">{highlightText(exp.result, searchTerms)}</p>
                       </div>
                       {exp.tags && exp.tags.length > 0 && (
                         <div className="mb-3 flex flex-wrap gap-1">
@@ -15201,25 +15205,23 @@ onClick={() => {
                                   {isRoot ? t('original_experience') : t('upstream_experience')}
                                 </span>
                               </div>
-                              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
-                                <div className="space-y-2">
-                                  <div className="flex items-start justify-between">
-                                    <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>{t('problem')}</h4>
-                                    <CategoryBadge label={catLabel} />
-                                  </div>
-                                  <p className="text-sm text-gray-700">{ancestor.problem}</p>
+                              <div className="grid grid-cols-1 md:grid-cols-3 md:grid-rows-2 md:gap-x-6 md:gap-y-2 mb-4">
+                                <div className="flex items-center justify-between mb-2 md:mb-0 md:col-start-1 md:row-start-1 md:self-end">
+                                  <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>{t('problem')}</h4>
+                                  <CategoryBadge label={catLabel} />
                                 </div>
-                                <div className="space-y-2">
+                                <p className="text-sm text-gray-700 mb-6 md:mb-0 md:col-start-1 md:row-start-2">{ancestor.problem}</p>
+
+                                <div className="mb-2 md:mb-0 md:col-start-2 md:row-start-1 md:self-end">
                                   <h4 className="font-semibold text-blue-600 flex items-center gap-2"><TrendingUp size={16}/>{t('action')}</h4>
-                                  <p className="text-sm text-gray-700">{ancestor.solution}</p>
                                 </div>
-                                <div className="space-y-2">
-                                  <div className="flex items-start justify-between">
-                                    <h4 className="font-semibold text-green-600 flex items-center gap-2"><Share2 size={16}/>{t('result')}</h4>
-                                    <span className={`text-xs px-3 py-1 rounded-full ${getResultColor(ancestor.resultCategory)}`}>{getResultLabel(ancestor.resultCategory)}</span>
-                                  </div>
-                                  <p className="text-sm text-gray-700">{ancestor.result}</p>
+                                <p className="text-sm text-gray-700 mb-6 md:mb-0 md:col-start-2 md:row-start-2">{ancestor.solution}</p>
+
+                                <div className="flex items-center justify-between mb-2 md:mb-0 md:col-start-3 md:row-start-1 md:self-end">
+                                  <h4 className="font-semibold text-green-600 flex items-center gap-2"><Share2 size={16}/>{t('result')}</h4>
+                                  <span className={`text-xs px-3 py-1 rounded-full ${getResultColor(ancestor.resultCategory)}`}>{getResultLabel(ancestor.resultCategory)}</span>
                                 </div>
+                                <p className="text-sm text-gray-700 md:col-start-3 md:row-start-2">{ancestor.result}</p>
                               </div>
                               {(ancestor.author || ancestor.employeeId) && (
                                 <p className="text-xs text-gray-500 border-t pt-2">
@@ -15404,9 +15406,8 @@ onClick={() => {
   </div>
 </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                    <div className="space-y-2">
-                      <div className="flex items-start justify-between">
+                  <div className="grid grid-cols-1 md:grid-cols-3 md:grid-rows-2 md:gap-x-6 md:gap-y-2 mb-6">
+                    <div className="flex items-center justify-between mb-2 md:mb-0 md:col-start-1 md:row-start-1 md:self-end">
                         <h4 className="font-semibold text-red-600 flex items-center gap-2">
                           <AlertCircle size={16} />
                           {t('problem')}
@@ -15415,22 +15416,22 @@ onClick={() => {
                           const pname = practices.find(p => p.id === exp.practiceId)?.name;
                           return pname && !HIDDEN_PRACTICE_NAMES.includes(pname) ? `${pname} / ${exp.problemCategory}` : exp.problemCategory;
                         })()} />
-                      </div>
-                      <p className="text-sm text-gray-700">
+                    </div>
+                    <p className="text-sm text-gray-700 mb-6 md:mb-0 md:col-start-1 md:row-start-2">
   {highlightText(exp.problem, filters.searchText ? filters.searchText.toLowerCase().trim().split(/\s+/) : [])}
 </p>
-                    </div>
-                    <div className="space-y-2">
+
+                    <div className="mb-2 md:mb-0 md:col-start-2 md:row-start-1 md:self-end">
                       <h4 className="font-semibold text-blue-600 flex items-center gap-2">
                         <TrendingUp size={16} />
                         {t('action')}
                       </h4>
-<p className={`text-sm text-gray-700 ${exp.author === 'key_insights' ? 'whitespace-pre-line' : ''}`}>
+                    </div>
+                    <p className={`text-sm text-gray-700 mb-6 md:mb-0 md:col-start-2 md:row-start-2 ${exp.author === 'key_insights' ? 'whitespace-pre-line' : ''}`}>
   {highlightText(exp.solution, filters.searchText ? filters.searchText.toLowerCase().trim().split(/\s+/) : [])}
 </p>
-                      </div>
-                    <div className="space-y-2">
-  <div className="flex items-start justify-between">
+
+                    <div className="flex items-center justify-between mb-2 md:mb-0 md:col-start-3 md:row-start-1 md:self-end">
     <h4 className="font-semibold text-green-600 flex items-center gap-2">
       <Share2 size={16} />
       {t('result')}
@@ -15444,11 +15445,10 @@ onClick={() => {
         {getResultLabel(exp.resultCategory)}
       </span>
     )}
-  </div>
-<p className="text-sm text-gray-700">
+                    </div>
+<p className="text-sm text-gray-700 md:col-start-3 md:row-start-2">
   {highlightText(exp.result, filters.searchText ? filters.searchText.toLowerCase().trim().split(/\s+/) : [])}
 </p>
-</div>
 </div>
 
                   {/* Badges - Agora embaixo do grid */}
