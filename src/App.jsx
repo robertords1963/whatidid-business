@@ -7984,7 +7984,12 @@ useEffect(() => {
             {/* P/A/R grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
+                {/* items-end (não items-center): a base do balão de
+                    Function/Practice fica alinhada com a base do título
+                    "Problem", em vez de centralizada — assim, se o balão
+                    for mais alto (texto longo, quebra linha), o excesso
+                    de altura fica pra cima, sem empurrar o texto abaixo. */}
+                <div className="flex items-end justify-between">
                   <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>{t('problem')}</h4>
                   <CategoryBadge label={categoryLabel} />
                 </div>
@@ -7995,7 +8000,7 @@ useEffect(() => {
                 <p className="text-sm text-gray-700">{highlightText(fo.solution, searchTerms)}</p>
               </div>
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
+                <div className="flex items-end justify-between">
                   <h4 className="font-semibold text-green-600 flex items-center gap-2"><Share2 size={16}/>{t('result')}</h4>
                   <span className={`text-xs px-3 py-1 rounded-full ${getResultColor(fo.resultCategory)}`}>{getResultLabel(fo.resultCategory)}</span>
                 </div>
@@ -15084,7 +15089,7 @@ onClick={() => {
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
                         <div className="space-y-2">
-                          <div className="flex items-center justify-between">
+                          <div className="flex items-end justify-between">
                             <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>{t('problem')}</h4>
                             <CategoryBadge label={catLabel} />
                           </div>
@@ -15095,7 +15100,7 @@ onClick={() => {
                           <p className="text-sm text-gray-700">{highlightText(exp.solution, searchTerms)}</p>
                         </div>
                         <div className="space-y-2">
-                          <div className="flex items-center justify-between">
+                          <div className="flex items-end justify-between">
                             <h4 className="font-semibold text-green-600 flex items-center gap-2"><Share2 size={16}/>{t('result')}</h4>
                             <span className={`text-xs px-3 py-1 rounded-full ${getResultColor(exp.resultCategory)}`}>{getResultLabel(exp.resultCategory)}</span>
                           </div>
@@ -15197,7 +15202,7 @@ onClick={() => {
                               </div>
                               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
                                 <div className="space-y-2">
-                                  <div className="flex items-center justify-between">
+                                  <div className="flex items-end justify-between">
                                     <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>{t('problem')}</h4>
                                     <CategoryBadge label={catLabel} />
                                   </div>
@@ -15208,7 +15213,7 @@ onClick={() => {
                                   <p className="text-sm text-gray-700">{ancestor.solution}</p>
                                 </div>
                                 <div className="space-y-2">
-                                  <div className="flex items-center justify-between">
+                                  <div className="flex items-end justify-between">
                                     <h4 className="font-semibold text-green-600 flex items-center gap-2"><Share2 size={16}/>{t('result')}</h4>
                                     <span className={`text-xs px-3 py-1 rounded-full ${getResultColor(ancestor.resultCategory)}`}>{getResultLabel(ancestor.resultCategory)}</span>
                                   </div>
@@ -15400,7 +15405,7 @@ onClick={() => {
                   
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                     <div className="space-y-2">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-end justify-between">
                         <h4 className="font-semibold text-red-600 flex items-center gap-2">
                           <AlertCircle size={16} />
                           {t('problem')}
@@ -15424,7 +15429,7 @@ onClick={() => {
 </p>
                       </div>
                     <div className="space-y-2">
-  <div className="flex items-center justify-between">
+  <div className="flex items-end justify-between">
     <h4 className="font-semibold text-green-600 flex items-center gap-2">
       <Share2 size={16} />
       {t('result')}
