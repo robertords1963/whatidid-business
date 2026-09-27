@@ -5833,8 +5833,13 @@ const structureWithAi = async () => {
     }));
     setWasAiPrefilled(true);
     setAiStructureUsage(result._usage || null);
+    // Rola até o próprio PAR (grid Problem/Action/Result), não até o topo
+    // de #share-section — esse inclui o box de texto livre (e, no
+    // Follow-On, o banner "Follow-on to...") ACIMA do PAR, o que deixava
+    // o PAR mais embaixo na tela em vez de alinhado no topo, tanto no
+    // Share Your Experience quanto no Follow-On.
     setTimeout(() => {
-      const el = document.getElementById('share-section');
+      const el = document.getElementById('par-fields-section');
       if (el) {
         const y = el.getBoundingClientRect().top + window.pageYOffset - 20;
         window.scrollTo({ top: y, behavior: 'smooth' });
@@ -13881,13 +13886,18 @@ onClick={() => {
       </button>
     </div>
   )}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          {/* id usado pra rolar o PAR pro topo da tela depois que a IA
+              termina de estruturar (Share ou Follow-On) — antes a rolagem
+              ia até o topo de #share-section, que inclui o box de texto
+              livre/banner ACIMA do PAR, deixando o próprio PAR mais
+              embaixo na tela em vez de alinhado no topo. */}
+          <div id="par-fields-section" className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div className="space-y-3">
               <div className="flex items-center gap-2 mb-2">
                 <AlertCircle className="text-red-500" size={20} />
                 <h3 className="text-lg font-semibold text-gray-800">{t('problem')}</h3>
               </div>
-              
+
               {/* Industry Sector - só no Pro, vem antes do Function/Practice */}
               {(companyEdition === 'pro' || companyEdition === 'edu') && industrySectorFeatureEnabled && industrySectors.length > 0 && (
                 <div className="mb-2 relative">
