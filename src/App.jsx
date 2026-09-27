@@ -13823,6 +13823,30 @@ onClick={() => {
       </div>
     ) : null;
   })()}
+
+  {/* AI Structure PAR também no Follow-On — a Category/Practice/Industry
+      Sector já vêm herdados do PAR pai, mas o conteúdo do Follow-on em
+      si (o que a pessoa quer contar dessa continuação) ainda é escrito
+      do zero, então se beneficia do mesmo texto livre + IA. */}
+  {followOnParentId && (employeeIsAdmin ? appSettings.aiAdminSettings : appSettings.aiUserSettings || '').split(',').includes('structure') && (
+    <div className="mb-6 p-4 bg-purple-50 border-2 border-purple-200 rounded-lg">
+      <label className="block text-sm font-medium text-purple-800 mb-2">{t('ai_structure_label')}</label>
+      <textarea
+        value={freeTextInput}
+        onChange={(e) => setFreeTextInput(e.target.value)}
+        placeholder={t('ai_structure_placeholder')}
+        rows={4}
+        className="w-full p-3 border-2 border-purple-200 rounded-lg focus:border-purple-500 focus:outline-none text-sm"
+      />
+      <button
+        onClick={structureWithAi}
+        disabled={aiStructuring || !freeTextInput.trim()}
+        className="mt-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-wait"
+      >
+        {aiStructuring ? t('ai_structure_loading') : t('ai_structure_btn')}
+      </button>
+    </div>
+  )}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div className="space-y-3">
               <div className="flex items-center gap-2 mb-2">
