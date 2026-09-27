@@ -5790,11 +5790,21 @@ const structureWithAi = async () => {
   if (!freeTextInput.trim()) return;
   setAiStructuring(true);
   try {
+    // Mesma regra usada pra popular o dropdown real (uiPractices): a
+    // tabela "practices" da empresa Default guarda uma linha por idioma
+    // (ids diferentes pro "mesmo" Practice em en/es/pt/zh), então só
+    // filtramos por idioma quando o conteúdo em uso é o da Default —
+    // sem isso, a IA podia escolher um id válido só que da linha do
+    // idioma errado, e o id "sumia" do dropdown real (que só lista os
+    // ids do idioma atual).
+    const aiContentCompanyId = loggedInIsDemoId ? defaultCompanyId : effectiveCompanyId;
+    const aiIsContentDefault = aiContentCompanyId === defaultCompanyId;
     const { data, error } = await supabase.functions.invoke('ai-structure-par', {
       body: {
         freeText: freeTextInput,
         language: effectiveViewingLanguage,
-        companyId: effectiveCompanyId,
+        companyId: aiContentCompanyId,
+        filterByLanguage: aiIsContentDefault,
         companyEdition,
         resultCategoryOptions: resultCategories.map(r => ({ value: r.value, label: r.label })),
       },
