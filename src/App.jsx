@@ -739,7 +739,7 @@ const UI_STRINGS = {
   ai_row_real: { en: 'Real Exp', es: 'Exp. Reales', pt: 'Exp. Reais', zh: '真实经验' },
   ai_row_own: { en: 'Own Exp', es: 'Exp. Propias', pt: 'Exp. Próprias', zh: '自己的经验' },
   ai_row_all: { en: 'All Exp', es: 'Todas las Exp.', pt: 'Todas as Exp.', zh: '所有经验' },
-  ai_row_structure: { en: 'AI Structure PAR', es: 'Estructurar PAR con IA', pt: 'AI Structure PAR', zh: 'AI结构化经验' },
+  ai_row_structure: { en: 'PAR Structured by AI', es: 'PAR Estructurado por IA', pt: 'PAR Estruturado por IA', zh: 'AI结构化的经验' },
   ai_char_limit_comment: { en: 'Character limit — Comments', es: 'Límite de caracteres — Comentarios', pt: 'Limite de caracteres — Comments', zh: '字符限制——点评' },
   ai_char_limit_followon: { en: 'Character limit — Follow-On', es: 'Límite de caracteres — Follow-On', pt: 'Limite de caracteres — Follow-On', zh: '字符限制——后续案例' },
   ai_search_limit_comment: { en: 'Web search limit — Comments', es: 'Límite de búsquedas web — Comentarios', pt: 'Limite de buscas web — Comments', zh: '网络搜索限制——点评' },
@@ -755,6 +755,7 @@ const UI_STRINGS = {
   ai_structure_label: { en: '✨ Describe your experience freely (or fill it in piece by piece using the fields below)', es: '✨ Describe tu experiencia libremente (o descríbela por partes usando los campos de abajo)', pt: '✨ Descreva sua experiência livremente (ou descreva-a por partes usando os espaços abaixo)', zh: '✨ 自由描述您的经历（或使用下方的字段分段描述）' },
   ai_structure_placeholder: { en: 'Tell us what happened, in your own words — try to cover: what the problem was, what you did about it, and what happened in the end.', es: 'Cuéntanos lo que pasó, con tus propias palabras — intenta cubrir: cuál era el problema, qué hiciste al respecto, y qué pasó al final.', pt: 'Conte o que aconteceu com suas próprias palavras — tente cobrir: qual era o problema, o que você fez a respeito, e o que aconteceu no final.', zh: '用您自己的话告诉我们发生了什么——尽量涵盖：问题是什么，您做了什么，最后结果如何。' },
   ai_structure_btn: { en: '✨ Structure with AI', es: '✨ Estructurar con IA', pt: '✨ Estruturar com IA', zh: '✨ 用AI结构化' },
+  ai_stats_structure_col: { en: 'Structure PAR with AI', es: 'Estructurar PAR con IA', pt: 'Estruturar PAR com IA', zh: '用AI结构化经验' },
   ai_structure_loading: { en: '✨ Structuring…', es: '✨ Estructurando…', pt: '✨ Estruturando…', zh: '✨ 结构化中…' },
   ai_structure_error: { en: 'Could not structure your experience with AI.', es: 'No se pudo estructurar tu experiencia con IA.', pt: 'Não foi possível estruturar sua experiência com IA.', zh: '无法使用AI结构化您的经历。' },
   ai_structure_review_message: { en: 'AI filled in the fields above based on what you wrote. If it looks good, use the buttons below to attach a file (optional) and submit. If not, edit anything you\'d like, then use the buttons below to submit.', es: 'La IA completó los campos de arriba según lo que escribiste. Si está bien, usa los botones de abajo para adjuntar un archivo (opcional) y enviar. Si no, edita lo que quieras y luego usa los botones de abajo para enviar.', pt: 'A IA preencheu os campos acima com base no que você escreveu. Se estiver bom, use os botões abaixo para anexar um arquivo (opcional) e enviar. Se não, edite o que quiser e depois use os botões abaixo para enviar.', zh: 'AI根据您写的内容填写了上面的字段。如果没问题，请使用下方按钮附加文件（可选）并提交。如果需要修改，请先编辑，然后使用下方按钮提交。' },
@@ -1028,7 +1029,7 @@ function AiUsageStats({ companyId, t }) {
             <th className="text-left py-1 font-normal"></th>
             <th className="text-center py-1 font-normal">{t('ai_comment_btn')}</th>
             <th className="text-center py-1 font-normal">{t('ai_followon_btn')}</th>
-            <th className="text-center py-1 font-normal">{t('ai_structure_btn')}</th>
+            <th className="text-center py-1 font-normal">{t('ai_stats_structure_col')}</th>
           </tr>
         </thead>
         <tbody>
@@ -5774,7 +5775,9 @@ const structureWithAi = async () => {
     // parseInt garante o mesmo tipo (número) que o dropdown espera —
     // a IA pode retornar practiceId como string mesmo pedindo "number"
     // no prompt, e isso quebra a comparação de valor do <select>.
+    console.log(`🔍 AI Structure PAR — result.practiceId bruto=`, result.practiceId, typeof result.practiceId, '| practices disponíveis:', practices.map(p => ({id: p.id, name: p.name})));
     const practiceIdNum = parseInt(result.practiceId);
+    console.log(`🔍 practiceIdNum após parseInt=`, practiceIdNum);
     setSelectedPracticeId(practiceIdNum);
     setShareFormPracticeId(practiceIdNum);
     await loadProblemCategories(practiceIdNum);
@@ -13036,13 +13039,13 @@ for (const row of rows) {
         </thead>
         <tbody>
           {[
+            { key: 'structure', label: t('ai_row_structure'), radio: false },
             { key: 'comment', label: t('ai_row_comments'), radio: false },
             { key: 'followon', label: t('ai_row_followon'), radio: false },
             { key: 'synthetic', label: t('ai_row_synthetic'), radio: false },
             { key: 'real', label: t('ai_row_real'), radio: false },
             { key: 'own', label: t('ai_row_own'), radio: true, group: 'ownership' },
             { key: 'all', label: t('ai_row_all'), radio: true, group: 'ownership' },
-            { key: 'structure', label: t('ai_row_structure'), radio: false },
           ].map(row => {
             const adminList = (appSettings.aiAdminSettings || '').split(',');
             const userList = (appSettings.aiUserSettings || '').split(',');
@@ -14110,7 +14113,7 @@ onClick={() => {
     campos acima, explicando o que fazer com os botões que já existem
     (sem precisar de botões "Aprovar"/"Editar e Aprovar" novos). */}
 {wasAiPrefilled && (
-  <div className="md:col-span-2 my-4 p-3 bg-purple-50 border border-purple-200 rounded-lg text-sm text-purple-700 text-center">
+  <div className="md:col-span-2 mt-1 mb-4 p-3 bg-purple-50 border border-purple-200 rounded-lg text-sm text-purple-700 text-center">
     {t('ai_structure_review_message')}
   </div>
 )}
@@ -15570,6 +15573,7 @@ onClick={() => {
                       <h4 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
                         <MessageCircle size={18} />
                         {t('add_a_comment')}
+                        {exp.aiAssisted && console.log(`🔍 PAR aiAssisted=${exp.id} — source=${exp.source}, employeeId=${exp.employeeId}, employeeId logado=${employeeId}, isOwner=${exp.employeeId === employeeId}, access=`, getAiReflectionAccess(exp))}
                         {getAiReflectionAccess(exp).canComment && !exp.comments.some(c => c.isAiGenerated) && (
                           <button
                             onClick={() => requestAiReflection(exp.id, 'comment')}
