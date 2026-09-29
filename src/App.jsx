@@ -948,6 +948,30 @@ const calcAiCost = (inputTokens, outputTokens) => {
   return ((inputTokens * 3 + outputTokens * 15) / 1_000_000);
 };
 
+// Registro PERMANENTE de uso/custo de IA — grava em ai_usage_log, uma
+// tabela própria que NUNCA é tocada pela limpeza de demo (ao contrário de
+// comments/experiences, que são apagados no logout/expiração/"Delete Now"
+// quando marcados com demo_session_id). Antes, as estatísticas agregadas
+// (AiUsageStats) somavam direto de comments/experiences — por isso
+// zeravam junto com a limpeza de demo. Best-effort: uma falha aqui nunca
+// deve interromper o fluxo principal (comentário/follow-on/PAR já foi
+// salvo de verdade), só loga no console.
+const logAiUsage = async (companyId, kind, { searchCount = 0, inputTokens = null, outputTokens = null } = {}) => {
+  if (!companyId) return;
+  try {
+    const { error } = await supabase.from('ai_usage_log').insert([{
+      company_id: companyId,
+      kind,
+      ai_search_count: searchCount,
+      ai_input_tokens: inputTokens,
+      ai_output_tokens: outputTokens,
+    }]);
+    if (error) throw error;
+  } catch (err) {
+    console.error('Error logging AI usage (non-blocking):', err);
+  }
+};
+
 // Estatísticas agregadas de uso de IA (buscas/tokens) — histórico
 // completo por empresa, separado por Comment e Follow-on. Calculado sob
 // demanda (não fica guardado em nenhum state global) toda vez que a
@@ -986,25 +1010,20 @@ function AiUsageStats({ companyId, t }) {
         return;
       }
       setLoadingStats(true);
-      // .not('ai_search_count', 'is', null) — só conta registros com dado
-      // de uso REALMENTE rastreado. Registros de antes da migration (sem
-      // essas colunas preenchidas) ficariam de fora, senão "Total de
-      // chamadas" incluiria eles, mas buscas/tokens/custo não teriam
-      // nada pra somar desses mesmos registros — números inconsistentes.
-      // AI Structure PAR usa ai_assisted (não is_ai_generated) — é uma
-      // experiência REAL da pessoa, só a estrutura foi assistida, então
-      // não faz sentido marcá-la como "totalmente gerada por IA".
-      const [{ data: aiComments, error: commentsError }, { data: aiFollowons, error: followonsError }, { data: aiStructured, error: structuredError }] = await Promise.all([
-        supabase.from('comments').select('ai_search_count, ai_input_tokens, ai_output_tokens')
-          .eq('company_id', companyId).eq('is_ai_generated', true).not('ai_search_count', 'is', null),
-        supabase.from('experiences').select('ai_search_count, ai_input_tokens, ai_output_tokens')
-          .eq('company_id', companyId).eq('is_ai_generated', true).not('ai_search_count', 'is', null),
-        supabase.from('experiences').select('ai_search_count, ai_input_tokens, ai_output_tokens')
-          .eq('company_id', companyId).eq('ai_assisted', true).not('ai_search_count', 'is', null),
-      ]);
+      // Lê de ai_usage_log — um registro PERMANENTE gravado no momento de
+      // cada chamada de IA (comment/followon/structured), independente do
+      // que acontece depois com o comment/experience em si. Antes, isso
+      // somava direto de comments/experiences, que são apagados no
+      // logout/expiração de demo ou no "Delete Now" — por isso o
+      // histórico de uso/custo zerava junto com a limpeza de demo, o que
+      // não fazia sentido (o gasto real com a API já tinha acontecido).
+      const { data: usageRows, error: usageError } = await supabase
+        .from('ai_usage_log')
+        .select('kind, ai_search_count, ai_input_tokens, ai_output_tokens')
+        .eq('company_id', companyId);
       if (cancelled) return;
-      if (commentsError || followonsError || structuredError) {
-        console.error('Error loading AI usage stats:', commentsError || followonsError || structuredError);
+      if (usageError) {
+        console.error('Error loading AI usage stats:', usageError);
         setLoadingStats(false);
         return;
       }
@@ -1024,7 +1043,12 @@ function AiUsageStats({ companyId, t }) {
           avgCost: totalCalls > 0 ? (totalCost / totalCalls) : 0,
         };
       };
-      setStats({ comment: summarize(aiComments), followon: summarize(aiFollowons), structured: summarize(aiStructured) });
+      const all = usageRows || [];
+      setStats({
+        comment: summarize(all.filter(r => r.kind === 'comment')),
+        followon: summarize(all.filter(r => r.kind === 'followon')),
+        structured: summarize(all.filter(r => r.kind === 'structured')),
+      });
       setLoadingStats(false);
     };
     load();
@@ -2709,8 +2733,8 @@ const loadAppSettings = async () => {
     top3StartVisible: resolvedTop3StartVisible,
     showMarquee: contentSettingsSource.show_marquee || false,
     industrySectorEnabledEditions: data.industry_sector_enabled_editions || 'pro,edu',
-    aiAdminSettings: data.ai_admin_settings || 'comment,followon,synthetic,real,all',
-    aiUserSettings: data.ai_user_settings || 'comment,followon,real,own',
+    aiAdminSettings: data.ai_admin_settings || 'structure,comment,followon,synthetic,real,all',
+    aiUserSettings: data.ai_user_settings || 'structure,comment,followon,real,own',
     aiCommentCharLimit: data.ai_comment_char_limit || 400,
     aiFollowonCharLimit: data.ai_followon_char_limit || 800,
     aiCommentSearchLimit: data.ai_comment_search_limit || null,
@@ -2756,7 +2780,7 @@ const loadAppSettings = async () => {
   if (!insertError) {
     setAppSettings({
       requireEmployeeLogin: true, editionName: 'corp', allowCvUpload: true,
-      documentType: defaultDocType, showTop3: inheritedShowTop3, top3StartVisible: resolvedTop3StartVisible, showMarquee: inheritedShowMarquee, aiAdminSettings: 'comment,followon,synthetic,real,all', aiUserSettings: 'comment,followon,real,own', aiCommentCharLimit: 400, aiFollowonCharLimit: 800, aiCommentSearchLimit: null, aiFollowonSearchLimit: null
+      documentType: defaultDocType, showTop3: inheritedShowTop3, top3StartVisible: resolvedTop3StartVisible, showMarquee: inheritedShowMarquee, aiAdminSettings: 'structure,comment,followon,synthetic,real,all', aiUserSettings: 'structure,comment,followon,real,own', aiCommentCharLimit: 400, aiFollowonCharLimit: 800, aiCommentSearchLimit: null, aiFollowonSearchLimit: null
     });
     const { data: companyRow } = await supabase.from('companies').select('name').eq('id', effectiveCompanyId).maybeSingle();
     setCompanyName(companyRow?.name || '');
@@ -5634,6 +5658,18 @@ setTimeout(() => {
     
     if (error) throw error;
 
+    // Registro permanente de uso/custo — só quando a IA de fato ajudou a
+    // estruturar esse PAR (wasAiPrefilled). Feito à parte do ai_input_tokens/
+    // ai_output_tokens gravados na própria experience acima, que somem se
+    // essa experience for apagada (demo/"Delete Now"); este aqui, não.
+    if (wasAiPrefilled) {
+      logAiUsage(contentCompanyId, 'structured', {
+        searchCount: 0,
+        inputTokens: aiStructureUsage?.inputTokens,
+        outputTokens: aiStructureUsage?.outputTokens,
+      });
+    }
+
     // Capturar o ID do novo card inserido
     const newExpId = data?.[0]?.id;
 
@@ -5875,6 +5911,30 @@ const requestAiReflection = async (experienceId, type) => {
     });
     if (error) throw error;
     if (data?.error) throw new Error(data.error);
+
+    // Registro permanente de uso/custo — busca os números que a Edge
+    // Function já salvou na própria linha (comment/experience) recém-
+    // criada, e grava uma cópia em ai_usage_log, que nunca é apagada pela
+    // limpeza de demo. Dispara em paralelo (não bloqueia o resto do
+    // fluxo) — é só contabilidade, não pode atrasar a experiência do
+    // usuário nem interromper o fluxo principal se falhar.
+    if (data?.data?.id) {
+      const usageContentCompanyId = loggedInIsDemoId ? defaultCompanyId : effectiveCompanyId;
+      const usageTable = type === 'followon' ? 'experiences' : 'comments';
+      (async () => {
+        const { data: newUsageRow } = await supabase.from(usageTable)
+          .select('ai_search_count, ai_input_tokens, ai_output_tokens')
+          .eq('id', data.data.id).maybeSingle();
+        if (newUsageRow) {
+          logAiUsage(usageContentCompanyId, type, {
+            searchCount: newUsageRow.ai_search_count,
+            inputTokens: newUsageRow.ai_input_tokens,
+            outputTokens: newUsageRow.ai_output_tokens,
+          });
+        }
+      })();
+    }
+
     // skipLoading=true PURO — garante que ESSA chamada nunca é
     // descartada por sua própria proteção interna. Mas isso não impede
     // que OUTRA chamada automática não-relacionada (comuns logo após
