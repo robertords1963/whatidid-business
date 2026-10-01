@@ -5720,8 +5720,12 @@ setTimeout(() => {
 
     return true;
   } catch (error) {
+    // Mostra a mensagem real do Postgres/Supabase junto da tradução —
+    // sem isso, um erro de constraint do banco (ex: coluna NOT NULL que
+    // não aceita o result_category=null do "Submit Problem Only") virava
+    // um alerta genérico sem pista nenhuma de qual coluna/regra falhou.
     console.error('Error adding experience:', error);
-    alert(t('error_saving_experience'));
+    alert(t('error_saving_experience') + (error?.message ? ('\n\n' + error.message) : ''));
     return false;
   }
 };
