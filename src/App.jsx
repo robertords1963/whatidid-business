@@ -770,7 +770,7 @@ const UI_STRINGS = {
   ai_thinking_structuring: { en: 'Structuring…', es: 'Estructurando…', pt: 'Estruturando…', zh: '正在结构化…' },
   ai_thinking_almost: { en: 'Almost there…', es: 'Casi listo…', pt: 'Quase lá…', zh: '快好了…' },
   ai_structure_error: { en: 'Could not structure your experience with AI.', es: 'No se pudo estructurar tu experiencia con IA.', pt: 'Não foi possível estruturar sua experiência com IA.', zh: '无法使用AI结构化您的经历。' },
-  ai_structure_review_message: { en: 'AI filled in the fields above based on what you wrote. If it looks good, use the buttons below to attach a file (optional) and submit. If not, edit anything you\'d like, then use the buttons below to submit.', es: 'La IA completó los campos de arriba según lo que escribiste. Si está bien, usa los botones de abajo para adjuntar un archivo (opcional) y enviar. Si no, edita lo que quieras y luego usa los botones de abajo para enviar.', pt: 'A IA preencheu os campos acima com base no que você escreveu. Se estiver bom, use os botões abaixo para anexar um arquivo (opcional) e enviar. Se não, edite o que quiser e depois use os botões abaixo para enviar.', zh: 'AI根据您写的内容填写了上面的字段。如果没问题，请使用下方按钮附加文件（可选）并提交。如果需要修改，请先编辑，然后使用下方按钮提交。' },
+  ai_structure_review_message: { en: 'AI filled in the fields above based on what you wrote. If it looks good, use the buttons below to attach a file (optional) and submit. If not, edit anything you\'d like, then use the buttons below to submit. Fill in either just the Problem, or all the fields.', es: 'La IA completó los campos de arriba según lo que escribiste. Si está bien, usa los botones de abajo para adjuntar un archivo (opcional) y enviar. Si no, edita lo que quieras y luego usa los botones de abajo para enviar. Completa solo el Problema, o todos los campos.', pt: 'A IA preencheu os campos acima com base no que você escreveu. Se estiver bom, use os botões abaixo para anexar um arquivo (opcional) e enviar. Se não, edite o que quiser e depois use os botões abaixo para enviar. Preencher ou apenas o Problema ou todos os campos.', zh: 'AI根据您写的内容填写了上面的字段。如果没问题，请使用下方按钮附加文件（可选）并提交。如果需要修改，请先编辑，然后使用下方按钮提交。只需填写问题，或填写所有字段。' },
   ai_assisted_badge: { en: '✨ Structured with AI', es: '✨ Estructurado con IA', pt: '✨ Estruturado com IA', zh: '✨ AI结构化' },
   ai_stats_avg_searches: { en: 'Avg. searches/call', es: 'Prom. búsquedas/llamada', pt: 'Média de buscas/chamada', zh: '平均搜索/次' },
   ai_stats_avg_tokens: { en: 'Avg. tokens/call', es: 'Prom. tokens/llamada', pt: 'Média de tokens/chamada', zh: '平均令牌/次' },
@@ -7693,8 +7693,10 @@ const handleDeleteAllMatches = async () => {
   // guardado separadamente, na própria linha do PAR pai. Então, na hora
   // de exibir, basta achar o pai, conferir se ele é Problem Only, e ver
   // se o problem desse Follow-on começa exatamente com o texto do pai.
-  // Retorna null quando não há nada pra destacar (não é Follow-on de um
-  // Problem Only, ou não houve nenhum texto acrescentado).
+  // Retorna null só quando não é Follow-on de um Problem Only — o rótulo
+  // "(Problema original)" deve aparecer mesmo que a pessoa não tenha
+  // acrescentado nada ao Problem (addition pode vir '' nesse caso; quem
+  // exibe decide se mostra ou não o segundo parágrafo).
   const splitFollowOnProblem = (exp) => {
     if (!exp || !exp.parentExperienceId) return null;
     const parent = experiences.find(e => e.id === exp.parentExperienceId);
@@ -7705,7 +7707,6 @@ const handleDeleteAllMatches = async () => {
     const fullText = (exp.problem || '').trim();
     if (!originalText || !fullText.startsWith(originalText)) return null;
     const addition = fullText.slice(originalText.length).trim();
-    if (!addition) return null;
     return { original: originalText, addition };
   };
 
@@ -8137,7 +8138,7 @@ useEffect(() => {
                         <br />
                         <span className="text-xs text-gray-400 italic">{t('original_problem_tag')}</span>
                       </p>
-                      <p className="text-sm text-gray-700 mt-3">{highlightText(split.addition, searchTerms)}</p>
+                      {split.addition && <p className="text-sm text-gray-700 mt-3">{highlightText(split.addition, searchTerms)}</p>}
                     </>
                   );
                 })()}
@@ -15298,7 +15299,7 @@ onClick={() => {
                                   <br />
                                   <span className="text-xs text-gray-400 italic">{t('original_problem_tag')}</span>
                                 </p>
-                                <p className="text-sm text-gray-700 mt-3">{highlightText(split.addition, searchTerms)}</p>
+                                {split.addition && <p className="text-sm text-gray-700 mt-3">{highlightText(split.addition, searchTerms)}</p>}
                               </>
                             );
                           })()}
@@ -15431,7 +15432,7 @@ onClick={() => {
                                           <br />
                                           <span className="text-xs text-gray-400 italic">{t('original_problem_tag')}</span>
                                         </p>
-                                        <p className="text-sm text-gray-700 mt-3">{split.addition}</p>
+                                        {split.addition && <p className="text-sm text-gray-700 mt-3">{split.addition}</p>}
                                       </>
                                     );
                                   })()}
