@@ -339,6 +339,12 @@ const UI_STRINGS = {
   // Lote 3 — botões e navegação principal do UI público
   see_what_others_did: { en: 'See What Others Did', es: 'Ver Lo Que Otros Hicieron', pt: 'Veja o Que Outros Fizeram', zh: '查看他人的经验' },
   share_your_experience: { en: 'Share Your Experience', es: 'Comparte Tu Experiencia', pt: 'Compartilhe Sua Experiência', zh: '分享你的经验' },
+  submit_problem_only_btn: { en: '📤 Submit Problem Only', es: '📤 Enviar Solo el Problema', pt: '📤 Enviar Apenas o Problema', zh: '📤 仅提交问题' },
+  needs_action_result_badge: { en: '🆘 Needs Action & Result', es: '🆘 Necesita Acción y Resultado', pt: '🆘 Precisa de Ação e Resultado', zh: '🆘 需要行动与结果' },
+  no_action_yet: { en: 'No action shared yet — be the first to help.', es: 'Aún no hay acción compartida — sé el primero en ayudar.', pt: 'Ainda sem ação compartilhada — seja o primeiro a ajudar.', zh: '尚未分享行动 — 成为第一个提供帮助的人。' },
+  no_result_yet: { en: 'No result yet.', es: 'Aún no hay resultado.', pt: 'Ainda sem resultado.', zh: '尚无结果。' },
+  original_problem_label: { en: 'Original problem (from the thread) — your addition below will be appended, not replace it:', es: 'Problema original (del hilo) — tu adición abajo será añadida, no lo reemplaza:', pt: 'Problema original (da thread) — o que você adicionar abaixo será acrescentado, não substitui:', zh: '原始问题（来自该主题）— 你下面添加的内容会被追加，而不会替换它：' },
+  additional_problem_context_label: { en: 'Add more context to the problem (optional):', es: 'Agrega más contexto al problema (opcional):', pt: 'Adicione mais contexto ao problema (opcional):', zh: '为问题补充更多背景（可选）：' },
   individual: { en: 'Individual', es: 'Individuales', pt: 'Individuais', zh: '个人' },
   experiences: { en: 'Experiences', es: 'Experiencias', pt: 'Experiências', zh: '经验' },
   user_stories: { en: '(User Stories)', es: '(Historias de Usuarios)', pt: '(Histórias de Usuários)', zh: '（用户故事）' },
@@ -948,27 +954,27 @@ const calcAiCost = (inputTokens, outputTokens) => {
   return ((inputTokens * 3 + outputTokens * 15) / 1_000_000);
 };
 
-// Registro PERMANENTE de uso/custo de IA — grava em ai_usage_log, uma
-// tabela própria que NUNCA é tocada pela limpeza de demo (ao contrário de
-// comments/experiences, que são apagados no logout/expiração/"Delete Now"
-// quando marcados com demo_session_id). Antes, as estatísticas agregadas
-// (AiUsageStats) somavam direto de comments/experiences — por isso
-// zeravam junto com a limpeza de demo. Best-effort: uma falha aqui nunca
-// deve interromper o fluxo principal (comentário/follow-on/PAR já foi
-// salvo de verdade), só loga no console.
-const logAiUsage = async (companyId, kind, { searchCount = 0, inputTokens = null, outputTokens = null } = {}) => {
+// Registro PERMANENTE de uso/custo de IA, numa tabela própria
+// (ai_usage_log) que não tem demo_session_id e nunca é apagada pelo
+// app — diferente de comments/experiences, que são limpos no
+// logout/expiração da demo ou no botão "Delete Now". Sem isso, o
+// histórico de uso/custo zerava sempre que uma sessão de demo era
+// limpa, porque as estatísticas eram somadas direto das colunas
+// ai_search_count/ai_input_tokens/ai_output_tokens em cima dessas
+// mesmas linhas efêmeras. Chamado em todo ponto que gera uso de IA:
+// AI Comment, AI Follow-on e AI Structure PAR.
+const logAiUsage = async (companyId, kind, { searchCount, inputTokens, outputTokens } = {}) => {
   if (!companyId) return;
   try {
-    const { error } = await supabase.from('ai_usage_log').insert([{
+    await supabase.from('ai_usage_log').insert([{
       company_id: companyId,
       kind,
-      ai_search_count: searchCount,
-      ai_input_tokens: inputTokens,
-      ai_output_tokens: outputTokens,
+      ai_search_count: searchCount ?? null,
+      ai_input_tokens: inputTokens ?? null,
+      ai_output_tokens: outputTokens ?? null,
     }]);
-    if (error) throw error;
-  } catch (err) {
-    console.error('Error logging AI usage (non-blocking):', err);
+  } catch (error) {
+    console.error('Error logging AI usage:', error);
   }
 };
 
@@ -1010,20 +1016,24 @@ function AiUsageStats({ companyId, t }) {
         return;
       }
       setLoadingStats(true);
-      // Lê de ai_usage_log — um registro PERMANENTE gravado no momento de
-      // cada chamada de IA (comment/followon/structured), independente do
-      // que acontece depois com o comment/experience em si. Antes, isso
-      // somava direto de comments/experiences, que são apagados no
-      // logout/expiração de demo ou no "Delete Now" — por isso o
-      // histórico de uso/custo zerava junto com a limpeza de demo, o que
-      // não fazia sentido (o gasto real com a API já tinha acontecido).
-      const { data: usageRows, error: usageError } = await supabase
-        .from('ai_usage_log')
-        .select('kind, ai_search_count, ai_input_tokens, ai_output_tokens')
-        .eq('company_id', companyId);
+      // Lê da tabela PERMANENTE ai_usage_log (ver comentário em
+      // logAiUsage, acima) em vez de somar direto das colunas
+      // ai_search_count/ai_input_tokens/ai_output_tokens de comments/
+      // experiences — essas linhas são apagadas no logout/expiração da
+      // demo ou no "Delete Now", o que zerava esse histórico junto.
+      // ai_usage_log nunca tem demo_session_id e o app nunca faz DELETE
+      // nela, então o acumulado sobrevive à limpeza de conteúdo de demo.
+      const [{ data: aiComments, error: commentsError }, { data: aiFollowons, error: followonsError }, { data: aiStructured, error: structuredError }] = await Promise.all([
+        supabase.from('ai_usage_log').select('ai_search_count, ai_input_tokens, ai_output_tokens')
+          .eq('company_id', companyId).eq('kind', 'comment'),
+        supabase.from('ai_usage_log').select('ai_search_count, ai_input_tokens, ai_output_tokens')
+          .eq('company_id', companyId).eq('kind', 'followon'),
+        supabase.from('ai_usage_log').select('ai_search_count, ai_input_tokens, ai_output_tokens')
+          .eq('company_id', companyId).eq('kind', 'structured'),
+      ]);
       if (cancelled) return;
-      if (usageError) {
-        console.error('Error loading AI usage stats:', usageError);
+      if (commentsError || followonsError || structuredError) {
+        console.error('Error loading AI usage stats:', commentsError || followonsError || structuredError);
         setLoadingStats(false);
         return;
       }
@@ -1043,12 +1053,7 @@ function AiUsageStats({ companyId, t }) {
           avgCost: totalCalls > 0 ? (totalCost / totalCalls) : 0,
         };
       };
-      const all = usageRows || [];
-      setStats({
-        comment: summarize(all.filter(r => r.kind === 'comment')),
-        followon: summarize(all.filter(r => r.kind === 'followon')),
-        structured: summarize(all.filter(r => r.kind === 'structured')),
-      });
+      setStats({ comment: summarize(aiComments), followon: summarize(aiFollowons), structured: summarize(aiStructured) });
       setLoadingStats(false);
     };
     load();
@@ -5387,6 +5392,7 @@ if (matches.length > 0) {
     setKeyInsightCategory('');
     setSelectedTags([]);
     setFollowOnParentId(null);
+    setFollowOnLockedProblem(null);
     setSelectedPracticeId(null);
     setShareFormPracticeId(null);
     setFreeTextInput('');
@@ -5627,9 +5633,14 @@ setTimeout(() => {
       .insert([{
         problem: newExperience.problem,
         problem_category: newExperience.problemCategory,
-        solution: newExperience.solution,
-        result: newExperience.result,
-        result_category: newExperience.resultCategory,
+        // "Submit Problem Only" — Action/Result ficam em aberto pra outra
+        // pessoa (ou a IA) completar depois via Follow-On. result_category
+        // vai como null (não '') porque é validado contra uma lista fixa
+        // de valores (worked/no-change/got-worse) — '' quebraria um CHECK
+        // constraint, se existir; null passa por qualquer CHECK normal.
+        solution: newExperience.solution || '',
+        result: newExperience.result || '',
+        result_category: newExperience.resultCategory || null,
         industry_sector: newExperience.industrySector || '',
         ai_assisted: wasAiPrefilled,
         ai_search_count: wasAiPrefilled ? 0 : null,
@@ -5658,10 +5669,7 @@ setTimeout(() => {
     
     if (error) throw error;
 
-    // Registro permanente de uso/custo — só quando a IA de fato ajudou a
-    // estruturar esse PAR (wasAiPrefilled). Feito à parte do ai_input_tokens/
-    // ai_output_tokens gravados na própria experience acima, que somem se
-    // essa experience for apagada (demo/"Delete Now"); este aqui, não.
+    // Log permanente de uso de IA (AI Structure PAR) — ver logAiUsage.
     if (wasAiPrefilled) {
       logAiUsage(contentCompanyId, 'structured', {
         searchCount: 0,
@@ -5860,7 +5868,10 @@ const structureWithAi = async () => {
     await loadProblemCategories(practiceIdNum);
     setCurrentEntry(prev => ({
       ...prev,
-      problem: result.problem || '',
+      // Follow-On de um PAR "Problem Only" — o problema já vem travado
+      // (texto do pai), então a IA não deve sobrescrever currentEntry.problem
+      // com uma reformulação própria; só preenche Action/Result/categorias.
+      problem: followOnLockedProblem ? prev.problem : (result.problem || ''),
       problemCategory: result.problemCategory || '',
       solution: result.action || '',
       result: result.result || '',
@@ -5912,28 +5923,16 @@ const requestAiReflection = async (experienceId, type) => {
     if (error) throw error;
     if (data?.error) throw new Error(data.error);
 
-    // Registro permanente de uso/custo — busca os números que a Edge
-    // Function já salvou na própria linha (comment/experience) recém-
-    // criada, e grava uma cópia em ai_usage_log, que nunca é apagada pela
-    // limpeza de demo. Dispara em paralelo (não bloqueia o resto do
-    // fluxo) — é só contabilidade, não pode atrasar a experiência do
-    // usuário nem interromper o fluxo principal se falhar.
-    if (data?.data?.id) {
-      const usageContentCompanyId = loggedInIsDemoId ? defaultCompanyId : effectiveCompanyId;
-      const usageTable = type === 'followon' ? 'experiences' : 'comments';
-      (async () => {
-        const { data: newUsageRow } = await supabase.from(usageTable)
-          .select('ai_search_count, ai_input_tokens, ai_output_tokens')
-          .eq('id', data.data.id).maybeSingle();
-        if (newUsageRow) {
-          logAiUsage(usageContentCompanyId, type, {
-            searchCount: newUsageRow.ai_search_count,
-            inputTokens: newUsageRow.ai_input_tokens,
-            outputTokens: newUsageRow.ai_output_tokens,
-          });
-        }
-      })();
-    }
+    // Log permanente de uso de IA (AI Comment / AI Follow-on) — ver
+    // logAiUsage. data.data é a própria linha inserida (comment ou
+    // experience), que já traz ai_search_count/ai_input_tokens/
+    // ai_output_tokens preenchidos pela Edge Function.
+    const aiUsageContentCompanyId = loggedInIsDemoId ? defaultCompanyId : effectiveCompanyId;
+    logAiUsage(aiUsageContentCompanyId, type, {
+      searchCount: data?.data?.ai_search_count,
+      inputTokens: data?.data?.ai_input_tokens,
+      outputTokens: data?.data?.ai_output_tokens,
+    });
 
     // skipLoading=true PURO — garante que ESSA chamada nunca é
     // descartada por sua própria proteção interna. Mas isso não impede
@@ -6180,6 +6179,11 @@ const [currentEntry, setCurrentEntry] = useState({
     age: '',
     country: ''
   });
+// Follow-On de um PAR "Problem Only" — guarda o texto original (travado)
+// do problema, separado do que a pessoa for acrescentar em
+// currentEntry.problem. null = Follow-On normal (continuação de história)
+// ou criação de PAR novo, sem nada travado.
+const [followOnLockedProblem, setFollowOnLockedProblem] = useState(null);
 
 // ⭐ Estados para gerenciar CVs
 const [selectedCv, setSelectedCv] = useState(null);
@@ -6464,22 +6468,48 @@ const industrySectorFeatureEnabled = (appSettings.industrySectorEnabledEditions 
     { value: 'got-worse', label: t('got_worse'), color: 'bg-red-100 text-red-800' }
   ];
 
+  // Quando o Follow-On responde a um PAR "Problem Only", o problema
+  // efetivo é o texto travado do pai + o que a pessoa acrescentar (o
+  // acréscimo é opcional — o texto original sozinho já conta como
+  // problema preenchido). Fora desse caso, é só currentEntry.problem,
+  // como sempre foi.
+  const effectiveProblemText = followOnLockedProblem
+    ? (currentEntry.problem.trim() ? `${followOnLockedProblem}\n\n${currentEntry.problem.trim()}` : followOnLockedProblem)
+    : currentEntry.problem;
+
+  // Um PAR pode ser submetido de duas formas: completo (Problem + Action +
+  // Result + as duas categorias) ou só o Problem (Problem + categoria do
+  // Problem), pra quando a pessoa ainda não sabe o que fazer a respeito —
+  // nesse caso, Action/Result ficam em aberto pra outra pessoa (ou a IA)
+  // completar depois via Follow-On. matchResults (Common Case) só faz
+  // sentido pro PAR completo, já que compara a solução também.
+  const isCurrentEntryProblemOnly = !!(effectiveProblemText && currentEntry.problemCategory
+    && !(currentEntry.solution && currentEntry.result && currentEntry.resultCategory));
+
   const handleSubmit = async () => {
-  if (currentEntry.problem && currentEntry.problemCategory && 
+  if (effectiveProblemText && currentEntry.problemCategory &&
       currentEntry.solution && currentEntry.result && currentEntry.resultCategory) {
-    
-    const matchResults = findBestCommonCaseMatch(currentEntry);
-    
+
+    const entryToSubmit = { ...currentEntry, problem: effectiveProblemText };
+    const matchResults = findBestCommonCaseMatch(entryToSubmit);
+
     if (matchResults && matchResults.length > 0) {
       setSuggestedMapping(matchResults); // Array agora
-      setPendingExperience(currentEntry);
+      setPendingExperience(entryToSubmit);
       setShowMappingModal(true);
     } else {
-      const success = await addExperienceToSupabase(currentEntry, null);
-      
+      const success = await addExperienceToSupabase(entryToSubmit, null);
+
       if (success) {
         resetForm();
       }
+    }
+  } else if (isCurrentEntryProblemOnly) {
+    // Submit Problem Only — sem Common Case matching (que depende da
+    // solução, ainda inexistente), e sem Action/Result/resultCategory.
+    const success = await addExperienceToSupabase({ ...currentEntry, problem: effectiveProblemText }, null);
+    if (success) {
+      resetForm();
     }
   }
 };
@@ -7810,6 +7840,7 @@ useEffect(() => {
     // Limpa qualquer resíduo de Follow-On, já que "Voltar" abandona a
     // entrada que estava sendo preenchida.
     setFollowOnParentId(null);
+    setFollowOnLockedProblem(null);
     setSelectedPracticeId(null);
     setShareFormPracticeId(null);
     // Sem isso, Category e Industry Sector ficavam "presos" com o valor
@@ -8041,6 +8072,11 @@ useEffect(() => {
                 </div>
               </div>
             </div>
+            {!fo.solution && !fo.result && (
+              <div className="mb-3">
+                <span className="text-xs font-medium bg-orange-100 text-orange-700 px-3 py-1 rounded-full">{t('needs_action_result_badge')}</span>
+              </div>
+            )}
             {/* P/A/R grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
               <div className="space-y-2">
@@ -8052,14 +8088,16 @@ useEffect(() => {
               </div>
               <div className="space-y-2">
                 <h4 className="font-semibold text-blue-600 flex items-center gap-2"><TrendingUp size={16}/>{t('action')}</h4>
-                <p className="text-sm text-gray-700">{highlightText(fo.solution, searchTerms)}</p>
+                <p className={`text-sm ${fo.solution ? 'text-gray-700' : 'text-gray-400 italic'}`}>{fo.solution ? highlightText(fo.solution, searchTerms) : t('no_action_yet')}</p>
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <h4 className="font-semibold text-green-600 flex items-center gap-2"><Share2 size={16}/>{t('result')}</h4>
-                  <span className={`text-xs px-3 py-1 rounded-full ${getResultColor(fo.resultCategory)}`}>{getResultLabel(fo.resultCategory)}</span>
+                  {fo.resultCategory && (
+                    <span className={`text-xs px-3 py-1 rounded-full ${getResultColor(fo.resultCategory)}`}>{getResultLabel(fo.resultCategory)}</span>
+                  )}
                 </div>
-                <p className="text-sm text-gray-700">{highlightText(fo.result, searchTerms)}</p>
+                <p className={`text-sm ${fo.result ? 'text-gray-700' : 'text-gray-400 italic'}`}>{fo.result ? highlightText(fo.result, searchTerms) : t('no_result_yet')}</p>
               </div>
             </div>
             {/* Tags */}
@@ -8304,8 +8342,13 @@ useEffect(() => {
                   {expandedGaps[nextGapInfo.gapKey] ? '▲' : '▼'} ↓ {nextGapInfo.cards.length} Follow-On Unfiltered {nextGapInfo.cards.length === 1 ? 'Experience' : 'Experiences'}
                 </button>
               )}
-              {/* 🔗 Add Follow-On — inibido se já tem filho */}
-              {foChildren.length === 0 && !isGreyed && (
+              {/* 🔗 Add Follow-On — não inibe mais com filho existente: um PAR
+                  pode receber vários Follow-Ons (várias pessoas respondendo,
+                  especialmente relevante pra um PAR "Problem Only" em
+                  aberto). Cada novo Follow-On vira filho DESTE card
+                  específico (fo.id), entrando no fim da lista de filhos
+                  dele — não da raiz do thread inteiro. */}
+              {!isGreyed && (
                 <button onClick={() => {
                   captureNavSnapshot('share');
                   setFollowOnParentId(fo.id);
@@ -8314,7 +8357,12 @@ useEffect(() => {
                     setShareFormPracticeId(fo.practiceId);
                     loadProblemCategories(fo.practiceId);
                   }
-                  setCurrentEntry(prev => ({ ...prev, problemCategory: fo.problemCategory || '', industrySector: fo.industrySector || '' }));
+                  // Se este card é "Problem Only" (sem Action/Result ainda),
+                  // o texto do problema vem travado — quem responder só
+                  // acrescenta contexto, sem reescrever/apagar o original.
+                  const foIsProblemOnly = !fo.solution && !fo.result;
+                  setFollowOnLockedProblem(foIsProblemOnly ? (fo.problem || '') : null);
+                  setCurrentEntry(prev => ({ ...prev, problem: '', problemCategory: fo.problemCategory || '', industrySector: fo.industrySector || '' }));
                   setActiveMainTab('share'); scrollToTabs();
                 }} className="mt-3 text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">
                   {t('add_follow_on')}
@@ -13836,6 +13884,7 @@ onClick={() => {
         // diferente da que o usuário está prestes a criar agora.
         if (followOnParentId) {
           setFollowOnParentId(null);
+          setFollowOnLockedProblem(null);
           setSelectedPracticeId(null);
           setShareFormPracticeId(null);
           setCurrentEntry(prev => ({ ...prev, problemCategory: '' }));
@@ -13924,7 +13973,7 @@ onClick={() => {
           <p className="text-xs font-semibold text-blue-700 mb-1">{t('follow_on_to')}</p>
           <p className="text-xs text-blue-600 italic line-clamp-2">{parentExp.problem.substring(0, 150)}{parentExp.problem.length > 150 ? '...' : ''}</p>
         </div>
-        <button onClick={() => setFollowOnParentId(null)} className="text-blue-400 hover:text-blue-600 text-xl leading-none flex-shrink-0">×</button>
+        <button onClick={() => { setFollowOnParentId(null); setFollowOnLockedProblem(null); }} className="text-blue-400 hover:text-blue-600 text-xl leading-none flex-shrink-0">×</button>
       </div>
     ) : null;
   })()}
@@ -14104,22 +14153,52 @@ onClick={() => {
                 );
               })()}
 
-              <div className="relative">
-                <textarea
-                  value={currentEntry.problem}
-                  onChange={(e) => {
-                    if (e.target.value.length <= maxChars.problem) {
-                      setCurrentEntry({...currentEntry, problem: e.target.value});
-                    }
-                  }}
-                  placeholder={t('describe_problem')}
-                  className="w-full h-40 p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none resize-none"
-                  required
-                />
-                <div className="text-xs text-gray-500 mt-1 text-right">
-                  {currentEntry.problem.length}/{maxChars.problem}
+              {/* Follow-On de um PAR "Problem Only" — o texto original do
+                  problema vem travado (não editável, pra ninguém apagar o
+                  que o autor do PAR em aberto escreveu); só um campo à
+                  parte pra acrescentar contexto, que é concatenado ao
+                  original na hora de salvar (ver effectiveProblemText). */}
+              {followOnLockedProblem ? (
+                <div className="space-y-2">
+                  <div>
+                    <p className="text-xs font-medium text-gray-500 mb-1">{t('original_problem_label')}</p>
+                    <p className="w-full p-3 border-2 border-gray-200 bg-gray-50 rounded-lg text-sm text-gray-700 whitespace-pre-wrap">{followOnLockedProblem}</p>
+                  </div>
+                  <div className="relative">
+                    <p className="text-xs font-medium text-gray-500 mb-1">{t('additional_problem_context_label')}</p>
+                    <textarea
+                      value={currentEntry.problem}
+                      onChange={(e) => {
+                        if (e.target.value.length <= maxChars.problem) {
+                          setCurrentEntry({...currentEntry, problem: e.target.value});
+                        }
+                      }}
+                      placeholder={t('describe_problem')}
+                      className="w-full h-24 p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none resize-none"
+                    />
+                    <div className="text-xs text-gray-500 mt-1 text-right">
+                      {currentEntry.problem.length}/{maxChars.problem}
+                    </div>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="relative">
+                  <textarea
+                    value={currentEntry.problem}
+                    onChange={(e) => {
+                      if (e.target.value.length <= maxChars.problem) {
+                        setCurrentEntry({...currentEntry, problem: e.target.value});
+                      }
+                    }}
+                    placeholder={t('describe_problem')}
+                    className="w-full h-40 p-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none resize-none"
+                    required
+                  />
+                  <div className="text-xs text-gray-500 mt-1 text-right">
+                    {currentEntry.problem.length}/{maxChars.problem}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="space-y-3">
@@ -14306,14 +14385,14 @@ onClick={() => {
 
       <button
         onClick={handleSubmit}
-        disabled={!(currentEntry.problem && currentEntry.problemCategory && currentEntry.solution && currentEntry.result && currentEntry.resultCategory)}
+        disabled={!((effectiveProblemText && currentEntry.problemCategory && currentEntry.solution && currentEntry.result && currentEntry.resultCategory) || isCurrentEntryProblemOnly)}
         className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
         title={t('share_your_experience')}
       >
-        <Send size={18} />
+        {isCurrentEntryProblemOnly ? <span className="text-sm font-medium whitespace-nowrap">{t('submit_problem_only_btn')}</span> : <Send size={18} />}
       </button>
     </div>
-    
+
     <p className="text-xs text-gray-500 mt-1">{t('max_5mb')}</p>
   </div>
 )}
@@ -14323,11 +14402,11 @@ onClick={() => {
   <div className="md:col-span-2 flex justify-end">
     <button
       onClick={handleSubmit}
-      disabled={!(currentEntry.problem && currentEntry.problemCategory && currentEntry.solution && currentEntry.result && currentEntry.resultCategory)}
+      disabled={!((effectiveProblemText && currentEntry.problemCategory && currentEntry.solution && currentEntry.result && currentEntry.resultCategory) || isCurrentEntryProblemOnly)}
       className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
       title={t('share_your_experience')}
     >
-      <Send size={18} />
+      {isCurrentEntryProblemOnly ? <span className="text-sm font-medium whitespace-nowrap">{t('submit_problem_only_btn')}</span> : <Send size={18} />}
     </button>
   </div>
 )}
@@ -15142,6 +15221,11 @@ onClick={() => {
                           <span className="text-sm font-semibold text-gray-700">{exp.avgRating.toFixed(1)} <span className="text-xs text-gray-500">({exp.totalRatings})</span></span>
                         </div>
                       </div>
+                      {!exp.solution && !exp.result && (
+                        <div className="mb-3">
+                          <span className="text-xs font-medium bg-orange-100 text-orange-700 px-3 py-1 rounded-full">{t('needs_action_result_badge')}</span>
+                        </div>
+                      )}
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
@@ -15152,14 +15236,16 @@ onClick={() => {
                         </div>
                         <div className="space-y-2">
                           <h4 className="font-semibold text-blue-600 flex items-center gap-2"><TrendingUp size={16}/>{t('action')}</h4>
-                          <p className="text-sm text-gray-700">{highlightText(exp.solution, searchTerms)}</p>
+                          <p className={`text-sm ${exp.solution ? 'text-gray-700' : 'text-gray-400 italic'}`}>{exp.solution ? highlightText(exp.solution, searchTerms) : t('no_action_yet')}</p>
                         </div>
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
                             <h4 className="font-semibold text-green-600 flex items-center gap-2"><Share2 size={16}/>{t('result')}</h4>
-                            <span className={`text-xs px-3 py-1 rounded-full ${getResultColor(exp.resultCategory)}`}>{getResultLabel(exp.resultCategory)}</span>
+                            {exp.resultCategory && (
+                              <span className={`text-xs px-3 py-1 rounded-full ${getResultColor(exp.resultCategory)}`}>{getResultLabel(exp.resultCategory)}</span>
+                            )}
                           </div>
-                          <p className="text-sm text-gray-700">{highlightText(exp.result, searchTerms)}</p>
+                          <p className={`text-sm ${exp.result ? 'text-gray-700' : 'text-gray-400 italic'}`}>{exp.result ? highlightText(exp.result, searchTerms) : t('no_result_yet')}</p>
                         </div>
                       </div>
                       {exp.tags && exp.tags.length > 0 && (
@@ -15255,6 +15341,11 @@ onClick={() => {
                                   {isRoot ? t('original_experience') : t('upstream_experience')}
                                 </span>
                               </div>
+                              {!ancestor.solution && !ancestor.result && (
+                                <div className="mb-3 text-center">
+                                  <span className="text-xs font-medium bg-orange-100 text-orange-700 px-3 py-1 rounded-full">{t('needs_action_result_badge')}</span>
+                                </div>
+                              )}
                               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
                                 <div className="space-y-2">
                                   <div className="flex items-center justify-between">
@@ -15265,14 +15356,16 @@ onClick={() => {
                                 </div>
                                 <div className="space-y-2">
                                   <h4 className="font-semibold text-blue-600 flex items-center gap-2"><TrendingUp size={16}/>{t('action')}</h4>
-                                  <p className="text-sm text-gray-700">{ancestor.solution}</p>
+                                  <p className={`text-sm ${ancestor.solution ? 'text-gray-700' : 'text-gray-400 italic'}`}>{ancestor.solution || t('no_action_yet')}</p>
                                 </div>
                                 <div className="space-y-2">
                                   <div className="flex items-center justify-between">
                                     <h4 className="font-semibold text-green-600 flex items-center gap-2"><Share2 size={16}/>{t('result')}</h4>
-                                    <span className={`text-xs px-3 py-1 rounded-full ${getResultColor(ancestor.resultCategory)}`}>{getResultLabel(ancestor.resultCategory)}</span>
+                                    {ancestor.resultCategory && (
+                                      <span className={`text-xs px-3 py-1 rounded-full ${getResultColor(ancestor.resultCategory)}`}>{getResultLabel(ancestor.resultCategory)}</span>
+                                    )}
                                   </div>
-                                  <p className="text-sm text-gray-700">{ancestor.result}</p>
+                                  <p className={`text-sm ${ancestor.result ? 'text-gray-700' : 'text-gray-400 italic'}`}>{ancestor.result || t('no_result_yet')}</p>
                                 </div>
                               </div>
                               {(ancestor.author || ancestor.employeeId) && (
@@ -15458,6 +15551,11 @@ onClick={() => {
   </div>
 </div>
                   
+                  {!exp.solution && !exp.result && (
+                    <div className="mb-3 text-center">
+                      <span className="text-xs font-medium bg-orange-100 text-orange-700 px-3 py-1 rounded-full">{t('needs_action_result_badge')}</span>
+                    </div>
+                  )}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
@@ -15479,9 +15577,13 @@ onClick={() => {
                         <TrendingUp size={16} />
                         {t('action')}
                       </h4>
-<p className={`text-sm text-gray-700 ${exp.author === 'key_insights' ? 'whitespace-pre-line' : ''}`}>
-  {highlightText(exp.solution, filters.searchText ? filters.searchText.toLowerCase().trim().split(/\s+/) : [])}
-</p>
+{exp.solution ? (
+  <p className={`text-sm text-gray-700 ${exp.author === 'key_insights' ? 'whitespace-pre-line' : ''}`}>
+    {highlightText(exp.solution, filters.searchText ? filters.searchText.toLowerCase().trim().split(/\s+/) : [])}
+  </p>
+) : (
+  <p className="text-sm text-gray-400 italic">{t('no_action_yet')}</p>
+)}
                       </div>
                     <div className="space-y-2">
   <div className="flex items-center justify-between">
@@ -15489,19 +15591,25 @@ onClick={() => {
       <Share2 size={16} />
       {t('result')}
     </h4>
-    {exp.author === 'key_insights' && exp.resultCategory === 'varies' ? (
-      <span className="text-xs px-3 py-1 rounded-full bg-purple-100 text-purple-800">
-        {t('result_varies')}
-      </span>
-    ) : (
-      <span className={`text-xs px-3 py-1 rounded-full ${getResultColor(exp.resultCategory)}`}>
-        {getResultLabel(exp.resultCategory)}
-      </span>
+    {exp.resultCategory && (
+      exp.author === 'key_insights' && exp.resultCategory === 'varies' ? (
+        <span className="text-xs px-3 py-1 rounded-full bg-purple-100 text-purple-800">
+          {t('result_varies')}
+        </span>
+      ) : (
+        <span className={`text-xs px-3 py-1 rounded-full ${getResultColor(exp.resultCategory)}`}>
+          {getResultLabel(exp.resultCategory)}
+        </span>
+      )
     )}
   </div>
-<p className="text-sm text-gray-700">
-  {highlightText(exp.result, filters.searchText ? filters.searchText.toLowerCase().trim().split(/\s+/) : [])}
-</p>
+{exp.result ? (
+  <p className="text-sm text-gray-700">
+    {highlightText(exp.result, filters.searchText ? filters.searchText.toLowerCase().trim().split(/\s+/) : [])}
+  </p>
+) : (
+  <p className="text-sm text-gray-400 italic">{t('no_result_yet')}</p>
+)}
 </div>
 </div>
 
@@ -16162,11 +16270,16 @@ onClick={() => {
               </div>
             )}
 
-{/* ⭐ FOLLOW-ON BUTTON — abaixo dos comments, inibido se já tem follow-on.
-    AI Follow-on fica ao lado (mesma linha), não embaixo. */}
+{/* ⭐ FOLLOW-ON BUTTON — não inibe mais com filho existente: um PAR pode
+    receber vários Follow-Ons (várias pessoas respondendo, especialmente
+    relevante pra um PAR "Problem Only" em aberto). Cada novo Follow-On
+    vira filho DESTE card específico (exp.id), entrando no fim da lista
+    de filhos dele.
+    O botão de AI Follow-on continua de uso único por card — ao
+    contrário do humano, ele só some depois que já existe um Follow-On
+    GERADO POR IA entre os filhos (não qualquer filho humano). */}
 {exp.author !== 'key_insights' && (() => {
-  const hasFollowOn = experiences.some(e => e.parentExperienceId === exp.id);
-  if (hasFollowOn) return null;
+  const hasAiFollowOn = experiences.some(e => e.parentExperienceId === exp.id && e.isAiGenerated);
   return (
     <div className="mt-3 flex items-center gap-3">
       <button
@@ -16182,8 +16295,14 @@ onClick={() => {
             setSelectedPracticeId(exp.practiceId);
             setShareFormPracticeId(exp.practiceId);
           }
+          // Se este card é "Problem Only" (sem Action/Result ainda), o
+          // texto do problema vem travado — quem responder só acrescenta
+          // contexto, sem reescrever/apagar o original.
+          const expIsProblemOnly = !exp.solution && !exp.result;
+          setFollowOnLockedProblem(expIsProblemOnly ? (exp.problem || '') : null);
           setCurrentEntry(prev => ({
             ...prev,
+            problem: '',
             problemCategory: exp.problemCategory || '',
             industrySector: exp.industrySector || ''
           }));
@@ -16194,7 +16313,7 @@ onClick={() => {
       >
         {t('add_follow_on')}
       </button>
-      {getAiReflectionAccess(exp).canFollowon && (
+      {getAiReflectionAccess(exp).canFollowon && !hasAiFollowOn && (
         <button
           onClick={() => requestAiReflection(exp.id, 'followon')}
           disabled={!!aiReflectionLoading[exp.id]}
