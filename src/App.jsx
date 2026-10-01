@@ -343,6 +343,7 @@ const UI_STRINGS = {
   needs_action_result_badge: { en: '🆘 Needs Action & Result', es: '🆘 Necesita Acción y Resultado', pt: '🆘 Precisa de Ação e Resultado', zh: '🆘 需要行动与结果' },
   no_action_yet: { en: 'No action shared yet — be the first to help.', es: 'Aún no hay acción compartida — sé el primero en ayudar.', pt: 'Ainda sem ação compartilhada — seja o primeiro a ajudar.', zh: '尚未分享行动 — 成为第一个提供帮助的人。' },
   no_result_yet: { en: 'No result yet.', es: 'Aún no hay resultado.', pt: 'Ainda sem resultado.', zh: '尚无结果。' },
+  original_problem_tag: { en: '(Original problem)', es: '(Problema original)', pt: '(Problema original)', zh: '(原始问题)' },
   original_problem_label: { en: 'Original problem (from the thread) — your addition below will be appended, not replace it:', es: 'Problema original (del hilo) — tu adición abajo será añadida, no lo reemplaza:', pt: 'Problema original (da thread) — o que você adicionar abaixo será acrescentado, não substitui:', zh: '原始问题（来自该主题）— 你下面添加的内容会被追加，而不会替换它：' },
   additional_problem_context_label: { en: 'Add more context to the problem (optional):', es: 'Agrega más contexto al problema (opcional):', pt: 'Adicione mais contexto ao problema (opcional):', zh: '为问题补充更多背景（可选）：' },
   individual: { en: 'Individual', es: 'Individuales', pt: 'Individuais', zh: '个人' },
@@ -7684,6 +7685,30 @@ const handleDeleteAllMatches = async () => {
   const getResultColor = (category) => resultCategories.find(r => r.value === category)?.color || '';
   const getResultLabel = (category) => resultCategories.find(r => r.value === category)?.label || '';
 
+  // Pra Follow-Ons (humanos OU de IA) de um PAR "Problem Only": o campo
+  // problem salvo é a concatenação do texto original do pai + o que foi
+  // acrescentado (ver effectiveProblemText no handleSubmit, e o mesmo
+  // padrão aplicado pela ai-reflection Edge Function). Não precisa de
+  // nenhum marcador especial salvo no banco — o texto original já está
+  // guardado separadamente, na própria linha do PAR pai. Então, na hora
+  // de exibir, basta achar o pai, conferir se ele é Problem Only, e ver
+  // se o problem desse Follow-on começa exatamente com o texto do pai.
+  // Retorna null quando não há nada pra destacar (não é Follow-on de um
+  // Problem Only, ou não houve nenhum texto acrescentado).
+  const splitFollowOnProblem = (exp) => {
+    if (!exp || !exp.parentExperienceId) return null;
+    const parent = experiences.find(e => e.id === exp.parentExperienceId);
+    if (!parent) return null;
+    const parentIsProblemOnly = !parent.solution && !parent.result;
+    if (!parentIsProblemOnly) return null;
+    const originalText = (parent.problem || '').trim();
+    const fullText = (exp.problem || '').trim();
+    if (!originalText || !fullText.startsWith(originalText)) return null;
+    const addition = fullText.slice(originalText.length).trim();
+    if (!addition) return null;
+    return { original: originalText, addition };
+  };
+
   const highlightText = (text, searchTerms) => {
   if (!searchTerms || searchTerms.length === 0 || !filters.searchText) return text;
   
@@ -8102,7 +8127,20 @@ useEffect(() => {
                   <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>{t('problem')}</h4>
                   <CategoryBadge label={categoryLabel} />
                 </div>
-                <p className="text-sm text-gray-700">{highlightText(fo.problem, searchTerms)}</p>
+                {(() => {
+                  const split = splitFollowOnProblem(fo);
+                  if (!split) return <p className="text-sm text-gray-700">{highlightText(fo.problem, searchTerms)}</p>;
+                  return (
+                    <>
+                      <p className="text-sm text-gray-700">
+                        {highlightText(split.original, searchTerms)}
+                        <br />
+                        <span className="text-xs text-gray-400 italic">{t('original_problem_tag')}</span>
+                      </p>
+                      <p className="text-sm text-gray-700 mt-3">{highlightText(split.addition, searchTerms)}</p>
+                    </>
+                  );
+                })()}
               </div>
               <div className="space-y-2">
                 <h4 className="font-semibold text-blue-600 flex items-center gap-2"><TrendingUp size={16}/>{t('action')}</h4>
@@ -15250,7 +15288,20 @@ onClick={() => {
                             <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>{t('problem')}</h4>
                             <CategoryBadge label={catLabel} />
                           </div>
-                          <p className="text-sm text-gray-700">{highlightText(exp.problem, searchTerms)}</p>
+                          {(() => {
+                            const split = splitFollowOnProblem(exp);
+                            if (!split) return <p className="text-sm text-gray-700">{highlightText(exp.problem, searchTerms)}</p>;
+                            return (
+                              <>
+                                <p className="text-sm text-gray-700">
+                                  {highlightText(split.original, searchTerms)}
+                                  <br />
+                                  <span className="text-xs text-gray-400 italic">{t('original_problem_tag')}</span>
+                                </p>
+                                <p className="text-sm text-gray-700 mt-3">{highlightText(split.addition, searchTerms)}</p>
+                              </>
+                            );
+                          })()}
                         </div>
                         <div className="space-y-2">
                           <h4 className="font-semibold text-blue-600 flex items-center gap-2"><TrendingUp size={16}/>{t('action')}</h4>
@@ -15370,7 +15421,20 @@ onClick={() => {
                                     <h4 className="font-semibold text-red-600 flex items-center gap-2"><AlertCircle size={16}/>{t('problem')}</h4>
                                     <CategoryBadge label={catLabel} />
                                   </div>
-                                  <p className="text-sm text-gray-700">{ancestor.problem}</p>
+                                  {(() => {
+                                    const split = splitFollowOnProblem(ancestor);
+                                    if (!split) return <p className="text-sm text-gray-700">{ancestor.problem}</p>;
+                                    return (
+                                      <>
+                                        <p className="text-sm text-gray-700">
+                                          {split.original}
+                                          <br />
+                                          <span className="text-xs text-gray-400 italic">{t('original_problem_tag')}</span>
+                                        </p>
+                                        <p className="text-sm text-gray-700 mt-3">{split.addition}</p>
+                                      </>
+                                    );
+                                  })()}
                                 </div>
                                 <div className="space-y-2">
                                   <h4 className="font-semibold text-blue-600 flex items-center gap-2"><TrendingUp size={16}/>{t('action')}</h4>
