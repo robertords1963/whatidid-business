@@ -6478,17 +6478,31 @@ const industrySectorFeatureEnabled = (appSettings.industrySectorEnabledEditions 
     : currentEntry.problem;
 
   // Um PAR pode ser submetido de duas formas: completo (Problem + Action +
-  // Result + as duas categorias) ou só o Problem (Problem + categoria do
-  // Problem), pra quando a pessoa ainda não sabe o que fazer a respeito —
-  // nesse caso, Action/Result ficam em aberto pra outra pessoa (ou a IA)
-  // completar depois via Follow-On. matchResults (Common Case) só faz
-  // sentido pro PAR completo, já que compara a solução também.
-  const isCurrentEntryProblemOnly = !!(effectiveProblemText && currentEntry.problemCategory
-    && !(currentEntry.solution && currentEntry.result && currentEntry.resultCategory));
+  // Result + as duas categorias + Practice) ou só o Problem (Problem +
+  // categoria do Problem + Practice), pra quando a pessoa ainda não sabe
+  // o que fazer a respeito — nesse caso, Action/Result ficam em aberto
+  // pra outra pessoa (ou a IA) completar depois via Follow-On.
+  // matchResults (Common Case) só faz sentido pro PAR completo, já que
+  // compara a solução também.
+  //
+  // hasBaseFields exige os DOIS dropdowns (Practice e Problem Category)
+  // + o Problem preenchido — sem isso, nem "Problem Only" nem o envio
+  // completo ficam disponíveis.
+  //
+  // isCurrentEntryProblemOnly só é true quando Action/Result/Result
+  // Category estão TODOS vazios ainda — assim que a pessoa começa a
+  // preencher qualquer um deles, o botão "Submit Problem Only" tem que
+  // sumir/desativar, voltando a ficar ativo (agora como envio completo,
+  // com o ícone de enviar normal) só quando TODOS os campos estiverem
+  // preenchidos. Enquanto o preenchimento estiver pela metade, o botão
+  // fica desativado.
+  const hasBaseFields = !!(effectiveProblemText && currentEntry.problemCategory && selectedPracticeId);
+  const hasAllFields = hasBaseFields && !!(currentEntry.solution && currentEntry.result && currentEntry.resultCategory);
+  const hasNoActionResultYet = !currentEntry.solution && !currentEntry.result && !currentEntry.resultCategory;
+  const isCurrentEntryProblemOnly = hasBaseFields && hasNoActionResultYet;
 
   const handleSubmit = async () => {
-  if (effectiveProblemText && currentEntry.problemCategory &&
-      currentEntry.solution && currentEntry.result && currentEntry.resultCategory) {
+  if (hasAllFields) {
 
     const entryToSubmit = { ...currentEntry, problem: effectiveProblemText };
     const matchResults = findBestCommonCaseMatch(entryToSubmit);
@@ -14385,7 +14399,7 @@ onClick={() => {
 
       <button
         onClick={handleSubmit}
-        disabled={!((effectiveProblemText && currentEntry.problemCategory && currentEntry.solution && currentEntry.result && currentEntry.resultCategory) || isCurrentEntryProblemOnly)}
+        disabled={!(hasAllFields || isCurrentEntryProblemOnly)}
         className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
         title={t('share_your_experience')}
       >
@@ -14402,7 +14416,7 @@ onClick={() => {
   <div className="md:col-span-2 flex justify-end">
     <button
       onClick={handleSubmit}
-      disabled={!((effectiveProblemText && currentEntry.problemCategory && currentEntry.solution && currentEntry.result && currentEntry.resultCategory) || isCurrentEntryProblemOnly)}
+      disabled={!(hasAllFields || isCurrentEntryProblemOnly)}
       className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
       title={t('share_your_experience')}
     >
